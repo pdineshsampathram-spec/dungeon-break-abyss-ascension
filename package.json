@@ -1,0 +1,26 @@
+{
+  "name": "dungeon-break",
+  "version": "8.0.0",
+  "description": "Dungeon Break: Abyss Ascension — 2D Roguelite Action Dungeon Crawler",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "build": "mkdir -p dist && cp index.html dist/index.html",
+    "android:init": "npm run build && npx cap add android",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android"
+  },
+  "keywords": [
+    "roguelike",
+    "dungeon-crawler",
+    "action",
+    "canvas-game"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/android": "^6.0.0"
+  }
+}
