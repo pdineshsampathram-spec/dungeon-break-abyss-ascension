@@ -4792,8 +4792,9 @@ function loop(ts) {
     TR_tick(DT); TR_draw(); _hideIngamePause();
   } else if(STATE==='playing'){
     _showIngamePause();
-    const GDT = frozen ? 0 : DT * GAME_SPEED;
-    if(!frozen){tickPlayer(GDT);tickENE(GDT);tickTraps(GDT);tickSanity(GDT);if(LV===10)tickBoss(GDT);}
+    const isPausedByEvent = (typeof ACTIVE_EVENT_CHOICE !== 'undefined' && ACTIVE_EVENT_CHOICE !== null);
+    const GDT = (frozen || isPausedByEvent) ? 0 : DT * GAME_SPEED;
+    if(!frozen && !isPausedByEvent){tickPlayer(GDT);tickENE(GDT);tickTraps(GDT);tickSanity(GDT);if(LV===10)tickBoss(GDT);}
     // Tick GAME_MSG_TIMER using real DT (not game speed) so messages display consistently
     if(GAME_MSG_TIMER>0){GAME_MSG_TIMER-=DT;if(GAME_MSG_TIMER<=0){GAME_MSG='';GAME_MSG_TIMER=0;}}
     tickPRT(GDT); tickSlashTrails(GDT); tickProjectiles(GDT); tickAchievToasts(DT);
@@ -5202,6 +5203,12 @@ function TR_tick(dt) {
   // Tick particles (need F to advance)
   tickPRT(dt);
 
+  // Tick room transition delay
+  if (TR._nextRoomDelay > 0) {
+    TR._nextRoomDelay -= dt;
+    if (TR._nextRoomDelay <= 0) { TR._nextRoomDelay = 0; TR_nextRoom(); }
+  }
+
   // Room-specific logic
   if (TR.room === 1 && moving) {
     TR._movedTimer = (TR._movedTimer||0) + dt;
@@ -5217,7 +5224,7 @@ function TR_tick(dt) {
         P.wep = it.sub; P.wepRarity = it.rarity;
         SoundManager.snd('item_pickup');
         spawnP(it.x, it.y, 8, {col:'#fde68a', spd:1.0, life:0.6, r:3, star:true});
-        setTimeout(() => TR_nextRoom(), 600);
+        TR._nextRoomDelay = 0.6;
       }
     });
   }
@@ -5252,7 +5259,7 @@ function TR_tick(dt) {
           e.alive = false; e.dAnim = 0.5;
           SoundManager.snd('enemy_death');
           spawnP(e.x, e.y, 12, {col:'#ef4444',spd:1.5,life:0.8,r:4});
-          setTimeout(() => TR_nextRoom(), 900);
+          TR._nextRoomDelay = 0.9;
         }
       }
     }
@@ -5702,35 +5709,10 @@ function drawHallucinations() {
 // are re-pointed AFTER capture so no hoisting conflict occurs.
 // ─────────────────────────────────────────────────────────────────────
 
-// Step 1 — capture originals into uniquely-named variables
-const _tp_orig = tickPlayer;
-const _dw_orig = drawWorld;
-const _sg_orig = startGame;
-
-// Step 2 — define wrappers under new names (never self-referential)
-function _tp_patched(dt) {
-  _tp_orig(dt);
-  tickFog(dt);
-  tickHallucinations(dt);
-  tickPortalWarp(dt);
-}
-function _dw_patched() {
-  _dw_orig();
-  drawFog();
-  drawDynamicTorchLighting();
-  drawHallucinations();
-  drawPortalWarp();
-}
-function _sg_patched() {
-  _TITLE_ANIM_T = 0;
-  _sg_orig();
-}
-
-// Step 3 — re-point the global names to the wrappers
-// (function declarations are writable at global scope)
-tickPlayer = _tp_patched;
-drawWorld  = _dw_patched;
-startGame  = _sg_patched;
+// Capture core originals once for final pipeline integration
+const _tp_core = tickPlayer;
+const _dw_core = drawWorld;
+const _sg_core = startGame;
 
 // ─────────────────────────────────────────────────────────────────────
 // END ENHANCEMENT MODULE
@@ -6129,7 +6111,6 @@ function spawnBossMinion(cx, cy, circleOffset) {
       // Fallback: find any valid floor position
       const pos = rndFloor(4); x = pos.x; y = pos.y;
     }
-  }
   if (solidAt(x, y)) return;
   ENE.push({ x, y, vx: 0, vy: 0, alive: true, hp, maxHp: hp, type, alertT: 1.0, atkC: 0, ph: Math.random() * 6.28, dAnim: 0, hitFlash: 0, animState: 'idle', animTimer: 0, walkCycle: 0 });
   spawnP(x, y, 6, { col: '#7c3aed', spd: 0.8, life: 0.5, r: 2.5, star: true });
@@ -6381,29 +6362,34 @@ loadLevel = function() {
   // Boss timer tracked on BOSS object after spawnBoss (in boss patch above)
 };
 
-// 8b. Patch tickPlayer to include weapon ability ticks, sanity checks
-const _tp2_orig = tickPlayer;
+// 8b. Unified tickPlayer pipeline
 tickPlayer = function(dt) {
-  _tp2_orig(dt);
+  _tp_core(dt);
+  tickFog(dt);
+  tickHallucinations(dt);
+  tickPortalWarp(dt);
   tickWeaponAbilities(dt);
   tickEventRooms(dt);
   checkSanityAchievements();
 };
 
-// 8c. Patch drawWorld to include event decals and abyss fog
-const _dw2_orig = drawWorld;
+// 8c. Unified drawWorld pipeline
 drawWorld = function() {
-  _dw2_orig();
+  _dw_core();
+  drawFog();
+  drawDynamicTorchLighting();
+  drawHallucinations();
+  drawPortalWarp();
   drawEventRoomDecals();
   drawAbyssFog();
   drawEventChoiceUI();
 };
 
-// 8d. Patch startGame to reset escort count
-const _sg2_orig = startGame;
+// 8d. Unified startGame pipeline
 startGame = function() {
+  _TITLE_ANIM_T = 0;
   ESCORT_COUNT = 0;
-  _sg2_orig();
+  _sg_core();
 };
 
 // 8e. decideEnding — no meta hook needed (meta system removed)
