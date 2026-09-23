@@ -533,10 +533,14 @@ CV.addEventListener('touchstart', e => {
   const t = e.changedTouches[0];
   const { mx, my } = _cssToGame(t.clientX, t.clientY);
   if (STATE === 'title') {
-    if (mx > LW/2-120 && mx < LW/2+120 && my > 261 && my < 317) { startGame(); return; }
-    if (mx > LW/2-110 && mx < LW/2+110 && my > 320 && my < 376) { openTrainingDungeon(); return; }
-    if (mx > LW/2-110 && mx < LW/2+110 && my > 382 && my < 438) { openSettings(); return; }
-    if (mx > LW/2-110 && mx < LW/2+110 && my > 444 && my < 500) { openAchievements(); return; }
+    if (mx > LW/2-120 && mx < LW/2+120 && my > 244 && my < 300) { startGame(); return; }
+    if (mx > LW/2-110 && mx < LW/2+110 && my > 300 && my < 356) { openTrainingDungeon(); return; }
+    if (mx > LW/2-110 && mx < LW/2+110 && my > 356 && my < 412) { openSettings(); return; }
+    if (mx > LW/2-110 && mx < LW/2+110 && my > 412 && my < 468) { openAchievements(); return; }
+    if (mx > LW/2-110 && mx < LW/2+110 && my > 468 && my < 524) { openSanctum(); return; }
+  } else if (STATE === 'sanctum') {
+    if (typeof handleSanctumClick === 'function') handleSanctumClick(mx, my);
+    return;
   } else if (STATE === 'settings') {
     const eb = drawSettings._editBtn, rb = drawSettings._resetBtn;
     if (eb && mx >= eb.x && mx <= eb.x+eb.w && my >= eb.y && my <= eb.y+eb.h) {
@@ -671,10 +675,14 @@ function _achievMaxScroll() {
 CV.addEventListener('click', e => {
   const { mx, my } = _cssToGame(e.clientX, e.clientY);
   if (STATE === 'title') {
-    if (mx > LW / 2 - 120 && mx < LW / 2 + 120 && my > 261 && my < 317) { startGame(); return; }
-    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 320 && my < 376) { openTrainingDungeon(); return; }
-    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 382 && my < 438) { openSettings(); return; }
-    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 444 && my < 500) { openAchievements(); return; }
+    if (mx > LW / 2 - 120 && mx < LW / 2 + 120 && my > 244 && my < 300) { startGame(); return; }
+    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 300 && my < 356) { openTrainingDungeon(); return; }
+    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 356 && my < 412) { openSettings(); return; }
+    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 412 && my < 468) { openAchievements(); return; }
+    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 468 && my < 524) { openSanctum(); return; }
+  } else if (STATE === 'sanctum') {
+    if (typeof handleSanctumClick === 'function') handleSanctumClick(mx, my);
+    return;
   } else if (STATE === 'settings') {
     // Check mobile control buttons first
     const eb = drawSettings._editBtn, rb = drawSettings._resetBtn;
@@ -768,6 +776,10 @@ const ACHIEVEMENTS = {
   overwhelmed:{ name: 'Swarmed',               desc: 'Fall to the endless horrors.',                    icon: '💀', unlocked: false },
   executed:   { name: 'Kneel Before the Abyss',desc: 'Be slain by the Abyss Warden.',                   icon: '👑', unlocked: false },
   consumed:   { name: 'Consumed by Darkness',  desc: 'Become part of the dungeon.',                     icon: '🌑', unlocked: false },
+  jailbreaker:   { name: 'Jailbreaker',        desc: 'Slay Gorgaroth the Iron Warden (Floor 3)',        icon: '⛓️', unlocked: false },
+  void_conqueror:{ name: 'Void Conqueror',     desc: 'Vanquish Malakor the Void Reaver (Floor 6)',      icon: '🌌', unlocked: false },
+  soul_ascendant:{ name: 'Soul Ascendant',     desc: 'Collect 100 total Abyss Souls',                   icon: '🔮', unlocked: false },
+  maxed_talent:  { name: 'True Ascension',     desc: 'Max out any talent rank in the Sanctum',          icon: '⚡', unlocked: false },
 };
 let ACHIEV_TOASTS = [];
 function loadAchievements() {
@@ -1128,7 +1140,8 @@ const SoundManager = (() => {
   const SND_CD = {
     melee_hit: 0.07, bow_shoot: 0.10, enemy_death: 0.06,
     player_hurt: 0.25, item_pickup: 0.15, portal_enter: 0.8,
-    shield_activate: 0.5, boss_roar: 1.2
+    shield_activate: 0.5, boss_roar: 1.2,
+    soul_pickup: 0.04, talent_unlock: 0.15, shockwave: 0.25, miniboss_roar: 0.8
   };
   const SND_LAST = {};
 
@@ -1293,6 +1306,20 @@ const SoundManager = (() => {
     } else if (name === 'boss_roar') {
       playTone(55, 'sawtooth', 0.5, 0.20, 35);
       setTimeout(() => playTone(80, 'square', 0.3, 0.12, 50), 200);
+    } else if (name === 'soul_pickup') {
+      playTone(880, 'sine', 0.08, 0.12, 1320);
+      setTimeout(() => playTone(1320, 'sine', 0.07, 0.08, 1760), 40);
+    } else if (name === 'talent_unlock') {
+      playTone(440, 'triangle', 0.12, 0.14);
+      setTimeout(() => playTone(554, 'triangle', 0.12, 0.14), 75);
+      setTimeout(() => playTone(659, 'triangle', 0.15, 0.16), 150);
+      setTimeout(() => playTone(880, 'sine', 0.22, 0.18, 1100), 225);
+    } else if (name === 'shockwave') {
+      playTone(85, 'sawtooth', 0.22, 0.20, 40);
+      setTimeout(() => playTone(50, 'square', 0.25, 0.16, 25), 45);
+    } else if (name === 'miniboss_roar') {
+      playTone(75, 'sawtooth', 0.45, 0.18, 45);
+      setTimeout(() => playTone(110, 'square', 0.25, 0.14, 60), 120);
     }
   }
 
@@ -4046,16 +4073,19 @@ function drawTitle() {
     CX.restore();
   }
 
-  motionBtn('▶  PLAY  ( Enter )',261,true,0);
-  motionBtn('📖  How To Play',320,false,0.15);
-  motionBtn('⚙  Settings',382,false,0.3);
-  motionBtn('🏆  Achievements',444,false,0.45);
+  motionBtn('▶  PLAY  ( Enter )',244,true,0);
+  motionBtn('📖  How To Play',300,false,0.12);
+  motionBtn('⚙  Settings',356,false,0.22);
+  motionBtn('🏆  Achievements',412,false,0.32);
+  motionBtn('🔮  Abyss Sanctum',468,false,0.42);
 
   const sv=loadSave();
   if(sv){
     CX.fillStyle='rgba(148,163,184,.45)'; CX.font='11px Cinzel,serif'; CX.textAlign='center';
-    CX.fillText('[ R ] Resume saved game — Level '+sv.lv,LW/2,514);
+    CX.fillText('[ R ] Resume saved game — Level '+sv.lv,LW/2,536);
   }
+  CX.fillStyle='rgba(192,132,252,.75)'; CX.font='bold 11px Cinzel,serif'; CX.textAlign='center';
+  CX.fillText('🔮 Total Abyss Souls: ' + (typeof ABYSS_SOULS !== 'undefined' ? ABYSS_SOULS : 0), LW/2, 560);
   CX.fillStyle='rgba(100,116,139,.4)'; CX.font='10px Cinzel,serif'; CX.textAlign='center';
   CX.fillText('Arrow Keys / WASD — Move    Space — Attack    Esc — Pause',LW/2,LH-15);
 }
@@ -4818,6 +4848,8 @@ function loop(ts) {
     drawTitle(); drawSettings(); _hideIngamePause();
   } else if(STATE==='achievements'){
     drawTitle(); drawAchievPanel(); _hideIngamePause();
+  } else if(STATE==='sanctum'){
+    drawTitle(); if (typeof drawSanctumPanel === 'function') drawSanctumPanel(); _hideIngamePause();
   }
 
   CX.restore();
@@ -6488,6 +6520,901 @@ drawHUD = function() {
 
 // ─────────────────────────────────────────────────────────────────────
 // END PATCH MODULE v7.0
+// ─────────────────────────────────────────────────────────────────────
+
+// =====================================================================
+//  DUNGEON BREAK — ABYSS ASCENSION  v8.0  EXPANSION MODULE
+//  1. Abyss Sanctum & Meta Progression (Souls, Talents)
+//  2. Floating Combat Text & Blood Splatter System
+//  3. Soul Orbs (Physically Gravitating Collectibles)
+//  4. 2.5D Wall Drop-Shadows & Atmospheric Depth
+//  5. Melee Crescent Blade Trails & Kinetic Juice
+//  6. Mini-Bosses: Gorgaroth (Floor 3) & Malakor (Floor 6)
+//  7. Cinematic Encounter Banners & Boss Polish
+// =====================================================================
+
+// ── 1. Meta Progression: Souls & Talents ─────────────────────────────
+let ABYSS_SOULS = parseInt(localStorage.getItem('db_abyss_souls') || '0', 10);
+if (isNaN(ABYSS_SOULS) || ABYSS_SOULS < 0) ABYSS_SOULS = 0;
+
+function saveSouls() {
+  try {
+    localStorage.setItem('db_abyss_souls', ABYSS_SOULS.toString());
+    if (ABYSS_SOULS >= 100) unlockAchievement('soul_ascendant');
+  } catch (e) {}
+}
+
+const TALENT_DEFS = {
+  vitality: { name: 'Bloodline Vigor', icon: '🩸', desc: '+2 Max HP per rank', max: 5, costs: [5, 12, 25, 45, 75] },
+  clarity:  { name: 'Mind Sanctuary', icon: '🧠', desc: '-12% Sanity drain rate per rank', max: 5, costs: [5, 12, 25, 45, 75] },
+  fury:     { name: 'Abyssal Might', icon: '⚔️', desc: '+15% Attack damage per rank', max: 5, costs: [8, 18, 35, 60, 100] },
+  haste:    { name: 'Phantom Haste', icon: '⚡', desc: '+8% Movement & attack speed per rank', max: 5, costs: [8, 18, 35, 60, 100] },
+  siphon:   { name: 'Vampiric Touch', icon: '👁️', desc: '5% chance on hit to restore 1 HP per rank', max: 5, costs: [10, 25, 50, 85, 140] },
+};
+
+let TALENTS = { vitality: 0, clarity: 0, fury: 0, haste: 0, siphon: 0 };
+try {
+  const savedT = JSON.parse(localStorage.getItem('db_talents_v8') || '{}');
+  Object.keys(TALENT_DEFS).forEach(k => {
+    if (typeof savedT[k] === 'number') TALENTS[k] = Math.max(0, Math.min(TALENT_DEFS[k].max, savedT[k]));
+  });
+} catch (e) {}
+
+function saveTalents() {
+  try {
+    localStorage.setItem('db_talents_v8', JSON.stringify(TALENTS));
+    const anyMaxed = Object.keys(TALENT_DEFS).some(k => TALENTS[k] >= TALENT_DEFS[k].max);
+    if (anyMaxed) unlockAchievement('maxed_talent');
+  } catch (e) {}
+}
+
+function getTalentRank(k) { return TALENTS[k] || 0; }
+
+let SANCTUM_SLIDE = 0;
+function openSanctum() {
+  SANCTUM_SLIDE = 0;
+  STATE = 'sanctum';
+}
+
+function drawSanctumPanel() {
+  SANCTUM_SLIDE = Math.min(1, SANCTUM_SLIDE + DT * 4.5);
+  const panW = 560, panH = 550;
+  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2 - (1 - SANCTUM_SLIDE) * 50;
+
+  CX.save();
+  CX.globalAlpha = SANCTUM_SLIDE;
+
+  // Background
+  CX.fillStyle = 'rgba(6,9,24,0.97)';
+  CX.strokeStyle = 'rgba(168,85,247,0.7)';
+  CX.lineWidth = 1.5;
+  roundRect(CX, panX, panY, panW, panH, 12);
+  CX.fill();
+  CX.stroke();
+
+  // Header
+  CX.fillStyle = '#c084fc';
+  CX.font = 'bold 18px Cinzel, serif';
+  CX.textAlign = 'center';
+  CX.textBaseline = 'top';
+  CX.shadowColor = '#a855f7';
+  CX.shadowBlur = 12;
+  CX.fillText('🔮 THE ABYSS SANCTUM', LW / 2, panY + 16);
+  CX.shadowBlur = 0;
+
+  // Soul Counter
+  CX.fillStyle = '#fde68a';
+  CX.font = 'bold 12px Cinzel, serif';
+  CX.fillText('Available Abyss Souls: ' + ABYSS_SOULS + ' 🔮', LW / 2, panY + 42);
+
+  // Divider line
+  CX.fillStyle = 'rgba(168,85,247,0.3)';
+  CX.fillRect(panX + 20, panY + 62, panW - 40, 1);
+
+  // Cards
+  const talentKeys = Object.keys(TALENT_DEFS);
+  const cardW = panW - 40, cardH = 72, gap = 8;
+  const startY = panY + 74;
+
+  talentKeys.forEach((key, idx) => {
+    const tDef = TALENT_DEFS[key];
+    const rank = getTalentRank(key);
+    const isMax = rank >= tDef.max;
+    const cost = isMax ? 0 : tDef.costs[rank];
+    const canAfford = !isMax && ABYSS_SOULS >= cost;
+    const cy = startY + idx * (cardH + gap);
+
+    // Card BG
+    CX.fillStyle = 'rgba(15,23,42,0.85)';
+    CX.strokeStyle = isMax ? 'rgba(234,179,8,0.6)' : canAfford ? 'rgba(168,85,247,0.5)' : 'rgba(51,65,85,0.4)';
+    CX.lineWidth = 1;
+    roundRect(CX, panX + 20, cy, cardW, cardH, 8);
+    CX.fill();
+    CX.stroke();
+
+    // Icon & Name
+    CX.font = '22px serif';
+    CX.textAlign = 'left';
+    CX.textBaseline = 'middle';
+    CX.fillText(tDef.icon, panX + 34, cy + 26);
+
+    CX.fillStyle = '#f1f5f9';
+    CX.font = 'bold 13px Cinzel, serif';
+    CX.fillText(tDef.name, panX + 66, cy + 24);
+
+    // Description
+    CX.fillStyle = 'rgba(148,163,184,0.85)';
+    CX.font = '11px Crimson Text, serif';
+    CX.fillText(tDef.desc, panX + 66, cy + 46);
+
+    // Progress Pips
+    for (let p = 0; p < tDef.max; p++) {
+      const pipX = panX + cardW - 220 + p * 14;
+      const pipY = cy + 20;
+      CX.fillStyle = p < rank ? '#a855f7' : 'rgba(51,65,85,0.7)';
+      roundRect(CX, pipX, pipY, 10, 8, 2);
+      CX.fill();
+    }
+    CX.fillStyle = 'rgba(203,213,225,0.7)';
+    CX.font = '10px Cinzel, serif';
+    CX.textAlign = 'right';
+    CX.fillText('Rank ' + rank + '/' + tDef.max, panX + cardW - 144, cy + 46);
+
+    // Upgrade Button
+    const btnX = panX + cardW - 134, btnY = cy + 16, btnW = 120, btnH = 40;
+    CX.fillStyle = isMax ? 'rgba(234,179,8,0.15)' : canAfford ? 'rgba(168,85,247,0.25)' : 'rgba(30,41,59,0.5)';
+    CX.strokeStyle = isMax ? 'rgba(234,179,8,0.7)' : canAfford ? 'rgba(168,85,247,0.8)' : 'rgba(71,85,105,0.3)';
+    CX.lineWidth = 1.2;
+    roundRect(CX, btnX, btnY, btnW, btnH, 6);
+    CX.fill();
+    CX.stroke();
+
+    CX.fillStyle = isMax ? '#fde68a' : canAfford ? '#ffffff' : '#64748b';
+    CX.font = 'bold 10px Cinzel, serif';
+    CX.textAlign = 'center';
+    CX.textBaseline = 'middle';
+    CX.fillText(isMax ? '★ MAXED' : 'Upgrade: ' + cost + ' 🔮', btnX + btnW / 2, btnY + btnH / 2);
+  });
+
+  // Close Button Footer
+  const closeBtnW = 180, closeBtnH = 34;
+  const closeX = LW / 2 - closeBtnW / 2, closeY = panY + panH - 46;
+  CX.fillStyle = 'rgba(30,41,59,0.8)';
+  CX.strokeStyle = 'rgba(148,163,184,0.4)';
+  CX.lineWidth = 1;
+  roundRect(CX, closeX, closeY, closeBtnW, closeBtnH, 6);
+  CX.fill();
+  CX.stroke();
+
+  CX.fillStyle = '#cbd5e1';
+  CX.font = 'bold 11px Cinzel, serif';
+  CX.textAlign = 'center';
+  CX.textBaseline = 'middle';
+  CX.fillText('✖ Close Sanctum ( Esc )', LW / 2, closeY + closeBtnH / 2);
+
+  CX.restore();
+}
+
+function handleSanctumClick(mx, my) {
+  const panW = 560, panH = 550;
+  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2;
+
+  // Check Close Button
+  const closeBtnW = 180, closeBtnH = 34;
+  const closeX = LW / 2 - closeBtnW / 2, closeY = panY + panH - 46;
+  if (mx >= closeX && mx <= closeX + closeBtnW && my >= closeY && my <= closeY + closeBtnH) {
+    STATE = 'title';
+    return true;
+  }
+
+  // Check Talent Upgrade Buttons
+  const talentKeys = Object.keys(TALENT_DEFS);
+  const cardW = panW - 40, cardH = 72, gap = 8;
+  const startY = panY + 74;
+
+  for (let idx = 0; idx < talentKeys.length; idx++) {
+    const key = talentKeys[idx];
+    const tDef = TALENT_DEFS[key];
+    const rank = getTalentRank(key);
+    const cy = startY + idx * (cardH + gap);
+    const btnX = panX + cardW - 134, btnY = cy + 16, btnW = 120, btnH = 40;
+
+    if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
+      if (rank < tDef.max) {
+        const cost = tDef.costs[rank];
+        if (ABYSS_SOULS >= cost) {
+          ABYSS_SOULS -= cost;
+          TALENTS[key] = rank + 1;
+          saveSouls();
+          saveTalents();
+          SoundManager.snd('talent_unlock');
+          shk(4);
+          return true;
+        }
+      }
+    }
+  }
+
+  // Clicked outside panel -> close
+  if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
+    STATE = 'title';
+    return true;
+  }
+  return false;
+}
+
+// ── 2. Floating Combat Text System ───────────────────────────────────
+const FLOATING_TEXTS = [];
+function showFloatingText(text, x, y, col = '#ffffff', sz = 13, isCrit = false) {
+  FLOATING_TEXTS.push({
+    text,
+    x: (x + 0.5) * T + (Math.random() - 0.5) * 8,
+    y: (y + 0.2) * T,
+    vy: -1.3 - Math.random() * 0.7,
+    life: 0.85,
+    maxLife: 0.85,
+    col,
+    sz,
+    isCrit,
+    scale: 0.75
+  });
+}
+
+function tickFloatingTexts(dt) {
+  for (let i = FLOATING_TEXTS.length - 1; i >= 0; i--) {
+    const ft = FLOATING_TEXTS[i];
+    ft.life -= dt;
+    ft.y += ft.vy * dt * TARGET_FPS;
+    ft.scale = Math.min(1.25, ft.scale + dt * 4);
+    if (ft.life <= 0) FLOATING_TEXTS.splice(i, 1);
+  }
+}
+
+function drawFloatingTexts() {
+  if (FLOATING_TEXTS.length === 0) return;
+  CX.save();
+  FLOATING_TEXTS.forEach(ft => {
+    const alpha = Math.min(1, ft.life / 0.28);
+    CX.globalAlpha = alpha;
+    CX.font = (ft.isCrit ? 'bold ' : '') + Math.round(ft.sz * ft.scale) + 'px Cinzel, serif';
+    CX.textAlign = 'center';
+    CX.textBaseline = 'middle';
+    if (ft.isCrit) {
+      CX.shadowColor = '#f59e0b';
+      CX.shadowBlur = 8;
+    }
+    CX.fillStyle = ft.col;
+    CX.fillText(ft.text, ft.x, ft.y);
+  });
+  CX.restore();
+}
+
+// ── 3. Soul Orbs System ──────────────────────────────────────────────
+const SOUL_ORBS = [];
+function spawnSoulOrb(x, y, count = 1) {
+  SOUL_ORBS.push({
+    x, y,
+    vx: (Math.random() - 0.5) * 2.5,
+    vy: (Math.random() - 0.5) * 2.5,
+    count,
+    life: 12.0,
+    ph: Math.random() * 6.28
+  });
+}
+
+function tickSoulOrbs(dt) {
+  for (let i = SOUL_ORBS.length - 1; i >= 0; i--) {
+    const orb = SOUL_ORBS[i];
+    orb.life -= dt;
+    orb.ph += dt * 4;
+    const dx = P.x - orb.x, dy = P.y - orb.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    // Gravitate toward player
+    const pullSpeed = dist < 4 ? 6.5 : 2.2;
+    orb.vx += (dx / dist) * pullSpeed * dt;
+    orb.vy += (dy / dist) * pullSpeed * dt;
+    orb.vx *= Math.pow(0.88, dt * TARGET_FPS);
+    orb.vy *= Math.pow(0.88, dt * TARGET_FPS);
+    orb.x += orb.vx * dt;
+    orb.y += orb.vy * dt;
+
+    if (F % 5 === 0) {
+      spawnP(orb.x, orb.y, 1, { col: '#a855f7', spd: 0.2, life: 0.25, r: 1.6 });
+    }
+
+    if (dist < 0.65 && !P.dead) {
+      ABYSS_SOULS += orb.count;
+      saveSouls();
+      SoundManager.snd('soul_pickup');
+      showFloatingText('+' + orb.count + ' 🔮', P.x, P.y - 0.4, '#c084fc', 13);
+      spawnP(orb.x, orb.y, 6, { col: '#c084fc', spd: 1.0, life: 0.4, r: 2.2, star: true });
+      SOUL_ORBS.splice(i, 1);
+    } else if (orb.life <= 0) {
+      SOUL_ORBS.splice(i, 1);
+    }
+  }
+}
+
+function drawSoulOrbs() {
+  if (SOUL_ORBS.length === 0) return;
+  CX.save();
+  SOUL_ORBS.forEach(orb => {
+    const ox = (orb.x + 0.5) * T, oy = (orb.y + 0.5) * T + Math.sin(orb.ph) * 3;
+    const puls = Math.sin(orb.ph * 2) * 0.3 + 0.7;
+    CX.shadowColor = '#a855f7';
+    CX.shadowBlur = 10 * puls;
+    CX.fillStyle = '#c084fc';
+    CX.beginPath();
+    CX.arc(ox, oy, 4 * puls, 0, 6.28);
+    CX.fill();
+    CX.fillStyle = '#ffffff';
+    CX.beginPath();
+    CX.arc(ox, oy, 2 * puls, 0, 6.28);
+    CX.fill();
+  });
+  CX.restore();
+}
+
+// ── 4. 2.5D Wall Drop-Shadows & Atmospheric Depth ────────────────────
+function drawWallDropShadows() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (!MAP[r]) continue;
+      const tile = MAP[r][c];
+      if (tile === 0 || tile === 2) {
+        const px = c * T, py = r * T;
+        // Drop shadow from wall above
+        if (r > 0 && MAP[r - 1] && MAP[r - 1][c] === 1) {
+          const dropGrad = CX.createLinearGradient(px, py, px, py + 10);
+          dropGrad.addColorStop(0, 'rgba(0,0,0,0.50)');
+          dropGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          CX.fillStyle = dropGrad;
+          CX.fillRect(px, py, T, 10);
+        }
+        // Subtle shadow from wall to left
+        if (c > 0 && MAP[r][c - 1] === 1) {
+          const sideGrad = CX.createLinearGradient(px, py, px + 8, py);
+          sideGrad.addColorStop(0, 'rgba(0,0,0,0.30)');
+          sideGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          CX.fillStyle = sideGrad;
+          CX.fillRect(px, py, 8, T);
+        }
+      }
+    }
+  }
+}
+
+// ── 5. Melee Crescent Blade Trails ───────────────────────────────────
+const SLASH_ARCS = [];
+function spawnSlashArc(x, y, ang, arcSpan, col, r = 24) {
+  SLASH_ARCS.push({
+    x: (x + 0.5) * T,
+    y: (y + 0.5) * T,
+    ang,
+    arcSpan,
+    col,
+    r,
+    life: 0.18,
+    maxLife: 0.18
+  });
+}
+
+function tickSlashArcs(dt) {
+  for (let i = SLASH_ARCS.length - 1; i >= 0; i--) {
+    const sa = SLASH_ARCS[i];
+    sa.life -= dt;
+    if (sa.life <= 0) SLASH_ARCS.splice(i, 1);
+  }
+}
+
+function drawSlashArcs() {
+  if (SLASH_ARCS.length === 0) return;
+  CX.save();
+  SLASH_ARCS.forEach(sa => {
+    const prog = Math.max(0, sa.life / sa.maxLife);
+    CX.globalAlpha = prog * 0.85;
+    CX.strokeStyle = sa.col;
+    CX.lineWidth = 3.5 * prog;
+    CX.shadowColor = sa.col;
+    CX.shadowBlur = 10 * prog;
+    CX.beginPath();
+    CX.arc(sa.x, sa.y, sa.r, sa.ang - sa.arcSpan / 2, sa.ang + sa.arcSpan / 2);
+    CX.stroke();
+  });
+  CX.restore();
+}
+
+// ── 6. Mini-Bosses (Floor 3 & 6) ─────────────────────────────────────
+let ACTIVE_MINIBOSS = null;
+
+function spawnMiniBoss(type) {
+  if (!ROOMS || ROOMS.length === 0) return;
+  const targetRoom = ROOMS[Math.min(ROOMS.length - 1, 3)];
+  const x = targetRoom.cx, y = targetRoom.cy;
+
+  if (type === 'iron_warden') {
+    ACTIVE_MINIBOSS = {
+      type: 'iron_warden',
+      name: 'GORGAROTH',
+      title: 'The Iron Warden',
+      x, y, vx: 0, vy: 0,
+      hp: 14, maxHp: 14,
+      alive: true,
+      alertT: 0, atkC: 0,
+      slamTimer: 3.5,
+      slamTelegraph: 0,
+      slamX: 0, slamY: 0,
+      ph: 0, dAnim: 0, hitFlash: 0
+    };
+    triggerCinematicBanner('GORGAROTH', '— The Iron Warden —', '#ef4444');
+    SoundManager.snd('miniboss_roar');
+  } else if (type === 'void_reaver') {
+    ACTIVE_MINIBOSS = {
+      type: 'void_reaver',
+      name: 'MALAKOR',
+      title: 'The Void Reaver',
+      x, y, vx: 0, vy: 0,
+      hp: 20, maxHp: 20,
+      alive: true,
+      alertT: 0, atkC: 0,
+      barrageTimer: 2.8,
+      teleportTimer: 4.5,
+      ph: 0, dAnim: 0, hitFlash: 0
+    };
+    triggerCinematicBanner('MALAKOR', '— The Void Reaver —', '#a855f7');
+    SoundManager.snd('miniboss_roar');
+  }
+}
+
+function tickMiniBoss(dt) {
+  const mb = ACTIVE_MINIBOSS;
+  if (!mb || !mb.alive) return;
+  mb.ph += dt * 3;
+  if (mb.atkC > 0) mb.atkC -= dt;
+  if (mb.hitFlash > 0) mb.hitFlash = Math.max(0, mb.hitFlash - dt);
+
+  const dx = P.x - mb.x, dy = P.y - mb.y, dist = Math.hypot(dx, dy) || 1;
+
+  if (mb.type === 'iron_warden') {
+    // Movement
+    if (dist > 1.2 && mb.slamTelegraph <= 0) {
+      mb.vx += (dx / dist) * 1.8 * dt;
+      mb.vy += (dy / dist) * 1.8 * dt;
+    }
+    mb.vx *= Math.pow(0.85, dt * TARGET_FPS);
+    mb.vy *= Math.pow(0.85, dt * TARGET_FPS);
+    if (!solidAt(mb.x + mb.vx, mb.y)) mb.x += mb.vx;
+    if (!solidAt(mb.x, mb.y + mb.vy)) mb.y += mb.vy;
+
+    // Slam attack
+    mb.slamTimer -= dt;
+    if (mb.slamTimer <= 0.75 && mb.slamTelegraph <= 0) {
+      mb.slamTelegraph = 0.75;
+      mb.slamX = P.x; mb.slamY = P.y;
+      SoundManager.snd('shockwave');
+    }
+    if (mb.slamTelegraph > 0) {
+      mb.slamTelegraph -= dt;
+      if (mb.slamTelegraph <= 0) {
+        // Impact
+        shk(12);
+        SoundManager.snd('shockwave');
+        spawnP(mb.slamX, mb.slamY, 30, { col: '#ef4444', spd: 1.8, life: 0.6, r: 3.5, star: true });
+        spawnRing(mb.slamX, mb.slamY, '#ef4444');
+        if (Math.hypot(P.x - mb.slamX, P.y - mb.slamY) < 2.2 && !P.shieldActive && P.dcd <= 0 && !P.dead) {
+          playerTakeDamage(2);
+          P.vx += (P.x - mb.slamX) * 7; P.vy += (P.y - mb.slamY) * 7;
+          showFloatingText('CRUSH! -2', P.x, P.y - 0.5, '#ef4444', 15, true);
+        }
+        mb.slamTimer = 3.8;
+      }
+    }
+
+    // Direct melee contact
+    if (dist < 0.9 && mb.atkC <= 0 && !P.dead) {
+      mb.atkC = 1.2;
+      playerTakeDamage(1);
+    }
+  } else if (mb.type === 'void_reaver') {
+    // Floating movement & orbiting soul orbs
+    mb.vx += (dx / dist) * 1.2 * dt;
+    mb.vy += (dy / dist) * 1.2 * dt;
+    mb.vx *= Math.pow(0.88, dt * TARGET_FPS);
+    mb.vy *= Math.pow(0.88, dt * TARGET_FPS);
+    if (!solidAt(mb.x + mb.vx, mb.y)) mb.x += mb.vx;
+    if (!solidAt(mb.x, mb.y + mb.vy)) mb.y += mb.vy;
+
+    // Barrage
+    mb.barrageTimer -= dt;
+    if (mb.barrageTimer <= 0) {
+      mb.barrageTimer = 3.6;
+      SoundManager.snd('boss_roar');
+      for (let i = -1; i <= 1; i++) {
+        const ang = Math.atan2(dy, dx) + i * 0.28;
+        PROJECTILES.push({
+          x: mb.x, y: mb.y,
+          vx: Math.cos(ang) * 7.5, vy: Math.sin(ang) * 7.5,
+          life: 0, maxLife: 4, damage: 1,
+          fromPlayer: false, hit: false, isBoss: true
+        });
+      }
+      spawnP(mb.x, mb.y, 14, { col: '#a855f7', spd: 1.2, life: 0.5, r: 3, star: true });
+    }
+
+    // Teleport behind player
+    mb.teleportTimer -= dt;
+    if (mb.teleportTimer <= 0) {
+      mb.teleportTimer = 5.2;
+      const tx = P.x - (P.fx || 1) * 1.8;
+      const ty = P.y - (P.fy || 0) * 1.8;
+      if (!solidAt(tx, ty)) {
+        spawnP(mb.x, mb.y, 16, { col: '#7c3aed', spd: 1.4, life: 0.6, r: 3 });
+        mb.x = tx; mb.y = ty;
+        spawnP(mb.x, mb.y, 16, { col: '#a855f7', spd: 1.4, life: 0.6, r: 3, star: true });
+        SoundManager.snd('boss_roar');
+        shk(5);
+      }
+    }
+  }
+}
+
+function drawMiniBoss() {
+  const mb = ACTIVE_MINIBOSS;
+  if (!mb || !mb.alive) return;
+  const bx = (mb.x + 0.5) * T, by = (mb.y + 0.5) * T;
+
+  CX.save();
+
+  // Telegraph ring for Iron Warden
+  if (mb.type === 'iron_warden' && mb.slamTelegraph > 0) {
+    const sx = (mb.slamX + 0.5) * T, sy = (mb.slamY + 0.5) * T;
+    const progress = 1 - (mb.slamTelegraph / 0.75);
+    CX.strokeStyle = '#ef4444';
+    CX.lineWidth = 2.5;
+    CX.beginPath();
+    CX.arc(sx, sy, T * 2.2 * progress, 0, 6.28);
+    CX.stroke();
+
+    CX.fillStyle = `rgba(239,68,68,${0.12 + progress * 0.18})`;
+    CX.beginPath();
+    CX.arc(sx, sy, T * 2.2 * progress, 0, 6.28);
+    CX.fill();
+  }
+
+  // Shadow
+  CX.fillStyle = 'rgba(0,0,0,0.5)';
+  CX.beginPath();
+  CX.ellipse(bx, by + 16, 20, 6, 0, 0, 6.28);
+  CX.fill();
+
+  if (mb.type === 'iron_warden') {
+    // Gorgaroth Sprite
+    const bob = Math.sin(F * 0.12) * 2;
+    CX.fillStyle = mb.hitFlash > 0 ? '#ffffff' : '#334155';
+    roundRect(CX, bx - 14, by - 16 + bob, 28, 28, 6);
+    CX.fill();
+
+    // Horns
+    CX.fillStyle = '#94a3b8';
+    CX.beginPath();
+    CX.moveTo(bx - 10, by - 14 + bob);
+    CX.lineTo(bx - 22, by - 26 + bob);
+    CX.lineTo(bx - 6, by - 16 + bob);
+    CX.fill();
+
+    CX.beginPath();
+    CX.moveTo(bx + 10, by - 14 + bob);
+    CX.lineTo(bx + 22, by - 26 + bob);
+    CX.lineTo(bx + 6, by - 16 + bob);
+    CX.fill();
+
+    // Glowing Eyes
+    CX.fillStyle = '#f97316';
+    CX.shadowColor = '#ea580c';
+    CX.shadowBlur = 8;
+    CX.fillRect(bx - 7, by - 6 + bob, 4, 3);
+    CX.fillRect(bx + 3, by - 6 + bob, 4, 3);
+
+    // Spiked Club
+    CX.shadowBlur = 0;
+    CX.fillStyle = '#64748b';
+    CX.fillRect(bx + 14, by - 10 + bob, 6, 26);
+    CX.fillStyle = '#94a3b8';
+    CX.beginPath();
+    CX.arc(bx + 17, by - 10 + bob, 7, 0, 6.28);
+    CX.fill();
+  } else if (mb.type === 'void_reaver') {
+    // Malakor Sprite (Floating Shadow)
+    const floatY = Math.sin(F * 0.1) * 4;
+    CX.fillStyle = mb.hitFlash > 0 ? '#ffffff' : '#1e1b4b';
+    CX.shadowColor = '#7c3aed';
+    CX.shadowBlur = 14;
+    CX.beginPath();
+    CX.arc(bx, by - 4 + floatY, 15, 0, 6.28);
+    CX.fill();
+
+    // Orbiting Wisps
+    for (let w = 0; w < 3; w++) {
+      const ang = mb.ph + (w * Math.PI * 2) / 3;
+      const wx = bx + Math.cos(ang) * 22;
+      const wy = by - 4 + floatY + Math.sin(ang) * 14;
+      CX.fillStyle = '#c084fc';
+      CX.beginPath();
+      CX.arc(wx, wy, 3, 0, 6.28);
+      CX.fill();
+    }
+
+    // Void Core Eye
+    CX.fillStyle = '#c084fc';
+    CX.beginPath();
+    CX.arc(bx, by - 4 + floatY, 4, 0, 6.28);
+    CX.fill();
+  }
+
+  CX.restore();
+}
+
+function drawMiniBossHUD() {
+  const mb = ACTIVE_MINIBOSS;
+  if (!mb || !mb.alive) return;
+
+  const barW = 320, barH = 14;
+  const barX = LW / 2 - barW / 2, barY = 24;
+  const frac = Math.max(0, mb.hp / mb.maxHp);
+
+  CX.save();
+  // Frame
+  CX.fillStyle = 'rgba(5,8,22,0.85)';
+  CX.strokeStyle = 'rgba(201,168,76,0.7)';
+  CX.lineWidth = 1.2;
+  roundRect(CX, barX - 4, barY - 18, barW + 8, barH + 24, 6);
+  CX.fill();
+  CX.stroke();
+
+  // Name & Title
+  CX.fillStyle = '#fde68a';
+  CX.font = 'bold 11px Cinzel, serif';
+  CX.textAlign = 'center';
+  CX.textBaseline = 'middle';
+  CX.fillText('⚔️ ' + mb.name + ' ' + mb.title, LW / 2, barY - 8);
+
+  // Health fill
+  CX.fillStyle = '#1e293b';
+  CX.fillRect(barX, barY + 2, barW, barH);
+
+  const fillGrad = CX.createLinearGradient(barX, 0, barX + barW, 0);
+  fillGrad.addColorStop(0, '#ef4444');
+  fillGrad.addColorStop(1, '#a855f7');
+  CX.fillStyle = fillGrad;
+  CX.fillRect(barX, barY + 2, barW * frac, barH);
+
+  CX.fillStyle = '#ffffff';
+  CX.font = 'bold 9px Cinzel, serif';
+  CX.fillText(Math.ceil(mb.hp) + ' / ' + mb.maxHp, LW / 2, barY + 9);
+  CX.restore();
+}
+
+// ── 7. Cinematic Encounter Banners ───────────────────────────────────
+const CINEMATIC_BANNER = {
+  active: false,
+  timer: 0,
+  duration: 3.5,
+  title: '',
+  subtitle: '',
+  col: '#fde68a'
+};
+
+function triggerCinematicBanner(title, subtitle, col = '#fde68a') {
+  CINEMATIC_BANNER.active = true;
+  CINEMATIC_BANNER.timer = 0;
+  CINEMATIC_BANNER.title = title;
+  CINEMATIC_BANNER.subtitle = subtitle;
+  CINEMATIC_BANNER.col = col;
+}
+
+function tickCinematicBanner(dt) {
+  if (!CINEMATIC_BANNER.active) return;
+  CINEMATIC_BANNER.timer += dt;
+  if (CINEMATIC_BANNER.timer >= CINEMATIC_BANNER.duration) {
+    CINEMATIC_BANNER.active = false;
+  }
+}
+
+function drawCinematicBanner() {
+  if (!CINEMATIC_BANNER.active) return;
+  const cb = CINEMATIC_BANNER;
+  const t = cb.timer;
+  let alpha = 1;
+  if (t < 0.5) alpha = t / 0.5;
+  else if (t > cb.duration - 0.6) alpha = (cb.duration - t) / 0.6;
+
+  CX.save();
+  CX.globalAlpha = Math.max(0, Math.min(1, alpha));
+
+  // Letterbox bars
+  const lbH = 46;
+  CX.fillStyle = 'rgba(2,4,12,0.92)';
+  CX.fillRect(0, 0, LW, lbH);
+  CX.fillRect(0, LH - lbH, LW, lbH);
+
+  // Center banner
+  const py = 76, pw = 480, ph = 58;
+  const px = LW / 2 - pw / 2;
+  const grad = CX.createLinearGradient(px, py, px + pw, py);
+  grad.addColorStop(0, 'rgba(10,12,24,0)');
+  grad.addColorStop(0.2, 'rgba(15,20,40,0.95)');
+  grad.addColorStop(0.8, 'rgba(15,20,40,0.95)');
+  grad.addColorStop(1, 'rgba(10,12,24,0)');
+  CX.fillStyle = grad;
+  CX.fillRect(px, py, pw, ph);
+
+  CX.strokeStyle = cb.col;
+  CX.lineWidth = 1.2;
+  CX.beginPath();
+  CX.moveTo(px + 40, py); CX.lineTo(px + pw - 40, py);
+  CX.moveTo(px + 40, py + ph); CX.lineTo(px + pw - 40, py + ph);
+  CX.stroke();
+
+  CX.shadowColor = cb.col;
+  CX.shadowBlur = 14;
+  CX.fillStyle = cb.col;
+  CX.font = 'bold 20px Cinzel, serif';
+  CX.textAlign = 'center';
+  CX.textBaseline = 'middle';
+  CX.fillText(cb.title, LW / 2, py + 22);
+
+  CX.shadowBlur = 0;
+  CX.fillStyle = 'rgba(226,232,240,0.85)';
+  CX.font = 'italic 12px Crimson Text, serif';
+  CX.fillText(cb.subtitle, LW / 2, py + 44);
+
+  CX.restore();
+}
+
+// ── 8. Pipelines Hooks & System Integration ──────────────────────────
+
+// Hook into tickPlayer
+const _tp_ascension_orig = tickPlayer;
+tickPlayer = function(dt) {
+  _tp_ascension_orig(dt);
+  tickSoulOrbs(dt);
+  tickSlashArcs(dt);
+  tickFloatingTexts(dt);
+  tickMiniBoss(dt);
+  tickCinematicBanner(dt);
+};
+
+// Hook into drawWorld
+const _dw_ascension_orig = drawWorld;
+drawWorld = function() {
+  _dw_ascension_orig();
+  drawWallDropShadows();
+  drawSoulOrbs();
+  drawSlashArcs();
+  drawMiniBoss();
+  drawFloatingTexts();
+};
+
+// Hook into drawHUD
+const _dh_ascension_orig = drawHUD;
+drawHUD = function() {
+  _dh_ascension_orig();
+  drawMiniBossHUD();
+  drawCinematicBanner();
+};
+
+// Hook into loadLevel for mini-boss spawns & banners
+const _ll_ascension_orig = loadLevel;
+loadLevel = function() {
+  _ll_ascension_orig();
+  ACTIVE_MINIBOSS = null;
+  if (LV === 3) {
+    spawnMiniBoss('iron_warden');
+  } else if (LV === 6) {
+    spawnMiniBoss('void_reaver');
+  } else if (LV === 10) {
+    triggerCinematicBanner('THE ABYSS WARDEN', '— Scourge of the Sunken Citadel —', '#ef4444');
+    SoundManager.snd('boss_roar');
+  }
+};
+
+// Hook into startGame for talent boosts
+const _sg_ascension_orig = startGame;
+startGame = function() {
+  _sg_ascension_orig();
+  const bonusHp = getTalentRank('vitality') * 2;
+  P.hp = 10 + bonusHp;
+  P.maxHp = 10 + bonusHp;
+  P.displayHp = P.hp;
+  P.spd = 4.0 * (1 + getTalentRank('haste') * 0.08);
+};
+
+// Hook into tickSanity for clarity talent
+const _ts_ascension_orig = tickSanity;
+tickSanity = function(dt) {
+  const clarityBonus = getTalentRank('clarity') * 0.12;
+  _ts_ascension_orig(dt * (1 - clarityBonus));
+};
+
+// Hook into killEnemy for souls & lifesteal
+const _ke_ascension_orig = killEnemy;
+killEnemy = function(e) {
+  _ke_ascension_orig(e);
+  const soulCount = e.isMiniBoss ? 8 : (e.type === 'demon' || e.type === 'wraith') ? 2 : 1;
+  spawnSoulOrb(e.x, e.y, soulCount);
+  for (let b = 0; b < 3; b++) {
+    const bx = e.x + (Math.random() - 0.5) * 0.8;
+    const by = e.y + (Math.random() - 0.5) * 0.8;
+    BLOOD.push({ x: bx, y: by, r: 2 + Math.random() * 4, a: 0.5 + Math.random() * 0.4 });
+  }
+};
+
+// Hook into doAttack for fury damage, slash arcs, and floating text
+const _da_ascension_orig = doAttack;
+doAttack = function() {
+  if (!P.wep || P.acd > 0 || P.dead) return;
+  const w = WD[P.wep];
+  if (w && !w.projectile) {
+    const ang = Math.atan2(P.fy, P.fx);
+    spawnSlashArc(P.x, P.y, ang, w.arc * 1.3, w.col || '#f59e0b', (w.range || 1.3) * T);
+  }
+
+  // Check hit on Mini-Boss if alive
+  const mb = ACTIVE_MINIBOSS;
+  if (mb && mb.alive && w) {
+    const dist = Math.hypot(P.x - mb.x, P.y - mb.y);
+    if (dist < (w.range || 1.4) + 0.4) {
+      const furyMult = 1 + getTalentRank('fury') * 0.15;
+      const dmg = Math.max(1, Math.round((w.dmg || 1) * rarityDmgMult(P.wepRarity) * furyMult));
+      mb.hp -= dmg;
+      mb.hitFlash = 0.2;
+      showFloatingText('-' + dmg, mb.x, mb.y - 0.6, '#fde68a', 14, true);
+      SoundManager.snd('melee_hit');
+      shk(5);
+      if (mb.hp <= 0) {
+        mb.alive = false;
+        shk(16);
+        SoundManager.snd('enemy_death');
+        const dropSouls = mb.type === 'void_reaver' ? 15 : 8;
+        spawnSoulOrb(mb.x, mb.y, dropSouls);
+        showFloatingText('+' + dropSouls + ' 🔮', mb.x, mb.y - 0.8, '#c084fc', 16, true);
+        ITEMS.push({
+          x: mb.x, y: mb.y, taken: false, kind: 'weapon',
+          sub: WK[(Math.random() * WK.length) | 0],
+          rarity: mb.type === 'void_reaver' ? RARITIES[3] : RARITIES[2]
+        });
+        if (mb.type === 'iron_warden') unlockAchievement('jailbreaker');
+        if (mb.type === 'void_reaver') unlockAchievement('void_conqueror');
+      }
+    }
+  }
+
+  // Normal attack with fury boost and siphon lifesteal
+  _da_ascension_orig();
+
+  // Siphon talent check
+  const siphonChance = getTalentRank('siphon') * 0.05;
+  if (siphonChance > 0 && Math.random() < siphonChance) {
+    if (P.hp < P.maxHp) {
+      P.hp = Math.min(P.maxHp, P.hp + 1);
+      showFloatingText('+1 ❤', P.x, P.y - 0.5, '#22c55e', 14);
+    }
+  }
+};
+
+// Keyboard listener for Sanctum
+window.addEventListener('keydown', e => {
+  if (STATE === 'title' && (e.key === 's' || e.key === 'S')) {
+    openSanctum();
+  } else if (STATE === 'sanctum' && e.key === 'Escape') {
+    STATE = 'title';
+  } else if (STATE === 'endcard' && (e.key === 's' || e.key === 'S')) {
+    openSanctum();
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// END EXPANSION MODULE v8.0
 // ─────────────────────────────────────────────────────────────────────
 </script>
 </body>
