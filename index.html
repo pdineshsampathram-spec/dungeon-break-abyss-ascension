@@ -533,14 +533,34 @@ CV.addEventListener('touchstart', e => {
   const t = e.changedTouches[0];
   const { mx, my } = _cssToGame(t.clientX, t.clientY);
   if (STATE === 'title') {
-    if (mx > LW/2-120 && mx < LW/2+120 && my > 244 && my < 300) { startGame(); return; }
-    if (mx > LW/2-110 && mx < LW/2+110 && my > 300 && my < 356) { openTrainingDungeon(); return; }
-    if (mx > LW/2-110 && mx < LW/2+110 && my > 356 && my < 412) { openSettings(); return; }
-    if (mx > LW/2-110 && mx < LW/2+110 && my > 412 && my < 468) { openAchievements(); return; }
-    if (mx > LW/2-110 && mx < LW/2+110 && my > 468 && my < 524) { openSanctum(); return; }
+    if (mx > LW/2-120 && mx < LW/2+120 && my > 240 && my < 292) { startGame(); return; }
+    if (mx > LW/2-110 && mx < LW/2+110 && my > 294 && my < 346) { openTrainingDungeon(); return; }
+    if (mx > LW/2-110 && mx < LW/2+110 && my > 346 && my < 398) { openSettings(); return; }
+    if (mx > LW/2-110 && mx < LW/2+110 && my > 398 && my < 450) { openAchievements(); return; }
+    if (mx > LW/2-110 && mx < LW/2+110 && my > 450 && my < 502) { openSanctum(); return; }
+    if (mx > LW/2-110 && mx < LW/2+110 && my > 502 && my < 554) { if (typeof openCodex === 'function') openCodex(); return; }
   } else if (STATE === 'sanctum') {
     if (typeof handleSanctumClick === 'function') handleSanctumClick(mx, my);
     return;
+  } else if (STATE === 'codex') {
+    if (typeof handleCodexClick === 'function') handleCodexClick(mx, my);
+    return;
+  } else if (STATE === 'playing') {
+    // Inventory slot touch
+    if (mx >= 200 && mx <= 314 && my >= LH - 44 && my <= LH - 8) {
+      const slot = Math.floor((mx - 200) / 38);
+      if (typeof switchWeaponSlot === 'function' && slot >= 0 && slot < 3) { switchWeaponSlot(slot); return; }
+    }
+    // Minimap toggle touch
+    if (mx >= LW - 134 && mx <= LW - 14 && my >= 70 && my <= 154) {
+      if (typeof MINIMAP_VISIBLE !== 'undefined') MINIMAP_VISIBLE = !MINIMAP_VISIBLE;
+      return;
+    }
+    // Lore modal dismiss
+    if (typeof ACTIVE_LORE_MODAL !== 'undefined' && ACTIVE_LORE_MODAL) {
+      ACTIVE_LORE_MODAL = null;
+      return;
+    }
   } else if (STATE === 'settings') {
     const eb = drawSettings._editBtn, rb = drawSettings._resetBtn;
     if (eb && mx >= eb.x && mx <= eb.x+eb.w && my >= eb.y && my <= eb.y+eb.h) {
@@ -675,14 +695,34 @@ function _achievMaxScroll() {
 CV.addEventListener('click', e => {
   const { mx, my } = _cssToGame(e.clientX, e.clientY);
   if (STATE === 'title') {
-    if (mx > LW / 2 - 120 && mx < LW / 2 + 120 && my > 244 && my < 300) { startGame(); return; }
-    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 300 && my < 356) { openTrainingDungeon(); return; }
-    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 356 && my < 412) { openSettings(); return; }
-    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 412 && my < 468) { openAchievements(); return; }
-    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 468 && my < 524) { openSanctum(); return; }
+    if (mx > LW / 2 - 120 && mx < LW / 2 + 120 && my > 240 && my < 292) { startGame(); return; }
+    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 294 && my < 346) { openTrainingDungeon(); return; }
+    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 346 && my < 398) { openSettings(); return; }
+    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 398 && my < 450) { openAchievements(); return; }
+    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 450 && my < 502) { openSanctum(); return; }
+    if (mx > LW / 2 - 110 && mx < LW / 2 + 110 && my > 502 && my < 554) { if (typeof openCodex === 'function') openCodex(); return; }
   } else if (STATE === 'sanctum') {
     if (typeof handleSanctumClick === 'function') handleSanctumClick(mx, my);
     return;
+  } else if (STATE === 'codex') {
+    if (typeof handleCodexClick === 'function') handleCodexClick(mx, my);
+    return;
+  } else if (STATE === 'playing') {
+    // Inventory slot touch
+    if (mx >= 200 && mx <= 314 && my >= LH - 44 && my <= LH - 8) {
+      const slot = Math.floor((mx - 200) / 38);
+      if (typeof switchWeaponSlot === 'function' && slot >= 0 && slot < 3) { switchWeaponSlot(slot); return; }
+    }
+    // Minimap toggle touch
+    if (mx >= LW - 134 && mx <= LW - 14 && my >= 70 && my <= 154) {
+      if (typeof MINIMAP_VISIBLE !== 'undefined') MINIMAP_VISIBLE = !MINIMAP_VISIBLE;
+      return;
+    }
+    // Lore modal dismiss
+    if (typeof ACTIVE_LORE_MODAL !== 'undefined' && ACTIVE_LORE_MODAL) {
+      ACTIVE_LORE_MODAL = null;
+      return;
+    }
   } else if (STATE === 'settings') {
     // Check mobile control buttons first
     const eb = drawSettings._editBtn, rb = drawSettings._resetBtn;
@@ -3808,6 +3848,19 @@ function drawWorld() {
         floorGrad.addColorStop(0,'rgba(255,255,255,0.03)');
         floorGrad.addColorStop(1,'rgba(0,0,0,0.10)');
         CX.fillStyle=floorGrad; CX.fillRect(px,py,T,T);
+        // 2.5D Wall Drop Shadow & Depth Occlusion
+        if (r > 0 && MAP[r-1] && MAP[r-1][c] === 1) {
+          const ds = CX.createLinearGradient(px, py, px, py + 12);
+          ds.addColorStop(0, 'rgba(0,0,0,0.55)');
+          ds.addColorStop(1, 'rgba(0,0,0,0)');
+          CX.fillStyle = ds; CX.fillRect(px, py, T, 12);
+        }
+        if (c > 0 && MAP[r][c-1] === 1) {
+          const ss = CX.createLinearGradient(px, py, px + 8, py);
+          ss.addColorStop(0, 'rgba(0,0,0,0.35)');
+          ss.addColorStop(1, 'rgba(0,0,0,0)');
+          CX.fillStyle = ss; CX.fillRect(px, py, 8, T);
+        }
         // Tile grout lines
         CX.strokeStyle='rgba(0,0,0,0.13)'; CX.lineWidth=0.5; CX.strokeRect(px+0.5,py+0.5,T-1,T-1);
         // Pebble / stain detail
@@ -3824,15 +3877,16 @@ function drawWorld() {
         const locked = LV===10 && !BOSS_DEAD;
         const puls = Math.sin(F*.07)*.25+.75;
         const portalCol = locked?'#ff4444':'#00ff88';
-        const gOut=CX.createRadialGradient(pcx,pcy,2,pcx,pcy,T*.65);
-        gOut.addColorStop(0,locked?'rgba(255,68,68,.22)':'rgba(0,255,136,.22)');gOut.addColorStop(1,'rgba(0,0,0,0)');
-        CX.fillStyle=gOut; CX.fillRect(px-T*.4,py-T*.4,T*1.8,T*1.8);
-        const gIn=CX.createRadialGradient(pcx,pcy,1,pcx,pcy,T*.44*puls);
-        gIn.addColorStop(0,portalCol);gIn.addColorStop(.5,locked?'#cc2222':'#00cc66');gIn.addColorStop(1,'transparent');
-        CX.fillStyle=gIn; CX.beginPath(); CX.arc(pcx,pcy,T*.44*puls,0,6.28); CX.fill();
-        CX.strokeStyle=`rgba(${locked?'255,68,68':'0,255,136'},${.88*puls})`; CX.lineWidth=2.5;
-        CX.beginPath(); CX.arc(pcx,pcy,T*.38,0,6.28); CX.stroke();
-        for(let i=0;i<4;i++){const ra=i*1.57+F*.055;CX.fillStyle=`rgba(${locked?'255,68,68':'0,255,136'},${.38*puls})`;CX.beginPath();CX.arc(pcx+Math.cos(ra)*T*.28,pcy+Math.sin(ra)*T*.28,3,0,6.28);CX.fill();}
+        if (typeof drawCosmicPortalVortex === 'function') {
+          drawCosmicPortalVortex(px, py, pcx, pcy, locked, puls);
+        } else {
+          const gOut=CX.createRadialGradient(pcx,pcy,2,pcx,pcy,T*.65);
+          gOut.addColorStop(0,locked?'rgba(255,68,68,.22)':'rgba(0,255,136,.22)');gOut.addColorStop(1,'rgba(0,0,0,0)');
+          CX.fillStyle=gOut; CX.fillRect(px-T*.4,py-T*.4,T*1.8,T*1.8);
+          const gIn=CX.createRadialGradient(pcx,pcy,1,pcx,pcy,T*.44*puls);
+          gIn.addColorStop(0,portalCol);gIn.addColorStop(.5,locked?'#cc2222':'#00cc66');gIn.addColorStop(1,'transparent');
+          CX.fillStyle=gIn; CX.beginPath(); CX.arc(pcx,pcy,T*.44*puls,0,6.28); CX.fill();
+        }
         if(!PORTAL_DISCOVERED&&Math.hypot(P.x-(c+.5),P.y-(r+.5))<3.5&&!PORTAL_USED){
           PORTAL_DISCOVERED=true;
           GAME_MSG=locked?'⚠ Defeat the Abyss Warden first!':'✦ Portal found! Reach it to advance!'; GAME_MSG_TIMER=4;
@@ -3962,6 +4016,23 @@ function drawWorld() {
   Lighting.apply();
   Lighting.applyTint();
 
+  // Mutation atmospheric grading overlay
+  if (typeof CURRENT_MUTATION !== 'undefined' && CURRENT_MUTATION) {
+    if (CURRENT_MUTATION.id === 'inferno') {
+      const mutG = CX.createRadialGradient(LW/2, LH/2, LW*0.2, LW/2, LH/2, LW*0.72);
+      mutG.addColorStop(0, 'rgba(249,115,22,0.04)');
+      mutG.addColorStop(1, 'rgba(180,50,0,0.18)');
+      CX.fillStyle = mutG; CX.fillRect(0,0,LW,LH);
+    } else if (CURRENT_MUTATION.id === 'crypt') {
+      const mutG = CX.createRadialGradient(LW/2, LH/2, LW*0.2, LW/2, LH/2, LW*0.72);
+      mutG.addColorStop(0, 'rgba(56,189,248,0.03)');
+      mutG.addColorStop(1, 'rgba(15,80,120,0.16)');
+      CX.fillStyle = mutG; CX.fillRect(0,0,LW,LH);
+    } else if (CURRENT_MUTATION.id === 'eclipse') {
+      CX.fillStyle = 'rgba(10,5,25,0.22)'; CX.fillRect(0,0,LW,LH);
+    }
+  }
+
   // Soft vignette (always-on atmospheric depth)
   const vigG = CX.createRadialGradient(LW/2, LH/2, LW*0.28, LW/2, LH/2, LW*0.72);
   vigG.addColorStop(0, 'rgba(0,0,0,0)');
@@ -3979,6 +4050,14 @@ function drawHUD() {
   const hg=CX.createLinearGradient(hx,0,hx+hw,0);
   if(lowHp){const pulse=Math.sin(F*.15)*.4+.6;hg.addColorStop(0,`rgba(220,38,38,${pulse})`);hg.addColorStop(1,`rgba(239,68,68,${pulse*.7})`);}
   else{hg.addColorStop(0,'#22c55e');hg.addColorStop(0.6,'#16a34a');hg.addColorStop(1,'#15803d');}
+  // Ghost HP bar (fighting game style lingering red/amber chunk)
+  const ghostHp = P.ghostHp !== undefined ? P.ghostHp : P.displayHp;
+  if (ghostHp > P.displayHp) {
+    const ghostFrac = Math.min(1, Math.max(0, ghostHp / P.maxHp));
+    CX.fillStyle = '#ef4444';
+    CX.fillRect(hx, hy, hw * ghostFrac, hh);
+  }
+
   CX.fillStyle=hg; CX.fillRect(hx,hy,hw*hpFrac,hh);
   CX.strokeStyle='rgba(255,255,255,.15)'; CX.lineWidth=1; CX.strokeRect(hx,hy,hw,hh);
   CX.fillStyle='#f1f5f9'; CX.font='bold 10px Cinzel,serif'; CX.textAlign='left'; CX.textBaseline='middle';
@@ -4043,14 +4122,26 @@ function drawTitle() {
     const px=((i*137+F*.3)%LW),py=((i*97+F*.18+i*80)%LH);
     CX.fillStyle=`rgba(201,168,76,${.02+i*.004})`; CX.beginPath(); CX.arc(px,py,60+i*18,0,6.28); CX.fill();
   }
+
+  // Floating abyssal dust motes
+  for(let i=0;i<24;i++){
+    const mx=((i*71 + F*0.4)%LW);
+    const my=((LH - (i*43 + F*0.6)%LH));
+    const puls=Math.sin(F*0.05 + i)*0.3+0.7;
+    CX.fillStyle=i%2===0?`rgba(201,168,76,${0.25*puls})`:`rgba(168,85,247,${0.25*puls})`;
+    CX.beginPath(); CX.arc(mx, my, 1.2 + (i%3)*0.8, 0, 6.28); CX.fill();
+  }
+
   CX.fillStyle='#0a0a18';
   for(let i=0;i<Math.ceil(LW/40)+1;i++){const bx=i*40,bh=i%2===0?60:40;CX.fillRect(bx,LH-bh,36,bh);}
   CX.fillRect(0,LH-30,LW,30);
-  CX.save(); CX.shadowColor='#c9a84c'; CX.shadowBlur=40;
-  CX.fillStyle='#fde68a'; CX.font='bold 64px Cinzel,serif'; CX.textAlign='center'; CX.textBaseline='alphabetic';
-  CX.fillText('DUNGEON',LW/2,140); CX.fillText('BREAK',LW/2,210); CX.restore();
-  CX.fillStyle='rgba(148,163,184,.7)'; CX.font='italic 14px Crimson Text,serif'; CX.textAlign='center';
-  CX.fillText('— Abyss Edition —',LW/2,235);
+
+  const titleGlow = Math.sin(F * 0.06) * 10 + 36;
+  CX.save(); CX.shadowColor='#c9a84c'; CX.shadowBlur=titleGlow;
+  CX.fillStyle='#fde68a'; CX.font='bold 62px Cinzel,serif'; CX.textAlign='center'; CX.textBaseline='alphabetic';
+  CX.fillText('DUNGEON',LW/2,135); CX.fillText('BREAK',LW/2,205); CX.restore();
+  CX.fillStyle='rgba(192,132,252,.85)'; CX.font='italic 14px Crimson Text,serif'; CX.textAlign='center';
+  CX.fillText('— Abyss Ascension Edition —',LW/2,230);
 
   // Animated buttons with staggered slide-in
   _TITLE_ANIM_T = Math.min(_TITLE_ANIM_T + DT * 2.2, 1);
@@ -4063,31 +4154,32 @@ function drawTitle() {
     const alpha = eased;
     if(alpha <= 0) return;
     CX.save(); CX.globalAlpha = alpha;
-    const bx=LW/2-110,bw=220,bh=52;
+    const bx=LW/2-110,bw=220,bh=46;
     CX.fillStyle=primary?'rgba(201,168,76,.18)':'rgba(15,20,40,.8)';
     CX.strokeStyle=primary?'rgba(201,168,76,.75)':'rgba(51,65,85,.55)'; CX.lineWidth=1.5;
     roundRect(CX,bx,slideY,bw,bh,8); CX.fill(); CX.stroke();
     CX.save(); if(primary){CX.shadowColor='#c9a84c';CX.shadowBlur=12;}
-    CX.fillStyle=primary?'#fde68a':'#cbd5e1'; CX.font=`bold ${primary?15:13}px Cinzel,serif`; CX.textAlign='center'; CX.textBaseline='middle';
+    CX.fillStyle=primary?'#fde68a':'#cbd5e1'; CX.font=`bold ${primary?14:12}px Cinzel,serif`; CX.textAlign='center'; CX.textBaseline='middle';
     CX.fillText(label,LW/2,slideY+bh/2); CX.restore();
     CX.restore();
   }
 
-  motionBtn('▶  PLAY  ( Enter )',244,true,0);
-  motionBtn('📖  How To Play',300,false,0.12);
-  motionBtn('⚙  Settings',356,false,0.22);
-  motionBtn('🏆  Achievements',412,false,0.32);
-  motionBtn('🔮  Abyss Sanctum',468,false,0.42);
+  motionBtn('▶  PLAY  ( Enter )',242,true,0);
+  motionBtn('📖  How To Play',294,false,0.08);
+  motionBtn('⚙  Settings',346,false,0.16);
+  motionBtn('🏆  Achievements',398,false,0.24);
+  motionBtn('🔮  Abyss Sanctum',450,false,0.32);
+  motionBtn('📜  Codex & Bestiary',502,false,0.40);
 
   const sv=loadSave();
   if(sv){
-    CX.fillStyle='rgba(148,163,184,.45)'; CX.font='11px Cinzel,serif'; CX.textAlign='center';
-    CX.fillText('[ R ] Resume saved game — Level '+sv.lv,LW/2,536);
+    CX.fillStyle='rgba(148,163,184,.45)'; CX.font='10px Cinzel,serif'; CX.textAlign='center';
+    CX.fillText('[ R ] Resume saved game — Level '+sv.lv,LW/2,558);
   }
   CX.fillStyle='rgba(192,132,252,.75)'; CX.font='bold 11px Cinzel,serif'; CX.textAlign='center';
-  CX.fillText('🔮 Total Abyss Souls: ' + (typeof ABYSS_SOULS !== 'undefined' ? ABYSS_SOULS : 0), LW/2, 560);
+  CX.fillText('🔮 Total Abyss Souls: ' + (typeof ABYSS_SOULS !== 'undefined' ? ABYSS_SOULS : 0) + '   ·   👑 Prestige Tokens: ' + (typeof PRESTIGE_TOKENS !== 'undefined' ? PRESTIGE_TOKENS : 0), LW/2, 576);
   CX.fillStyle='rgba(100,116,139,.4)'; CX.font='10px Cinzel,serif'; CX.textAlign='center';
-  CX.fillText('Arrow Keys / WASD — Move    Space — Attack    Esc — Pause',LW/2,LH-15);
+  CX.fillText('Arrow Keys / WASD — Move    Space — Attack    Esc — Pause    M — Minimap    1-3 — Weapons',LW/2,LH-14);
 }
 
 // ── Pause menu button registry ─────────────────────────────────────────
@@ -4850,6 +4942,8 @@ function loop(ts) {
     drawTitle(); drawAchievPanel(); _hideIngamePause();
   } else if(STATE==='sanctum'){
     drawTitle(); if (typeof drawSanctumPanel === 'function') drawSanctumPanel(); _hideIngamePause();
+  } else if(STATE==='codex'){
+    drawTitle(); if (typeof drawCodexPanel === 'function') drawCodexPanel(); _hideIngamePause();
   }
 
   CX.restore();
@@ -6523,23 +6617,22 @@ drawHUD = function() {
 // ─────────────────────────────────────────────────────────────────────
 
 // =====================================================================
-//  DUNGEON BREAK — ABYSS ASCENSION  v8.0  EXPANSION MODULE
-//  1. Abyss Sanctum & Meta Progression (Souls, Talents)
-//  2. Floating Combat Text & Blood Splatter System
-//  3. Soul Orbs (Physically Gravitating Collectibles)
-//  4. 2.5D Wall Drop-Shadows & Atmospheric Depth
-//  5. Melee Crescent Blade Trails & Kinetic Juice
-//  6. Mini-Bosses: Gorgaroth (Floor 3) & Malakor (Floor 6)
-//  7. Cinematic Encounter Banners & Boss Polish
+//  DUNGEON BREAK — OMNI ASCENSION  v9.0  COMPLETE SPRINT EXPANSION
 // =====================================================================
 
-// ── 1. Meta Progression: Souls & Talents ─────────────────────────────
+// ── 1. Meta-Progression: Souls, Talents, & Prestige (Sprint 1) ────────
 let ABYSS_SOULS = parseInt(localStorage.getItem('db_abyss_souls') || '0', 10);
 if (isNaN(ABYSS_SOULS) || ABYSS_SOULS < 0) ABYSS_SOULS = 0;
+
+let PRESTIGE_TOKENS = parseInt(localStorage.getItem('db_prestige_tokens') || '0', 10);
+if (isNaN(PRESTIGE_TOKENS) || PRESTIGE_TOKENS < 0) PRESTIGE_TOKENS = 0;
+
+let CURRENT_ABYSS_LAYER = 1;
 
 function saveSouls() {
   try {
     localStorage.setItem('db_abyss_souls', ABYSS_SOULS.toString());
+    localStorage.setItem('db_prestige_tokens', PRESTIGE_TOKENS.toString());
     if (ABYSS_SOULS >= 100) unlockAchievement('soul_ascendant');
   } catch (e) {}
 }
@@ -6570,180 +6663,347 @@ function saveTalents() {
 
 function getTalentRank(k) { return TALENTS[k] || 0; }
 
-let SANCTUM_SLIDE = 0;
-function openSanctum() {
-  SANCTUM_SLIDE = 0;
-  STATE = 'sanctum';
+// ── 2. Multi-Weapon Inventory & Affixes (Sprint 2) ───────────────────
+const PREFIX_DEFS = [
+  { id: 'infernal', name: 'Infernal', col: '#f97316', desc: 'Burn DOT' },
+  { id: 'glacial', name: 'Glacial', col: '#38bdf8', desc: 'Slows enemies' },
+  { id: 'vampiric', name: 'Vampiric', col: '#ef4444', desc: '+15% Lifesteal' },
+  { id: 'thunderous', name: 'Thunderous', col: '#facc15', desc: 'Chain lightning' },
+  { id: 'cursed', name: 'Cursed', col: '#c084fc', desc: '+40% DMG, -1 Sanity/hit' }
+];
+
+const SUFFIX_DEFS = [
+  { id: 'swiftness', name: 'of Swiftness', desc: '-25% Cooldown' },
+  { id: 'force', name: 'of Force', desc: '+100% Knockback' },
+  { id: 'insight', name: 'of Insight', desc: '+6 Sanity on kill' }
+];
+
+function rollAffix(rarity) {
+  const rName = (rarity && rarity.name) ? rarity.name : 'Common';
+  const rollChance = rName === 'Legendary' ? 0.9 : rName === 'Epic' ? 0.6 : 0.25;
+  let p = null, s = null;
+  if (Math.random() < rollChance) {
+    p = PREFIX_DEFS[(Math.random() * PREFIX_DEFS.length) | 0];
+  }
+  if (Math.random() < rollChance * 0.75) {
+    s = SUFFIX_DEFS[(Math.random() * SUFFIX_DEFS.length) | 0];
+  }
+  return { prefix: p, suffix: s };
 }
 
-function drawSanctumPanel() {
-  SANCTUM_SLIDE = Math.min(1, SANCTUM_SLIDE + DT * 4.5);
-  const panW = 560, panH = 550;
-  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2 - (1 - SANCTUM_SLIDE) * 50;
+function initPlayerInventory() {
+  P.inventory = [
+    { wep: 'sword', rarity: RARITIES[0], prefix: null, suffix: null }
+  ];
+  P.activeSlot = 0;
+  P.wep = 'sword';
+  P.wepRarity = RARITIES[0];
+  P.activePrefix = null;
+  P.activeSuffix = null;
+  P.relics = [];
+  P.ghostHp = P.hp;
+  P.ghostHpTimer = 0;
+}
 
+function switchWeaponSlot(idx) {
+  if (!P.inventory || idx < 0 || idx >= P.inventory.length) return;
+  P.activeSlot = idx;
+  const item = P.inventory[idx];
+  P.wep = item.wep;
+  P.wepRarity = item.rarity;
+  P.activePrefix = item.prefix;
+  P.activeSuffix = item.suffix;
+  SoundManager.snd('item_pickup');
+  spawnP(P.x, P.y, 10, { col: P.wepRarity.col, spd: 1.2, life: 0.4, r: 2.5, star: true });
+  const wLabel = (WD[P.wep] && WD[P.wep].label) ? WD[P.wep].label : P.wep;
+  const name = (P.activePrefix ? P.activePrefix.name + ' ' : '') + wLabel + (P.activeSuffix ? ' ' + P.activeSuffix.name : '');
+  showFloatingText(name, P.x, P.y - 0.7, P.activePrefix ? P.activePrefix.col : P.wepRarity.col, 13, true);
+}
+
+// ── 3. Relics & Passive Charms System (Sprint 2) ─────────────────────
+const RELIC_DEFS = {
+  phoenix_feather: { name: 'Phoenix Feather', icon: '🪶', col: '#f97316', desc: 'Revive once per run with 50% HP' },
+  shadow_cloak:    { name: 'Shadow Cloak',    icon: '🧥', col: '#a855f7', desc: '2.5s invulnerability after 3 kills' },
+  bone_charm:      { name: 'Bone Charm',      icon: '🦴', col: '#fde68a', desc: 'Restores +2 HP on entering new floor' },
+  blood_chalice:   { name: 'Blood Chalice',   icon: '🍷', col: '#ef4444', desc: '+50% Souls collected' },
+  void_magnet:     { name: 'Void Magnet',     icon: '🧲', col: '#818cf8', desc: '3x Soul Orb collection distance' },
+  aegis_core:      { name: 'Aegis Core',      icon: '🛡️', col: '#38bdf8', desc: 'Shield barrier auto-recharges every 25s' }
+};
+
+function hasRelic(id) {
+  return P.relics && P.relics.includes(id);
+}
+
+let SHADOW_CLOAK_KILLS = 0;
+let AEGIS_CORE_TIMER = 0;
+
+// ── 4. Dungeon Mutations System (Sprint 3) ───────────────────────────
+const MUTATION_DEFS = {
+  inferno:    { id: 'inferno', name: '🔥 INFERNO CHAMBER', col: '#f97316', desc: 'Floor cracks spew flame geysers' },
+  haunted:    { id: 'haunted', name: '👻 HAUNTED CRYPT', col: '#c084fc', desc: 'Wandering specters stalk corridors' },
+  elite_guard:{ id: 'elite_guard', name: '💀 ELITE GUARD', col: '#ef4444', desc: 'An armored Elite foe guards this floor' },
+  eclipse:    { id: 'eclipse', name: '🌑 ABYSSAL ECLIPSE', col: '#94a3b8', desc: 'Darkness falls; enemies move faster, +50% souls' },
+  adrenaline: { id: 'adrenaline', name: '⚡ ADRENALINE SURGE', col: '#facc15', desc: 'Player & monsters move 30% faster' }
+};
+
+let CURRENT_MUTATION = null;
+let MUTATION_INFERNO_TIMER = 0;
+
+function rollMutationForFloor() {
+  if (LV === 1 || LV === 10) { CURRENT_MUTATION = null; return; }
+  if (Math.random() < 0.65) {
+    const keys = Object.keys(MUTATION_DEFS);
+    CURRENT_MUTATION = MUTATION_DEFS[keys[(Math.random() * keys.length) | 0]];
+    triggerCinematicBanner(CURRENT_MUTATION.name, CURRENT_MUTATION.desc, CURRENT_MUTATION.col);
+  } else {
+    CURRENT_MUTATION = null;
+  }
+}
+
+// ── 5. Lore Scrolls, Codex & Survivor Dialogue (Sprint 3) ────────────
+const LORE_SCROLLS_DATA = [
+  { id: 'seal', title: 'The Forgotten Seal', text: 'Before the kingdom crumbled into ashes, this labyrinth was carved not as a dungeon, but as a vault to lock away what sleeps below.' },
+  { id: 'warden', title: 'The Warden\'s Vow', text: 'I swore to guard the dark gates until the sun died. The sun still shines above, yet eternal night has taken my eyes.' },
+  { id: 'breath', title: 'The Living Stone', text: 'The walls have a pulse. Place your ear against the mortar in the silence, and you will hear them breathing.' },
+  { id: 'void', title: 'The Lightless Tide', text: 'Sanity is only a veil. In the deepest dark, the illusion dissolves and the mind reflects the void.' },
+  { id: 'deserters', title: 'The Lost Battalion', text: 'Those who tried to flee were not struck down. The halls simply shifted around them, forever closing the way back.' },
+  { id: 'blood', title: 'The Ancient Rite', text: 'Blood remembers what steel forgets. Only through willing sacrifice do the inner sanctum gates open.' },
+  { id: 'sovereign', title: 'The Sleeper Awakens', text: 'The Warden is only a gatekeeper. What stirs beneath his throne has waited ten thousand years.' },
+  { id: 'crown', title: 'The Abyss King', text: 'He who defeats the darkness does not escape it. He takes up the mantle and becomes the new crown.' }
+];
+
+let UNLOCKED_LORE = {};
+try {
+  UNLOCKED_LORE = JSON.parse(localStorage.getItem('db_codex_v9') || '{}');
+} catch (e) {}
+
+function unlockLoreScroll(id) {
+  if (UNLOCKED_LORE[id]) return;
+  UNLOCKED_LORE[id] = true;
+  try { localStorage.setItem('db_codex_v9', JSON.stringify(UNLOCKED_LORE)); } catch (e) {}
+  const count = Object.keys(UNLOCKED_LORE).length;
+  if (count >= LORE_SCROLLS_DATA.length) unlockAchievement('lore_master');
+}
+
+let ACTIVE_LORE_MODAL = null;
+function openLoreModal(scroll) {
+  ACTIVE_LORE_MODAL = {
+    title: scroll.title,
+    text: scroll.text,
+    timer: 0
+  };
+  unlockLoreScroll(scroll.id);
+  SoundManager.snd('talent_unlock');
+}
+
+const SURVIVOR_QUOTES = [
+  'Thank the stars! The shadows were whispering my true name...',
+  'Beware Floor 3! Gorgaroth\'s club will shatter the ground beneath you!',
+  'The Warden fears light! Keep your torches close!',
+  'There are relics hidden in the dead-end chambers... look for glowing seals.',
+  'I heard weeping in the walls... it wasn\'t human.',
+  'If your sanity fails, the dungeon will feast on your memories.'
+];
+
+const ACTIVE_SPEECH_BUBBLES = [];
+function spawnSpeechBubble(x, y, text) {
+  ACTIVE_SPEECH_BUBBLES.push({
+    x, y, text, life: 4.5, maxLife: 4.5
+  });
+}
+
+function tickSpeechBubbles(dt) {
+  for (let i = ACTIVE_SPEECH_BUBBLES.length - 1; i >= 0; i--) {
+    const sb = ACTIVE_SPEECH_BUBBLES[i];
+    sb.life -= dt;
+    if (sb.life <= 0) ACTIVE_SPEECH_BUBBLES.splice(i, 1);
+  }
+}
+
+function drawSpeechBubbles() {
+  if (ACTIVE_SPEECH_BUBBLES.length === 0) return;
   CX.save();
-  CX.globalAlpha = SANCTUM_SLIDE;
+  ACTIVE_SPEECH_BUBBLES.forEach(sb => {
+    const alpha = Math.min(1, sb.life / 0.5);
+    CX.globalAlpha = alpha;
+    const px = (sb.x + 0.5) * T, py = (sb.y - 0.4) * T;
+    CX.font = 'italic 11px Crimson Text, serif';
+    const textW = CX.measureText(sb.text).width;
+    const bw = Math.min(260, textW + 18), bh = 30;
 
-  // Background
-  CX.fillStyle = 'rgba(6,9,24,0.97)';
-  CX.strokeStyle = 'rgba(168,85,247,0.7)';
-  CX.lineWidth = 1.5;
-  roundRect(CX, panX, panY, panW, panH, 12);
-  CX.fill();
-  CX.stroke();
-
-  // Header
-  CX.fillStyle = '#c084fc';
-  CX.font = 'bold 18px Cinzel, serif';
-  CX.textAlign = 'center';
-  CX.textBaseline = 'top';
-  CX.shadowColor = '#a855f7';
-  CX.shadowBlur = 12;
-  CX.fillText('🔮 THE ABYSS SANCTUM', LW / 2, panY + 16);
-  CX.shadowBlur = 0;
-
-  // Soul Counter
-  CX.fillStyle = '#fde68a';
-  CX.font = 'bold 12px Cinzel, serif';
-  CX.fillText('Available Abyss Souls: ' + ABYSS_SOULS + ' 🔮', LW / 2, panY + 42);
-
-  // Divider line
-  CX.fillStyle = 'rgba(168,85,247,0.3)';
-  CX.fillRect(panX + 20, panY + 62, panW - 40, 1);
-
-  // Cards
-  const talentKeys = Object.keys(TALENT_DEFS);
-  const cardW = panW - 40, cardH = 72, gap = 8;
-  const startY = panY + 74;
-
-  talentKeys.forEach((key, idx) => {
-    const tDef = TALENT_DEFS[key];
-    const rank = getTalentRank(key);
-    const isMax = rank >= tDef.max;
-    const cost = isMax ? 0 : tDef.costs[rank];
-    const canAfford = !isMax && ABYSS_SOULS >= cost;
-    const cy = startY + idx * (cardH + gap);
-
-    // Card BG
-    CX.fillStyle = 'rgba(15,23,42,0.85)';
-    CX.strokeStyle = isMax ? 'rgba(234,179,8,0.6)' : canAfford ? 'rgba(168,85,247,0.5)' : 'rgba(51,65,85,0.4)';
+    // Bubble frame
+    CX.fillStyle = 'rgba(5,8,22,0.92)';
+    CX.strokeStyle = 'rgba(201,168,76,0.7)';
     CX.lineWidth = 1;
-    roundRect(CX, panX + 20, cy, cardW, cardH, 8);
-    CX.fill();
-    CX.stroke();
+    roundRect(CX, px - bw / 2, py - bh, bw, bh, 6);
+    CX.fill(); CX.stroke();
 
-    // Icon & Name
-    CX.font = '22px serif';
-    CX.textAlign = 'left';
-    CX.textBaseline = 'middle';
-    CX.fillText(tDef.icon, panX + 34, cy + 26);
-
-    CX.fillStyle = '#f1f5f9';
-    CX.font = 'bold 13px Cinzel, serif';
-    CX.fillText(tDef.name, panX + 66, cy + 24);
-
-    // Description
-    CX.fillStyle = 'rgba(148,163,184,0.85)';
-    CX.font = '11px Crimson Text, serif';
-    CX.fillText(tDef.desc, panX + 66, cy + 46);
-
-    // Progress Pips
-    for (let p = 0; p < tDef.max; p++) {
-      const pipX = panX + cardW - 220 + p * 14;
-      const pipY = cy + 20;
-      CX.fillStyle = p < rank ? '#a855f7' : 'rgba(51,65,85,0.7)';
-      roundRect(CX, pipX, pipY, 10, 8, 2);
-      CX.fill();
-    }
-    CX.fillStyle = 'rgba(203,213,225,0.7)';
-    CX.font = '10px Cinzel, serif';
-    CX.textAlign = 'right';
-    CX.fillText('Rank ' + rank + '/' + tDef.max, panX + cardW - 144, cy + 46);
-
-    // Upgrade Button
-    const btnX = panX + cardW - 134, btnY = cy + 16, btnW = 120, btnH = 40;
-    CX.fillStyle = isMax ? 'rgba(234,179,8,0.15)' : canAfford ? 'rgba(168,85,247,0.25)' : 'rgba(30,41,59,0.5)';
-    CX.strokeStyle = isMax ? 'rgba(234,179,8,0.7)' : canAfford ? 'rgba(168,85,247,0.8)' : 'rgba(71,85,105,0.3)';
-    CX.lineWidth = 1.2;
-    roundRect(CX, btnX, btnY, btnW, btnH, 6);
-    CX.fill();
-    CX.stroke();
-
-    CX.fillStyle = isMax ? '#fde68a' : canAfford ? '#ffffff' : '#64748b';
-    CX.font = 'bold 10px Cinzel, serif';
+    // Text
+    CX.fillStyle = '#fde68a';
     CX.textAlign = 'center';
     CX.textBaseline = 'middle';
-    CX.fillText(isMax ? '★ MAXED' : 'Upgrade: ' + cost + ' 🔮', btnX + btnW / 2, btnY + btnH / 2);
+    CX.fillText(sb.text, px, py - bh / 2);
   });
-
-  // Close Button Footer
-  const closeBtnW = 180, closeBtnH = 34;
-  const closeX = LW / 2 - closeBtnW / 2, closeY = panY + panH - 46;
-  CX.fillStyle = 'rgba(30,41,59,0.8)';
-  CX.strokeStyle = 'rgba(148,163,184,0.4)';
-  CX.lineWidth = 1;
-  roundRect(CX, closeX, closeY, closeBtnW, closeBtnH, 6);
-  CX.fill();
-  CX.stroke();
-
-  CX.fillStyle = '#cbd5e1';
-  CX.font = 'bold 11px Cinzel, serif';
-  CX.textAlign = 'center';
-  CX.textBaseline = 'middle';
-  CX.fillText('✖ Close Sanctum ( Esc )', LW / 2, closeY + closeBtnH / 2);
-
   CX.restore();
 }
 
-function handleSanctumClick(mx, my) {
-  const panW = 560, panH = 550;
-  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2;
+// ── 6. Bestiary & Monster Kill Tracker (Sprint 4) ────────────────────
+let BESTIARY_KILLS = {
+  skeleton: 0, ghoul: 0, demon: 0, wraith: 0,
+  gorgaroth: 0, malakor: 0, warden: 0
+};
+try {
+  const bk = JSON.parse(localStorage.getItem('db_bestiary_v9') || '{}');
+  Object.keys(BESTIARY_KILLS).forEach(k => {
+    if (typeof bk[k] === 'number') BESTIARY_KILLS[k] = bk[k];
+  });
+} catch (e) {}
 
-  // Check Close Button
-  const closeBtnW = 180, closeBtnH = 34;
-  const closeX = LW / 2 - closeBtnW / 2, closeY = panY + panH - 46;
-  if (mx >= closeX && mx <= closeX + closeBtnW && my >= closeY && my <= closeY + closeBtnH) {
-    STATE = 'title';
-    return true;
+function recordMonsterKill(type) {
+  if (BESTIARY_KILLS[type] !== undefined) {
+    BESTIARY_KILLS[type]++;
+    try { localStorage.setItem('db_bestiary_v9', JSON.stringify(BESTIARY_KILLS)); } catch (e) {}
   }
-
-  // Check Talent Upgrade Buttons
-  const talentKeys = Object.keys(TALENT_DEFS);
-  const cardW = panW - 40, cardH = 72, gap = 8;
-  const startY = panY + 74;
-
-  for (let idx = 0; idx < talentKeys.length; idx++) {
-    const key = talentKeys[idx];
-    const tDef = TALENT_DEFS[key];
-    const rank = getTalentRank(key);
-    const cy = startY + idx * (cardH + gap);
-    const btnX = panX + cardW - 134, btnY = cy + 16, btnW = 120, btnH = 40;
-
-    if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
-      if (rank < tDef.max) {
-        const cost = tDef.costs[rank];
-        if (ABYSS_SOULS >= cost) {
-          ABYSS_SOULS -= cost;
-          TALENTS[key] = rank + 1;
-          saveSouls();
-          saveTalents();
-          SoundManager.snd('talent_unlock');
-          shk(4);
-          return true;
-        }
-      }
-    }
-  }
-
-  // Clicked outside panel -> close
-  if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
-    STATE = 'title';
-    return true;
-  }
-  return false;
 }
 
-// ── 2. Floating Combat Text System ───────────────────────────────────
+// ── 7. Real-Time Tactical Minimap (Sprint 5) ─────────────────────────
+let MINIMAP_VISIBLE = true;
+const EXPLORED_ROOMS = new Set();
+
+function updateExploredRooms() {
+  if (!ROOMS) return;
+  ROOMS.forEach((r, idx) => {
+    if (P.x >= r.x && P.x <= r.x + r.w && P.y >= r.y && P.y <= r.y + r.h) {
+      EXPLORED_ROOMS.add(idx);
+    }
+  });
+}
+
+function drawMinimap() {
+  if (!MINIMAP_VISIBLE || STATE !== 'playing') return;
+  const mw = 120, mh = 84;
+  const mx = LW - mw - 14, my = 70;
+
+  CX.save();
+  // Frame
+  CX.fillStyle = 'rgba(5,8,20,0.85)';
+  CX.strokeStyle = 'rgba(201,168,76,0.6)';
+  CX.lineWidth = 1.2;
+  roundRect(CX, mx, my, mw, mh, 6);
+  CX.fill(); CX.stroke();
+
+  // Header tag
+  CX.fillStyle = 'rgba(201,168,76,0.9)';
+  CX.font = 'bold 8px Cinzel, serif';
+  CX.textAlign = 'left';
+  CX.fillText('MAP [M]', mx + 6, my + 10);
+
+  // Map scale factors (COLS=28, ROWS=20)
+  const scX = (mw - 16) / COLS;
+  const scY = (mh - 22) / ROWS;
+  const ox = mx + 8, oy = my + 16;
+
+  // Draw explored rooms
+  CX.fillStyle = 'rgba(71,85,105,0.45)';
+  ROOMS.forEach((r, idx) => {
+    if (EXPLORED_ROOMS.has(idx) || LV === 10) {
+      CX.fillRect(ox + r.x * scX, oy + r.y * scY, r.w * scX, r.h * scY);
+    }
+  });
+
+  // Exit Portal blip
+  if (PORTAL_DISCOVERED || LV === 10) {
+    const prx = (ROOMS && ROOMS[ROOMS.length - 1]) ? ROOMS[ROOMS.length - 1].cx : COLS / 2;
+    const pry = (ROOMS && ROOMS[ROOMS.length - 1]) ? ROOMS[ROOMS.length - 1].cy : ROWS / 2;
+    const pulse = Math.sin(F * 0.15) * 0.4 + 0.6;
+    CX.fillStyle = `rgba(34,197,94,${pulse})`;
+    CX.beginPath();
+    CX.arc(ox + prx * scX, oy + pry * scY, 3, 0, 6.28);
+    CX.fill();
+  }
+
+  // Mini-Boss / Boss blip
+  if (ACTIVE_MINIBOSS && ACTIVE_MINIBOSS.alive) {
+    CX.fillStyle = '#ef4444';
+    CX.beginPath();
+    CX.arc(ox + ACTIVE_MINIBOSS.x * scX, oy + ACTIVE_MINIBOSS.y * scY, 3.5, 0, 6.28);
+    CX.fill();
+  } else if (LV === 10 && BOSS && BOSS.alive) {
+    CX.fillStyle = '#dc2626';
+    CX.beginPath();
+    CX.arc(ox + BOSS.x * scX, oy + BOSS.y * scY, 4, 0, 6.28);
+    CX.fill();
+  }
+
+  // Enemy blips
+  CX.fillStyle = 'rgba(239,68,68,0.7)';
+  ENE.forEach(e => {
+    if (e.alive && Math.hypot(P.x - e.x, P.y - e.y) < 7) {
+      CX.fillRect(ox + e.x * scX - 1, oy + e.y * scY - 1, 2, 2);
+    }
+  });
+
+  // Player arrow
+  CX.fillStyle = '#38bdf8';
+  CX.shadowColor = '#0ea5e9';
+  CX.shadowBlur = 6;
+  const plx = ox + P.x * scX, ply = oy + P.y * scY;
+  CX.beginPath();
+  CX.arc(plx, ply, 2.5, 0, 6.28);
+  CX.fill();
+  CX.restore();
+}
+
+// ── 8. High-Fidelity 2.5D Visuals & Ghost HP Bar (Sprint 5) ───────────
+function drawCosmicPortalVortex(px, py, pcx, pcy, locked, puls) {
+  // Cosmic Event Horizon Whirlpool
+  CX.save();
+  const grad = CX.createRadialGradient(pcx, pcy, 2, pcx, pcy, T * 0.9 * puls);
+  grad.addColorStop(0, locked ? 'rgba(255,50,50,0.45)' : 'rgba(0,255,180,0.45)');
+  grad.addColorStop(0.5, locked ? 'rgba(120,0,0,0.25)' : 'rgba(0,80,200,0.25)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  CX.fillStyle = grad;
+  CX.beginPath();
+  CX.arc(pcx, pcy, T * 0.9 * puls, 0, 6.28);
+  CX.fill();
+
+  // Counter-rotating runic rings
+  const ring1Ang = F * 0.03;
+  const ring2Ang = -F * 0.045;
+  CX.strokeStyle = `rgba(${locked ? '255,80,80' : '0,255,180'},0.75)`;
+  CX.lineWidth = 1.8;
+  CX.beginPath();
+  CX.arc(pcx, pcy, T * 0.42 * puls, ring1Ang, ring1Ang + 4.8);
+  CX.stroke();
+
+  CX.strokeStyle = `rgba(${locked ? '200,30,30' : '56,189,248'},0.65)`;
+  CX.lineWidth = 1.4;
+  CX.beginPath();
+  CX.arc(pcx, pcy, T * 0.28 * puls, ring2Ang, ring2Ang + 4.2);
+  CX.stroke();
+
+  // Dark singularity core
+  CX.fillStyle = '#050814';
+  CX.beginPath();
+  CX.arc(pcx, pcy, T * 0.16 * puls, 0, 6.28);
+  CX.fill();
+  CX.restore();
+}
+
+function updateGhostHealth(dt) {
+  if (P.ghostHp === undefined) P.ghostHp = P.hp;
+  if (P.ghostHpTimer === undefined) P.ghostHpTimer = 0;
+
+  if (P.ghostHpTimer > 0) {
+    P.ghostHpTimer -= dt;
+  } else if (P.ghostHp > P.displayHp) {
+    P.ghostHp = Math.max(P.displayHp, P.ghostHp - dt * (P.maxHp * 0.4));
+  } else {
+    P.ghostHp = P.displayHp;
+  }
+}
+
+// ── 9. Floating Combat Text & Particle Trails ────────────────────────
 const FLOATING_TEXTS = [];
 function showFloatingText(text, x, y, col = '#ffffff', sz = 13, isCrit = false) {
   FLOATING_TEXTS.push({
@@ -6789,38 +7049,36 @@ function drawFloatingTexts() {
   CX.restore();
 }
 
-// ── 3. Soul Orbs System ──────────────────────────────────────────────
+// ── 10. Soul Orbs System ─────────────────────────────────────────────
 const SOUL_ORBS = [];
 function spawnSoulOrb(x, y, count = 1) {
+  let finalCount = count;
+  if (hasRelic('blood_chalice')) finalCount = Math.round(count * 1.5);
   SOUL_ORBS.push({
     x, y,
     vx: (Math.random() - 0.5) * 2.5,
     vy: (Math.random() - 0.5) * 2.5,
-    count,
+    count: finalCount,
     life: 12.0,
     ph: Math.random() * 6.28
   });
 }
 
 function tickSoulOrbs(dt) {
+  const attractRange = hasRelic('void_magnet') ? 10.0 : 4.0;
   for (let i = SOUL_ORBS.length - 1; i >= 0; i--) {
     const orb = SOUL_ORBS[i];
     orb.life -= dt;
     orb.ph += dt * 4;
     const dx = P.x - orb.x, dy = P.y - orb.y;
     const dist = Math.hypot(dx, dy) || 1;
-    // Gravitate toward player
-    const pullSpeed = dist < 4 ? 6.5 : 2.2;
+    const pullSpeed = dist < attractRange ? 7.5 : 2.0;
     orb.vx += (dx / dist) * pullSpeed * dt;
     orb.vy += (dy / dist) * pullSpeed * dt;
     orb.vx *= Math.pow(0.88, dt * TARGET_FPS);
     orb.vy *= Math.pow(0.88, dt * TARGET_FPS);
     orb.x += orb.vx * dt;
     orb.y += orb.vy * dt;
-
-    if (F % 5 === 0) {
-      spawnP(orb.x, orb.y, 1, { col: '#a855f7', spd: 0.2, life: 0.25, r: 1.6 });
-    }
 
     if (dist < 0.65 && !P.dead) {
       ABYSS_SOULS += orb.count;
@@ -6855,36 +7113,7 @@ function drawSoulOrbs() {
   CX.restore();
 }
 
-// ── 4. 2.5D Wall Drop-Shadows & Atmospheric Depth ────────────────────
-function drawWallDropShadows() {
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      if (!MAP[r]) continue;
-      const tile = MAP[r][c];
-      if (tile === 0 || tile === 2) {
-        const px = c * T, py = r * T;
-        // Drop shadow from wall above
-        if (r > 0 && MAP[r - 1] && MAP[r - 1][c] === 1) {
-          const dropGrad = CX.createLinearGradient(px, py, px, py + 10);
-          dropGrad.addColorStop(0, 'rgba(0,0,0,0.50)');
-          dropGrad.addColorStop(1, 'rgba(0,0,0,0)');
-          CX.fillStyle = dropGrad;
-          CX.fillRect(px, py, T, 10);
-        }
-        // Subtle shadow from wall to left
-        if (c > 0 && MAP[r][c - 1] === 1) {
-          const sideGrad = CX.createLinearGradient(px, py, px + 8, py);
-          sideGrad.addColorStop(0, 'rgba(0,0,0,0.30)');
-          sideGrad.addColorStop(1, 'rgba(0,0,0,0)');
-          CX.fillStyle = sideGrad;
-          CX.fillRect(px, py, 8, T);
-        }
-      }
-    }
-  }
-}
-
-// ── 5. Melee Crescent Blade Trails ───────────────────────────────────
+// ── 11. Melee Crescent Blade Trails & Wall Drop-Shadows ──────────────
 const SLASH_ARCS = [];
 function spawnSlashArc(x, y, ang, arcSpan, col, r = 24) {
   SLASH_ARCS.push({
@@ -6924,7 +7153,35 @@ function drawSlashArcs() {
   CX.restore();
 }
 
-// ── 6. Mini-Bosses (Floor 3 & 6) ─────────────────────────────────────
+function drawWallDropShadows() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (!MAP[r]) continue;
+      const tile = MAP[r][c];
+      if (tile === 0 || tile === 2) {
+        const px = c * T, py = r * T;
+        // Drop shadow from wall above
+        if (r > 0 && MAP[r - 1] && MAP[r - 1][c] === 1) {
+          const dropGrad = CX.createLinearGradient(px, py, px, py + 10);
+          dropGrad.addColorStop(0, 'rgba(0,0,0,0.50)');
+          dropGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          CX.fillStyle = dropGrad;
+          CX.fillRect(px, py, T, 10);
+        }
+        // Subtle shadow from wall to left
+        if (c > 0 && MAP[r][c - 1] === 1) {
+          const sideGrad = CX.createLinearGradient(px, py, px + 8, py);
+          sideGrad.addColorStop(0, 'rgba(0,0,0,0.30)');
+          sideGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          CX.fillStyle = sideGrad;
+          CX.fillRect(px, py, 8, T);
+        }
+      }
+    }
+  }
+}
+
+// ── 12. Mini-Bosses & Epic Boss Encounters ───────────────────────────
 let ACTIVE_MINIBOSS = null;
 
 function spawnMiniBoss(type) {
@@ -6938,7 +7195,7 @@ function spawnMiniBoss(type) {
       name: 'GORGAROTH',
       title: 'The Iron Warden',
       x, y, vx: 0, vy: 0,
-      hp: 14, maxHp: 14,
+      hp: 16, maxHp: 16,
       alive: true,
       alertT: 0, atkC: 0,
       slamTimer: 3.5,
@@ -6954,7 +7211,7 @@ function spawnMiniBoss(type) {
       name: 'MALAKOR',
       title: 'The Void Reaver',
       x, y, vx: 0, vy: 0,
-      hp: 20, maxHp: 20,
+      hp: 22, maxHp: 22,
       alive: true,
       alertT: 0, atkC: 0,
       barrageTimer: 2.8,
@@ -6976,7 +7233,6 @@ function tickMiniBoss(dt) {
   const dx = P.x - mb.x, dy = P.y - mb.y, dist = Math.hypot(dx, dy) || 1;
 
   if (mb.type === 'iron_warden') {
-    // Movement
     if (dist > 1.2 && mb.slamTelegraph <= 0) {
       mb.vx += (dx / dist) * 1.8 * dt;
       mb.vy += (dy / dist) * 1.8 * dt;
@@ -6986,7 +7242,6 @@ function tickMiniBoss(dt) {
     if (!solidAt(mb.x + mb.vx, mb.y)) mb.x += mb.vx;
     if (!solidAt(mb.x, mb.y + mb.vy)) mb.y += mb.vy;
 
-    // Slam attack
     mb.slamTimer -= dt;
     if (mb.slamTimer <= 0.75 && mb.slamTelegraph <= 0) {
       mb.slamTelegraph = 0.75;
@@ -6996,7 +7251,6 @@ function tickMiniBoss(dt) {
     if (mb.slamTelegraph > 0) {
       mb.slamTelegraph -= dt;
       if (mb.slamTelegraph <= 0) {
-        // Impact
         shk(12);
         SoundManager.snd('shockwave');
         spawnP(mb.slamX, mb.slamY, 30, { col: '#ef4444', spd: 1.8, life: 0.6, r: 3.5, star: true });
@@ -7009,14 +7263,11 @@ function tickMiniBoss(dt) {
         mb.slamTimer = 3.8;
       }
     }
-
-    // Direct melee contact
     if (dist < 0.9 && mb.atkC <= 0 && !P.dead) {
       mb.atkC = 1.2;
       playerTakeDamage(1);
     }
   } else if (mb.type === 'void_reaver') {
-    // Floating movement & orbiting soul orbs
     mb.vx += (dx / dist) * 1.2 * dt;
     mb.vy += (dy / dist) * 1.2 * dt;
     mb.vx *= Math.pow(0.88, dt * TARGET_FPS);
@@ -7024,7 +7275,6 @@ function tickMiniBoss(dt) {
     if (!solidAt(mb.x + mb.vx, mb.y)) mb.x += mb.vx;
     if (!solidAt(mb.x, mb.y + mb.vy)) mb.y += mb.vy;
 
-    // Barrage
     mb.barrageTimer -= dt;
     if (mb.barrageTimer <= 0) {
       mb.barrageTimer = 3.6;
@@ -7041,7 +7291,6 @@ function tickMiniBoss(dt) {
       spawnP(mb.x, mb.y, 14, { col: '#a855f7', spd: 1.2, life: 0.5, r: 3, star: true });
     }
 
-    // Teleport behind player
     mb.teleportTimer -= dt;
     if (mb.teleportTimer <= 0) {
       mb.teleportTimer = 5.2;
@@ -7064,8 +7313,6 @@ function drawMiniBoss() {
   const bx = (mb.x + 0.5) * T, by = (mb.y + 0.5) * T;
 
   CX.save();
-
-  // Telegraph ring for Iron Warden
   if (mb.type === 'iron_warden' && mb.slamTelegraph > 0) {
     const sx = (mb.slamX + 0.5) * T, sy = (mb.slamY + 0.5) * T;
     const progress = 1 - (mb.slamTelegraph / 0.75);
@@ -7081,41 +7328,29 @@ function drawMiniBoss() {
     CX.fill();
   }
 
-  // Shadow
   CX.fillStyle = 'rgba(0,0,0,0.5)';
   CX.beginPath();
   CX.ellipse(bx, by + 16, 20, 6, 0, 0, 6.28);
   CX.fill();
 
   if (mb.type === 'iron_warden') {
-    // Gorgaroth Sprite
     const bob = Math.sin(F * 0.12) * 2;
     CX.fillStyle = mb.hitFlash > 0 ? '#ffffff' : '#334155';
     roundRect(CX, bx - 14, by - 16 + bob, 28, 28, 6);
     CX.fill();
 
-    // Horns
     CX.fillStyle = '#94a3b8';
     CX.beginPath();
-    CX.moveTo(bx - 10, by - 14 + bob);
-    CX.lineTo(bx - 22, by - 26 + bob);
-    CX.lineTo(bx - 6, by - 16 + bob);
-    CX.fill();
-
+    CX.moveTo(bx - 10, by - 14 + bob); CX.lineTo(bx - 22, by - 26 + bob); CX.lineTo(-6 + bx, by - 16 + bob); CX.fill();
     CX.beginPath();
-    CX.moveTo(bx + 10, by - 14 + bob);
-    CX.lineTo(bx + 22, by - 26 + bob);
-    CX.lineTo(bx + 6, by - 16 + bob);
-    CX.fill();
+    CX.moveTo(bx + 10, by - 14 + bob); CX.lineTo(bx + 22, by - 26 + bob); CX.lineTo(6 + bx, by - 16 + bob); CX.fill();
 
-    // Glowing Eyes
     CX.fillStyle = '#f97316';
     CX.shadowColor = '#ea580c';
     CX.shadowBlur = 8;
     CX.fillRect(bx - 7, by - 6 + bob, 4, 3);
     CX.fillRect(bx + 3, by - 6 + bob, 4, 3);
 
-    // Spiked Club
     CX.shadowBlur = 0;
     CX.fillStyle = '#64748b';
     CX.fillRect(bx + 14, by - 10 + bob, 6, 26);
@@ -7124,7 +7359,6 @@ function drawMiniBoss() {
     CX.arc(bx + 17, by - 10 + bob, 7, 0, 6.28);
     CX.fill();
   } else if (mb.type === 'void_reaver') {
-    // Malakor Sprite (Floating Shadow)
     const floatY = Math.sin(F * 0.1) * 4;
     CX.fillStyle = mb.hitFlash > 0 ? '#ffffff' : '#1e1b4b';
     CX.shadowColor = '#7c3aed';
@@ -7133,7 +7367,6 @@ function drawMiniBoss() {
     CX.arc(bx, by - 4 + floatY, 15, 0, 6.28);
     CX.fill();
 
-    // Orbiting Wisps
     for (let w = 0; w < 3; w++) {
       const ang = mb.ph + (w * Math.PI * 2) / 3;
       const wx = bx + Math.cos(ang) * 22;
@@ -7144,13 +7377,11 @@ function drawMiniBoss() {
       CX.fill();
     }
 
-    // Void Core Eye
     CX.fillStyle = '#c084fc';
     CX.beginPath();
     CX.arc(bx, by - 4 + floatY, 4, 0, 6.28);
     CX.fill();
   }
-
   CX.restore();
 }
 
@@ -7163,7 +7394,6 @@ function drawMiniBossHUD() {
   const frac = Math.max(0, mb.hp / mb.maxHp);
 
   CX.save();
-  // Frame
   CX.fillStyle = 'rgba(5,8,22,0.85)';
   CX.strokeStyle = 'rgba(201,168,76,0.7)';
   CX.lineWidth = 1.2;
@@ -7171,14 +7401,12 @@ function drawMiniBossHUD() {
   CX.fill();
   CX.stroke();
 
-  // Name & Title
   CX.fillStyle = '#fde68a';
   CX.font = 'bold 11px Cinzel, serif';
   CX.textAlign = 'center';
   CX.textBaseline = 'middle';
   CX.fillText('⚔️ ' + mb.name + ' ' + mb.title, LW / 2, barY - 8);
 
-  // Health fill
   CX.fillStyle = '#1e293b';
   CX.fillRect(barX, barY + 2, barW, barH);
 
@@ -7194,7 +7422,7 @@ function drawMiniBossHUD() {
   CX.restore();
 }
 
-// ── 7. Cinematic Encounter Banners ───────────────────────────────────
+// ── 13. Cinematic Encounter Banners ──────────────────────────────────
 const CINEMATIC_BANNER = {
   active: false,
   timer: 0,
@@ -7231,13 +7459,11 @@ function drawCinematicBanner() {
   CX.save();
   CX.globalAlpha = Math.max(0, Math.min(1, alpha));
 
-  // Letterbox bars
   const lbH = 46;
   CX.fillStyle = 'rgba(2,4,12,0.92)';
   CX.fillRect(0, 0, LW, lbH);
   CX.fillRect(0, LH - lbH, LW, lbH);
 
-  // Center banner
   const py = 76, pw = 480, ph = 58;
   const px = LW / 2 - pw / 2;
   const grad = CX.createLinearGradient(px, py, px + pw, py);
@@ -7271,43 +7497,581 @@ function drawCinematicBanner() {
   CX.restore();
 }
 
-// ── 8. Pipelines Hooks & System Integration ──────────────────────────
+// ── 14. Luxury Glassmorphic HUD Extensions ───────────────────────────
+function drawLuxuryHUDExtensions() {
+  if (STATE !== 'playing') return;
+
+  // Active Mutation Badge (top-left)
+  if (CURRENT_MUTATION) {
+    CX.save();
+    CX.fillStyle = 'rgba(5,8,22,0.85)';
+    CX.strokeStyle = CURRENT_MUTATION.col;
+    CX.lineWidth = 1;
+    roundRect(CX, 12, 12, 175, 24, 5);
+    CX.fill(); CX.stroke();
+    CX.fillStyle = CURRENT_MUTATION.col;
+    CX.font = 'bold 9px Cinzel, serif';
+    CX.textAlign = 'left';
+    CX.textBaseline = 'middle';
+    CX.fillText(CURRENT_MUTATION.name, 18, 24);
+    CX.restore();
+  }
+
+  // 3-Weapon Inventory Slots (bottom-left)
+  if (P.inventory && P.inventory.length > 0) {
+    const startX = 200, startY = LH - 42;
+    for (let s = 0; s < 3; s++) {
+      const it = P.inventory[s];
+      const isActive = s === P.activeSlot;
+      const sx = startX + s * 38, sy = startY;
+
+      CX.save();
+      CX.fillStyle = isActive ? 'rgba(201,168,76,0.25)' : 'rgba(15,20,40,0.7)';
+      CX.strokeStyle = isActive ? '#fde68a' : (it ? it.rarity.col : 'rgba(51,65,85,0.4)');
+      CX.lineWidth = isActive ? 1.8 : 1;
+      roundRect(CX, sx, sy, 34, 34, 5);
+      CX.fill(); CX.stroke();
+
+      if (it && WD[it.wep]) {
+        CX.font = '16px serif';
+        CX.textAlign = 'center';
+        CX.textBaseline = 'middle';
+        CX.fillText(WD[it.wep].icon, sx + 17, sy + 17);
+      }
+      // Key indicator
+      CX.fillStyle = isActive ? '#fde68a' : 'rgba(148,163,184,0.6)';
+      CX.font = 'bold 8px Cinzel, serif';
+      CX.textAlign = 'right';
+      CX.fillText(String(s + 1), sx + 31, sy + 30);
+      CX.restore();
+    }
+  }
+
+  // Active Relics Bar (bottom-center)
+  if (P.relics && P.relics.length > 0) {
+    const rx = LW / 2 - (P.relics.length * 28) / 2;
+    const ry = LH - 88;
+    P.relics.forEach((rId, idx) => {
+      const rel = RELIC_DEFS[rId];
+      if (!rel) return;
+      const bx = rx + idx * 28;
+      CX.save();
+      CX.fillStyle = 'rgba(5,8,22,0.8)';
+      CX.strokeStyle = rel.col;
+      CX.lineWidth = 1;
+      roundRect(CX, bx, ry, 24, 24, 4);
+      CX.fill(); CX.stroke();
+      CX.font = '13px serif';
+      CX.textAlign = 'center';
+      CX.textBaseline = 'middle';
+      CX.fillText(rel.icon, bx + 12, ry + 12);
+      CX.restore();
+    });
+  }
+}
+
+// ── 15. Modals: Sanctum, Codex, Lore ─────────────────────────────────
+let SANCTUM_SLIDE = 0;
+function openSanctum() { SANCTUM_SLIDE = 0; STATE = 'sanctum'; }
+
+function drawSanctumPanel() {
+  SANCTUM_SLIDE = Math.min(1, SANCTUM_SLIDE + DT * 4.5);
+  const panW = 560, panH = 550;
+  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2 - (1 - SANCTUM_SLIDE) * 50;
+
+  CX.save();
+  CX.globalAlpha = SANCTUM_SLIDE;
+
+  CX.fillStyle = 'rgba(6,9,24,0.97)';
+  CX.strokeStyle = 'rgba(168,85,247,0.7)';
+  CX.lineWidth = 1.5;
+  roundRect(CX, panX, panY, panW, panH, 12);
+  CX.fill(); CX.stroke();
+
+  CX.fillStyle = '#c084fc';
+  CX.font = 'bold 18px Cinzel, serif';
+  CX.textAlign = 'center';
+  CX.textBaseline = 'top';
+  CX.shadowColor = '#a855f7';
+  CX.shadowBlur = 12;
+  CX.fillText('🔮 THE ABYSS SANCTUM', LW / 2, panY + 16);
+  CX.shadowBlur = 0;
+
+  CX.fillStyle = '#fde68a';
+  CX.font = 'bold 12px Cinzel, serif';
+  CX.fillText('Available Souls: ' + ABYSS_SOULS + ' 🔮   ·   Prestige Tokens: ' + PRESTIGE_TOKENS + ' 👑', LW / 2, panY + 42);
+
+  CX.fillStyle = 'rgba(168,85,247,0.3)';
+  CX.fillRect(panX + 20, panY + 62, panW - 40, 1);
+
+  const talentKeys = Object.keys(TALENT_DEFS);
+  const cardW = panW - 40, cardH = 72, gap = 8;
+  const startY = panY + 74;
+
+  talentKeys.forEach((key, idx) => {
+    const tDef = TALENT_DEFS[key];
+    const rank = getTalentRank(key);
+    const isMax = rank >= tDef.max;
+    const cost = isMax ? 0 : tDef.costs[rank];
+    const canAfford = !isMax && ABYSS_SOULS >= cost;
+    const cy = startY + idx * (cardH + gap);
+
+    CX.fillStyle = 'rgba(15,23,42,0.85)';
+    CX.strokeStyle = isMax ? 'rgba(234,179,8,0.6)' : canAfford ? 'rgba(168,85,247,0.5)' : 'rgba(51,65,85,0.4)';
+    CX.lineWidth = 1;
+    roundRect(CX, panX + 20, cy, cardW, cardH, 8);
+    CX.fill(); CX.stroke();
+
+    CX.font = '22px serif';
+    CX.textAlign = 'left';
+    CX.textBaseline = 'middle';
+    CX.fillText(tDef.icon, panX + 34, cy + 26);
+
+    CX.fillStyle = '#f1f5f9';
+    CX.font = 'bold 13px Cinzel, serif';
+    CX.fillText(tDef.name, panX + 66, cy + 24);
+
+    CX.fillStyle = 'rgba(148,163,184,0.85)';
+    CX.font = '11px Crimson Text, serif';
+    CX.fillText(tDef.desc, panX + 66, cy + 46);
+
+    for (let p = 0; p < tDef.max; p++) {
+      const pipX = panX + cardW - 220 + p * 14;
+      const pipY = cy + 20;
+      CX.fillStyle = p < rank ? '#a855f7' : 'rgba(51,65,85,0.7)';
+      roundRect(CX, pipX, pipY, 10, 8, 2);
+      CX.fill();
+    }
+    CX.fillStyle = 'rgba(203,213,225,0.7)';
+    CX.font = '10px Cinzel, serif';
+    CX.textAlign = 'right';
+    CX.fillText('Rank ' + rank + '/' + tDef.max, panX + cardW - 144, cy + 46);
+
+    const btnX = panX + cardW - 134, btnY = cy + 16, btnW = 120, btnH = 40;
+    CX.fillStyle = isMax ? 'rgba(234,179,8,0.15)' : canAfford ? 'rgba(168,85,247,0.25)' : 'rgba(30,41,59,0.5)';
+    CX.strokeStyle = isMax ? 'rgba(234,179,8,0.7)' : canAfford ? 'rgba(168,85,247,0.8)' : 'rgba(71,85,105,0.3)';
+    CX.lineWidth = 1.2;
+    roundRect(CX, btnX, btnY, btnW, btnH, 6);
+    CX.fill(); CX.stroke();
+
+    CX.fillStyle = isMax ? '#fde68a' : canAfford ? '#ffffff' : '#64748b';
+    CX.font = 'bold 10px Cinzel, serif';
+    CX.textAlign = 'center';
+    CX.textBaseline = 'middle';
+    CX.fillText(isMax ? '★ MAXED' : 'Upgrade: ' + cost + ' 🔮', btnX + btnW / 2, btnY + btnH / 2);
+  });
+
+  const closeBtnW = 180, closeBtnH = 34;
+  const closeX = LW / 2 - closeBtnW / 2, closeY = panY + panH - 46;
+  CX.fillStyle = 'rgba(30,41,59,0.8)';
+  CX.strokeStyle = 'rgba(148,163,184,0.4)';
+  CX.lineWidth = 1;
+  roundRect(CX, closeX, closeY, closeBtnW, closeBtnH, 6);
+  CX.fill(); CX.stroke();
+
+  CX.fillStyle = '#cbd5e1';
+  CX.font = 'bold 11px Cinzel, serif';
+  CX.textAlign = 'center';
+  CX.textBaseline = 'middle';
+  CX.fillText('✖ Close Sanctum ( Esc )', LW / 2, closeY + closeBtnH / 2);
+
+  CX.restore();
+}
+
+
+// ── Codex & Bestiary Modal (Sprint 3 & 4) ────────────────────────────
+let CODEX_SLIDE = 0;
+let CODEX_TAB = 'lore'; // 'lore' | 'bestiary'
+let CODEX_SELECTED_LORE = 0;
+
+function openCodex() {
+  CODEX_SLIDE = 0;
+  STATE = 'codex';
+}
+
+const BESTIARY_INFO = [
+  { id: 'skeleton', name: 'Skeleton Warrior', icon: '💀', col: '#94a3b8', threat: 'Low', desc: 'Ancient reanimated foot soldier. Attacks with crude bone blades.', weakness: 'Heavy knockback; easily lured into traps.' },
+  { id: 'ghoul', name: 'Crypt Ghoul', icon: '🧟', col: '#4ade80', threat: 'Medium', desc: 'Carrion feeder driven mad by subterranean necrotides.', weakness: 'Glacial chill interrupts its frenzied lunges.' },
+  { id: 'demon', name: 'Infernal Demon', icon: '😈', col: '#f87171', threat: 'High', desc: 'Brimstone fiend spitting explosive magma projectiles.', weakness: 'Vulnerable while casting; circle-strafe to evade bolts.' },
+  { id: 'wraith', name: 'Shadow Wraith', icon: '👻', col: '#c084fc', threat: 'Lethal', desc: 'Ethereal entity that glides through darkness to drain sanity.', weakness: 'Avoid unlit corners; bright torch halos force it back.' },
+  { id: 'gorgaroth', name: 'Gorgaroth, Breaker of Chains', icon: '👹', col: '#fb923c', threat: 'Mini-Boss', desc: 'Colossal jailer wielding an iron pillar. Slams create earth fissures.', weakness: 'Watch for the ground-charge telegraph; dodge outward immediately.' },
+  { id: 'malakor', name: 'Malakor, The Void Reaver', icon: '👾', col: '#a855f7', threat: 'Mini-Boss', desc: 'Void sorcerer who shifts through reality and summons soul missiles.', weakness: 'Punish with burst damage during the 1-second recovery after teleporting.' },
+  { id: 'warden', name: 'The Abyss Warden', icon: '👑', col: '#ef4444', threat: 'Arch-Demon', desc: 'Lord of the Sunken Citadel. Commander of darkness and the lightless rifts.', weakness: 'Extinguish summoning wards and maintain max distance during rage whirl.' }
+];
+
+function drawCodexPanel() {
+  CODEX_SLIDE = Math.min(1, CODEX_SLIDE + DT * 4.5);
+  const panW = 600, panH = 550;
+  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2 - (1 - CODEX_SLIDE) * 45;
+
+  CX.save();
+  CX.globalAlpha = CODEX_SLIDE;
+
+  // Background frame
+  CX.fillStyle = 'rgba(6,9,24,0.98)';
+  CX.strokeStyle = 'rgba(201,168,76,0.75)';
+  CX.lineWidth = 1.8;
+  roundRect(CX, panX, panY, panW, panH, 12);
+  CX.fill(); CX.stroke();
+
+  // Title
+  CX.fillStyle = '#fde68a';
+  CX.font = 'bold 18px Cinzel, serif';
+  CX.textAlign = 'center';
+  CX.textBaseline = 'top';
+  CX.shadowColor = '#c9a84c';
+  CX.shadowBlur = 10;
+  CX.fillText('📜 THE ABYSS CODEX & BESTIARY', LW / 2, panY + 16);
+  CX.shadowBlur = 0;
+
+  // Tabs Header
+  const tabW = (panW - 60) / 2;
+  const tab1X = panX + 24, tab2X = panX + 36 + tabW;
+  const tabY = panY + 44, tabH = 32;
+
+  // Tab 1: Lore
+  CX.fillStyle = CODEX_TAB === 'lore' ? 'rgba(201,168,76,0.25)' : 'rgba(15,23,42,0.6)';
+  CX.strokeStyle = CODEX_TAB === 'lore' ? '#fde68a' : 'rgba(71,85,105,0.5)';
+  CX.lineWidth = 1.2;
+  roundRect(CX, tab1X, tabY, tabW, tabH, 6);
+  CX.fill(); CX.stroke();
+  CX.fillStyle = CODEX_TAB === 'lore' ? '#fde68a' : '#94a3b8';
+  CX.font = 'bold 11px Cinzel, serif';
+  CX.textAlign = 'center'; CX.textBaseline = 'middle';
+  CX.fillText('📜 ANCIENT CHRONICLES (' + Object.keys(UNLOCKED_LORE).length + '/' + LORE_SCROLLS_DATA.length + ')', tab1X + tabW / 2, tabY + tabH / 2);
+
+  // Tab 2: Bestiary
+  CX.fillStyle = CODEX_TAB === 'bestiary' ? 'rgba(168,85,247,0.25)' : 'rgba(15,23,42,0.6)';
+  CX.strokeStyle = CODEX_TAB === 'bestiary' ? '#c084fc' : 'rgba(71,85,105,0.5)';
+  roundRect(CX, tab2X, tabY, tabW, tabH, 6);
+  CX.fill(); CX.stroke();
+  CX.fillStyle = CODEX_TAB === 'bestiary' ? '#c084fc' : '#94a3b8';
+  CX.fillText('💀 MONSTROUS BESTIARY (' + BESTIARY_INFO.length + ' ENTRIES)', tab2X + tabW / 2, tabY + tabH / 2);
+
+  const contentY = tabY + tabH + 12;
+
+  if (CODEX_TAB === 'lore') {
+    // Lore Scroll List
+    const itemH = 46, gap = 6;
+    for (let i = 0; i < LORE_SCROLLS_DATA.length; i++) {
+      const scroll = LORE_SCROLLS_DATA[i];
+      const isUnlocked = !!UNLOCKED_LORE[scroll.id];
+      const isSel = CODEX_SELECTED_LORE === i;
+      const iy = contentY + i * (itemH + gap);
+      if (iy + itemH > panY + panH - 54) break;
+
+      CX.fillStyle = isSel ? 'rgba(201,168,76,0.18)' : 'rgba(15,23,42,0.7)';
+      CX.strokeStyle = isSel ? '#fde68a' : isUnlocked ? 'rgba(201,168,76,0.4)' : 'rgba(51,65,85,0.4)';
+      roundRect(CX, panX + 24, iy, panW - 48, itemH, 6);
+      CX.fill(); CX.stroke();
+
+      CX.font = '16px serif';
+      CX.textAlign = 'left'; CX.textBaseline = 'middle';
+      CX.fillText(isUnlocked ? '📜' : '🔒', panX + 36, iy + itemH / 2);
+
+      CX.fillStyle = isUnlocked ? (isSel ? '#fde68a' : '#f1f5f9') : '#64748b';
+      CX.font = 'bold 12px Cinzel, serif';
+      CX.fillText(isUnlocked ? scroll.title : 'Encrypted Ancient Parchment', panX + 64, iy + 16);
+
+      CX.fillStyle = isUnlocked ? 'rgba(203,213,225,0.85)' : 'rgba(100,116,139,0.6)';
+      CX.font = 'italic 11px Crimson Text, serif';
+      const prev = isUnlocked ? scroll.text : 'Explore secret dead ends in deep floors to decipher...';
+      const trimmed = prev.length > 70 ? prev.substring(0, 67) + '...' : prev;
+      CX.fillText(trimmed, panX + 64, iy + 33);
+    }
+  } else {
+    // Bestiary Entries
+    const itemH = 54, gap = 6;
+    for (let i = 0; i < BESTIARY_INFO.length; i++) {
+      const b = BESTIARY_INFO[i];
+      const kills = BESTIARY_KILLS[b.id] || 0;
+      const iy = contentY + i * (itemH + gap);
+      if (iy + itemH > panY + panH - 54) break;
+
+      CX.fillStyle = 'rgba(15,23,42,0.75)';
+      CX.strokeStyle = b.col;
+      CX.lineWidth = 1;
+      roundRect(CX, panX + 24, iy, panW - 48, itemH, 6);
+      CX.fill(); CX.stroke();
+
+      CX.font = '20px serif';
+      CX.textAlign = 'left'; CX.textBaseline = 'middle';
+      CX.fillText(b.icon, panX + 34, iy + itemH / 2);
+
+      CX.fillStyle = b.col;
+      CX.font = 'bold 12px Cinzel, serif';
+      CX.fillText(b.name, panX + 64, iy + 16);
+
+      CX.fillStyle = '#fde68a';
+      CX.font = 'bold 10px Cinzel, serif';
+      CX.textAlign = 'right';
+      CX.fillText('Kills: ' + kills + '  |  Threat: ' + b.threat, panX + panW - 36, iy + 16);
+
+      CX.fillStyle = 'rgba(203,213,225,0.85)';
+      CX.font = '10px Crimson Text, serif';
+      CX.textAlign = 'left';
+      const wText = '💡 Weakness: ' + b.weakness;
+      const trimmedW = wText.length > 80 ? wText.substring(0, 77) + '...' : wText;
+      CX.fillText(trimmedW, panX + 64, iy + 36);
+    }
+  }
+
+  // Close Button
+  const closeBtnW = 180, closeBtnH = 34;
+  const closeX = LW / 2 - closeBtnW / 2, closeY = panY + panH - 46;
+  CX.fillStyle = 'rgba(30,41,59,0.85)';
+  CX.strokeStyle = 'rgba(148,163,184,0.4)';
+  CX.lineWidth = 1;
+  roundRect(CX, closeX, closeY, closeBtnW, closeBtnH, 6);
+  CX.fill(); CX.stroke();
+
+  CX.fillStyle = '#cbd5e1';
+  CX.font = 'bold 11px Cinzel, serif';
+  CX.textAlign = 'center'; CX.textBaseline = 'middle';
+  CX.fillText('✖ Close Codex ( Esc )', LW / 2, closeY + closeBtnH / 2);
+
+  CX.restore();
+}
+
+function handleCodexClick(mx, my) {
+  const panW = 600, panH = 550;
+  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2;
+
+  // Close button
+  const closeBtnW = 180, closeBtnH = 34;
+  const closeX = LW / 2 - closeBtnW / 2, closeY = panY + panH - 46;
+  if (mx >= closeX && mx <= closeX + closeBtnW && my >= closeY && my <= closeY + closeBtnH) {
+    STATE = 'title';
+    return true;
+  }
+
+  // Tabs
+  const tabW = (panW - 60) / 2;
+  const tab1X = panX + 24, tab2X = panX + 36 + tabW;
+  const tabY = panY + 44, tabH = 32;
+
+  if (mx >= tab1X && mx <= tab1X + tabW && my >= tabY && my <= tabY + tabH) {
+    CODEX_TAB = 'lore';
+    SoundManager.snd('talent_unlock');
+    return true;
+  }
+  if (mx >= tab2X && mx <= tab2X + tabW && my >= tabY && my <= tabY + tabH) {
+    CODEX_TAB = 'bestiary';
+    SoundManager.snd('talent_unlock');
+    return true;
+  }
+
+  // Clicking an unlocked lore entry opens it in full view
+  if (CODEX_TAB === 'lore') {
+    const itemH = 46, gap = 6;
+    const contentY = tabY + tabH + 12;
+    for (let i = 0; i < LORE_SCROLLS_DATA.length; i++) {
+      const iy = contentY + i * (itemH + gap);
+      if (mx >= panX + 24 && mx <= panX + panW - 24 && my >= iy && my <= iy + itemH) {
+        const scroll = LORE_SCROLLS_DATA[i];
+        if (UNLOCKED_LORE[scroll.id]) {
+          CODEX_SELECTED_LORE = i;
+          openLoreModal(scroll);
+          return true;
+        }
+      }
+    }
+  }
+
+  if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
+    STATE = 'title';
+    return true;
+  }
+  return false;
+}
+
+function handleSanctumClick(mx, my) {
+  const panW = 560, panH = 550;
+  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2;
+
+  const closeBtnW = 180, closeBtnH = 34;
+  const closeX = LW / 2 - closeBtnW / 2, closeY = panY + panH - 46;
+  if (mx >= closeX && mx <= closeX + closeBtnW && my >= closeY && my <= closeY + closeBtnH) {
+    STATE = 'title';
+    return true;
+  }
+
+  const talentKeys = Object.keys(TALENT_DEFS);
+  const cardW = panW - 40, cardH = 72, gap = 8;
+  const startY = panY + 74;
+
+  for (let idx = 0; idx < talentKeys.length; idx++) {
+    const key = talentKeys[idx];
+    const tDef = TALENT_DEFS[key];
+    const rank = getTalentRank(key);
+    const cy = startY + idx * (cardH + gap);
+    const btnX = panX + cardW - 134, btnY = cy + 16, btnW = 120, btnH = 40;
+
+    if (mx >= btnX && mx <= btnX + btnW && my >= btnY && my <= btnY + btnH) {
+      if (rank < tDef.max) {
+        const cost = tDef.costs[rank];
+        if (ABYSS_SOULS >= cost) {
+          ABYSS_SOULS -= cost;
+          TALENTS[key] = rank + 1;
+          saveSouls();
+          saveTalents();
+          SoundManager.snd('talent_unlock');
+          shk(4);
+          return true;
+        }
+      }
+    }
+  }
+
+  if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
+    STATE = 'title';
+    return true;
+  }
+  return false;
+}
+
+// Lore Fragment Modal Renderer
+function drawLoreModal() {
+  if (!ACTIVE_LORE_MODAL) return;
+  const mw = 460, mh = 220;
+  const mx = LW / 2 - mw / 2, my = LH / 2 - mh / 2;
+
+  CX.save();
+  CX.fillStyle = 'rgba(5,7,18,0.96)';
+  CX.strokeStyle = 'rgba(201,168,76,0.8)';
+  CX.lineWidth = 1.5;
+  roundRect(CX, mx, my, mw, mh, 10);
+  CX.fill(); CX.stroke();
+
+  CX.fillStyle = '#fde68a';
+  CX.font = 'bold 15px Cinzel, serif';
+  CX.textAlign = 'center';
+  CX.fillText('📜 ' + ACTIVE_LORE_MODAL.title, LW / 2, my + 24);
+
+  CX.fillStyle = 'rgba(201,168,76,0.3)';
+  CX.fillRect(mx + 30, my + 44, mw - 60, 1);
+
+  CX.fillStyle = '#e2e8f0';
+  CX.font = 'italic 13px Crimson Text, serif';
+  const words = ACTIVE_LORE_MODAL.text.split(' ');
+  let line = '', lines = [];
+  words.forEach(w => {
+    if (CX.measureText(line + w).width > mw - 60) {
+      lines.push(line); line = w + ' ';
+    } else line += w + ' ';
+  });
+  lines.push(line);
+
+  lines.forEach((l, i) => {
+    CX.fillText(l, LW / 2, my + 75 + i * 22);
+  });
+
+  CX.fillStyle = 'rgba(148,163,184,0.6)';
+  CX.font = '10px Cinzel, serif';
+  CX.fillText('Click anywhere to close', LW / 2, my + mh - 16);
+  CX.restore();
+}
+
+// ── 16. Pipelines Hooks & System Integration ──────────────────────────
 
 // Hook into tickPlayer
-const _tp_ascension_orig = tickPlayer;
+const _tp_omni_orig = tickPlayer;
 tickPlayer = function(dt) {
-  _tp_ascension_orig(dt);
+  _tp_omni_orig(dt);
   tickSoulOrbs(dt);
   tickSlashArcs(dt);
   tickFloatingTexts(dt);
   tickMiniBoss(dt);
   tickCinematicBanner(dt);
+  tickSpeechBubbles(dt);
+  updateExploredRooms();
+  updateGhostHealth(dt);
+
+  // Relic: Aegis Core recharge
+  if (hasRelic('aegis_core')) {
+    AEGIS_CORE_TIMER += dt;
+    if (AEGIS_CORE_TIMER >= 25 && !P.shieldActive) {
+      AEGIS_CORE_TIMER = 0;
+      P.shieldActive = true;
+      P.shieldTimer = 8;
+      SoundManager.snd('shield_activate');
+      showFloatingText('SHIELD RECHARGED', P.x, P.y - 0.5, '#38bdf8', 13, true);
+    }
+  }
+
+  // Mutation: Inferno geysers
+  if (CURRENT_MUTATION && CURRENT_MUTATION.id === 'inferno') {
+    MUTATION_INFERNO_TIMER += dt;
+    if (MUTATION_INFERNO_TIMER >= 4.0) {
+      MUTATION_INFERNO_TIMER = 0;
+      for (let g = 0; g < 3; g++) {
+        const p = rndFloor(4);
+        spawnP(p.x, p.y, 16, { col: '#f97316', spd: 1.5, life: 0.6, r: 3 });
+        if (Math.hypot(P.x - p.x, P.y - p.y) < 1.2 && !P.shieldActive && P.dcd <= 0 && !P.dead) {
+          playerTakeDamage(1);
+          showFloatingText('BURNT! -1', P.x, P.y - 0.5, '#f97316', 14, true);
+        }
+      }
+    }
+  }
 };
 
 // Hook into drawWorld
-const _dw_ascension_orig = drawWorld;
+const _dw_omni_orig = drawWorld;
 drawWorld = function() {
-  _dw_ascension_orig();
+  _dw_omni_orig();
+  FX.beginWorldTransform();
   drawWallDropShadows();
   drawSoulOrbs();
   drawSlashArcs();
   drawMiniBoss();
   drawFloatingTexts();
+  drawSpeechBubbles();
+  FX.endWorldTransform();
 };
 
 // Hook into drawHUD
-const _dh_ascension_orig = drawHUD;
+const _dh_omni_orig = drawHUD;
 drawHUD = function() {
-  _dh_ascension_orig();
+  _dh_omni_orig();
   drawMiniBossHUD();
   drawCinematicBanner();
+  drawLuxuryHUDExtensions();
+  drawMinimap();
+  drawLoreModal();
 };
 
-// Hook into loadLevel for mini-boss spawns & banners
-const _ll_ascension_orig = loadLevel;
+// Hook into loadLevel
+const _ll_omni_orig = loadLevel;
 loadLevel = function() {
-  _ll_ascension_orig();
+  _ll_omni_orig();
   ACTIVE_MINIBOSS = null;
+  EXPLORED_ROOMS.clear();
+  updateExploredRooms();
+  rollMutationForFloor();
+
+  // Relic: Bone charm floor heal
+  if (hasRelic('bone_charm')) {
+    P.hp = Math.min(P.maxHp, P.hp + 2);
+    showFloatingText('+2 HP [Bone Charm]', P.x, P.y - 0.5, '#22c55e', 13);
+  }
+
+  // Spawn hidden Lore Scroll in dead ends
+  if (ROOMS && ROOMS.length > 2 && Math.random() < 0.65) {
+    const scrollRoom = ROOMS[Math.min(ROOMS.length - 2, 2)];
+    const availableScrolls = LORE_SCROLLS_DATA.filter(s => !UNLOCKED_LORE[s.id]);
+    if (availableScrolls.length > 0) {
+      const chosen = availableScrolls[0];
+      ITEMS.push({
+        x: scrollRoom.cx,
+        y: scrollRoom.cy,
+        taken: false,
+        kind: 'lore_scroll',
+        scrollData: chosen
+      });
+    }
+  }
+
   if (LV === 3) {
     spawnMiniBoss('iron_warden');
   } else if (LV === 6) {
@@ -7318,30 +8082,54 @@ loadLevel = function() {
   }
 };
 
-// Hook into startGame for talent boosts
-const _sg_ascension_orig = startGame;
+// Hook into startGame
+const _sg_omni_orig = startGame;
 startGame = function() {
-  _sg_ascension_orig();
+  _sg_omni_orig();
+  initPlayerInventory();
   const bonusHp = getTalentRank('vitality') * 2;
   P.hp = 10 + bonusHp;
   P.maxHp = 10 + bonusHp;
   P.displayHp = P.hp;
+  P.ghostHp = P.hp;
   P.spd = 4.0 * (1 + getTalentRank('haste') * 0.08);
 };
 
 // Hook into tickSanity for clarity talent
-const _ts_ascension_orig = tickSanity;
+const _ts_omni_orig = tickSanity;
 tickSanity = function(dt) {
   const clarityBonus = getTalentRank('clarity') * 0.12;
-  _ts_ascension_orig(dt * (1 - clarityBonus));
+  _ts_omni_orig(dt * (1 - clarityBonus));
 };
 
-// Hook into killEnemy for souls & lifesteal
-const _ke_ascension_orig = killEnemy;
+// Hook into killEnemy for souls, bestiary, and shadow cloak
+const _ke_omni_orig = killEnemy;
 killEnemy = function(e) {
-  _ke_ascension_orig(e);
+  _ke_omni_orig(e);
+  const typeKey = e.isMiniBoss ? e.type : e.type;
+  recordMonsterKill(typeKey || 'skeleton');
+
   const soulCount = e.isMiniBoss ? 8 : (e.type === 'demon' || e.type === 'wraith') ? 2 : 1;
   spawnSoulOrb(e.x, e.y, soulCount);
+
+  // Suffix: of Insight
+  if (P.activeSuffix && P.activeSuffix.id === 'insight') {
+    P.san = Math.min(100, P.san + 6);
+    showFloatingText('+6 🧠', P.x, P.y - 0.5, '#c084fc', 13);
+  }
+
+  // Relic: Shadow Cloak
+  if (hasRelic('shadow_cloak')) {
+    SHADOW_CLOAK_KILLS++;
+    if (SHADOW_CLOAK_KILLS >= 3) {
+      SHADOW_CLOAK_KILLS = 0;
+      P.shieldActive = true;
+      P.shieldTimer = 2.5;
+      SoundManager.snd('shield_activate');
+      showFloatingText('SHADOW CLOAK ACTIVE', P.x, P.y - 0.5, '#a855f7', 13, true);
+    }
+  }
+
   for (let b = 0; b < 3; b++) {
     const bx = e.x + (Math.random() - 0.5) * 0.8;
     const by = e.y + (Math.random() - 0.5) * 0.8;
@@ -7349,8 +8137,29 @@ killEnemy = function(e) {
   }
 };
 
-// Hook into doAttack for fury damage, slash arcs, and floating text
-const _da_ascension_orig = doAttack;
+// Hook into playerTakeDamage for Phoenix Feather
+const _ptd_omni_orig = playerTakeDamage;
+playerTakeDamage = function(amount) {
+  if (P.dead || P.dcd > 0 || P.shieldActive) return;
+  P.ghostHpTimer = 0.4;
+  if (P.hp - amount <= 0 && hasRelic('phoenix_feather')) {
+    const idx = P.relics.indexOf('phoenix_feather');
+    if (idx !== -1) P.relics.splice(idx, 1);
+    P.hp = Math.round(P.maxHp / 2);
+    P.displayHp = P.hp;
+    P.ghostHp = P.hp;
+    P.shieldActive = true;
+    P.shieldTimer = 3.0;
+    shk(15);
+    SoundManager.snd('talent_unlock');
+    showFloatingText('PHOENIX REBIRTH! 🔥', P.x, P.y - 0.8, '#f97316', 16, true);
+    return;
+  }
+  _ptd_omni_orig(amount);
+};
+
+// Hook into doAttack for fury damage, affixes, slash arcs, and floating text
+const _da_omni_orig = doAttack;
 doAttack = function() {
   if (!P.wep || P.acd > 0 || P.dead) return;
   const w = WD[P.wep];
@@ -7365,7 +8174,11 @@ doAttack = function() {
     const dist = Math.hypot(P.x - mb.x, P.y - mb.y);
     if (dist < (w.range || 1.4) + 0.4) {
       const furyMult = 1 + getTalentRank('fury') * 0.15;
-      const dmg = Math.max(1, Math.round((w.dmg || 1) * rarityDmgMult(P.wepRarity) * furyMult));
+      let dmg = Math.max(1, Math.round((w.dmg || 1) * rarityDmgMult(P.wepRarity) * furyMult));
+      if (P.activePrefix && P.activePrefix.id === 'cursed') {
+        dmg = Math.round(dmg * 1.4);
+        P.san = Math.max(0, P.san - 1);
+      }
       mb.hp -= dmg;
       mb.hitFlash = 0.2;
       showFloatingText('-' + dmg, mb.x, mb.y - 0.6, '#fde68a', 14, true);
@@ -7378,22 +8191,26 @@ doAttack = function() {
         const dropSouls = mb.type === 'void_reaver' ? 15 : 8;
         spawnSoulOrb(mb.x, mb.y, dropSouls);
         showFloatingText('+' + dropSouls + ' 🔮', mb.x, mb.y - 0.8, '#c084fc', 16, true);
-        ITEMS.push({
-          x: mb.x, y: mb.y, taken: false, kind: 'weapon',
-          sub: WK[(Math.random() * WK.length) | 0],
-          rarity: mb.type === 'void_reaver' ? RARITIES[3] : RARITIES[2]
-        });
+
+        // Guaranteed relic drop
+        const relicsPool = Object.keys(RELIC_DEFS).filter(k => !hasRelic(k));
+        if (relicsPool.length > 0) {
+          const rId = relicsPool[(Math.random() * relicsPool.length) | 0];
+          P.relics.push(rId);
+          showFloatingText('RELIC: ' + RELIC_DEFS[rId].name, mb.x, mb.y - 1.2, RELIC_DEFS[rId].col, 15, true);
+        }
+
         if (mb.type === 'iron_warden') unlockAchievement('jailbreaker');
         if (mb.type === 'void_reaver') unlockAchievement('void_conqueror');
       }
     }
   }
 
-  // Normal attack with fury boost and siphon lifesteal
-  _da_ascension_orig();
+  // Normal attack
+  _da_omni_orig();
 
   // Siphon talent check
-  const siphonChance = getTalentRank('siphon') * 0.05;
+  const siphonChance = getTalentRank('siphon') * 0.05 + (P.activePrefix && P.activePrefix.id === 'vampiric' ? 0.15 : 0);
   if (siphonChance > 0 && Math.random() < siphonChance) {
     if (P.hp < P.maxHp) {
       P.hp = Math.min(P.maxHp, P.hp + 1);
@@ -7402,20 +8219,32 @@ doAttack = function() {
   }
 };
 
-// Keyboard listener for Sanctum
+// Keyboard listener for Slots, Minimap, Sanctum, Lore
 window.addEventListener('keydown', e => {
-  if (STATE === 'title' && (e.key === 's' || e.key === 'S')) {
-    openSanctum();
-  } else if (STATE === 'sanctum' && e.key === 'Escape') {
+  if (STATE === 'playing') {
+    if (e.key === '1') switchWeaponSlot(0);
+    else if (e.key === '2') switchWeaponSlot(1);
+    else if (e.key === '3') switchWeaponSlot(2);
+    else if (e.key === 'm' || e.key === 'M') MINIMAP_VISIBLE = !MINIMAP_VISIBLE;
+  } else if (STATE === 'title') {
+    if (e.key === 's' || e.key === 'S') openSanctum();
+    else if (e.key === 'c' || e.key === 'C') openCodex();
+  } else if ((STATE === 'sanctum' || STATE === 'codex') && e.key === 'Escape') {
     STATE = 'title';
   } else if (STATE === 'endcard' && (e.key === 's' || e.key === 'S')) {
     openSanctum();
   }
 });
 
+// Click listener for Lore Modal dismiss
+CV.addEventListener('click', () => {
+  if (ACTIVE_LORE_MODAL) ACTIVE_LORE_MODAL = null;
+});
+
 // ─────────────────────────────────────────────────────────────────────
-// END EXPANSION MODULE v8.0
+// END EXPANSION MODULE v9.0
 // ─────────────────────────────────────────────────────────────────────
+
 </script>
 </body>
 </html>
