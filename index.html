@@ -556,6 +556,14 @@ CV.addEventListener('touchstart', e => {
       if (typeof MINIMAP_VISIBLE !== 'undefined') MINIMAP_VISIBLE = !MINIMAP_VISIBLE;
       return;
     }
+    // Memory echo modal click
+    if (typeof ACTIVE_MEMORY_ECHO !== 'undefined' && ACTIVE_MEMORY_ECHO) {
+      if (typeof handleMemoryEchoClick === 'function' && handleMemoryEchoClick(mx, my)) return;
+    }
+    // Memory echo modal click
+    if (typeof ACTIVE_MEMORY_ECHO !== 'undefined' && ACTIVE_MEMORY_ECHO) {
+      if (typeof handleMemoryEchoClick === 'function' && handleMemoryEchoClick(mx, my)) return;
+    }
     // Lore modal dismiss
     if (typeof ACTIVE_LORE_MODAL !== 'undefined' && ACTIVE_LORE_MODAL) {
       ACTIVE_LORE_MODAL = null;
@@ -2576,34 +2584,25 @@ function tickSanity(dt) {
 }
 
 function checkExit() {
-  if (PORTAL_USED || P.dead) return;
+  if (PORTAL_USED || P.dead || (typeof WARP_ACTIVE !== 'undefined' && WARP_ACTIVE)) return;
   const tx = Math.round(P.x), ty = Math.round(P.y);
   if (!MAP[ty] || MAP[ty][tx] !== 2) return;
   if (LV === 10 && !BOSS_DEAD) return;
-  PORTAL_USED = true;
-  SoundManager.snd('portal_enter');
-  if (!LEVEL_TOOK_DAMAGE) unlockAchievement('untouchable');
-  if (LEVEL_TIMER < 90) unlockAchievement('speed_runner');
-  saveGame();
-  if (LV >= MAX_LV) { decideEnding(); }
-  else {
-    LV++;
-    let fv = 0;
-    const iv = setInterval(() => {
-      fv += 0.055; FADE = Math.min(1, fv);
-      if (FADE >= 1) {
-        clearInterval(iv);
-        loadLevel();
-        // LV10 gets its own boss intro cinematic; all others go straight to playing
-        if (LV === 10) {
-          startBossIntroCinematic();
-        } else {
-          STATE = 'playing';
-          GAME_MSG = 'Level ' + LV + ' — ' + THEMES[Math.min(LV - 1, THEMES.length - 1)].name + ' — Find the portal.';
-          GAME_MSG_TIMER = 5.0;
-        }
-      }
-    }, 16);
+  if (LV >= MAX_LV) {
+    PORTAL_USED = true;
+    SoundManager.snd('portal_enter');
+    saveGame();
+    decideEnding();
+  } else {
+    if (typeof startCosmicHyperWarp === 'function') {
+      startCosmicHyperWarp(LV + 1);
+    } else {
+      PORTAL_USED = true;
+      SoundManager.snd('portal_enter');
+      saveGame();
+      LV++;
+      loadLevel();
+    }
   }
 }
 
@@ -2637,6 +2636,10 @@ function collectItems() {
         shk(2);
         SoundManager.snd('shield_activate');
         unlockAchievement('shield_bearer');
+      } else if (it.kind === 'story_echo') {
+        if (typeof triggerStoryEcho === 'function') triggerStoryEcho(it.echoData);
+      } else if (it.kind === 'lore_scroll') {
+        if (typeof openLoreModal === 'function') openLoreModal(it.scrollData);
       }
     }
   });
@@ -3975,6 +3978,26 @@ function drawWorld() {
       CX.fillStyle=`rgba(6,182,212,${.15+sp*.1})`; CX.beginPath(); CX.arc(px,py,13+sp*2,0,6.28); CX.fill();
       CX.save(); CX.shadowColor='#67e8f9'; CX.shadowBlur=10+sp*6;
       CX.font='17px serif'; CX.textAlign='center'; CX.textBaseline='middle'; CX.fillText('🛡️',px,py); CX.restore();
+    } else if(it.kind==='story_echo'){
+      const sp = Math.sin(F * 0.12) * 0.5 + 0.5;
+      CX.save();
+      CX.shadowColor = '#f59e0b'; CX.shadowBlur = 14 + sp * 8;
+      CX.fillStyle = `rgba(245,158,11,${0.25 + sp * 0.2})`;
+      CX.beginPath(); CX.arc(px, py, 14 + sp * 3, 0, 6.28); CX.fill();
+      CX.font = '18px serif'; CX.textAlign = 'center'; CX.textBaseline = 'middle';
+      CX.fillText('✨', px, py);
+      CX.fillStyle = '#fde68a'; CX.font = 'bold 8px Cinzel,serif';
+      CX.fillText('MEMORY', px, py + 14);
+      CX.restore();
+    } else if(it.kind==='lore_scroll'){
+      const sp = Math.sin(F * 0.1) * 0.5 + 0.5;
+      CX.save();
+      CX.shadowColor = '#c084fc'; CX.shadowBlur = 10 + sp * 6;
+      CX.fillStyle = `rgba(192,132,252,${0.2 + sp * 0.15})`;
+      CX.beginPath(); CX.arc(px, py, 13 + sp * 2, 0, 6.28); CX.fill();
+      CX.font = '16px serif'; CX.textAlign = 'center'; CX.textBaseline = 'middle';
+      CX.fillText('📜', px, py);
+      CX.restore();
     }
   });
 
@@ -4914,8 +4937,10 @@ function loop(ts) {
     TR_tick(DT); TR_draw(); _hideIngamePause();
   } else if(STATE==='playing'){
     _showIngamePause();
-    const isPausedByEvent = (typeof ACTIVE_EVENT_CHOICE !== 'undefined' && ACTIVE_EVENT_CHOICE !== null);
-    const GDT = (frozen || isPausedByEvent) ? 0 : DT * GAME_SPEED;
+    const isWarping = (typeof WARP_ACTIVE !== 'undefined' && WARP_ACTIVE);
+    const isPausedByEvent = (typeof ACTIVE_EVENT_CHOICE !== 'undefined' && ACTIVE_EVENT_CHOICE !== null) || (typeof ACTIVE_MEMORY_ECHO !== 'undefined' && ACTIVE_MEMORY_ECHO !== null) || isWarping;
+    const inHitStop = (typeof HIT_STOP_TIMER !== 'undefined' && HIT_STOP_TIMER > 0);
+    const GDT = (frozen || isPausedByEvent || inHitStop) ? 0 : DT * GAME_SPEED;
     if(!frozen && !isPausedByEvent){tickPlayer(GDT);tickENE(GDT);tickTraps(GDT);tickSanity(GDT);if(LV===10)tickBoss(GDT);}
     // Tick GAME_MSG_TIMER using real DT (not game speed) so messages display consistently
     if(GAME_MSG_TIMER>0){GAME_MSG_TIMER-=DT;if(GAME_MSG_TIMER<=0){GAME_MSG='';GAME_MSG_TIMER=0;}}
@@ -4923,6 +4948,8 @@ function loop(ts) {
     checkAchievements();
     SoundManager.updateMusicLayers(DT);
     FX.update(DT);
+    if (typeof tickImpactShockwaves === 'function') tickImpactShockwaves(DT);
+    if (typeof tickCosmicHyperWarp === 'function') tickCosmicHyperWarp(DT);
     drawWorld(); drawAchievToasts(); drawHUD();
     if(AFL>0){CX.fillStyle=`rgba(255,255,255,${AFL/0.22})`;CX.fillRect(0,0,LW,LH);}
     if(DFL>0){CX.fillStyle=`rgba(220,38,38,${DFL/0.33})`;CX.fillRect(0,0,LW,LH);}
@@ -7724,9 +7751,9 @@ function drawCodexPanel() {
   CX.fillText('📜 THE ABYSS CODEX & BESTIARY', LW / 2, panY + 16);
   CX.shadowBlur = 0;
 
-  // Tabs Header
-  const tabW = (panW - 60) / 2;
-  const tab1X = panX + 24, tab2X = panX + 36 + tabW;
+  // Tabs Header (3 Tabs: Lore, Bestiary, Memories)
+  const tabW = (panW - 64) / 3;
+  const tab1X = panX + 20, tab2X = panX + 26 + tabW, tab3X = panX + 32 + tabW * 2;
   const tabY = panY + 44, tabH = 32;
 
   // Tab 1: Lore
@@ -7736,9 +7763,9 @@ function drawCodexPanel() {
   roundRect(CX, tab1X, tabY, tabW, tabH, 6);
   CX.fill(); CX.stroke();
   CX.fillStyle = CODEX_TAB === 'lore' ? '#fde68a' : '#94a3b8';
-  CX.font = 'bold 11px Cinzel, serif';
+  CX.font = 'bold 10px Cinzel, serif';
   CX.textAlign = 'center'; CX.textBaseline = 'middle';
-  CX.fillText('📜 ANCIENT CHRONICLES (' + Object.keys(UNLOCKED_LORE).length + '/' + LORE_SCROLLS_DATA.length + ')', tab1X + tabW / 2, tabY + tabH / 2);
+  CX.fillText('📜 CHRONICLES (' + Object.keys(UNLOCKED_LORE).length + ')', tab1X + tabW / 2, tabY + tabH / 2);
 
   // Tab 2: Bestiary
   CX.fillStyle = CODEX_TAB === 'bestiary' ? 'rgba(168,85,247,0.25)' : 'rgba(15,23,42,0.6)';
@@ -7746,7 +7773,15 @@ function drawCodexPanel() {
   roundRect(CX, tab2X, tabY, tabW, tabH, 6);
   CX.fill(); CX.stroke();
   CX.fillStyle = CODEX_TAB === 'bestiary' ? '#c084fc' : '#94a3b8';
-  CX.fillText('💀 MONSTROUS BESTIARY (' + BESTIARY_INFO.length + ' ENTRIES)', tab2X + tabW / 2, tabY + tabH / 2);
+  CX.fillText('💀 BESTIARY (' + BESTIARY_INFO.length + ')', tab2X + tabW / 2, tabY + tabH / 2);
+
+  // Tab 3: Memories
+  CX.fillStyle = CODEX_TAB === 'memories' ? 'rgba(245,158,11,0.25)' : 'rgba(15,23,42,0.6)';
+  CX.strokeStyle = CODEX_TAB === 'memories' ? '#f59e0b' : 'rgba(71,85,105,0.5)';
+  roundRect(CX, tab3X, tabY, tabW, tabH, 6);
+  CX.fill(); CX.stroke();
+  CX.fillStyle = CODEX_TAB === 'memories' ? '#fde68a' : '#94a3b8';
+  CX.fillText('✨ MEMORIES (' + (typeof UNLOCKED_MEMORIES !== 'undefined' ? Object.keys(UNLOCKED_MEMORIES).length : 0) + '/4)', tab3X + tabW / 2, tabY + tabH / 2);
 
   const contentY = tabY + tabH + 12;
 
@@ -7778,6 +7813,40 @@ function drawCodexPanel() {
       const prev = isUnlocked ? scroll.text : 'Explore secret dead ends in deep floors to decipher...';
       const trimmed = prev.length > 70 ? prev.substring(0, 67) + '...' : prev;
       CX.fillText(trimmed, panX + 64, iy + 33);
+    }
+  } else if (CODEX_TAB === 'memories') {
+    // Memory Echoes Entries
+    const itemH = 72, gap = 8;
+    for (let i = 0; i < STORY_MEMORIES.length; i++) {
+      const m = STORY_MEMORIES[i];
+      const isUnlocked = typeof UNLOCKED_MEMORIES !== 'undefined' && !!UNLOCKED_MEMORIES[m.id];
+      const iy = contentY + i * (itemH + gap);
+      if (iy + itemH > panY + panH - 54) break;
+
+      CX.fillStyle = isUnlocked ? 'rgba(245,158,11,0.12)' : 'rgba(15,23,42,0.7)';
+      CX.strokeStyle = isUnlocked ? 'rgba(245,158,11,0.55)' : 'rgba(51,65,85,0.4)';
+      roundRect(CX, panX + 24, iy, panW - 48, itemH, 6);
+      CX.fill(); CX.stroke();
+
+      CX.font = '20px serif';
+      CX.textAlign = 'left'; CX.textBaseline = 'middle';
+      CX.fillText(isUnlocked ? '✨' : '🔒', panX + 36, iy + itemH / 2);
+
+      CX.fillStyle = isUnlocked ? '#fde68a' : '#64748b';
+      CX.font = 'bold 12px Cinzel, serif';
+      CX.fillText(isUnlocked ? m.title : 'Undiscovered Memory Fragment', panX + 64, iy + 18);
+
+      CX.fillStyle = isUnlocked ? '#ffffff' : 'rgba(100,116,139,0.6)';
+      CX.font = 'italic 11px Crimson Text, serif';
+      const quoteText = isUnlocked ? m.quote : 'Explore Floor ' + m.floor + ' to uncover Lyra\'s past...';
+      const trimmedQ = quoteText.length > 74 ? quoteText.substring(0, 71) + '...' : quoteText;
+      CX.fillText(trimmedQ, panX + 64, iy + 36);
+
+      CX.fillStyle = isUnlocked ? 'rgba(203,213,225,0.8)' : 'rgba(71,85,105,0.5)';
+      CX.font = '10px Crimson Text, serif';
+      const loreText = isUnlocked ? m.lore : 'The darkness guards what love created.';
+      const trimmedL = loreText.length > 80 ? loreText.substring(0, 77) + '...' : loreText;
+      CX.fillText(trimmedL, panX + 64, iy + 54);
     }
   } else {
     // Bestiary Entries
@@ -7846,8 +7915,8 @@ function handleCodexClick(mx, my) {
   }
 
   // Tabs
-  const tabW = (panW - 60) / 2;
-  const tab1X = panX + 24, tab2X = panX + 36 + tabW;
+  const tabW = (panW - 64) / 3;
+  const tab1X = panX + 20, tab2X = panX + 26 + tabW, tab3X = panX + 32 + tabW * 2;
   const tabY = panY + 44, tabH = 32;
 
   if (mx >= tab1X && mx <= tab1X + tabW && my >= tabY && my <= tabY + tabH) {
@@ -7857,6 +7926,11 @@ function handleCodexClick(mx, my) {
   }
   if (mx >= tab2X && mx <= tab2X + tabW && my >= tabY && my <= tabY + tabH) {
     CODEX_TAB = 'bestiary';
+    SoundManager.snd('talent_unlock');
+    return true;
+  }
+  if (mx >= tab3X && mx <= tab3X + tabW && my >= tabY && my <= tabY + tabH) {
+    CODEX_TAB = 'memories';
     SoundManager.snd('talent_unlock');
     return true;
   }
@@ -8027,7 +8101,9 @@ drawWorld = function() {
   drawMiniBoss();
   drawFloatingTexts();
   drawSpeechBubbles();
+  if (typeof drawImpactShockwaves === 'function') drawImpactShockwaves();
   FX.endWorldTransform();
+  if (typeof drawAtmosphericHorrorFX === 'function') drawAtmosphericHorrorFX();
 };
 
 // Hook into drawHUD
@@ -8039,6 +8115,8 @@ drawHUD = function() {
   drawLuxuryHUDExtensions();
   drawMinimap();
   drawLoreModal();
+  if (typeof drawMemoryEchoModal === 'function') drawMemoryEchoModal();
+  if (typeof drawCosmicHyperWarp === 'function') drawCosmicHyperWarp();
 };
 
 // Hook into loadLevel
@@ -8054,6 +8132,21 @@ loadLevel = function() {
   if (hasRelic('bone_charm')) {
     P.hp = Math.min(P.maxHp, P.hp + 2);
     showFloatingText('+2 HP [Bone Charm]', P.x, P.y - 0.5, '#22c55e', 13);
+  }
+
+  // Spawn Story Memory Echo if this floor has one
+  if (typeof STORY_MEMORIES !== 'undefined') {
+    const memoryEcho = STORY_MEMORIES.find(m => m.floor === LV);
+    if (memoryEcho && ROOMS && ROOMS.length > 1) {
+      const memRoom = ROOMS[1];
+      ITEMS.push({
+        x: memRoom.cx,
+        y: memRoom.cy,
+        taken: false,
+        kind: 'story_echo',
+        echoData: memoryEcho
+      });
+    }
   }
 
   // Spawn hidden Lore Scroll in dead ends
@@ -8135,6 +8228,10 @@ killEnemy = function(e) {
     const by = e.y + (Math.random() - 0.5) * 0.8;
     BLOOD.push({ x: bx, y: by, r: 2 + Math.random() * 4, a: 0.5 + Math.random() * 0.4 });
   }
+
+  // Cinematic Impact: hit-stop & expanding shockwave
+  if (typeof triggerHitStop === 'function') triggerHitStop(e.isMiniBoss ? 0.08 : 0.04);
+  if (typeof spawnImpactShockwave === 'function') spawnImpactShockwave(e.x, e.y, e.isMiniBoss ? '#f59e0b' : '#c084fc', e.isMiniBoss ? 70 : 40);
 };
 
 // Hook into playerTakeDamage for Phoenix Feather
@@ -8142,6 +8239,8 @@ const _ptd_omni_orig = playerTakeDamage;
 playerTakeDamage = function(amount) {
   if (P.dead || P.dcd > 0 || P.shieldActive) return;
   P.ghostHpTimer = 0.4;
+  if (typeof triggerHitStop === 'function') triggerHitStop(0.06);
+  if (typeof spawnImpactShockwave === 'function') spawnImpactShockwave(P.x, P.y, '#ef4444', 45);
   if (P.hp - amount <= 0 && hasRelic('phoenix_feather')) {
     const idx = P.relics.indexOf('phoenix_feather');
     if (idx !== -1) P.relics.splice(idx, 1);
@@ -8244,6 +8343,474 @@ CV.addEventListener('click', () => {
 // ─────────────────────────────────────────────────────────────────────
 // END EXPANSION MODULE v9.0
 // ─────────────────────────────────────────────────────────────────────
+
+
+// =====================================================================
+//  DUNGEON BREAK — OMNI ASCENSION  v9.5  ADVANCED CINEMATICS & STORY
+// =====================================================================
+
+// ── 1. Lord Rowan & Lyra: Emotional Narrative Arc ─────────────────────
+const STORY_MEMORIES = [
+  {
+    floor: 2,
+    id: 'echo_musicbox',
+    title: 'Echo I: The Broken Music Box',
+    quote: '"Papa, the music box stopped... Can you wind it again before the shadows reach the window?"',
+    lore: 'A small brass cylinder etched with starlight melodies. Lyra used to turn the key whenever thunder shook the citadel towers. Even beneath miles of dark granite, the delicate chimes still echo.',
+    choiceA: { label: '🕊️ Wind the Music Box', desc: '+30 Sanity & +2 Max HP', effect: () => { P.san = Math.min(100, P.san + 30); P.maxHp += 2; P.hp = Math.min(P.maxHp, P.hp + 2); P.displayHp = P.hp; P.ghostHp = P.hp; showFloatingText('+2 MAX HP ❤', P.x, P.y - 0.5, '#22c55e', 14, true); } },
+    choiceB: { label: '⚔️ Channel the Vow', desc: '+15 Abyss Souls & +20% ATK DMG', effect: () => { ABYSS_SOULS += 15; saveSouls(); P.dmgBoost = (P.dmgBoost || 1) + 0.2; showFloatingText('+15 🔮 & +20% DMG', P.x, P.y - 0.5, '#c084fc', 14, true); } }
+  },
+  {
+    floor: 4,
+    id: 'echo_locket',
+    title: 'Echo II: The Golden Locket',
+    quote: '"Wear this, father. As long as you breathe, I know you will come for me. Even at the bottom of the world."',
+    lore: 'Warm gold encasing a single strand of amber hair. It pulses in rhythm with Rowan\'s own heartbeat, growing warmer the deeper into the abyss he marches.',
+    choiceA: { label: '🕊️ Press it to Your Heart', desc: '+40 Sanity & Full Heal', effect: () => { P.san = 100; P.hp = P.maxHp; P.displayHp = P.hp; P.ghostHp = P.hp; showFloatingText('FULL HEAL & CALM ❤', P.x, P.y - 0.5, '#38bdf8', 14, true); } },
+    choiceB: { label: '⚔️ Swear the Blood Oath', desc: '+25 Abyss Souls & Shield Core', effect: () => { ABYSS_SOULS += 25; saveSouls(); P.shieldActive = true; P.shieldTimer = 15; showFloatingText('+25 🔮 & 15s AEGIS', P.x, P.y - 0.5, '#facc15', 14, true); } }
+  },
+  {
+    floor: 7,
+    id: 'echo_thorn',
+    title: 'Echo III: The Obsidian Thorn',
+    quote: '"The Inquisitor lied... He said you chose your oath over me. But I saw the light of your blade in the dark."',
+    lore: 'A shard of petrified void-glass dropped during the ritual of betrayal. Through the reflection, Rowan glimpses the high chamber of the palace where his daughter was bound.',
+    choiceA: { label: '🕊️ Forgive the Memory', desc: '+35 Sanity & +15% Speed', effect: () => { P.san = Math.min(100, P.san + 35); P.spd *= 1.15; showFloatingText('+15% MOVEMENT SPEED ⚡', P.x, P.y - 0.5, '#fde68a', 14, true); } },
+    choiceB: { label: '⚔️ Let Fury Ignite', desc: '+35 Abyss Souls & Siphon Aura', effect: () => { ABYSS_SOULS += 35; saveSouls(); P.siphonBoost = true; showFloatingText('+35 🔮 & VAMPIRIC FURY', P.x, P.y - 0.5, '#ef4444', 14, true); } }
+  },
+  {
+    floor: 9,
+    id: 'echo_starlight',
+    title: 'Echo IV: The Starlight Whisper',
+    quote: '"Do not weep for what is broken, father. Slay the Warden... and let our souls fly home."',
+    lore: 'The final ethereal imprint before the Warden\'s throne room. Her voice is clear, luminous, and free of terror. She waits beyond the iron gates.',
+    choiceA: { label: '🕊️ Embrace the Oracle\'s Blessing', desc: '+50 Sanity, +4 Max HP & Full Shield', effect: () => { P.san = 100; P.maxHp += 4; P.hp = P.maxHp; P.displayHp = P.hp; P.ghostHp = P.hp; P.shieldActive = true; P.shieldTimer = 20; showFloatingText('DIVINE BLESSING! 👑', P.x, P.y - 0.5, '#fde68a', 16, true); } },
+    choiceB: { label: '⚔️ Awaken the God-Slayer', desc: '+50 Souls & +50% ATK DMG', effect: () => { ABYSS_SOULS += 50; saveSouls(); P.dmgBoost = (P.dmgBoost || 1) + 0.5; showFloatingText('+50 🔮 & +50% DMG 🔥', P.x, P.y - 0.5, '#ea580c', 16, true); } }
+  }
+];
+
+let UNLOCKED_MEMORIES = {};
+try {
+  UNLOCKED_MEMORIES = JSON.parse(localStorage.getItem('db_memories_v9') || '{}');
+} catch (e) {}
+
+function saveMemories() {
+  try { localStorage.setItem('db_memories_v9', JSON.stringify(UNLOCKED_MEMORIES)); } catch (e) {}
+}
+
+let ACTIVE_MEMORY_ECHO = null;
+let MEMORY_ECHO_ANIM_T = 0;
+
+function triggerStoryEcho(echo) {
+  ACTIVE_MEMORY_ECHO = echo;
+  MEMORY_ECHO_ANIM_T = 0;
+  UNLOCKED_MEMORIES[echo.id] = true;
+  saveMemories();
+  SoundManager.snd('talent_unlock');
+  shk(6);
+}
+
+// ── 2. Cosmic Rift Hyper-Warp Transition ──────────────────────────────
+const FLOOR_WARP_QUOTES = [
+  'The stone drinks tears... but my blade remembers the light of your eyes, Lyra.',
+  'Gorgaroth stands at the gate. A brother-in-arms turned to iron and malice... forgive me.',
+  'The iron gate shatters. The catacombs weep with old ghosts, but I will not turn back.',
+  'A crystal feather on the stone... her soul is near. She is still fighting.',
+  'The howling of the void rifts. Malakor watches from the deep... let him come.',
+  'The void reaver crumbles. My hands tremble, but the warmth of her locket burns true.',
+  'Molten brimstone and shadows. The closer I get to hell, the brighter her starlight shines.',
+  'The threshold of oblivion. Ten thousand demons behind me... only love ahead.',
+  'The Warden\'s throne. Bring down the gates of the Abyss... give me back my child!'
+];
+
+let WARP_ACTIVE = false;
+let WARP_TIMER = 0;
+let WARP_DUR = 1.8;
+let WARP_QUOTE = '';
+let WARP_NEXT_LV = 1;
+
+function startCosmicHyperWarp(nextLv) {
+  WARP_ACTIVE = true;
+  WARP_TIMER = 0;
+  WARP_NEXT_LV = nextLv;
+  WARP_QUOTE = FLOOR_WARP_QUOTES[Math.min(FLOOR_WARP_QUOTES.length - 1, Math.max(0, LV - 1))];
+  PORTAL_USED = true;
+  SoundManager.snd('shockwave');
+  shk(10);
+  if (!LEVEL_TOOK_DAMAGE) unlockAchievement('untouchable');
+  if (LEVEL_TIMER < 90) unlockAchievement('speed_runner');
+  saveGame();
+}
+
+function tickCosmicHyperWarp(dt) {
+  if (!WARP_ACTIVE) return;
+  WARP_TIMER += dt;
+
+  // Midpoint level swap
+  if (WARP_TIMER >= 0.95 && LV !== WARP_NEXT_LV) {
+    LV = WARP_NEXT_LV;
+    loadLevel();
+    AFL = 0.45; // Radiant white burst
+    shk(8);
+  }
+
+  // End of warp
+  if (WARP_TIMER >= WARP_DUR) {
+    WARP_ACTIVE = false;
+    PORTAL_USED = false;
+    if (LV === 10) {
+      startBossIntroCinematic();
+    } else {
+      STATE = 'playing';
+      GAME_MSG = 'Level ' + LV + ' — ' + THEMES[Math.min(LV - 1, THEMES.length - 1)].name + ' — Find the portal.';
+      GAME_MSG_TIMER = 4.5;
+    }
+  }
+}
+
+function drawCosmicHyperWarp() {
+  if (!WARP_ACTIVE) return;
+  const progress = Math.min(1, WARP_TIMER / WARP_DUR);
+  const cx = LW / 2, cy = LH / 2;
+
+  CX.save();
+
+  // Dark dimensional backdrop
+  const bgAlpha = Math.min(0.95, progress * 2.2);
+  CX.fillStyle = `rgba(3,5,15,${bgAlpha})`;
+  CX.fillRect(0, 0, LW, LH);
+
+  // Radial lightspeed streaks
+  const numStreaks = 42;
+  const maxR = Math.hypot(LW / 2, LH / 2);
+
+  CX.lineWidth = 1.8;
+  for (let i = 0; i < numStreaks; i++) {
+    const ang = (i / numStreaks) * Math.PI * 2 + progress * 2.5;
+    const rStart = 30 + Math.sin(i * 3 + F * 0.1) * 20;
+    const rEnd = rStart + (maxR - rStart) * Math.min(1, progress * 1.6 + 0.2);
+
+    const grad = CX.createLinearGradient(
+      cx + Math.cos(ang) * rStart, cy + Math.sin(ang) * rStart,
+      cx + Math.cos(ang) * rEnd,   cy + Math.sin(ang) * rEnd
+    );
+    const col = i % 3 === 0 ? '#38bdf8' : i % 3 === 1 ? '#c084fc' : '#fde68a';
+    grad.addColorStop(0, 'rgba(0,0,0,0)');
+    grad.addColorStop(0.5, col);
+    grad.addColorStop(1, 'rgba(255,255,255,0.85)');
+
+    CX.strokeStyle = grad;
+    CX.beginPath();
+    CX.moveTo(cx + Math.cos(ang) * rStart, cy + Math.sin(ang) * rStart);
+    CX.lineTo(cx + Math.cos(ang) * rEnd, cy + Math.sin(ang) * rEnd);
+    CX.stroke();
+  }
+
+  // Counter-rotating singularity rings
+  const ring1 = progress * 6;
+  const ring2 = -progress * 8;
+  CX.strokeStyle = 'rgba(56,189,248,0.7)';
+  CX.lineWidth = 2.5;
+  CX.beginPath();
+  CX.arc(cx, cy, 60 + Math.sin(progress * Math.PI) * 40, ring1, ring1 + 4.5);
+  CX.stroke();
+
+  CX.strokeStyle = 'rgba(192,132,252,0.75)';
+  CX.lineWidth = 2.0;
+  CX.beginPath();
+  CX.arc(cx, cy, 40 + Math.sin(progress * Math.PI) * 25, ring2, ring2 + 4.5);
+  CX.stroke();
+
+  // Dark core
+  const coreG = CX.createRadialGradient(cx, cy, 5, cx, cy, 80);
+  coreG.addColorStop(0, '#ffffff');
+  coreG.addColorStop(0.2, '#38bdf8');
+  coreG.addColorStop(0.6, '#090d24');
+  coreG.addColorStop(1, 'rgba(3,5,15,0)');
+  CX.fillStyle = coreG;
+  CX.beginPath();
+  CX.arc(cx, cy, 80, 0, 6.28);
+  CX.fill();
+
+  // Story Monologue Quote Banner
+  const quoteAlpha = Math.sin(progress * Math.PI);
+  if (quoteAlpha > 0.1 && WARP_QUOTE) {
+    CX.save();
+    CX.globalAlpha = quoteAlpha;
+
+    // Cinematic Cinemascope Bars
+    const barH = 50 * quoteAlpha;
+    CX.fillStyle = 'rgba(0,0,0,0.92)';
+    CX.fillRect(0, 0, LW, barH);
+    CX.fillRect(0, LH - barH, LW, barH);
+
+    // Gold divider lines
+    CX.strokeStyle = 'rgba(201,168,76,0.6)';
+    CX.lineWidth = 1;
+    CX.beginPath();
+    CX.moveTo(LW * 0.15, barH); CX.lineTo(LW * 0.85, barH);
+    CX.moveTo(LW * 0.15, LH - barH); CX.lineTo(LW * 0.85, LH - barH);
+    CX.stroke();
+
+    // Narrative Text
+    CX.fillStyle = '#fde68a';
+    CX.font = 'bold 13px Cinzel, serif';
+    CX.textAlign = 'center';
+    CX.textBaseline = 'middle';
+    CX.shadowColor = '#c9a84c';
+    CX.shadowBlur = 10;
+    CX.fillText('LORD ROWAN — INNER MONOLOGUE', LW / 2, cy - 35);
+    CX.shadowBlur = 0;
+
+    CX.fillStyle = '#ffffff';
+    CX.font = 'italic 15px Crimson Text, serif';
+    CX.fillText('“' + WARP_QUOTE + '”', LW / 2, cy + 30);
+    CX.restore();
+  }
+
+  CX.restore();
+}
+
+// ── 3. Hit-Stop, Chromatic Aberration & Shockwaves ────────────────────
+let HIT_STOP_TIMER = 0;
+function triggerHitStop(dur = 0.06) {
+  HIT_STOP_TIMER = Math.max(HIT_STOP_TIMER, dur);
+}
+
+const IMPACT_SHOCKWAVES = [];
+function spawnImpactShockwave(x, y, col = '#fde68a', maxR = 48) {
+  IMPACT_SHOCKWAVES.push({
+    x: (x + 0.5) * T,
+    y: (y + 0.5) * T,
+    r: 4,
+    maxR,
+    col,
+    life: 0.35,
+    maxLife: 0.35
+  });
+}
+
+function tickImpactShockwaves(dt) {
+  if (HIT_STOP_TIMER > 0) {
+    HIT_STOP_TIMER = Math.max(0, HIT_STOP_TIMER - dt);
+  }
+  for (let i = IMPACT_SHOCKWAVES.length - 1; i >= 0; i--) {
+    const sw = IMPACT_SHOCKWAVES[i];
+    sw.life -= dt;
+    sw.r += (sw.maxR - sw.r) * Math.min(1, dt * 12);
+    if (sw.life <= 0) IMPACT_SHOCKWAVES.splice(i, 1);
+  }
+}
+
+function drawImpactShockwaves() {
+  if (IMPACT_SHOCKWAVES.length === 0) return;
+  CX.save();
+  IMPACT_SHOCKWAVES.forEach(sw => {
+    const prog = Math.max(0, sw.life / sw.maxLife);
+    CX.globalAlpha = prog * 0.85;
+    CX.strokeStyle = sw.col;
+    CX.lineWidth = 2.5 * prog;
+    CX.shadowColor = sw.col;
+    CX.shadowBlur = 8 * prog;
+    CX.beginPath();
+    CX.arc(sw.x, sw.y, sw.r, 0, 6.28);
+    CX.stroke();
+
+    // Subtle chromatic split ring
+    CX.strokeStyle = '#38bdf8';
+    CX.lineWidth = 1.0 * prog;
+    CX.beginPath();
+    CX.arc(sw.x, sw.y, sw.r + 2, 0, 6.28);
+    CX.stroke();
+  });
+  CX.restore();
+}
+
+// ── 4. Low-Sanity Eldritch Hallucinations & Low-HP Pulse ───────────────
+function drawAtmosphericHorrorFX() {
+  if (STATE !== 'playing') return;
+
+  // Low HP Heartbeat Pulse
+  if (P.hp <= 2 && !P.dead) {
+    const pulse = Math.sin(F * 0.18) * 0.5 + 0.5;
+    const hbGrad = CX.createRadialGradient(LW / 2, LH / 2, LW * 0.25, LW / 2, LH / 2, LW * 0.72);
+    hbGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    hbGrad.addColorStop(0.7, `rgba(185,28,28,${pulse * 0.22})`);
+    hbGrad.addColorStop(1, `rgba(127,29,29,${0.35 + pulse * 0.35})`);
+    CX.fillStyle = hbGrad;
+    CX.fillRect(0, 0, LW, LH);
+  }
+
+  // Low Sanity Creeping Eldritch Tentacles & Fog
+  if (P.san < 35 && !P.dead) {
+    const sanFactor = (35 - P.san) / 35;
+    CX.save();
+    CX.globalAlpha = sanFactor * 0.45;
+
+    // Corner shadow tendrils
+    const tendrilPulse = Math.sin(F * 0.08) * 15;
+    CX.fillStyle = '#0f051d';
+    // Top-Left
+    CX.beginPath();
+    CX.moveTo(0, 0);
+    CX.bezierCurveTo(80 + tendrilPulse, 20, 30, 80 + tendrilPulse, 0, 110);
+    CX.fill();
+    // Top-Right
+    CX.beginPath();
+    CX.moveTo(LW, 0);
+    CX.bezierCurveTo(LW - 80 - tendrilPulse, 20, LW - 30, 80 + tendrilPulse, LW, 110);
+    CX.fill();
+    // Bottom-Left
+    CX.beginPath();
+    CX.moveTo(0, LH);
+    CX.bezierCurveTo(80 + tendrilPulse, LH - 20, 30, LH - 80 - tendrilPulse, 0, LH - 110);
+    CX.fill();
+    // Bottom-Right
+    CX.beginPath();
+    CX.moveTo(LW, LH);
+    CX.bezierCurveTo(LW - 80 - tendrilPulse, LH - 20, LW - 30, LH - 80 - tendrilPulse, LW, LH - 110);
+    CX.fill();
+
+    // Blinking phantom eyes in darkness
+    if (Math.sin(F * 0.05) > 0.4) {
+      const eyeX = (P.x + Math.sin(F * 0.03) * 6) * T;
+      const eyeY = (P.y + Math.cos(F * 0.03) * 5) * T;
+      CX.fillStyle = '#ef4444';
+      CX.shadowColor = '#dc2626';
+      CX.shadowBlur = 8;
+      CX.beginPath(); CX.ellipse(eyeX - 6, eyeY, 3, 1.5, 0, 0, 6.28); CX.fill();
+      CX.beginPath(); CX.ellipse(eyeX + 6, eyeY, 3, 1.5, 0, 0, 6.28); CX.fill();
+    }
+
+    CX.restore();
+  }
+}
+
+// ── 5. Memory Echo Interlude Modal ────────────────────────────────────
+function drawMemoryEchoModal() {
+  if (!ACTIVE_MEMORY_ECHO) return;
+  MEMORY_ECHO_ANIM_T = Math.min(1, MEMORY_ECHO_ANIM_T + DT * 4.0);
+
+  const panW = 540, panH = 340;
+  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2 - (1 - MEMORY_ECHO_ANIM_T) * 40;
+
+  CX.save();
+  CX.globalAlpha = MEMORY_ECHO_ANIM_T;
+
+  // Dream haze background
+  CX.fillStyle = 'rgba(5,8,22,0.96)';
+  CX.strokeStyle = 'rgba(245,158,11,0.75)';
+  CX.lineWidth = 1.8;
+  roundRect(CX, panX, panY, panW, panH, 12);
+  CX.fill(); CX.stroke();
+
+  // Starlight header
+  CX.fillStyle = '#fde68a';
+  CX.font = 'bold 16px Cinzel, serif';
+  CX.textAlign = 'center';
+  CX.textBaseline = 'top';
+  CX.shadowColor = '#f59e0b';
+  CX.shadowBlur = 12;
+  CX.fillText('✨ ' + ACTIVE_MEMORY_ECHO.title, LW / 2, panY + 18);
+  CX.shadowBlur = 0;
+
+  // Starlight divider
+  CX.strokeStyle = 'rgba(245,158,11,0.35)';
+  CX.lineWidth = 1;
+  CX.beginPath();
+  CX.moveTo(panX + 30, panY + 44);
+  CX.lineTo(panX + panW - 30, panY + 44);
+  CX.stroke();
+
+  // Quote
+  CX.fillStyle = '#ffffff';
+  CX.font = 'italic 14px Crimson Text, serif';
+  const words = ACTIVE_MEMORY_ECHO.quote.split(' ');
+  let line = '', lines = [];
+  words.forEach(w => {
+    if (CX.measureText(line + w).width > panW - 60) {
+      lines.push(line); line = w + ' ';
+    } else line += w + ' ';
+  });
+  lines.push(line);
+  lines.forEach((l, i) => {
+    CX.fillText(l, LW / 2, panY + 62 + i * 22);
+  });
+
+  // Lore text
+  const loreStartY = panY + 62 + lines.length * 22 + 10;
+  CX.fillStyle = 'rgba(203,213,225,0.85)';
+  CX.font = '11px Crimson Text, serif';
+  const lwords = ACTIVE_MEMORY_ECHO.lore.split(' ');
+  let lline = '', llines = [];
+  lwords.forEach(w => {
+    if (CX.measureText(lline + w).width > panW - 60) {
+      llines.push(lline); lline = w + ' ';
+    } else lline += w + ' ';
+  });
+  llines.push(lline);
+  llines.forEach((l, i) => {
+    CX.fillText(l, LW / 2, loreStartY + i * 18);
+  });
+
+  // Dual Choices Cards
+  const btnW = 220, btnH = 60;
+  const btn1X = panX + 30, btn2X = panX + panW - 30 - btnW;
+  const btnY = panY + panH - 85;
+
+  // Choice A (Sanity / Healing)
+  CX.fillStyle = 'rgba(14,165,233,0.18)';
+  CX.strokeStyle = 'rgba(56,189,248,0.7)';
+  CX.lineWidth = 1.2;
+  roundRect(CX, btn1X, btnY, btnW, btnH, 8);
+  CX.fill(); CX.stroke();
+
+  CX.fillStyle = '#38bdf8';
+  CX.font = 'bold 11px Cinzel, serif';
+  CX.textAlign = 'center'; CX.textBaseline = 'top';
+  CX.fillText(ACTIVE_MEMORY_ECHO.choiceA.label, btn1X + btnW / 2, btnY + 12);
+  CX.fillStyle = 'rgba(226,232,240,0.85)';
+  CX.font = '10px Crimson Text, serif';
+  CX.fillText(ACTIVE_MEMORY_ECHO.choiceA.desc, btn1X + btnW / 2, btnY + 34);
+
+  // Choice B (Souls / Combat Fury)
+  CX.fillStyle = 'rgba(168,85,247,0.18)';
+  CX.strokeStyle = 'rgba(192,132,252,0.7)';
+  roundRect(CX, btn2X, btnY, btnW, btnH, 8);
+  CX.fill(); CX.stroke();
+
+  CX.fillStyle = '#c084fc';
+  CX.font = 'bold 11px Cinzel, serif';
+  CX.fillText(ACTIVE_MEMORY_ECHO.choiceB.label, btn2X + btnW / 2, btnY + 12);
+  CX.fillStyle = 'rgba(226,232,240,0.85)';
+  CX.font = '10px Crimson Text, serif';
+  CX.fillText(ACTIVE_MEMORY_ECHO.choiceB.desc, btn2X + btnW / 2, btnY + 34);
+
+  CX.restore();
+}
+
+function handleMemoryEchoClick(mx, my) {
+  if (!ACTIVE_MEMORY_ECHO) return false;
+  const panW = 540, panH = 340;
+  const panX = LW / 2 - panW / 2, panY = LH / 2 - panH / 2;
+  const btnW = 220, btnH = 60;
+  const btn1X = panX + 30, btn2X = panX + panW - 30 - btnW;
+  const btnY = panY + panH - 85;
+
+  if (mx >= btn1X && mx <= btn1X + btnW && my >= btnY && my <= btnY + btnH) {
+    ACTIVE_MEMORY_ECHO.choiceA.effect();
+    ACTIVE_MEMORY_ECHO = null;
+    SoundManager.snd('talent_unlock');
+    return true;
+  }
+  if (mx >= btn2X && mx <= btn2X + btnW && my >= btnY && my <= btnY + btnH) {
+    ACTIVE_MEMORY_ECHO.choiceB.effect();
+    ACTIVE_MEMORY_ECHO = null;
+    SoundManager.snd('talent_unlock');
+    return true;
+  }
+  return true; // absorb click while modal open
+}
 
 </script>
 </body>
