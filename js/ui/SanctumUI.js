@@ -1,7 +1,7 @@
 // =====================================================================
 //  DUNGEON BREAK — js/ui/SanctumUI.js
-//  Authoritative Abyss Sanctum Metaprogression & Prestige Legacy UI
-//  Architecture: Category Navigation, Central Scrollable List, Right Inspector
+//  Authoritative Abyss Sanctum: Ascension Altar & Celestial Constellation
+//  Architecture: Sacred Vault Arch, Celestial Discipline Map, Altar Infusion Slab
 // =====================================================================
 
 import { GameState, GameStates } from '../core/GameState.js';
@@ -13,17 +13,84 @@ import { InputManager } from '../core/InputManager.js';
 
 let SANCTUM_SLIDE = 0;
 let _currentMode = 'talents'; // 'talents' | 'legacy'
-let _currentCategory = 'all'; // 'all' | 'survival' | 'weapons' | 'technique' | 'utility'
+let _currentCategory = 'survival'; // 'survival' | 'weapons' | 'technique' | 'utility'
 let _selectedKey = 'vitality';
-let _scrollOffset = 0;
 let _ambientTimer = 0;
 const _interactiveZones = [];
 
+// Constellation Coordinates within the Celestial Chamber (500x350)
+const CONSTELLATION_LAYOUTS = {
+  survival: {
+    nodes: [
+      { id: 'vitality',   x: 250, y: 75,  label: 'Bloodline Vigor' },
+      { id: 'iron_skin',  x: 140, y: 240, label: 'Defensive Mastery' },
+      { id: 'resilience', x: 360, y: 240, label: 'Resilience' }
+    ],
+    conduits: [
+      ['vitality', 'iron_skin'],
+      ['vitality', 'resilience'],
+      ['iron_skin', 'resilience']
+    ]
+  },
+  weapons: {
+    nodes: [
+      { id: 'hunters_focus',    x: 250, y: 60,  label: 'Hunter\'s Focus' },
+      { id: 'rift_discipline',  x: 120, y: 175, label: 'Rift Discipline' },
+      { id: 'lance_precision',  x: 380, y: 175, label: 'Precision Lance' },
+      { id: 'explosive_might',  x: 250, y: 290, label: 'Explosive Axe' }
+    ],
+    conduits: [
+      ['hunters_focus', 'rift_discipline'],
+      ['hunters_focus', 'lance_precision'],
+      ['rift_discipline', 'explosive_might'],
+      ['lance_precision', 'explosive_might'],
+      ['rift_discipline', 'lance_precision'],
+      ['hunters_focus', 'explosive_might']
+    ]
+  },
+  technique: {
+    nodes: [
+      { id: 'fury',              x: 150, y: 100, label: 'Abyssal Might' },
+      { id: 'haste',             x: 350, y: 100, label: 'Phantom Haste' },
+      { id: 'technique_mastery', x: 250, y: 260, label: 'Technique Mastery' }
+    ],
+    conduits: [
+      ['fury', 'haste'],
+      ['fury', 'technique_mastery'],
+      ['haste', 'technique_mastery']
+    ]
+  },
+  utility: {
+    nodes: [
+      { id: 'clarity',      x: 180, y: 70,  label: 'Mind Sanctuary' },
+      { id: 'siphon',       x: 330, y: 175, label: 'Vampiric Touch' },
+      { id: 'soul_harvest', x: 180, y: 280, label: 'Soul Harvest' }
+    ],
+    conduits: [
+      ['clarity', 'siphon'],
+      ['siphon', 'soul_harvest'],
+      ['clarity', 'soul_harvest']
+    ]
+  },
+  legacy: {
+    nodes: [
+      { id: 'legacy_souls',   x: 100, y: 175, label: 'Soul\'s Due' },
+      { id: 'legacy_defense', x: 200, y: 175, label: 'Iron Memory' },
+      { id: 'legacy_sanity',  x: 300, y: 175, label: 'Echo Keeper' },
+      { id: 'legacy_start',   x: 400, y: 175, label: 'Vanguard Heritage' }
+    ],
+    conduits: [
+      ['legacy_souls', 'legacy_defense'],
+      ['legacy_defense', 'legacy_sanity'],
+      ['legacy_sanity', 'legacy_start']
+    ]
+  }
+};
+
 export function openSanctum() {
   SANCTUM_SLIDE = 0;
-  _scrollOffset = 0;
   _currentMode = 'talents';
-  _currentCategory = 'all';
+  _currentCategory = 'survival';
   _selectedKey = 'vitality';
   GameState.setState(GameStates.SANCTUM);
   AudioManager.playSFX('panel_open');
@@ -40,11 +107,64 @@ export const SanctumUI = {
       closeSanctum();
       return true;
     }
+    // Navigate nodes with arrow keys
+    const layout = _currentMode === 'legacy' ? CONSTELLATION_LAYOUTS.legacy : (CONSTELLATION_LAYOUTS[_currentCategory] || CONSTELLATION_LAYOUTS.survival);
+    const nodes = layout.nodes;
+    const curIdx = nodes.findIndex(n => n.id === _selectedKey);
+
+    if (key === 'ArrowRight' || key === 'ArrowDown') {
+      const nextIdx = (curIdx + 1 + nodes.length) % nodes.length;
+      _selectedKey = nodes[nextIdx].id;
+      AudioManager.playSFX('menu_hover');
+      return true;
+    }
+    if (key === 'ArrowLeft' || key === 'ArrowUp') {
+      const prevIdx = (curIdx - 1 + nodes.length) % nodes.length;
+      _selectedKey = nodes[prevIdx].id;
+      AudioManager.playSFX('menu_hover');
+      return true;
+    }
+    if (key === 'Enter' || key === ' ') {
+      // Trigger buy on current selected talent
+      this.attemptPurchase();
+      return true;
+    }
     return false;
   },
 
   handleWheel(deltaY) {
-    _scrollOffset = Math.max(0, _scrollOffset + (deltaY > 0 ? 30 : -30));
+    // Wheel cycles through disciplines
+    if (_currentMode === 'talents') {
+      const cats = ['survival', 'weapons', 'technique', 'utility'];
+      let idx = cats.indexOf(_currentCategory);
+      idx = (idx + (deltaY > 0 ? 1 : -1) + cats.length) % cats.length;
+      _currentCategory = cats[idx];
+      const newLayout = CONSTELLATION_LAYOUTS[_currentCategory];
+      if (newLayout && newLayout.nodes.length > 0) {
+        _selectedKey = newLayout.nodes[0].id;
+      }
+      AudioManager.playSFX('menu_select');
+    }
+  },
+
+  attemptPurchase() {
+    const isLegacy = _currentMode === 'legacy';
+    const item = isLegacy ? LEGACY_DEFS[_selectedKey] : TALENT_DEFS[_selectedKey];
+    if (!item) return;
+
+    if (isLegacy) {
+      if (ProgressionSystem.buyLegacy(item.id)) {
+        AudioManager.playSFX('talent_unlock');
+      } else {
+        AudioManager.playSFX('ui_error');
+      }
+    } else {
+      if (ProgressionSystem.buyTalent(item.id)) {
+        AudioManager.playSFX('talent_unlock');
+      } else {
+        AudioManager.playSFX('ui_error');
+      }
+    }
   },
 
   draw(ctx, dt = 0.016) {
@@ -53,8 +173,8 @@ export const SanctumUI = {
     _interactiveZones.length = 0;
 
     const eased = 1 - Math.pow(1 - SANCTUM_SLIDE, 3);
-    const panW = 860;
-    const panH = 510;
+    const panW = 890;
+    const panH = 520;
     const panX = Math.round((LW - panW) / 2);
     const panY = Math.round((LH - panH) / 2 - (1 - eased) * 35);
 
@@ -62,559 +182,549 @@ export const SanctumUI = {
     ctx.globalAlpha = eased;
 
     // Dark backdrop blur
-    ctx.fillStyle = 'rgba(2, 4, 10, 0.88)';
+    ctx.fillStyle = 'rgba(2, 4, 10, 0.90)';
     ctx.fillRect(0, 0, LW, LH);
 
     // Occult Altar Radial Ambient Glow
     const pulse = 0.5 + 0.5 * Math.sin(_ambientTimer * 2.2);
-    const grad = ctx.createRadialGradient(panX + panW / 2, panY + 140, 20, panX + panW / 2, panY + 220, 420);
+    const grad = ctx.createRadialGradient(panX + panW / 2, panY + 160, 20, panX + panW / 2, panY + 220, 440);
     if (_currentMode === 'legacy') {
-      grad.addColorStop(0, `rgba(217, 119, 6, ${0.18 + pulse * 0.05})`);
-      grad.addColorStop(0.6, 'rgba(180, 83, 9, 0.07)');
+      grad.addColorStop(0, `rgba(217, 119, 6, ${0.20 + pulse * 0.06})`);
+      grad.addColorStop(0.6, 'rgba(180, 83, 9, 0.08)');
     } else {
-      grad.addColorStop(0, `rgba(147, 51, 234, ${0.18 + pulse * 0.05})`);
-      grad.addColorStop(0.6, 'rgba(88, 28, 135, 0.07)');
+      grad.addColorStop(0, `rgba(147, 51, 234, ${0.20 + pulse * 0.06})`);
+      grad.addColorStop(0.6, 'rgba(88, 28, 135, 0.08)');
     }
     grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = grad;
     ctx.fillRect(panX - 40, panY - 40, panW + 80, panH + 80);
 
-    // Outer Sanctum Frame
-    ctx.fillStyle = 'rgba(7, 9, 18, 0.98)';
-    ctx.strokeStyle = _currentMode === 'legacy' ? 'rgba(245, 158, 11, 0.65)' : 'rgba(168, 85, 247, 0.6)';
+    // Outer Altar Vault Slab
+    ctx.fillStyle = 'rgba(6, 9, 20, 0.98)';
+    ctx.strokeStyle = _currentMode === 'legacy' ? 'rgba(245, 158, 11, 0.7)' : 'rgba(168, 85, 247, 0.65)';
     ctx.lineWidth = 1.8;
     roundRect(ctx, panX, panY, panW, panH, 12);
-    ctx.fill();
-    ctx.stroke();
+    ctx.fill(); ctx.stroke();
 
     // Inner gold-embossed trim
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.3)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
     ctx.lineWidth = 1;
-    roundRect(ctx, panX + 4, panY + 4, panW - 8, panH - 8, 9);
+    roundRect(ctx, panX + 5, panY + 5, panW - 10, panH - 10, 9);
     ctx.stroke();
 
     const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
     const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
 
     // ─────────────────────────────────────────────────────────────
-    // 1. TOP HEADER & CURRENCY STATUS
+    // 1. TOP ALTAR VAULT HEADER: RELIQUARIES & MODE PLINTHS
     // ─────────────────────────────────────────────────────────────
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-
-    ctx.fillStyle = 'rgba(168, 85, 247, 0.4)';
-    ctx.font = '10px monospace';
-    ctx.fillText('᚛ ᚛ ᚛  THE ABYSSAL ASCENSION CHAMBER  ᚜ ᚜ ᚜', panX + panW / 2, panY + 12);
-
-    ctx.fillStyle = _currentMode === 'legacy' ? '#fef08a' : '#f3e8ff';
-    ctx.font = 'bold 18px Cinzel, serif';
-    ctx.shadowColor = _currentMode === 'legacy' ? '#d97706' : '#a855f7';
-    ctx.shadowBlur = 10;
-    ctx.fillText('THE ABYSS SANCTUM', panX + panW / 2, panY + 24);
-    ctx.shadowBlur = 0;
-
-    // Currencies Balance Badges (Top Center)
     const souls = GameState.ABYSS_SOULS || 0;
     const tokens = GameState.PRESTIGE_TOKENS || 0;
 
-    const badgeY = panY + 46;
-    // Souls badge
-    ctx.fillStyle = 'rgba(88, 28, 135, 0.35)';
-    ctx.strokeStyle = 'rgba(192, 132, 252, 0.6)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, panX + 16, badgeY, 160, 24, 6);
-    ctx.fill(); ctx.stroke();
+    // Currency Badges (Top Left)
+    const badgeY = panY + 16;
 
+    // Soul Crucible
+    ctx.fillStyle = 'rgba(88, 28, 135, 0.4)';
+    ctx.strokeStyle = 'rgba(192, 132, 252, 0.7)';
+    ctx.lineWidth = 1.2;
+    roundRect(ctx, panX + 18, badgeY, 132, 26, 6);
+    ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#fde047';
-    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.font = 'bold 10px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`◈ SOULS: ${souls.toLocaleString()}`, panX + 96, badgeY + 12);
+    ctx.fillText(`◈ SOULS: ${souls.toLocaleString()}`, panX + 84, badgeY + 13);
 
-    // Prestige tokens badge
-    ctx.fillStyle = 'rgba(180, 83, 9, 0.3)';
-    ctx.strokeStyle = 'rgba(245, 158, 11, 0.7)';
-    roundRect(ctx, panX + 184, badgeY, 170, 24, 6);
+    // Prestige Sunburst Token
+    ctx.fillStyle = 'rgba(180, 83, 9, 0.35)';
+    ctx.strokeStyle = 'rgba(245, 158, 11, 0.75)';
+    roundRect(ctx, panX + 158, badgeY, 132, 26, 6);
     ctx.fill(); ctx.stroke();
-
     ctx.fillStyle = '#fef08a';
-    ctx.fillText(`♛ PRESTIGE: ${tokens}`, panX + 269, badgeY + 12);
+    ctx.fillText(`♛ PRESTIGE: ${tokens}`, panX + 224, badgeY + 13);
 
-    // Mode Switcher Tabs (Top Right)
+    // Altar Central Inscription (Top Center)
+    ctx.fillStyle = _currentMode === 'legacy' ? '#fef08a' : '#f3e8ff';
+    ctx.font = 'bold 13px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.shadowColor = _currentMode === 'legacy' ? '#d97706' : '#a855f7';
+    ctx.shadowBlur = 6;
+    ctx.fillText('◈ ABYSSAL ASCENSION ALTAR ◈', panX + panW / 2 - 15, badgeY + 7);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+    ctx.font = 'italic 8.5px "Crimson Text", serif';
+    ctx.fillText('Channel consecrated soul essence into ancient Vanguard steles', panX + panW / 2 - 15, badgeY + 21);
+
+    // Mode Switcher Plinths (Top Right)
     const modeTabs = [
-      { id: 'talents', label: '◈ SOUL TALENTS', w: 145 },
-      { id: 'legacy',  label: '♛ LEGACY REPERTOIRE', w: 175 }
+      { id: 'talents', label: '◈ SOUL NODES', w: 135 },
+      { id: 'legacy',  label: '♛ LEGACY REPERTOIRE', w: 145 }
     ];
-    let modeX = panX + panW - 16 - 175 - 150;
+    let modeX = panX + panW - 18 - (135 + 145 + 8);
     modeTabs.forEach(mt => {
       const isSel = _currentMode === mt.id;
-      const isHover = mouseX >= modeX && mouseX <= modeX + mt.w && mouseY >= badgeY && mouseY <= badgeY + 24;
+      const isHover = mouseX >= modeX && mouseX <= modeX + mt.w && mouseY >= badgeY && mouseY <= badgeY + 26;
 
       ctx.fillStyle = isSel
-        ? (mt.id === 'legacy' ? 'rgba(217, 119, 6, 0.35)' : 'rgba(147, 51, 234, 0.35)')
+        ? (mt.id === 'legacy' ? 'rgba(217, 119, 6, 0.4)' : 'rgba(147, 51, 234, 0.4)')
         : (isHover ? 'rgba(30, 41, 59, 0.8)' : 'rgba(15, 23, 42, 0.6)');
       ctx.strokeStyle = isSel
         ? (mt.id === 'legacy' ? '#fde047' : '#c084fc')
         : (isHover ? '#cbd5e1' : 'rgba(71, 85, 105, 0.5)');
       ctx.lineWidth = isSel ? 1.5 : 1;
-      roundRect(ctx, modeX, badgeY, mt.w, 24, 5);
+      roundRect(ctx, modeX, badgeY, mt.w, 26, 5);
       ctx.fill(); ctx.stroke();
 
       ctx.fillStyle = isSel ? '#ffffff' : (isHover ? '#f1f5f9' : '#94a3b8');
-      ctx.font = 'bold 10px Cinzel, serif';
+      ctx.font = 'bold 9px Cinzel, serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(mt.label, modeX + mt.w / 2, badgeY + 12);
+      ctx.fillText(mt.label, modeX + mt.w / 2, badgeY + 13);
 
       _interactiveZones.push({
         id: `mode_${mt.id}`,
-        x: modeX, y: badgeY, w: mt.w, h: 24,
+        x: modeX, y: badgeY, w: mt.w, h: 26,
         action: () => {
           if (_currentMode !== mt.id) {
             _currentMode = mt.id;
-            _scrollOffset = 0;
             _selectedKey = mt.id === 'legacy' ? LEGACY_KEYS[0] : 'vitality';
             AudioManager.playSFX('menu_select');
           }
         }
       });
-      modeX += mt.w + 6;
+      modeX += mt.w + 8;
     });
 
-    // Main Content Split Layout
-    const contentY = badgeY + 32;
-    const contentH = panY + panH - contentY - 46;
-
     // ─────────────────────────────────────────────────────────────
-    // 2. LEFT COLUMN: CATEGORY NAVIGATION (w: 136)
+    // 2. DISCIPLINE ORBITAL ARC (TABS)
     // ─────────────────────────────────────────────────────────────
-    const leftX = panX + 16;
-    const leftW = 136;
+    const arcY = badgeY + 36;
+    const arcH = 28;
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.45)';
-    ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, leftX, contentY, leftW, contentH, 8);
-    ctx.fill(); ctx.stroke();
+    if (_currentMode === 'talents') {
+      const disciplines = [
+        { id: 'survival',  label: 'ᛟ SURVIVAL CONSTELLATION',  w: 200 },
+        { id: 'weapons',   label: '⚔ WEAPONRY CONSTELLATION', w: 200 },
+        { id: 'technique', label: 'ᛋ TECHNIQUE CONSTELLATION',w: 205 },
+        { id: 'utility',   label: '✦ UTILITY CONSTELLATION',  w: 200 }
+      ];
 
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText('CATEGORIES', leftX + leftW / 2, contentY + 10);
+      const startArcX = panX + Math.round((panW - (disciplines.reduce((acc, d) => acc + d.w, 0) + (disciplines.length - 1) * 8)) / 2);
+      let curArcX = startArcX;
 
-    const categories = _currentMode === 'talents'
-      ? [
-          { id: 'all', label: 'All Disciplines', icon: '◈' },
-          { id: 'survival', label: 'Survival', icon: 'ᛟ' },
-          { id: 'weapons', label: 'Weaponry', icon: '⚔' },
-          { id: 'technique', label: 'Technique', icon: 'ᛋ' },
-          { id: 'utility', label: 'Utility', icon: '✦' }
-        ]
-      : [
-          { id: 'all', label: 'All Legacies', icon: '♛' }
-        ];
+      disciplines.forEach(d => {
+        const isSel = (_currentCategory === d.id);
+        const isHover = mouseX >= curArcX && mouseX <= curArcX + d.w && mouseY >= arcY && mouseY <= arcY + arcH;
 
-    const catBtnH = 34;
-    categories.forEach((cat, idx) => {
-      const cy = contentY + 30 + idx * (catBtnH + 6);
-      const isSel = _currentCategory === cat.id;
-      const isHover = mouseX >= leftX + 6 && mouseX <= leftX + leftW - 6 && mouseY >= cy && mouseY <= cy + catBtnH;
+        ctx.fillStyle = isSel ? 'rgba(147, 51, 234, 0.28)' : (isHover ? 'rgba(30, 41, 59, 0.7)' : 'rgba(15, 23, 42, 0.5)');
+        ctx.strokeStyle = isSel ? '#c084fc' : (isHover ? '#94a3b8' : 'rgba(71, 85, 105, 0.4)');
+        ctx.lineWidth = isSel ? 1.5 : 1;
+        roundRect(ctx, curArcX, arcY, d.w, arcH, 5);
+        ctx.fill(); ctx.stroke();
 
-      ctx.fillStyle = isSel
-        ? 'rgba(147, 51, 234, 0.28)'
-        : (isHover ? 'rgba(30, 41, 59, 0.7)' : 'rgba(15, 23, 42, 0.5)');
-      ctx.strokeStyle = isSel ? '#c084fc' : (isHover ? '#94a3b8' : 'rgba(51, 65, 85, 0.5)');
-      ctx.lineWidth = isSel ? 1.3 : 1;
-      roundRect(ctx, leftX + 6, cy, leftW - 12, catBtnH, 5);
-      ctx.fill(); ctx.stroke();
+        ctx.fillStyle = isSel ? '#fde68a' : (isHover ? '#ffffff' : '#94a3b8');
+        ctx.font = 'bold 9.5px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(d.label, curArcX + d.w / 2, arcY + arcH / 2);
 
-      ctx.fillStyle = isSel ? '#fef08a' : (isHover ? '#ffffff' : '#94a3b8');
-      ctx.font = 'bold 10px Cinzel, serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`${cat.icon} ${cat.label}`, leftX + 12, cy + catBtnH / 2);
-
-      _interactiveZones.push({
-        id: `cat_${cat.id}`,
-        x: leftX + 6, y: cy, w: leftW - 12, h: catBtnH,
-        action: () => {
-          if (_currentCategory !== cat.id) {
-            _currentCategory = cat.id;
-            _scrollOffset = 0;
-            // Select first item in new category
-            const filtered = this.getFilteredItems();
-            if (filtered.length > 0) _selectedKey = filtered[0].id;
-            AudioManager.playSFX('menu_select');
-          }
+        if (isSel) {
+          ctx.fillStyle = '#c084fc';
+          ctx.fillRect(curArcX + 16, arcY + arcH - 2, d.w - 32, 2);
         }
+
+        _interactiveZones.push({
+          id: `disc_${d.id}`,
+          x: curArcX, y: arcY, w: d.w, h: arcH,
+          action: () => {
+            if (_currentCategory !== d.id) {
+              _currentCategory = d.id;
+              const layout = CONSTELLATION_LAYOUTS[d.id];
+              if (layout && layout.nodes.length > 0) {
+                _selectedKey = layout.nodes[0].id;
+              }
+              AudioManager.playSFX('menu_select');
+            }
+          }
+        });
+
+        curArcX += d.w + 8;
       });
-    });
+    } else {
+      // Legacy Mode Ribbon
+      const legW = 380;
+      const legX = panX + Math.round((panW - legW) / 2);
+      ctx.fillStyle = 'rgba(180, 83, 9, 0.25)';
+      ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)';
+      ctx.lineWidth = 1.2;
+      roundRect(ctx, legX, arcY, legW, arcH, 5);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fef08a';
+      ctx.font = 'bold 10px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('♛ THE FOUR PILLARS OF ASCENDED CONQUEST', legX + legW / 2, arcY + arcH / 2);
+    }
 
     // ─────────────────────────────────────────────────────────────
-    // 3. CENTER COLUMN: SCROLLABLE UPGRADES LIST (w: 320)
+    // 3. MAIN CHAMBER: CELESTIAL CONSTELLATION MAP (LEFT) & INFUSION SLAB (RIGHT)
     // ─────────────────────────────────────────────────────────────
-    const centerLeft = leftX + leftW + 12;
-    const centerW = 320;
+    const chamberY = arcY + arcH + 12;
+    const chamberH = panY + panH - chamberY - 48;
+    const mapW = 490;
+    const slabW = panW - mapW - 48;
+    const mapX = panX + 20;
+    const slabX = mapX + mapW + 12;
 
-    ctx.fillStyle = 'rgba(10, 15, 28, 0.6)';
-    ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
-    roundRect(ctx, centerLeft, contentY, centerW, contentH, 8);
+    // ── Left: Celestial Constellation Starfield Chamber ──
+    ctx.fillStyle = 'rgba(8, 12, 26, 0.9)';
+    ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, mapX, chamberY, mapW, chamberH, 8);
     ctx.fill(); ctx.stroke();
 
-    const items = this.getFilteredItems();
-    const itemH = 62;
-    const gap = 6;
-    const maxVisibleH = contentH - 12;
-    const totalListH = items.length * (itemH + gap);
-    const maxScroll = Math.max(0, totalListH - maxVisibleH);
-    _scrollOffset = Math.min(_scrollOffset, maxScroll);
-
+    // Starfield Background motes
     ctx.save();
     ctx.beginPath();
-    roundRect(ctx, centerLeft + 4, contentY + 6, centerW - 8, maxVisibleH, 6);
+    roundRect(ctx, mapX + 2, chamberY + 2, mapW - 4, chamberH - 4, 7);
     ctx.clip();
 
-    items.forEach((item, idx) => {
-      const iy = contentY + 8 + idx * (itemH + gap) - _scrollOffset;
-      if (iy + itemH < contentY || iy > contentY + contentH) return;
+    // Procedural Stars
+    for (let s = 0; s < 36; s++) {
+      const sx = mapX + ((s * 73 + 19) % (mapW - 20));
+      const sy = chamberY + ((s * 47 + 31) % (chamberH - 20));
+      const sAlpha = 0.2 + 0.3 * Math.sin(_ambientTimer * 2.0 + s);
+      ctx.fillStyle = `rgba(226, 232, 240, ${sAlpha})`;
+      ctx.fillRect(sx, sy, 1.5, 1.5);
+    }
 
-      const isSel = _selectedKey === item.id;
-      const isHover = mouseX >= centerLeft + 6 && mouseX <= centerLeft + centerW - 6 && mouseY >= iy && mouseY <= iy + itemH;
+    const activeLayout = _currentMode === 'legacy' ? CONSTELLATION_LAYOUTS.legacy : (CONSTELLATION_LAYOUTS[_currentCategory] || CONSTELLATION_LAYOUTS.survival);
+
+    // Draw Constellation Conduits (Lines between nodes)
+    activeLayout.conduits.forEach(([fromId, toId]) => {
+      const fromNode = activeLayout.nodes.find(n => n.id === fromId);
+      const toNode = activeLayout.nodes.find(n => n.id === toId);
+      if (!fromNode || !toNode) return;
+
+      const fx = mapX + fromNode.x;
+      const fy = chamberY + fromNode.y;
+      const tx = mapX + toNode.x;
+      const ty = chamberY + toNode.y;
+
+      const isFromActive = (_currentMode === 'legacy') ? ProgressionSystem.getLegacyRank(fromId) > 0 : ProgressionSystem.getTalentRank(fromId) > 0;
+      const isToActive = (_currentMode === 'legacy') ? ProgressionSystem.getLegacyRank(toId) > 0 : ProgressionSystem.getTalentRank(toId) > 0;
+      const conduitActive = isFromActive && isToActive;
+
+      ctx.strokeStyle = conduitActive
+        ? (_currentMode === 'legacy' ? 'rgba(253, 230, 138, 0.7)' : 'rgba(192, 132, 252, 0.7)')
+        : 'rgba(51, 65, 85, 0.45)';
+      ctx.lineWidth = conduitActive ? 2.0 : 1.0;
+      if (!conduitActive) ctx.setLineDash([4, 4]);
+
+      ctx.beginPath();
+      ctx.moveTo(fx, fy);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    });
+
+    // Draw Constellation Star-Nodes
+    activeLayout.nodes.forEach(node => {
+      const nx = mapX + node.x;
+      const ny = chamberY + node.y;
+      const isSel = (_selectedKey === node.id);
 
       const isLegacy = _currentMode === 'legacy';
+      const item = isLegacy ? LEGACY_DEFS[node.id] : TALENT_DEFS[node.id];
+      if (!item) return;
+
       const rank = isLegacy ? ProgressionSystem.getLegacyRank(item.id) : ProgressionSystem.getTalentRank(item.id);
       const isMax = rank >= item.max;
       const cost = isMax ? 0 : item.costs[rank];
       const canAfford = isLegacy ? (tokens >= cost) : (souls >= cost);
 
-      // Card Background
-      if (isSel) {
-        ctx.fillStyle = isLegacy ? 'rgba(180, 83, 9, 0.35)' : 'rgba(126, 34, 206, 0.35)';
-        ctx.strokeStyle = isLegacy ? '#fde047' : '#c084fc';
-        ctx.lineWidth = 1.5;
-      } else if (isMax) {
-        ctx.fillStyle = 'rgba(30, 24, 15, 0.7)';
-        ctx.strokeStyle = 'rgba(234, 179, 8, 0.45)';
-        ctx.lineWidth = 1;
-      } else {
-        ctx.fillStyle = isHover ? 'rgba(25, 33, 52, 0.8)' : 'rgba(15, 23, 42, 0.6)';
-        ctx.strokeStyle = isHover ? '#94a3b8' : 'rgba(51, 65, 85, 0.4)';
-        ctx.lineWidth = 1;
+      const isHover = mouseX >= nx - 32 && mouseX <= nx + 32 && mouseY >= ny - 32 && mouseY <= ny + 32;
+
+      // Radial Pulsing Halo for Selected or Affordable Nodes
+      if (isSel || isHover) {
+        ctx.fillStyle = isLegacy ? 'rgba(217, 119, 6, 0.25)' : 'rgba(168, 85, 247, 0.25)';
+        ctx.beginPath();
+        ctx.arc(nx, ny, 36, 0, Math.PI * 2);
+        ctx.fill();
       }
-      roundRect(ctx, centerLeft + 6, iy, centerW - 12, itemH, 6);
-      ctx.fill(); ctx.stroke();
 
-      // Icon Box
-      ctx.fillStyle = isMax ? 'rgba(234, 179, 8, 0.15)' : 'rgba(147, 51, 234, 0.15)';
-      ctx.strokeStyle = isMax ? 'rgba(234, 179, 8, 0.4)' : 'rgba(168, 85, 247, 0.3)';
-      roundRect(ctx, centerLeft + 12, iy + 8, 44, 44, 5);
-      ctx.fill(); ctx.stroke();
+      // Outer Node Orbit Ring
+      const orbitR = 26;
+      ctx.strokeStyle = isMax
+        ? '#facc15'
+        : (isSel ? '#ffffff' : (canAfford ? (isLegacy ? '#f59e0b' : '#c084fc') : 'rgba(71, 85, 105, 0.6)'));
+      ctx.lineWidth = isSel ? 2.0 : 1.2;
+      ctx.beginPath();
+      ctx.arc(nx, ny, orbitR, 0, Math.PI * 2);
+      ctx.stroke();
 
-      ctx.font = '20px serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(item.icon, centerLeft + 34, iy + 30);
+      // Node Core Fill
+      ctx.fillStyle = isMax
+        ? 'rgba(234, 179, 8, 0.35)'
+        : (isSel ? (isLegacy ? 'rgba(180, 83, 9, 0.5)' : 'rgba(126, 34, 206, 0.5)') : 'rgba(15, 23, 42, 0.85)');
+      ctx.beginPath();
+      ctx.arc(nx, ny, orbitR - 2, 0, Math.PI * 2);
+      ctx.fill();
 
-      // Name & Rank Pips
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillStyle = isMax ? '#fef08a' : (isSel ? '#ffffff' : '#f1f5f9');
-      ctx.font = 'bold 11px Cinzel, serif';
-      ctx.fillText(item.name, centerLeft + 64, iy + 10);
-
-      // Rank Pips
+      // Rank Orbit Pips around the node perimeter
       for (let p = 0; p < item.max; p++) {
-        const pipX = centerLeft + 64 + p * 14;
-        const pipY = iy + 26;
-        if (p < rank) {
-          ctx.fillStyle = isMax ? '#facc15' : (isLegacy ? '#fbbf24' : '#c084fc');
-          ctx.strokeStyle = isMax ? '#eab308' : (isLegacy ? '#f59e0b' : '#a855f7');
-        } else {
-          ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
-          ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
-        }
-        ctx.lineWidth = 1;
-        roundRect(ctx, pipX, pipY, 10, 8, 2);
-        ctx.fill(); ctx.stroke();
+        const angle = -Math.PI / 2 + (p / item.max) * Math.PI * 2;
+        const px = nx + Math.cos(angle) * (orbitR + 6);
+        const py = ny + Math.sin(angle) * (orbitR + 6);
+
+        ctx.fillStyle = (p < rank)
+          ? (isMax ? '#fde047' : (isLegacy ? '#fbbf24' : '#c084fc'))
+          : 'rgba(51, 65, 85, 0.7)';
+        ctx.beginPath();
+        ctx.arc(px, py, 2.8, 0, Math.PI * 2);
+        ctx.fill();
       }
 
-      ctx.fillStyle = isMax ? '#facc15' : 'rgba(203, 213, 225, 0.75)';
-      ctx.font = '9px Cinzel, serif';
-      ctx.fillText(`Rank ${rank}/${item.max}`, centerLeft + 64 + item.max * 14 + 6, iy + 26);
-
-      // Status Badge (Right aligned)
-      const badgeW = 74;
-      const badgeH = 22;
-      const bx = centerLeft + centerW - badgeW - 14;
-      const by = iy + 18;
-
-      if (isMax) {
-        ctx.fillStyle = 'rgba(234, 179, 8, 0.15)';
-        ctx.strokeStyle = 'rgba(234, 179, 8, 0.6)';
-        roundRect(ctx, bx, by, badgeW, badgeH, 4);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#fef08a';
-        ctx.font = 'bold 9px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('★ MAXED', bx + badgeW / 2, by + badgeH / 2);
-      } else if (canAfford) {
-        ctx.fillStyle = 'rgba(34, 197, 94, 0.15)';
-        ctx.strokeStyle = 'rgba(34, 197, 94, 0.6)';
-        roundRect(ctx, bx, by, badgeW, badgeH, 4);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#4ade80';
-        ctx.font = 'bold 9px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`${cost} ${isLegacy ? '♛' : '◈'}`, bx + badgeW / 2, by + badgeH / 2);
-      } else {
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.12)';
-        ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
-        roundRect(ctx, bx, by, badgeW, badgeH, 4);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#f87171';
-        ctx.font = 'bold 8.5px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`SHORT ${cost - (isLegacy ? tokens : souls)}`, bx + badgeW / 2, by + badgeH / 2);
-      }
-
-      _interactiveZones.push({
-        id: `item_${item.id}`,
-        x: centerLeft + 6, y: iy, w: centerW - 12, h: itemH,
-        action: () => {
-          _selectedKey = item.id;
-          AudioManager.playSFX('ui_click');
-        }
-      });
-    });
-    ctx.restore();
-
-    // ─────────────────────────────────────────────────────────────
-    // 4. RIGHT COLUMN: DETAILED INSPECTOR PANEL (w: 326)
-    // ─────────────────────────────────────────────────────────────
-    const rightX = centerLeft + centerW + 12;
-    const rightW = panX + panW - rightX - 16;
-
-    ctx.fillStyle = 'rgba(10, 15, 30, 0.78)';
-    ctx.strokeStyle = _currentMode === 'legacy' ? 'rgba(217, 119, 6, 0.45)' : 'rgba(201, 168, 76, 0.45)';
-    roundRect(ctx, rightX, contentY, rightW, contentH, 8);
-    ctx.fill(); ctx.stroke();
-
-    const selectedItem = _currentMode === 'legacy' ? LEGACY_DEFS[_selectedKey] : TALENT_DEFS[_selectedKey];
-    if (selectedItem) {
-      this.drawInspector(ctx, selectedItem, rightX, contentY, rightW, contentH, mouseX, mouseY);
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 5. BOTTOM BAR: RETURN BUTTON
-    // ─────────────────────────────────────────────────────────────
-    const closeW = 220;
-    const closeH = 32;
-    const closeX = Math.round(panX + panW / 2 - closeW / 2);
-    const closeY = panY + panH - 40;
-    const isCloseHovered = mouseX >= closeX && mouseX <= closeX + closeW && mouseY >= closeY && mouseY <= closeY + closeH;
-
-    ctx.fillStyle = isCloseHovered ? 'rgba(75, 85, 99, 0.85)' : 'rgba(30, 41, 59, 0.8)';
-    ctx.strokeStyle = isCloseHovered ? '#fde68a' : 'rgba(148, 163, 184, 0.4)';
-    ctx.lineWidth = 1.2;
-    roundRect(ctx, closeX, closeY, closeW, closeH, 6);
-    ctx.fill(); ctx.stroke();
-
-    ctx.fillStyle = isCloseHovered ? '#ffffff' : '#cbd5e1';
-    ctx.font = 'bold 11px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('◈ RETURN TO SANCTUARY ( Esc )', closeX + closeW / 2, closeY + closeH / 2);
-
-    _interactiveZones.push({
-      id: 'btn_close',
-      x: closeX, y: closeY, w: closeW, h: closeH,
-      action: () => closeSanctum()
-    });
-
-    ctx.restore();
-  },
-
-  drawInspector(ctx, item, rx, ry, rw, rh, mouseX, mouseY) {
-    const isLegacy = _currentMode === 'legacy';
-    const rank = isLegacy ? ProgressionSystem.getLegacyRank(item.id) : ProgressionSystem.getTalentRank(item.id);
-    const isMax = rank >= item.max;
-    const cost = isMax ? 0 : item.costs[rank];
-    const balance = isLegacy ? (GameState.PRESTIGE_TOKENS || 0) : (GameState.ABYSS_SOULS || 0);
-    const canAfford = !isMax && balance >= cost;
-
-    // Header Tag & Icon
-    ctx.fillStyle = isLegacy ? '#fbbf24' : '#c084fc';
-    ctx.font = 'bold 10px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    const catName = isLegacy ? 'LEGACY ASCENSION PERK' : (TALENT_CATEGORIES[item.category]?.name || 'SOUL DISCIPLINE');
-    ctx.fillText(`[ ${catName.toUpperCase()} ]`, rx + 16, ry + 16);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 16px Cinzel, serif';
-    ctx.fillText(item.name, rx + 16, ry + 32);
-
-    // Rank subtitle
-    ctx.fillStyle = isMax ? '#facc15' : '#94a3b8';
-    ctx.font = '11px Cinzel, serif';
-    ctx.fillText(`Current Rank: ${rank} of ${item.max}`, rx + 16, ry + 54);
-
-    // Divider
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.35)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(rx + 16, ry + 72);
-    ctx.lineTo(rx + rw - 16, ry + 72);
-    ctx.stroke();
-
-    // Flavor Description
-    ctx.fillStyle = 'rgba(203, 213, 225, 0.85)';
-    ctx.font = '11px Crimson Text, serif';
-    const lines = this.wrapText(ctx, item.detail || item.desc, rw - 32);
-    lines.forEach((l, idx) => {
-      ctx.fillText(l, rx + 16, ry + 84 + idx * 16);
-    });
-
-    const previewY = ry + 84 + Math.max(2, lines.length) * 16 + 12;
-
-    // Stat Preview Box
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
-    ctx.strokeStyle = 'rgba(51, 65, 85, 0.5)';
-    roundRect(ctx, rx + 14, previewY, rw - 28, 90, 6);
-    ctx.fill(); ctx.stroke();
-
-    const preview = isLegacy ? ProgressionSystem.getLegacyPreview(item.id, rank) : ProgressionSystem.getStatPreview(item.id, rank);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.fillText('CURRENT EFFECT:', rx + 24, previewY + 12);
-
-    ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 11px Cinzel, serif';
-    ctx.fillText(preview.current, rx + 24, previewY + 26);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.fillText(isMax ? 'MAX POWER ACHIEVED:' : 'NEXT RANK IMPROVEMENT:', rx + 24, previewY + 48);
-
-    ctx.fillStyle = isMax ? '#facc15' : '#a78bfa';
-    ctx.font = 'bold 11px Cinzel, serif';
-    ctx.fillText(isMax ? '★ Unshackled Maximum Ascension' : `${preview.next} (${preview.bonus})`, rx + 24, previewY + 62);
-
-    // Legacy Earning Explanation (If in Legacy mode)
-    if (isLegacy) {
-      const expY = previewY + 102;
-      ctx.fillStyle = 'rgba(180, 83, 9, 0.15)';
-      ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
-      roundRect(ctx, rx + 14, expY, rw - 28, 64, 6);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = '#fef08a';
-      ctx.font = 'bold 9px Cinzel, serif';
-      ctx.fillText('◈ PRESTIGE CURRENCY RULE:', rx + 22, expY + 10);
-
-      ctx.fillStyle = 'rgba(226, 232, 240, 0.85)';
-      ctx.font = '10px Crimson Text, serif';
-      const pRules = this.wrapText(ctx, 'Awarded strictly upon completing a Warden ending (Hero, Betrayal, or Rampage). Persists permanently across all runs.', rw - 44);
-      pRules.forEach((pr, idx) => {
-        ctx.fillText(pr, rx + 22, expY + 24 + idx * 14);
-      });
-    }
-
-    // Purchase Action Button
-    const btnW = rw - 32;
-    const btnH = 46;
-    const btnX = rx + 16;
-    const btnY = ry + rh - btnH - 16;
-    const isBtnHovered = mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
-
-    if (isMax) {
-      ctx.fillStyle = 'rgba(234, 179, 8, 0.15)';
-      ctx.strokeStyle = 'rgba(234, 179, 8, 0.7)';
-      ctx.lineWidth = 1.2;
-      roundRect(ctx, btnX, btnY, btnW, btnH, 6);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = '#fef08a';
-      ctx.font = 'bold 11px Cinzel, serif';
+      // Icon / Glyph in Center
+      ctx.fillStyle = isMax ? '#fef08a' : (isSel ? '#ffffff' : (canAfford ? '#e2e8f0' : '#64748b'));
+      ctx.font = 'bold 15px Cinzel, serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('★ ASCENDED TO MAXIMUM RANK', btnX + btnW / 2, btnY + btnH / 2);
-    } else if (canAfford) {
-      ctx.fillStyle = isBtnHovered
-        ? (isLegacy ? 'rgba(217, 119, 6, 0.6)' : 'rgba(147, 51, 234, 0.6)')
-        : (isLegacy ? 'rgba(180, 83, 9, 0.4)' : 'rgba(126, 34, 206, 0.4)');
-      ctx.strokeStyle = isBtnHovered
-        ? '#fde68a'
-        : (isLegacy ? 'rgba(245, 158, 11, 0.85)' : 'rgba(168, 85, 247, 0.8)');
-      ctx.lineWidth = isBtnHovered ? 1.8 : 1.2;
-      roundRect(ctx, btnX, btnY, btnW, btnH, 6);
-      ctx.fill(); ctx.stroke();
+      ctx.fillText(item.icon, nx, ny);
 
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 12px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const actLabel = isLegacy ? `UPGRADE LEGACY · ${cost} ♛` : `EMPOWER TALENT · ${cost} ◈`;
-      ctx.fillText(actLabel, btnX + btnW / 2, btnY + btnH / 2 - 5);
+      // Node Label Below
+      ctx.fillStyle = isSel ? '#ffffff' : (isHover ? '#fef08a' : '#94a3b8');
+      ctx.font = 'bold 9.5px Cinzel, serif';
+      ctx.fillText(item.name, nx, ny + orbitR + 18);
 
-      ctx.fillStyle = isLegacy ? '#fef08a' : '#d8b4fe';
-      ctx.font = '9px Cinzel, serif';
-      ctx.fillText('CLICK TO CONSUME & UPGRADE', btnX + btnW / 2, btnY + btnH / 2 + 9);
+      ctx.fillStyle = isMax ? '#facc15' : 'rgba(148, 163, 184, 0.8)';
+      ctx.font = 'bold 8.5px monospace';
+      ctx.fillText(`Rank ${rank}/${item.max}`, nx, ny + orbitR + 29);
 
       _interactiveZones.push({
-        id: `buy_${item.id}`,
-        x: btnX, y: btnY, w: btnW, h: btnH,
+        id: `node_${item.id}`,
+        x: nx - 32, y: ny - 32, w: 64, h: 64 + 32,
         action: () => {
-          if (isLegacy) {
-            if (ProgressionSystem.buyLegacy(item.id)) {
-              AudioManager.playSFX('talent_unlock');
-            } else {
-              AudioManager.playSFX('ui_error');
-            }
-          } else {
-            if (ProgressionSystem.buyTalent(item.id)) {
-              AudioManager.playSFX('talent_unlock');
-            } else {
-              AudioManager.playSFX('ui_error');
-            }
+          if (_selectedKey !== item.id) {
+            _selectedKey = item.id;
+            AudioManager.playSFX('menu_hover');
           }
         }
       });
-    } else {
-      ctx.fillStyle = 'rgba(20, 24, 38, 0.6)';
-      ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
-      ctx.lineWidth = 1;
-      roundRect(ctx, btnX, btnY, btnW, btnH, 6);
+    });
+
+    ctx.restore();
+
+    // ── Right: Sacred Altar Infusion Slab (Detail Focus) ──
+    const item = _currentMode === 'legacy' ? LEGACY_DEFS[_selectedKey] : TALENT_DEFS[_selectedKey];
+    if (item) {
+      const isLegacy = _currentMode === 'legacy';
+      const rank = isLegacy ? ProgressionSystem.getLegacyRank(item.id) : ProgressionSystem.getTalentRank(item.id);
+      const isMax = rank >= item.max;
+      const cost = isMax ? 0 : item.costs[rank];
+      const balance = isLegacy ? tokens : souls;
+      const canAfford = balance >= cost;
+
+      ctx.fillStyle = 'rgba(12, 16, 32, 0.9)';
+      ctx.strokeStyle = isLegacy ? 'rgba(245, 158, 11, 0.55)' : 'rgba(168, 85, 247, 0.55)';
+      ctx.lineWidth = 1.2;
+      roundRect(ctx, slabX, chamberY, slabW, chamberH, 8);
       ctx.fill(); ctx.stroke();
 
-      ctx.fillStyle = '#ef4444';
+      // Top Slab Banner
+      ctx.fillStyle = isLegacy ? 'rgba(180, 83, 9, 0.3)' : 'rgba(88, 28, 135, 0.3)';
+      roundRect(ctx, slabX + 4, chamberY + 4, slabW - 8, 32, 6);
+      ctx.fill();
+
+      ctx.fillStyle = isLegacy ? '#fde047' : '#c084fc';
       ctx.font = 'bold 10px Cinzel, serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(isLegacy ? '♛ PRESTIGE ASCENSION STELE' : `◈ ${(_currentCategory || 'SURVIVAL').toUpperCase()} STELE`, slabX + 16, chamberY + 20);
+
+      // Talent Name & Icon Box
+      const iconY = chamberY + 54;
+      ctx.fillStyle = isMax ? 'rgba(234, 179, 8, 0.15)' : 'rgba(147, 51, 234, 0.15)';
+      ctx.strokeStyle = isMax ? 'rgba(234, 179, 8, 0.5)' : 'rgba(168, 85, 247, 0.4)';
+      roundRect(ctx, slabX + 16, iconY, 44, 44, 6);
+      ctx.fill(); ctx.stroke();
+
+      ctx.font = '22px serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const currIcon = isLegacy ? '♛' : '◈';
-      ctx.fillText(`INSUFFICIENT ${isLegacy ? 'PRESTIGE' : 'SOULS'} (NEED ${cost} ${currIcon})`, btnX + btnW / 2, btnY + btnH / 2 - 5);
+      ctx.fillText(item.icon, slabX + 38, iconY + 22);
 
-      ctx.fillStyle = '#64748b';
-      ctx.font = '9px Cinzel, serif';
-      ctx.fillText(`(Short ${cost - balance} ${currIcon})`, btnX + btnW / 2, btnY + btnH / 2 + 8);
-    }
-  },
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillStyle = isMax ? '#fef08a' : '#ffffff';
+      ctx.font = 'bold 14px Cinzel, serif';
+      ctx.fillText(item.name, slabX + 68, iconY + 6);
 
-  getFilteredItems() {
-    if (_currentMode === 'legacy') {
-      return LEGACY_KEYS.map(k => LEGACY_DEFS[k]);
+      ctx.fillStyle = isMax ? '#facc15' : 'rgba(203, 213, 225, 0.8)';
+      ctx.font = 'bold 10px monospace';
+      ctx.fillText(`Rank ${rank} of ${item.max} · ${isMax ? 'Fully Ascended' : (isLegacy ? `${cost} ♛ Tokens` : `${cost} ◈ Souls`)}`, slabX + 68, iconY + 26);
+
+      // Rank Progress Cell Bar
+      const cellY = iconY + 54;
+      const cellW = Math.round((slabW - 32 - (item.max - 1) * 6) / item.max);
+      for (let c = 0; c < item.max; c++) {
+        const cx = slabX + 16 + c * (cellW + 6);
+        ctx.fillStyle = (c < rank)
+          ? (isMax ? '#facc15' : (isLegacy ? '#f59e0b' : '#c084fc'))
+          : 'rgba(30, 41, 59, 0.6)';
+        ctx.strokeStyle = (c < rank) ? '#ffffff' : 'rgba(71, 85, 105, 0.4)';
+        ctx.lineWidth = 1;
+        roundRect(ctx, cx, cellY, cellW, 8, 2);
+        ctx.fill(); ctx.stroke();
+      }
+
+      // Power Delta & Consequences
+      const deltaY = cellY + 20;
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+      roundRect(ctx, slabX + 16, deltaY, slabW - 32, 68, 6);
+      ctx.fill(); ctx.stroke();
+
+      const preview = isLegacy
+        ? { current: `Rank ${rank}: ${item.desc}`, next: isMax ? 'Maximum Power' : `Rank ${rank + 1}: ${item.desc}` }
+        : ProgressionSystem.getStatPreview(item.id, rank);
+
+      const maxTextW = slabW - 52;
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 9px Cinzel, serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('CURRENT BLESSING:', slabX + 26, deltaY + 12);
+      ctx.fillStyle = '#f1f5f9';
+      ctx.font = 'bold 10px Cinzel, serif';
+      let curText = preview.current;
+      if (ctx.measureText(curText).width > maxTextW) {
+        while (curText.length > 4 && ctx.measureText(curText + '…').width > maxTextW) {
+          curText = curText.slice(0, -1);
+        }
+        curText += '…';
+      }
+      ctx.fillText(curText, slabX + 26, deltaY + 25);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 9px Cinzel, serif';
+      ctx.fillText(isMax ? 'ASCENSION STATUS:' : 'NEXT RANK ASCENSION:', slabX + 26, deltaY + 42);
+      ctx.fillStyle = isMax ? '#facc15' : (isLegacy ? '#fef08a' : '#a78bfa');
+      ctx.font = 'bold 10px Cinzel, serif';
+      let nextText = isMax ? '★ Maximum Vanguard Potential Reached' : `${preview.next}`;
+      if (ctx.measureText(nextText).width > maxTextW) {
+        while (nextText.length > 4 && ctx.measureText(nextText + '…').width > maxTextW) {
+          nextText = nextText.slice(0, -1);
+        }
+        nextText += '…';
+      }
+      ctx.fillText(nextText, slabX + 26, deltaY + 55);
+
+      // Lore Inscription
+      const loreY = deltaY + 80;
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+      ctx.font = 'italic 10.5px "Crimson Text", serif';
+      const loreDesc = item.detail || item.desc;
+      const lines = this.wrapText(ctx, loreDesc, slabW - 36);
+      lines.slice(0, 3).forEach((l, idx) => {
+        ctx.fillText(l, slabX + 18, loreY + idx * 15);
+      });
+
+      // Empower / Upgrade Action Button
+      const btnW = slabW - 32;
+      const btnH = 44;
+      const btnX = slabX + 16;
+      const btnY = chamberY + chamberH - btnH - 14;
+      const isBtnHover = mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
+
+      if (isMax) {
+        ctx.fillStyle = 'rgba(234, 179, 8, 0.15)';
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.7)';
+        ctx.lineWidth = 1.2;
+        roundRect(ctx, btnX, btnY, btnW, btnH, 6);
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = '#fef08a';
+        ctx.font = 'bold 11px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('★ ASCENDED TO MAXIMUM RANK', btnX + btnW / 2, btnY + btnH / 2);
+      } else if (canAfford) {
+        ctx.fillStyle = isBtnHover
+          ? (isLegacy ? 'rgba(217, 119, 6, 0.6)' : 'rgba(147, 51, 234, 0.6)')
+          : (isLegacy ? 'rgba(180, 83, 9, 0.4)' : 'rgba(126, 34, 206, 0.4)');
+        ctx.strokeStyle = isBtnHover ? '#fde68a' : (isLegacy ? '#f59e0b' : '#c084fc');
+        ctx.lineWidth = isBtnHover ? 1.8 : 1.2;
+        roundRect(ctx, btnX, btnY, btnW, btnH, 6);
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11.5px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const actLabel = isLegacy ? `UPGRADE LEGACY · ${cost} ♛` : `EMPOWER TALENT · ${cost} ◈`;
+        ctx.fillText(actLabel, btnX + btnW / 2, btnY + btnH / 2 - 5);
+
+        ctx.fillStyle = isLegacy ? '#fef08a' : '#d8b4fe';
+        ctx.font = '9px Cinzel, serif';
+        ctx.fillText('CLICK TO CONSECRATE UPGRADE', btnX + btnW / 2, btnY + btnH / 2 + 8);
+
+        _interactiveZones.push({
+          id: `buy_${item.id}`,
+          x: btnX, y: btnY, w: btnW, h: btnH,
+          action: () => this.attemptPurchase()
+        });
+      } else {
+        ctx.fillStyle = 'rgba(20, 24, 38, 0.6)';
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+        ctx.lineWidth = 1;
+        roundRect(ctx, btnX, btnY, btnW, btnH, 6);
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 10px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        const currIcon = isLegacy ? '♛' : '◈';
+        ctx.fillText(`INSUFFICIENT ESSENCE · NEED ${cost} ${currIcon}`, btnX + btnW / 2, btnY + btnH / 2 - 5);
+        ctx.fillStyle = '#64748b';
+        ctx.font = '9px Cinzel, serif';
+        ctx.fillText(`(Deficit: ${cost - balance} ${currIcon})`, btnX + btnW / 2, btnY + btnH / 2 + 8);
+      }
     }
-    const all = TALENT_KEYS.map(k => TALENT_DEFS[k]);
-    if (_currentCategory === 'all') return all;
-    return all.filter(t => t.category === _currentCategory);
+
+    // ─────────────────────────────────────────────────────────────
+    // 4. BOTTOM BAR: RETURN BUTTON & KEYBOARD HINTS
+    // ─────────────────────────────────────────────────────────────
+    const botY = panY + panH - 36;
+    const retW = 190, retH = 26;
+    const retX = panX + panW - 20 - retW;
+    const isHoverRet = mouseX >= retX && mouseX <= retX + retW && mouseY >= botY && mouseY <= botY + retH;
+
+    ctx.fillStyle = isHoverRet ? 'rgba(51, 65, 85, 0.7)' : 'rgba(30, 41, 59, 0.5)';
+    ctx.strokeStyle = isHoverRet ? '#ffffff' : 'rgba(148, 163, 184, 0.45)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, retX, botY, retW, retH, 5);
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('◈ RETURN TO TITLE ( Esc )', retX + retW / 2, botY + retH / 2);
+
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('Arrows — Select Star Node    Space/Enter — Consecrate Upgrade    Esc — Return', panX + 24, botY + 13);
+
+    _interactiveZones.push({
+      id: 'return_btn',
+      x: retX, y: botY, w: retW, h: retH,
+      action: closeSanctum
+    });
+
+    ctx.restore();
   },
 
   wrapText(ctx, text, maxWidth) {
@@ -645,7 +755,7 @@ export const SanctumUI = {
     }
 
     // Click outside panel returns to Title
-    const panW = 860, panH = 510;
+    const panW = 890, panH = 520;
     const panX = (LW - panW) / 2, panY = (LH - panH) / 2;
     if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
       closeSanctum();

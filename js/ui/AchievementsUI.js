@@ -1,7 +1,10 @@
 // =====================================================================
 //  DUNGEON BREAK — js/ui/AchievementsUI.js
-//  Authoritative Canvas 2D Achievements Archive Redesign
-//  Master-Detail Architecture: Ordered Index + Single Detail Panel + Living Icons
+//  UI/UX Reconstruction: Monumental Wall of Deeds & Carved Monolith of Fates
+//  - Apex Shrine: Eye of the Absolute with 8-Fate Milestone Ring
+//  - Center: Mosaic of Heraldic Relic Medallions (Live Animated Pixel-Art)
+//  - Bottom: Inscribed Monolith Deed Plaque (Sliding Progress & Lore Stele)
+//  100% In-Game Canvas 2D Renderers, Zero Emojis, Zero Placeholders
 // =====================================================================
 
 import { GameState, GameStates } from '../core/GameState.js';
@@ -47,13 +50,13 @@ export const ORDERED_ACHIEVEMENT_KEYS = [
 ];
 
 export const ACHIEVEMENT_CATEGORIES = [
-  { id: 'all', label: 'ALL', icon: '◈' },
-  { id: 'survival', label: 'SURVIVAL', icon: 'ᛟ' },
-  { id: 'combat', label: 'COMBAT', icon: '⚔' },
-  { id: 'discovery', label: 'DISCOVERY', icon: '✦' },
-  { id: 'progression', label: 'PROGRESSION', icon: 'ᛏ' },
-  { id: 'endings', label: 'ENDINGS', icon: '♛' },
-  { id: 'mastery', label: 'MASTERY', icon: '👁' }
+  { id: 'all',         label: 'ALL DEEDS',   icon: '◈' },
+  { id: 'survival',    label: 'SURVIVAL',    icon: 'ᛟ' },
+  { id: 'combat',      label: 'COMBAT',      icon: '⚔' },
+  { id: 'discovery',   label: 'DISCOVERY',   icon: '✦' },
+  { id: 'progression', label: 'ASCENSION',   icon: 'ᛏ' },
+  { id: 'endings',     label: 'THE FATES',   icon: '♛' },
+  { id: 'mastery',     label: 'ABSOLUTE',    icon: '👁' }
 ];
 
 export const ACHIEVEMENT_METADATA = {
@@ -181,12 +184,19 @@ export const ACHIEVEMENT_METADATA = {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────
-// LOCAL STATE
-// ─────────────────────────────────────────────────────────────────────
+// 8 Fates required for Last Witness milestone
+const EIGHT_FATES = [
+  { key: 'consumed',       label: 'Consumed',   type: 'death' },
+  { key: 'overwhelmed',    label: 'Overwhelm',  type: 'death' },
+  { key: 'mind_break',     label: 'Insanity',   type: 'death' },
+  { key: 'executed',       label: 'Executed',   type: 'death' },
+  { key: 'void_conqueror', label: 'Vanquished', type: 'death' },
+  { key: 'true_hero',      label: 'Hero',       type: 'ending' },
+  { key: 'betrayed',       label: 'Betrayal',   type: 'ending' },
+  { key: 'rampage',        label: 'Rampage',    type: 'ending' }
+];
 
 let _slideAnim = 0;
-let _scrollOffset = 0;
 let _ambientTimer = 0;
 let _displayProgress = 0;
 let _activeCategory = 'all';
@@ -197,7 +207,6 @@ const _zones = [];
 
 export function openAchievements(fromState = null) {
   _slideAnim = 0;
-  _scrollOffset = 0;
   _ambientTimer = 0;
   _displayProgress = 0;
   _activeCategory = 'all';
@@ -227,7 +236,6 @@ export const AchievementsUI = {
   setCategory(catId) {
     if (_activeCategory !== catId) {
       _activeCategory = catId;
-      _scrollOffset = 0;
       const filtered = this.getFilteredKeys();
       if (!filtered.includes(_selectedKey) && filtered.length > 0) {
         _selectedKey = filtered[0];
@@ -243,7 +251,7 @@ export const AchievementsUI = {
   selectKey(key) {
     if (_selectedKey !== key && ACHIEVEMENTS[key]) {
       _selectedKey = key;
-      SoundManager.snd('menu_select');
+      SoundManager.snd('menu_hover');
     }
   },
 
@@ -262,629 +270,501 @@ export const AchievementsUI = {
 
     const isReducedMotion = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Atmospheric backdrop
     ctx.save();
-    ctx.fillStyle = `rgba(2, 4, 10, ${0.85 * eased})`;
+    ctx.globalAlpha = eased;
+
+    // Dark backdrop blur
+    ctx.fillStyle = 'rgba(2, 4, 10, 0.90)';
     ctx.fillRect(0, 0, LW, LH);
 
-    // Master Panel Geometry: 824x516 centered on 896x640 canvas
-    const panW = 824;
-    const panH = 516;
+    const panW = 890;
+    const panH = 520;
     const panX = Math.round((LW - panW) / 2);
     const panY = Math.round((LH - panH) / 2 - (1 - eased) * 35);
 
-    // Outer Panel with Antique Gold Border
-    ctx.shadowColor = 'rgba(201, 168, 76, 0.28)';
-    ctx.shadowBlur = 24;
-    ctx.fillStyle = 'rgba(5, 8, 22, 0.98)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.7)';
-    ctx.lineWidth = 1.5;
+    // Monolith Stone Texture & Crimson/Gold Ambient Backglow
+    const pulse = 0.5 + 0.5 * Math.sin(_ambientTimer * 2.2);
+    const grad = ctx.createRadialGradient(panX + panW / 2, panY + 70, 20, panX + panW / 2, panY + 120, 440);
+    grad.addColorStop(0, `rgba(220, 38, 38, ${0.16 + pulse * 0.05})`);
+    grad.addColorStop(0.5, 'rgba(217, 119, 6, 0.08)');
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(panX - 40, panY - 40, panW + 80, panH + 80);
+
+    // Master Outer Enclosure
+    ctx.fillStyle = 'rgba(6, 9, 20, 0.98)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.65)';
+    ctx.lineWidth = 1.6;
     roundRect(ctx, panX, panY, panW, panH, 12);
     ctx.fill(); ctx.stroke();
-    ctx.shadowBlur = 0;
 
-    // Inner Accent Border
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.35)';
+    // Inner gold-embossed trim
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
     ctx.lineWidth = 1;
-    roundRect(ctx, panX + 6, panY + 6, panW - 12, panH - 12, 8);
+    roundRect(ctx, panX + 5, panY + 5, panW - 10, panH - 10, 9);
     ctx.stroke();
 
     _zones.length = 0;
     const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
     const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
 
-    // ─────────────────────────────────────────────────────────────
-    // 1. HEADER & DYNAMIC OVERALL PROGRESS
-    // ─────────────────────────────────────────────────────────────
-    ctx.save();
-    ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 18px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.shadowColor = '#d97706';
-    ctx.shadowBlur = 10;
-    ctx.fillText('ARCHIVES OF ASCENSION', panX + panW / 2, panY + 14);
-    ctx.shadowBlur = 0;
-
-    // Subtitle
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'italic 11px Crimson Text, serif';
-    ctx.fillText('Achievements Archive · Records of Deeds & Fates', panX + panW / 2, panY + 34);
-    ctx.restore();
-
-    // Completion Statistics
+    // Unlocked Counts
     const totalCount = ORDERED_ACHIEVEMENT_KEYS.length;
     const unlockedCount = ORDERED_ACHIEVEMENT_KEYS.filter(k => ACHIEVEMENTS[k] && ACHIEVEMENTS[k].unlocked).length;
     const targetPct = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
+    _displayProgress += (targetPct - _displayProgress) * Math.min(1, dt * 6.0);
 
-    if (isReducedMotion) {
-      _displayProgress = targetPct;
-    } else {
-      _displayProgress += (targetPct - _displayProgress) * Math.min(1, dt * 6.0);
-    }
-    const currentDisplayPct = Math.round(_displayProgress);
+    // ─────────────────────────────────────────────────────────────
+    // 1. APEX SHRINE: EYE OF THE ABSOLUTE & THE EIGHT FATES MONOLITH
+    // ─────────────────────────────────────────────────────────────
+    const apexY = panY + 14;
+    const apexH = 92;
 
-    // Progress bar & label
-    const barW = 320;
-    const barH = 5;
-    const barX = Math.round(panX + (panW - barW) / 2);
-    const barY = panY + 49;
-
-    // Track
-    ctx.fillStyle = '#0f172a';
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)';
+    // Left Wing: Citadel Conquest Gauge
+    const leftWingW = 220;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.4)';
     ctx.lineWidth = 1;
-    roundRect(ctx, barX, barY, barW, barH, 2.5);
+    roundRect(ctx, panX + 18, apexY, leftWingW, apexH, 6);
     ctx.fill(); ctx.stroke();
 
-    // Fill
-    if (_displayProgress > 0) {
-      const fillW = Math.max(4, Math.min(barW, barW * (_displayProgress / 100)));
-      const grad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
-      grad.addColorStop(0, '#d97706');
-      grad.addColorStop(0.5, '#f59e0b');
-      grad.addColorStop(1, '#fde68a');
-      ctx.fillStyle = grad;
-      roundRect(ctx, barX, barY, fillW, barH, 2.5);
-      ctx.fill();
-    }
-
-    // Progress counter text
     ctx.fillStyle = '#fde68a';
     ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('◈ CONQUEST PROGRESS', panX + 28, apexY + 12);
+
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 16px Cinzel, serif';
+    ctx.fillText(`${unlockedCount} / ${totalCount}`, panX + 28, apexY + 28);
+
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+    ctx.font = '8.5px monospace';
+    ctx.fillText(`${Math.round(_displayProgress)}% COMPLETE`, panX + 105, apexY + 34);
+
+    // Mini Segmented Progress Track
+    const trackW = leftWingW - 20;
+    const trackH = 6;
+    const trackX = panX + 28;
+    const trackY = apexY + 54;
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
+    roundRect(ctx, trackX, trackY, trackW, trackH, 3);
+    ctx.fill(); ctx.stroke();
+
+    const fillW = Math.max(4, Math.min(trackW, trackW * (_displayProgress / 100)));
+    const trackGrad = ctx.createLinearGradient(trackX, 0, trackX + trackW, 0);
+    trackGrad.addColorStop(0, '#d97706');
+    trackGrad.addColorStop(1, '#fde68a');
+    ctx.fillStyle = trackGrad;
+    roundRect(ctx, trackX, trackY, fillW, trackH, 3);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
+    ctx.font = 'italic 8px Crimson Text, serif';
+    ctx.fillText('Records of deeds etched in eternal stone', panX + 28, apexY + 68);
+
+    // Center: The Apex Altar of the Eye of the Absolute (Last Witness)
+    const centerW = 380;
+    const centerX = panX + Math.round((panW - centerW) / 2);
+    ctx.fillStyle = 'rgba(12, 16, 32, 0.85)';
+    ctx.strokeStyle = 'rgba(220, 38, 38, 0.55)';
+    ctx.lineWidth = 1.3;
+    roundRect(ctx, centerX, apexY, centerW, apexH, 6);
+    ctx.fill(); ctx.stroke();
+
+    // Central Title
+    ctx.fillStyle = '#fca5a5';
+    ctx.font = 'bold 11px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(`UNLOCKED ${unlockedCount} / ${totalCount}  ( ${currentDisplayPct}% )`, panX + panW / 2, barY + 8);
+    ctx.shadowColor = '#dc2626';
+    ctx.shadowBlur = 6;
+    ctx.fillText('◈ MONUMENTAL WALL OF DEEDS · SANCTUM OF FATES ◈', centerX + centerW / 2, apexY + 10);
+    ctx.shadowBlur = 0;
 
-    // ─────────────────────────────────────────────────────────────
-    // 2. CATEGORY NAVIGATION TABS (One Line)
-    // ─────────────────────────────────────────────────────────────
-    const tabY = panY + 74;
-    const tabH = 24;
-    const totalTabs = ACHIEVEMENT_CATEGORIES.length;
-    const availTabW = panW - 48;
-    const tabGap = 6;
-    const tabW = Math.floor((availTabW - (totalTabs - 1) * tabGap) / totalTabs);
-    const startTabX = panX + 24;
+    // Central Eye of the Absolute (Icon 44x44)
+    const eyeCx = centerX + centerW / 2;
+    const eyeCy = apexY + 52;
+    const eyeSize = 44;
+    const isWitnessUnlocked = ACHIEVEMENTS.last_witness && ACHIEVEMENTS.last_witness.unlocked;
 
-    ACHIEVEMENT_CATEGORIES.forEach((cat, idx) => {
-      const tx = startTabX + idx * (tabW + tabGap);
-      const isSel = _activeCategory === cat.id;
-      const isHover = mouseX >= tx && mouseX <= tx + tabW && mouseY >= tabY && mouseY <= tabY + tabH;
+    drawAchievementIcon(ctx, 'last_witness', eyeCx, eyeCy, eyeSize, isWitnessUnlocked, true, _ambientTimer, isReducedMotion);
 
-      ctx.save();
-      ctx.fillStyle = isSel ? 'rgba(201, 168, 76, 0.26)' : (isHover ? 'rgba(30, 41, 59, 0.8)' : 'rgba(15, 23, 42, 0.6)');
-      ctx.strokeStyle = isSel ? '#fde68a' : (isHover ? '#cbd5e1' : 'rgba(71, 85, 105, 0.5)');
-      ctx.lineWidth = isSel ? 1.4 : 1.0;
-      roundRect(ctx, tx, tabY, tabW, tabH, 4);
-      ctx.fill(); ctx.stroke();
+    // Click zone for Apex Eye (selects last_witness deed)
+    _zones.push({
+      id: 'apex_eye',
+      x: eyeCx - eyeSize / 2 - 4, y: eyeCy - eyeSize / 2 - 4, w: eyeSize + 8, h: eyeSize + 8,
+      action: () => this.selectKey('last_witness')
+    });
 
-      ctx.fillStyle = isSel ? '#fde68a' : (isHover ? '#f1f5f9' : '#94a3b8');
-      ctx.font = 'bold 9px Cinzel, serif';
+    // 8 Surrounding Fate Seal Pips (4 on left, 4 on right of Eye)
+    const fateOrbR = 7;
+    EIGHT_FATES.forEach((f, fIdx) => {
+      const isLeft = fIdx < 4;
+      const slot = isLeft ? fIdx : (fIdx - 4);
+      const fx = isLeft ? (eyeCx - 36 - (3 - slot) * 26) : (eyeCx + 36 + slot * 26);
+      const fy = eyeCy;
+
+      const fateUnlocked = ACHIEVEMENTS[f.key] && ACHIEVEMENTS[f.key].unlocked;
+      const isSelFate = _selectedKey === f.key;
+
+      ctx.beginPath();
+      ctx.arc(fx, fy, fateOrbR, 0, Math.PI * 2);
+      ctx.fillStyle = fateUnlocked
+        ? (f.type === 'ending' ? '#c084fc' : '#f59e0b')
+        : '#1e293b';
+      ctx.fill();
+      ctx.strokeStyle = isSelFate ? '#ffffff' : (fateUnlocked ? '#fde68a' : 'rgba(71, 85, 105, 0.4)');
+      ctx.lineWidth = isSelFate ? 1.6 : 1;
+      ctx.stroke();
+
+      // Roman numeral label on pip
+      const romanFates = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
+      ctx.fillStyle = fateUnlocked ? '#ffffff' : '#94a3b8';
+      ctx.font = 'bold 7.5px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-
-      // Count for category
-      const count = (cat.id === 'all')
-        ? totalCount
-        : ORDERED_ACHIEVEMENT_KEYS.filter(k => ACHIEVEMENT_METADATA[k] && ACHIEVEMENT_METADATA[k].category === cat.id).length;
-
-      ctx.fillText(`${cat.icon} ${cat.label} (${count})`, tx + tabW / 2, tabY + tabH / 2);
-      ctx.restore();
+      ctx.fillText(romanFates[fIdx], fx, fy);
 
       _zones.push({
-        id: `cat_${cat.id}`,
-        x: tx, y: tabY, w: tabW, h: tabH,
-        action: () => this.setCategory(cat.id)
+        id: `fate_pip_${f.key}`,
+        x: fx - fateOrbR - 4, y: fy - fateOrbR - 4, w: (fateOrbR + 4) * 2, h: (fateOrbR + 4) * 2,
+        action: () => this.selectKey(f.key)
+      });
+    });
+
+    // Small sub-labels below left and right fate arcs
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+    ctx.font = 'bold 7.5px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('5 DEATH CRUCIBLES ( I - V )', eyeCx - 76, eyeCy + 14);
+    ctx.fillText('3 CONQUEST ENDINGS ( VI - VIII )', eyeCx + 76, eyeCy + 14);
+
+    // Right Wing: Category Filter Tabs
+    const rightWingW = panW - (centerX + centerW - panX) - 36;
+    const rightWingX = panX + panW - 18 - rightWingW;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.4)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, rightWingX, apexY, rightWingW, apexH, 6);
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#fde68a';
+    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('ᛟ FILTER REALM DEEDS', rightWingX + 10, apexY + 10);
+
+    // 2-row category pills
+    const cats = ACHIEVEMENT_CATEGORIES;
+    const catPillW = Math.floor((rightWingW - 24) / 2);
+    const catPillH = 18;
+
+    cats.slice(0, 6).forEach((c, idx) => {
+      const col = idx % 2;
+      const row = Math.floor(idx / 2);
+      const cx = rightWingX + 8 + col * (catPillW + 6);
+      const cy = apexY + 28 + row * (catPillH + 4);
+
+      const isSel = _activeCategory === c.id;
+      const isHover = mouseX >= cx && mouseX <= cx + catPillW && mouseY >= cy && mouseY <= cy + catPillH;
+
+      ctx.fillStyle = isSel ? 'rgba(201, 168, 76, 0.35)' : (isHover ? 'rgba(51, 65, 85, 0.8)' : 'rgba(30, 41, 59, 0.5)');
+      ctx.strokeStyle = isSel ? '#fde68a' : 'rgba(71, 85, 105, 0.4)';
+      ctx.lineWidth = isSel ? 1.2 : 0.8;
+      roundRect(ctx, cx, cy, catPillW, catPillH, 3);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = isSel ? '#ffffff' : (isHover ? '#f1f5f9' : '#94a3b8');
+      ctx.font = 'bold 7.5px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(c.label, cx + catPillW / 2, cy + catPillH / 2);
+
+      _zones.push({
+        id: `cat_pill_${c.id}`,
+        x: cx, y: cy, w: catPillW, h: catPillH,
+        action: () => this.setCategory(c.id)
       });
     });
 
     // ─────────────────────────────────────────────────────────────
-    // 3. MAIN CONTENT: LEFT LIST (35.5%) + RIGHT DETAIL (62.9%)
+    // 2. CENTER: MOSAIC OF HERALDIC RELIC MEDALLIONS (7 COLS × 3 ROWS)
     // ─────────────────────────────────────────────────────────────
-    const contentY = tabY + tabH + 10;
-    const footerY = panY + panH - 46;
-    const contentH = footerY - contentY - 8;
+    const mosaicY = apexY + apexH + 10;
+    const mosaicH = 224;
+    const mosaicW = panW - 36;
+    const mosaicX = panX + 18;
 
-    const leftW = 276;
-    const gap = 12;
-    const rightX = panX + 24 + leftW + gap;
-    const rightW = panW - 48 - leftW - gap;
-
-    // Left List Frame
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
-    ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+    ctx.fillStyle = 'rgba(8, 12, 24, 0.85)';
+    ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
     ctx.lineWidth = 1;
-    roundRect(ctx, panX + 24, contentY, leftW, contentH, 6);
+    roundRect(ctx, mosaicX, mosaicY, mosaicW, mosaicH, 8);
     ctx.fill(); ctx.stroke();
 
-    // Right Detail Frame
-    ctx.fillStyle = 'rgba(10, 15, 30, 0.85)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.45)';
-    roundRect(ctx, rightX, contentY, rightW, contentH, 6);
-    ctx.fill(); ctx.stroke();
-
-    // ─────────────────────────────────────────────────────────────
-    // 3A. LEFT LIST: ORDERED SCROLLABLE ACHIEVEMENT ROWS
-    // ─────────────────────────────────────────────────────────────
     const filteredKeys = this.getFilteredKeys();
-    const rowH = 46;
-    const rowGap = 4;
-    const totalListH = filteredKeys.length * (rowH + rowGap);
-    const maxScroll = Math.max(0, totalListH - (contentH - 8));
-    _scrollOffset = Math.max(0, Math.min(_scrollOffset, maxScroll));
+    const cols = 7;
+    const rows = 3;
+    const medGapX = 8;
+    const medGapY = 6;
+    const medW = Math.floor((mosaicW - 20 - (cols - 1) * medGapX) / cols);
+    const medH = Math.floor((mosaicH - 16 - (rows - 1) * medGapY) / rows);
 
-    // Ensure currently selected key is within filtered keys
-    if (!filteredKeys.includes(_selectedKey) && filteredKeys.length > 0) {
-      _selectedKey = filteredKeys[0];
-    }
+    ORDERED_ACHIEVEMENT_KEYS.forEach((k, idx) => {
+      const col = idx % cols;
+      const row = Math.floor(idx / cols);
+      const mx = mosaicX + 10 + col * (medW + medGapX);
+      const my = mosaicY + 8 + row * (medH + medGapY);
 
-    const clipX = panX + 26;
-    const clipY = contentY + 4;
-    const clipW = leftW - 4;
-    const clipH = contentH - 8;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(clipX, clipY, clipW, clipH);
-    ctx.clip();
-
-    filteredKeys.forEach((k, idx) => {
       const a = ACHIEVEMENTS[k] || {};
-      const rowX = clipX + 3;
-      const rowY = clipY + idx * (rowH + rowGap) - _scrollOffset;
-
-      // Cull items outside clipping bounds
-      if (rowY + rowH < clipY || rowY > clipY + clipH) return;
-
+      const isUnlocked = !!a.unlocked;
       const isSel = k === _selectedKey;
-      const isHover = mouseX >= rowX && mouseX <= rowX + clipW - 6 && mouseY >= rowY && mouseY <= rowY + rowH;
+      const isFilteredMatch = filteredKeys.includes(k);
+      const isHover = mouseX >= mx && mouseX <= mx + medW && mouseY >= my && mouseY <= my + medH;
 
       ctx.save();
-      // Row Background
-      if (isSel) {
-        ctx.fillStyle = 'rgba(201, 168, 76, 0.20)';
-        ctx.strokeStyle = '#fde68a';
-        ctx.lineWidth = 1.3;
-      } else if (isHover) {
-        ctx.fillStyle = 'rgba(51, 65, 85, 0.45)';
-        ctx.strokeStyle = 'rgba(148, 163, 184, 0.45)';
-        ctx.lineWidth = 1.0;
-      } else {
-        ctx.fillStyle = a.unlocked ? 'rgba(30, 41, 59, 0.35)' : 'rgba(15, 23, 42, 0.35)';
-        ctx.strokeStyle = a.unlocked ? 'rgba(71, 85, 105, 0.35)' : 'rgba(51, 65, 85, 0.25)';
-        ctx.lineWidth = 1.0;
+      if (!isFilteredMatch) {
+        ctx.globalAlpha = 0.35;
       }
-      roundRect(ctx, rowX, rowY, clipW - 10, rowH, 5);
+
+      // Medallion Cartouche Stone Frame
+      ctx.fillStyle = isSel
+        ? 'rgba(201, 168, 76, 0.28)'
+        : (isHover ? 'rgba(30, 41, 59, 0.8)' : 'rgba(15, 20, 36, 0.65)');
+      ctx.strokeStyle = isSel
+        ? '#fde68a'
+        : (isUnlocked ? 'rgba(201, 168, 76, 0.5)' : 'rgba(51, 65, 85, 0.35)');
+      ctx.lineWidth = isSel ? 1.5 : 1;
+      roundRect(ctx, mx, my, medW, medH, 5);
       ctx.fill(); ctx.stroke();
 
-      // Living Pixel-Art Icon (32x32)
-      const iconCx = rowX + 22;
-      const iconCy = rowY + rowH / 2;
-      drawAchievementIcon(ctx, k, iconCx, iconCy, 30, !!a.unlocked, isSel, _ambientTimer, isReducedMotion);
+      // Living Icon Renderer in Center (32 × 32 px)
+      const iconCx = mx + 24;
+      const iconCy = my + medH / 2;
+      const iconSize = 32;
 
-      // Title
-      ctx.fillStyle = isSel ? '#fef08a' : (a.unlocked ? '#fde68a' : '#94a3b8');
-      ctx.font = 'bold 10.5px Cinzel, serif';
+      drawAchievementIcon(ctx, k, iconCx, iconCy, iconSize, isUnlocked, isHover, _ambientTimer, isReducedMotion);
+
+      // Deed Title & Status
+      const textX = mx + 46;
+      const maxTW = medW - 50;
+
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText(a.name || k, rowX + 44, rowY + 9);
+      ctx.fillStyle = isUnlocked ? (isSel ? '#ffffff' : '#fde68a') : '#64748b';
+      ctx.font = isSel ? 'bold 8.5px Cinzel, serif' : '8px Cinzel, serif';
 
-      // Status pill badge
-      if (a.unlocked) {
-        ctx.fillStyle = '#4ade80';
-        ctx.font = 'bold 8px Cinzel, serif';
-        ctx.fillText('◈ UNLOCKED', rowX + 44, rowY + 25);
-      } else {
-        ctx.fillStyle = '#64748b';
-        ctx.font = 'bold 8px Cinzel, serif';
-        ctx.fillText('◇ SEALED', rowX + 44, rowY + 25);
+      let dTitle = a.name || k;
+      while (ctx.measureText(dTitle + '…').width > maxTW && dTitle.length > 3) {
+        dTitle = dTitle.slice(0, -1);
       }
+      if (dTitle !== a.name) dTitle += '…';
+      ctx.fillText(dTitle, textX, my + 14);
 
-      // Selection chevron indicator
-      if (isSel) {
-        ctx.fillStyle = '#fde68a';
-        ctx.font = 'bold 10px Cinzel, serif';
-        ctx.textAlign = 'right';
-        ctx.fillText('▶', rowX + clipW - 16, rowY + rowH / 2 - 5);
-      }
+      // Status pip below title
+      ctx.fillStyle = isUnlocked ? '#86efac' : '#475569';
+      ctx.font = 'bold 7.5px monospace';
+      ctx.fillText(isUnlocked ? '✔ CONQUERED' : '◇ SEALED', textX, my + 30);
+
+      // Roman Numeral Tag (Top Right)
+      ctx.fillStyle = isUnlocked ? 'rgba(201, 168, 76, 0.8)' : 'rgba(71, 85, 105, 0.5)';
+      ctx.font = 'bold 7.5px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText(`${idx + 1}`, mx + medW - 6, my + 5);
 
       ctx.restore();
 
       _zones.push({
-        id: `row_${k}`,
-        x: rowX, y: rowY, w: clipW - 10, h: rowH,
+        id: `medallion_${k}`,
+        x: mx, y: my, w: medW, h: medH,
         action: () => this.selectKey(k)
       });
     });
 
-    ctx.restore(); // end list clip
-
-    // Scrollbar for Left List
-    if (maxScroll > 0) {
-      const scrollBarX = clipX + clipW - 5;
-      const scrollThumbH = Math.max(20, (clipH / totalListH) * clipH);
-      const scrollThumbY = clipY + (_scrollOffset / maxScroll) * (clipH - scrollThumbH);
-
-      ctx.fillStyle = 'rgba(51, 65, 85, 0.4)';
-      roundRect(ctx, scrollBarX, clipY, 3, clipH, 1.5);
-      ctx.fill();
-
-      ctx.fillStyle = 'rgba(201, 168, 76, 0.65)';
-      roundRect(ctx, scrollBarX, scrollThumbY, 3, scrollThumbH, 1.5);
-      ctx.fill();
-    }
-
     // ─────────────────────────────────────────────────────────────
-    // 3B. RIGHT DETAIL: SINGLE FOCUSED ACHIEVEMENT INSPECTOR
+    // 3. BOTTOM: INSCRIBED MONOLITH DEED PLAQUE (SLIDING DETAIL STELE)
     // ─────────────────────────────────────────────────────────────
+    const steleY = mosaicY + mosaicH + 10;
+    const steleH = 100;
+    const steleW = panW - 36;
+    const steleX = panX + 18;
+
+    ctx.fillStyle = 'rgba(12, 16, 32, 0.95)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.6)';
+    ctx.lineWidth = 1.3;
+    roundRect(ctx, steleX, steleY, steleW, steleH, 8);
+    ctx.fill(); ctx.stroke();
+
     const selKey = _selectedKey;
-    const a = ACHIEVEMENTS[selKey] || {};
+    const selectedAch = ACHIEVEMENTS[selKey] || {};
     const meta = ACHIEVEMENT_METADATA[selKey] || {};
+    const isUnlocked = !!selectedAch.unlocked;
 
-    const inspPadX = rightX + 22;
-    let inspCurY = contentY + 20;
+    // Left: Hero Living Pixel-Art Icon (60 × 60 px)
+    const heroSize = 58;
+    const heroCx = steleX + 38;
+    const heroCy = steleY + steleH / 2;
 
-    // 1. Hero Header: Large Living Pixel-Art Icon + Title + Category
-    const heroIconSize = 68;
-    const heroIconCx = inspPadX + heroIconSize / 2;
-    const heroIconCy = inspCurY + heroIconSize / 2;
+    drawAchievementIcon(ctx, selKey, heroCx, heroCy, heroSize, isUnlocked, true, _ambientTimer, isReducedMotion);
 
-    drawAchievementIcon(ctx, selKey, heroIconCx, heroIconCy, heroIconSize, !!a.unlocked, true, _ambientTimer, isReducedMotion);
+    // Center: Deed Inscription & Narrative Lore
+    const textStartX = steleX + 78;
+    const textAvailW = steleW - 340;
 
-    const titleX = inspPadX + heroIconSize + 16;
-    const titleAvailW = rightW - (heroIconSize + 56);
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
 
     // Category Tag
-    ctx.save();
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(meta.categoryLabel || 'CITADEL DEED', titleX, inspCurY + 4);
+    ctx.fillStyle = isUnlocked ? '#fde047' : '#94a3b8';
+    ctx.font = 'bold 8.5px Cinzel, serif';
+    ctx.fillText((meta.categoryLabel || 'CITADEL DEED').toUpperCase(), textStartX, steleY + 12);
 
-    // Title
-    ctx.fillStyle = a.unlocked ? '#fde68a' : '#fca5a5';
+    // Deed Title
+    ctx.fillStyle = isUnlocked ? '#ffffff' : '#fca5a5';
     ctx.font = 'bold 15px Cinzel, serif';
-    ctx.shadowColor = a.unlocked ? 'rgba(245, 158, 11, 0.4)' : 'rgba(220, 38, 38, 0.3)';
-    ctx.shadowBlur = 8;
-    ctx.fillText(a.name || selKey, titleX, inspCurY + 18);
+    ctx.shadowColor = isUnlocked ? 'rgba(245, 158, 11, 0.4)' : 'rgba(220, 38, 38, 0.4)';
+    ctx.shadowBlur = 6;
+    ctx.fillText(selectedAch.name || selKey, textStartX, steleY + 26);
     ctx.shadowBlur = 0;
 
-    // Status Pill
-    const pillY = inspCurY + 41;
-    const pillH = 18;
-    const pillW = a.unlocked ? 116 : 98;
-    ctx.fillStyle = a.unlocked ? 'rgba(34, 197, 94, 0.22)' : 'rgba(153, 27, 27, 0.35)';
-    ctx.strokeStyle = a.unlocked ? 'rgba(34, 197, 94, 0.7)' : 'rgba(220, 38, 38, 0.65)';
+    // Full Instruction & Requirement
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'italic 11px Crimson Text, serif';
+    const descLines = this.wrapText(ctx, meta.instruction || selectedAch.desc || '', textAvailW);
+    descLines.slice(0, 3).forEach((dl, idx) => {
+      ctx.fillText(dl, textStartX, steleY + 48 + idx * 15);
+    });
+
+    // Right: Consecration Status Plinth & Progress
+    const rightPlinthW = 220;
+    const rightPlinthX = steleX + steleW - rightPlinthW - 16;
+    const rightPlinthY = steleY + 12;
+    const rightPlinthH = steleH - 24;
+
+    ctx.fillStyle = isUnlocked ? 'rgba(34, 197, 94, 0.12)' : 'rgba(15, 23, 42, 0.7)';
+    ctx.strokeStyle = isUnlocked ? 'rgba(34, 197, 94, 0.55)' : 'rgba(71, 85, 105, 0.4)';
     ctx.lineWidth = 1;
-    roundRect(ctx, titleX, pillY, pillW, pillH, 4);
+    roundRect(ctx, rightPlinthX, rightPlinthY, rightPlinthW, rightPlinthH, 6);
     ctx.fill(); ctx.stroke();
 
-    ctx.fillStyle = a.unlocked ? '#4ade80' : '#fca5a5';
-    ctx.font = 'bold 8.5px Cinzel, serif';
+    ctx.fillStyle = isUnlocked ? '#86efac' : '#94a3b8';
+    ctx.font = 'bold 9.5px Cinzel, serif';
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(a.unlocked ? '◈ ACCOMPLISHED' : '◇ SEALED FATE', titleX + pillW / 2, pillY + pillH / 2);
-    ctx.restore();
-
-    inspCurY += heroIconSize + 16;
-
-    // Divider Line
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(inspPadX, inspCurY);
-    ctx.lineTo(rightX + rightW - 22, inspCurY);
-    ctx.stroke();
-
-    inspCurY += 14;
-
-    // 2. Thematic Description Section
-    ctx.save();
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('CHRONICLE OF THE DEED', inspPadX, inspCurY);
-    inspCurY += 14;
+    ctx.fillText(isUnlocked ? '✔ DEED CONSECRATED' : '◇ UNACCOMPLISHED TRIAL', rightPlinthX + rightPlinthW / 2, rightPlinthY + 12);
 
-    // Wrapped description
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = 'italic 12.5px Crimson Text, serif';
-    const descText = a.desc || '';
-    const descLines = this.wrapText(ctx, descText, rightW - 44);
-    descLines.forEach(line => {
-      ctx.fillText(line, inspPadX, inspCurY);
-      inspCurY += 18;
-    });
-    ctx.restore();
+    if (meta.hasProgress) {
+      const curProg = meta.getProgress ? meta.getProgress() : 0;
+      const maxProg = meta.progressMax || 1;
+      const progPct = Math.min(100, Math.round((curProg / maxProg) * 100));
 
-    inspCurY += 10;
-
-    // 3. Unlock Conditions or Completion Verification
-    const boxX = inspPadX;
-    const boxW = rightW - 44;
-
-    if (selKey === 'last_witness') {
-      // ───────────────────────────────────────────────────────────
-      // SPECIAL INLINE BREAKDOWN FOR THE LAST WITNESS (NO POPOVER)
-      // ───────────────────────────────────────────────────────────
-      const savedMilestones = SaveSystem.getMilestones();
-      const deaths = [
-        { id: 'death_normal_enemy', label: 'Ordinary Enemy' },
-        { id: 'death_gorgaroth', label: 'Gorgaroth' },
-        { id: 'death_malakor', label: 'Malakor' },
-        { id: 'death_warden', label: 'Abyss Warden' },
-        { id: 'death_shattered_mind', label: 'Shattered Mind' }
-      ];
-      const endings = [
-        { id: 'ending_hero', label: 'Hero Ending' },
-        { id: 'ending_betrayal', label: 'Betrayal Ending' },
-        { id: 'ending_rampage', label: 'Rampage Ending' }
-      ];
-
-      const deathsWitnessed = deaths.filter(d => !!savedMilestones[d.id]).length;
-      const endingsWitnessed = endings.filter(e => !!savedMilestones[e.id]).length;
-      const totalFates = deathsWitnessed + endingsWitnessed;
-
-      const lwBoxH = 138;
-      ctx.save();
-      ctx.fillStyle = a.unlocked ? 'rgba(234, 179, 8, 0.12)' : 'rgba(220, 38, 38, 0.12)';
-      ctx.strokeStyle = a.unlocked ? 'rgba(234, 179, 8, 0.65)' : 'rgba(220, 38, 38, 0.65)';
-      ctx.lineWidth = 1.2;
-      roundRect(ctx, boxX, inspCurY, boxW, lwBoxH, 6);
-      ctx.fill(); ctx.stroke();
-
-      // Header inside box
-      ctx.fillStyle = a.unlocked ? '#fde68a' : '#fca5a5';
-      ctx.font = 'bold 10px Cinzel, serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('THE EIGHT REQUIRED FATES', boxX + 12, inspCurY + 10);
-
-      // Counts summary line
-      ctx.fillStyle = '#e2e8f0';
-      ctx.font = 'bold 9.5px Cinzel, serif';
-      ctx.textAlign = 'right';
-      ctx.fillText(`DEATHS: ${deathsWitnessed}/5  ·  ENDINGS: ${endingsWitnessed}/3  ( ${totalFates}/8 )`, boxX + boxW - 12, inspCurY + 10);
-      ctx.textAlign = 'left';
-
-      // Group A: Deaths row tags
-      let tagY = inspCurY + 28;
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = 'bold 8px Cinzel, serif';
-      ctx.fillText('GROUP A: DEATHS WITNESSED (5)', boxX + 12, tagY);
-
-      tagY += 11;
-      const deathPillW = Math.floor((boxW - 24 - (4 * 4)) / 5);
-      deaths.forEach((d, i) => {
-        const dx = boxX + 12 + i * (deathPillW + 4);
-        const done = !!savedMilestones[d.id];
-        ctx.fillStyle = done ? 'rgba(34, 197, 94, 0.22)' : 'rgba(51, 65, 85, 0.35)';
-        ctx.strokeStyle = done ? 'rgba(34, 197, 94, 0.75)' : 'rgba(71, 85, 105, 0.5)';
-        ctx.lineWidth = 1;
-        roundRect(ctx, dx, tagY, deathPillW, 16, 3);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = done ? '#4ade80' : '#64748b';
-        ctx.font = 'bold 7px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`${done ? '◈' : '◇'} ${d.label}`, dx + deathPillW / 2, tagY + 8);
-        ctx.textAlign = 'left';
-      });
-
-      // Group B: Endings row tags
-      tagY += 21;
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = 'bold 8px Cinzel, serif';
-      ctx.fillText('GROUP B: ENDINGS COMPLETED (3)', boxX + 12, tagY);
-
-      tagY += 11;
-      const endingPillW = Math.floor((boxW - 24 - (2 * 6)) / 3);
-      endings.forEach((e, i) => {
-        const ex = boxX + 12 + i * (endingPillW + 6);
-        const done = !!savedMilestones[e.id];
-        ctx.fillStyle = done ? 'rgba(34, 197, 94, 0.22)' : 'rgba(51, 65, 85, 0.35)';
-        ctx.strokeStyle = done ? 'rgba(34, 197, 94, 0.75)' : 'rgba(71, 85, 105, 0.5)';
-        ctx.lineWidth = 1;
-        roundRect(ctx, ex, tagY, endingPillW, 16, 3);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = done ? '#4ade80' : '#64748b';
-        ctx.font = 'bold 7.5px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(`${done ? '◈' : '◇'} ${e.label}`, ex + endingPillW / 2, tagY + 8);
-        ctx.textAlign = 'left';
-      });
-
-      // Explanation & Status summary
-      const expY = tagY + 22;
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = 'italic 10px Crimson Text, serif';
-      ctx.fillText('Witness all five required death outcomes and complete the Hero, Betrayal, and Rampage endings.', boxX + 12, expY);
+      ctx.font = 'bold 8.5px monospace';
+      ctx.fillText(`${curProg} / ${maxProg} ${meta.progressLabel || ''}`, rightPlinthX + rightPlinthW / 2, rightPlinthY + 30);
 
-      ctx.fillStyle = a.unlocked ? '#fef08a' : (totalFates === 7 ? '#f97316' : '#94a3b8');
-      ctx.font = 'bold 8.5px Cinzel, serif';
-      const statusNote = a.unlocked
-        ? '★ All eight fates have been witnessed. The Citadel acknowledges the Last Witness.'
-        : `○ ${8 - totalFates} fate(s) remain unwitnessed across the abyss.`;
-      ctx.fillText(statusNote, boxX + 12, expY + 14);
-      ctx.restore();
+      // Mini Progress Track
+      const pTrackW = rightPlinthW - 24;
+      const pTrackX = rightPlinthX + 12;
+      const pTrackY = rightPlinthY + 48;
+      ctx.fillStyle = '#0f172a';
+      roundRect(ctx, pTrackX, pTrackY, pTrackW, 6, 3);
+      ctx.fill();
 
-    } else if (!a.unlocked) {
-      // ───────────────────────────────────────────────────────────
-      // LOCKED ACHIEVEMENT: HOW TO UNLOCK & INCREMENTAL PROGRESS
-      // ───────────────────────────────────────────────────────────
-      const boxH = meta.hasProgress ? 96 : 76;
-      ctx.save();
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-      ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)';
-      ctx.lineWidth = 1;
-      roundRect(ctx, boxX, inspCurY, boxW, boxH, 6);
-      ctx.fill(); ctx.stroke();
-
-      // Section Title
-      ctx.fillStyle = '#fca5a5';
-      ctx.font = 'bold 9.5px Cinzel, serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('HOW TO UNLOCK', boxX + 12, inspCurY + 10);
-
-      // Plain language instruction
-      ctx.fillStyle = '#f1f5f9';
-      ctx.font = '11.5px Crimson Text, serif';
-      const instLines = this.wrapText(ctx, meta.instruction || 'Complete this deed within the dungeon.', boxW - 24);
-      let curInstY = inspCurY + 26;
-      instLines.forEach(l => {
-        ctx.fillText(l, boxX + 12, curInstY);
-        curInstY += 16;
-      });
-
-      // Incremental Progress Bar if supported
-      if (meta.hasProgress && meta.getProgress) {
-        const curVal = meta.getProgress();
-        const maxVal = meta.progressMax || 1;
-        const progPct = Math.min(1.0, curVal / maxVal);
-
-        const subBarW = boxW - 24;
-        const subBarH = 6;
-        const subBarY = curInstY + 6;
-
-        ctx.fillStyle = '#090d16';
-        ctx.strokeStyle = 'rgba(51, 65, 85, 0.6)';
-        ctx.lineWidth = 1;
-        roundRect(ctx, boxX + 12, subBarY, subBarW, subBarH, 3);
-        ctx.fill(); ctx.stroke();
-
-        if (progPct > 0) {
-          ctx.fillStyle = '#d97706';
-          roundRect(ctx, boxX + 12, subBarY, subBarW * progPct, subBarH, 3);
-          ctx.fill();
-        }
-
-        ctx.fillStyle = '#fde68a';
-        ctx.font = 'bold 8.5px Cinzel, serif';
-        ctx.fillText(`${meta.progressLabel}:  ${curVal} / ${maxVal}`, boxX + 12, subBarY + 9);
-      }
-      ctx.restore();
-
+      const pFillW = Math.max(2, Math.min(pTrackW, pTrackW * (progPct / 100)));
+      ctx.fillStyle = isUnlocked ? '#22c55e' : '#f59e0b';
+      roundRect(ctx, pTrackX, pTrackY, pFillW, 6, 3);
+      ctx.fill();
     } else {
-      // ───────────────────────────────────────────────────────────
-      // UNLOCKED ACHIEVEMENT: HONOR ENGRAVED & COMPLETED METRICS
-      // ───────────────────────────────────────────────────────────
-      const boxH = 74;
-      ctx.save();
-      ctx.fillStyle = 'rgba(34, 197, 94, 0.08)';
-      ctx.strokeStyle = 'rgba(34, 197, 94, 0.55)';
-      ctx.lineWidth = 1;
-      roundRect(ctx, boxX, inspCurY, boxW, boxH, 6);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = '#86efac';
-      ctx.font = 'bold 9.5px Cinzel, serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('HONOR ENGRAVED', boxX + 12, inspCurY + 10);
-
-      ctx.fillStyle = '#cbd5e1';
-      ctx.font = 'italic 11.5px Crimson Text, serif';
-      ctx.fillText('This deed has been permanently engraved into the Citadel archives of Ascension.', boxX + 12, inspCurY + 28);
-
-      if (meta.hasProgress && meta.progressMax) {
-        ctx.fillStyle = '#fde68a';
-        ctx.font = 'bold 9px Cinzel, serif';
-        ctx.fillText(`◈ Requirement Fully Satisfied (${meta.progressMax} / ${meta.progressMax})`, boxX + 12, inspCurY + 46);
-      } else {
-        ctx.fillStyle = '#fde68a';
-        ctx.font = 'bold 9px Cinzel, serif';
-        ctx.fillText('◈ Requirement Genuine and Complete', boxX + 12, inspCurY + 46);
-      }
-      ctx.restore();
+      ctx.fillStyle = isUnlocked ? '#fef08a' : '#64748b';
+      ctx.font = 'italic 9.5px Crimson Text, serif';
+      ctx.fillText(isUnlocked ? 'Permanently etched in citadel memory' : 'Fulfill trial conditions to record deed', rightPlinthX + rightPlinthW / 2, rightPlinthY + 36);
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 4. FOOTER: DEDICATED SOLID PLATE & RETURN BUTTON
+    // 4. BOTTOM BAR: KEYBOARD HINTS & RETURN BUTTON
     // ─────────────────────────────────────────────────────────────
-    ctx.fillStyle = 'rgba(5, 8, 22, 0.98)';
-    ctx.fillRect(panX + 24, footerY - 4, panW - 48, 44);
+    const botY = panY + panH - 36;
+    const retW = 190, retH = 26;
+    const retX = panX + panW - 20 - retW;
+    const isHoverRet = mouseX >= retX && mouseX <= retX + retW && mouseY >= botY && mouseY <= botY + retH;
 
-    const closeW = 200;
-    const closeH = 32;
-    const closeX = Math.round(panX + (panW - closeW) / 2);
-    const closeY = footerY + 2;
-
-    const isHoverClose = mouseX >= closeX && mouseX <= closeX + closeW && mouseY >= closeY && mouseY <= closeY + closeH;
-
-    ctx.save();
-    ctx.shadowColor = isHoverClose ? 'rgba(201, 168, 76, 0.4)' : 'transparent';
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = isHoverClose ? 'rgba(201, 168, 76, 0.24)' : 'rgba(30, 41, 59, 0.85)';
-    ctx.strokeStyle = isHoverClose ? '#fde68a' : 'rgba(201, 168, 76, 0.55)';
-    ctx.lineWidth = 1.4;
-    roundRect(ctx, closeX, closeY, closeW, closeH, 6);
+    ctx.fillStyle = isHoverRet ? 'rgba(51, 65, 85, 0.7)' : 'rgba(30, 41, 59, 0.5)';
+    ctx.strokeStyle = isHoverRet ? '#ffffff' : 'rgba(148, 163, 184, 0.45)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, retX, botY, retW, retH, 5);
     ctx.fill(); ctx.stroke();
-    ctx.restore();
 
-    ctx.fillStyle = isHoverClose ? '#fef08a' : '#e2e8f0';
-    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 9.5px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('◈ RETURN  ( ESC )', closeX + closeW / 2, closeY + closeH / 2);
+    ctx.fillText('◈ RETURN ( Esc )', retX + retW / 2, botY + retH / 2);
+
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('Arrows — Cycle Medallions    Click — Select Deed    Esc — Return', panX + 24, botY + 13);
 
     _zones.push({
-      id: 'close_btn',
-      x: closeX, y: closeY, w: closeW, h: closeH,
+      id: 'btn_close',
+      x: retX, y: botY, w: retW, h: retH,
       action: closeAchievements
     });
 
-    ctx.restore(); // end master canvas save
+    ctx.restore();
   },
 
-  wrapText(ctx, text, maxW) {
+  wrapText(ctx, text, maxWidth) {
     if (!text) return [];
     const words = text.split(' ');
     const lines = [];
-    let curLine = words[0];
-
-    for (let i = 1; i < words.length; i++) {
-      const w = words[i];
-      const testLine = curLine + ' ' + w;
-      if (ctx.measureText(testLine).width <= maxW) {
-        curLine = testLine;
+    let cur = '';
+    words.forEach(w => {
+      const test = cur ? cur + ' ' + w : w;
+      if (ctx.measureText(test).width > maxWidth) {
+        if (cur) lines.push(cur);
+        cur = w;
       } else {
-        lines.push(curLine);
-        curLine = w;
+        cur = test;
       }
-    }
-    if (curLine) lines.push(curLine);
+    });
+    if (cur) lines.push(cur);
     return lines;
   },
 
+  handleKeyDown(key) {
+    if (key === 'Escape') {
+      closeAchievements();
+      return true;
+    }
+    if (key === 'ArrowRight' || key === 'ArrowDown') {
+      const keys = ORDERED_ACHIEVEMENT_KEYS;
+      const idx = keys.indexOf(_selectedKey);
+      const nextIdx = (idx + 1 + keys.length) % keys.length;
+      this.selectKey(keys[nextIdx]);
+      return true;
+    }
+    if (key === 'ArrowLeft' || key === 'ArrowUp') {
+      const keys = ORDERED_ACHIEVEMENT_KEYS;
+      const idx = keys.indexOf(_selectedKey);
+      const prevIdx = (idx - 1 + keys.length) % keys.length;
+      this.selectKey(keys[prevIdx]);
+      return true;
+    }
+    return false;
+  },
+
+  handleWheel(deltaY) {
+    const keys = ORDERED_ACHIEVEMENT_KEYS;
+    const idx = keys.indexOf(_selectedKey);
+    const step = deltaY > 0 ? 1 : -1;
+    const nextIdx = (idx + step + keys.length) % keys.length;
+    this.selectKey(keys[nextIdx]);
+  },
+
   handleClick(mx, my) {
-    // 1. Check interactive registered zones
     for (const z of _zones) {
       if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) {
         if (z.action) {
@@ -894,30 +774,21 @@ export const AchievementsUI = {
       }
     }
 
-    // 2. Consume any clicks inside the master panel bounds (prevent background bleed-through)
-    const panW = 824, panH = 516;
+    // Click outside panel returns
+    const panW = 890, panH = 520;
     const panX = (LW - panW) / 2, panY = (LH - panH) / 2;
-    if (mx >= panX && mx <= panX + panW && my >= panY && my <= panY + panH) {
-      return true;
-    }
-
-    // 3. Click outside panel returns to previous state
-    closeAchievements();
-    return true;
-  },
-
-  handleWheel(deltaY) {
-    _scrollOffset += deltaY * 0.45;
-  },
-
-  handleKeyDown(key) {
-    if (key === 'Escape') {
+    if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
       closeAchievements();
       return true;
     }
+
     return false;
   }
 };
+
+export function drawAchievementsPanel(ctx, dt) {
+  AchievementsUI.draw(ctx, dt);
+}
 
 AchievementsUI._zones = _zones;
 

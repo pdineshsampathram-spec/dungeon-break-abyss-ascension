@@ -1,7 +1,10 @@
 // =====================================================================
 //  DUNGEON BREAK — js/ui/CodexUI.js
-//  Authoritative Grand Archive of the Abyss: Chronicles, Bestiary & Memories
-//  100% In-Game Renderers, Zero Emojis, Zero Placeholders
+//  UI/UX Reconstruction: 3 Distinct Chamber Architectures
+//  - Chronicles: Pentiment Medieval Folio Spread & Rubricated Manuscript
+//  - Bestiary: Monster Hunter Abyssal Specimen Containment Chamber
+//  - Memories: Deep Astral Void of Suspended Crystalline Shards
+//  100% In-Game Canvas 2D Renderers, Zero Emojis, Zero Placeholders
 // =====================================================================
 
 import { GameState, GameStates } from '../core/GameState.js';
@@ -19,6 +22,9 @@ let _activeTab = 'lore'; // 'lore' | 'bestiary' | 'memories'
 let _selectedIndex = 0;
 let _scrollOffset = 0;
 let _ambientTimer = 0;
+
+// Bestiary carousel scroll
+let _bestiaryCarouselOffset = 0;
 
 const _zones = [];
 
@@ -44,6 +50,18 @@ const ANCIENT_GLYPHS = [
   [0b01110, 0b11111, 0b11001, 0b11001, 0b11111, 0b01110, 0b00000], // 14: Eclipse
   [0b00100, 0b01110, 0b11111, 0b10101, 0b11111, 0b01110, 0b00100]  // 15: The Absolute sigil
 ];
+
+// 60 procedural background stars for Astral Void
+const VOID_STARS = [];
+for (let i = 0; i < 60; i++) {
+  VOID_STARS.push({
+    x: (i * 137.5) % 860,
+    y: (i * 93.7) % 460,
+    size: 0.6 + (i % 3) * 0.7,
+    phase: i * 0.4,
+    speed: 0.8 + (i % 5) * 0.3
+  });
+}
 
 export function openCodex() {
   _codexSlide = 0;
@@ -80,7 +98,7 @@ export const CodexUI = {
     _memoryTransition = 0;
   },
   handleWheel(deltaY) {
-    _scrollOffset = Math.max(0, _scrollOffset + (deltaY > 0 ? 30 : -30));
+    _scrollOffset = Math.max(0, _scrollOffset + (deltaY > 0 ? 35 : -35));
   },
 
   draw(ctx, dt = 0.016) {
@@ -90,54 +108,58 @@ export const CodexUI = {
     const eased = 1 - Math.pow(1 - _codexSlide, 3);
 
     ctx.save();
-    ctx.fillStyle = `rgba(2, 4, 10, ${0.85 * eased})`;
+    ctx.globalAlpha = eased;
+
+    // Dark backdrop blur
+    ctx.fillStyle = 'rgba(2, 4, 10, 0.90)';
     ctx.fillRect(0, 0, LW, LH);
 
-    const panW = 820;
-    const panH = 510;
+    const panW = 890;
+    const panH = 520;
     const panX = Math.round((LW - panW) / 2);
     const panY = Math.round((LH - panH) / 2 - (1 - eased) * 35);
 
-    // Outer Panel
-    ctx.shadowColor = 'rgba(201, 168, 76, 0.25)';
-    ctx.shadowBlur = 24;
-    ctx.fillStyle = 'rgba(5, 8, 22, 0.98)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.65)';
-    ctx.lineWidth = 1.5;
+    // Chamber Radial Ambient Glow depending on active tab
+    const pulse = 0.5 + 0.5 * Math.sin(_ambientTimer * 2.2);
+    const grad = ctx.createRadialGradient(panX + panW / 2, panY + 140, 20, panX + panW / 2, panY + 220, 450);
+    if (_activeTab === 'lore') {
+      grad.addColorStop(0, `rgba(201, 168, 76, ${0.16 + pulse * 0.04})`);
+      grad.addColorStop(0.6, 'rgba(133, 77, 14, 0.06)');
+    } else if (_activeTab === 'bestiary') {
+      grad.addColorStop(0, `rgba(220, 38, 38, ${0.16 + pulse * 0.04})`);
+      grad.addColorStop(0.6, 'rgba(127, 29, 29, 0.06)');
+    } else {
+      grad.addColorStop(0, `rgba(147, 51, 234, ${0.18 + pulse * 0.05})`);
+      grad.addColorStop(0.6, 'rgba(79, 70, 229, 0.06)');
+    }
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(panX - 40, panY - 40, panW + 80, panH + 80);
+
+    // Master Outer Enclosure
+    ctx.fillStyle = 'rgba(6, 9, 20, 0.98)';
+    ctx.strokeStyle = _activeTab === 'lore'
+      ? 'rgba(201, 168, 76, 0.65)'
+      : (_activeTab === 'bestiary' ? 'rgba(239, 68, 68, 0.6)' : 'rgba(168, 85, 247, 0.65)');
+    ctx.lineWidth = 1.6;
     roundRect(ctx, panX, panY, panW, panH, 12);
     ctx.fill(); ctx.stroke();
-    ctx.shadowBlur = 0;
 
-    // Inner Border
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.35)';
+    // Inner gold-embossed trim
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
     ctx.lineWidth = 1;
-    roundRect(ctx, panX + 6, panY + 6, panW - 12, panH - 12, 8);
+    roundRect(ctx, panX + 5, panY + 5, panW - 10, panH - 10, 9);
     ctx.stroke();
 
     _zones.length = 0;
     const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
     const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
 
-    // Header Title
-    ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 18px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.shadowColor = '#d97706';
-    ctx.shadowBlur = 10;
-    ctx.fillText('◈ THE GRAND ARCHIVE OF THE ABYSS ◈', panX + panW / 2, panY + 16);
-    ctx.shadowBlur = 0;
-
-    // Dynamic Discovery Statistics
-    const unlockedLore = GameState.UNLOCKED_LORE || {};
-    const unlockedMem = GameState.UNLOCKED_MEMORIES || {};
+    // Discovery statistics
     const killsMap = GameState.BESTIARY_KILLS || {};
-
-    // Filter principal floor chronicles (1-10) for primary count
     const principalLore = LORE_SCROLLS_DATA.filter(l => l.floor >= 1 && l.floor <= 10 && l.revealedAt !== 'legacy');
     const loreCount = principalLore.filter(l => isLoreUnlocked(l.id)).length;
     const totalLore = principalLore.length;
-    const loreComplete = loreCount >= totalLore;
 
     const isEntryDiscovered = (b) => {
       if (b.isSecret || b.id === 'absolute') {
@@ -147,213 +169,816 @@ export const CodexUI = {
     };
     const bestiaryCount = BESTIARY_INFO.filter(isEntryDiscovered).length;
     const totalBestiary = BESTIARY_INFO.length;
-    const bestiaryComplete = bestiaryCount >= totalBestiary;
 
     const memCount = STORY_MEMORIES.filter(m => isMemoryUnlocked(m.id)).length;
     const totalMem = STORY_MEMORIES.length;
-    const memComplete = memCount >= totalMem;
 
-    // Category Tabs Header
-    const tabY = panY + 44, tabH = 30;
+    // ─────────────────────────────────────────────────────────────
+    // TOP HEADER: TITLE & 3 DISTINCT CHAMBER PLINTHS
+    // ─────────────────────────────────────────────────────────────
+    const badgeY = panY + 15;
+
+    // Inscription (Center Top)
+    ctx.fillStyle = '#fde68a';
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#d97706';
+    ctx.shadowBlur = 8;
+    ctx.fillText('◈ THE GRAND ARCHIVE OF THE ABYSS ◈', panX + 22, badgeY + 13);
+    ctx.shadowBlur = 0;
+
+    // 3 Chamber Tabs on the right
     const tabs = [
-      { id: 'lore', label: `CHRONICLES (${loreCount}/${totalLore})`, complete: loreComplete, icon: '◈' },
-      { id: 'bestiary', label: `BESTIARY (${bestiaryCount}/${totalBestiary})`, complete: bestiaryComplete, icon: 'ᛟ' },
-      { id: 'memories', label: `MEMORIES (${memCount}/${totalMem})`, complete: memComplete, icon: '✦' }
+      { id: 'lore',     label: `CHRONICLES (${loreCount}/${totalLore})`, icon: '¶', w: 168 },
+      { id: 'bestiary', label: `BESTIARY (${bestiaryCount}/${totalBestiary})`, icon: 'ᛟ', w: 165 },
+      { id: 'memories', label: `MEMORIES (${memCount}/${totalMem})`, icon: '✦', w: 162 }
     ];
-    const tabW = 220;
-    const startTabX = panX + (panW - (tabs.length * (tabW + 8) - 8)) / 2;
+    let tabX = panX + panW - 20 - (168 + 165 + 162 + 16);
 
-    tabs.forEach((t, idx) => {
-      const tx = startTabX + idx * (tabW + 8);
+    tabs.forEach(t => {
       const isSel = _activeTab === t.id;
-      const isHover = mouseX >= tx && mouseX <= tx + tabW && mouseY >= tabY && mouseY <= tabY + tabH;
+      const isHover = mouseX >= tabX && mouseX <= tabX + t.w && mouseY >= badgeY && mouseY <= badgeY + 26;
 
-      ctx.fillStyle = isSel ? 'rgba(201, 168, 76, 0.28)' : isHover ? 'rgba(30, 41, 59, 0.8)' : 'rgba(15, 23, 42, 0.6)';
-      ctx.strokeStyle = isSel ? '#fde68a' : t.complete ? 'rgba(234, 179, 8, 0.6)' : isHover ? '#cbd5e1' : 'rgba(71, 85, 105, 0.5)';
-      ctx.lineWidth = isSel ? 1.5 : 1.2;
-      roundRect(ctx, tx, tabY, tabW, tabH, 5);
+      ctx.fillStyle = isSel
+        ? (_activeTab === 'lore' ? 'rgba(201, 168, 76, 0.35)' : (_activeTab === 'bestiary' ? 'rgba(220, 38, 38, 0.35)' : 'rgba(147, 51, 234, 0.35)'))
+        : (isHover ? 'rgba(30, 41, 59, 0.8)' : 'rgba(15, 23, 42, 0.6)');
+      ctx.strokeStyle = isSel
+        ? (_activeTab === 'lore' ? '#fde68a' : (_activeTab === 'bestiary' ? '#f87171' : '#c084fc'))
+        : (isHover ? '#cbd5e1' : 'rgba(71, 85, 105, 0.5)');
+      ctx.lineWidth = isSel ? 1.5 : 1;
+      roundRect(ctx, tabX, badgeY, t.w, 26, 5);
       ctx.fill(); ctx.stroke();
 
-      ctx.fillStyle = isSel ? '#fde68a' : t.complete ? '#fef08a' : '#94a3b8';
-      ctx.font = 'bold 10px Cinzel, serif';
+      ctx.fillStyle = isSel ? '#ffffff' : (isHover ? '#f1f5f9' : '#94a3b8');
+      ctx.font = 'bold 9px Cinzel, serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const badge = t.complete ? ' ★' : '';
-      ctx.fillText(`${t.icon}  ${t.label}${badge}`, tx + tabW / 2, tabY + tabH / 2);
+      ctx.fillText(`${t.icon}  ${t.label}`, tabX + t.w / 2, badgeY + 13);
 
       _zones.push({
         id: `tab_${t.id}`,
-        x: tx, y: tabY, w: tabW, h: tabH,
+        x: tabX, y: badgeY, w: t.w, h: 26,
         action: () => {
           if (_activeTab !== t.id) {
             _activeTab = t.id;
             _selectedIndex = 0;
             _scrollOffset = 0;
+            _memoryTransition = 0;
             SoundManager.snd('menu_select');
+          }
+        }
+      });
+      tabX += t.w + 8;
+    });
+
+    // Content Region Coordinates
+    const contentY = badgeY + 36;
+    const contentH = panY + panH - contentY - 46;
+
+    // ─────────────────────────────────────────────────────────────
+    // DISPATCH TO 3 COMPLETELY DISTINCT WORLD PRESENTATIONS
+    // ─────────────────────────────────────────────────────────────
+    if (_activeTab === 'lore') {
+      this.drawChroniclesGrimoire(ctx, panX, contentY, panW, contentH, mouseX, mouseY, dt, principalLore);
+    } else if (_activeTab === 'bestiary') {
+      this.drawBestiaryContainment(ctx, panX, contentY, panW, contentH, mouseX, mouseY, dt, killsMap);
+    } else {
+      this.drawMemoriesAstralVoid(ctx, panX, contentY, panW, contentH, mouseX, mouseY, dt);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // BOTTOM BAR: KEYBOARD HINTS & RETURN BUTTON
+    // ─────────────────────────────────────────────────────────────
+    const botY = panY + panH - 36;
+    const retW = 190, retH = 26;
+    const retX = panX + panW - 20 - retW;
+    const isHoverRet = mouseX >= retX && mouseX <= retX + retW && mouseY >= botY && mouseY <= botY + retH;
+
+    ctx.fillStyle = isHoverRet ? 'rgba(51, 65, 85, 0.7)' : 'rgba(30, 41, 59, 0.5)';
+    ctx.strokeStyle = isHoverRet ? '#ffffff' : 'rgba(148, 163, 184, 0.45)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, retX, botY, retW, retH, 5);
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('◈ RETURN ( Esc )', retX + retW / 2, botY + retH / 2);
+
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('Arrows / Wheel — Navigate Items    Tab / 1-3 — Switch Chambers    Esc — Return', panX + 24, botY + 13);
+
+    _zones.push({
+      id: 'btn_close',
+      x: retX, y: botY, w: retW, h: retH,
+      action: closeCodex
+    });
+
+    ctx.restore();
+  },
+
+  // ═════════════════════════════════════════════════════════════════
+  // 1. CHRONICLES: PENTIMENT ILLUMINATED MANUSCRIPT FOLIO SPREAD
+  // ═════════════════════════════════════════════════════════════════
+  drawChroniclesGrimoire(ctx, panX, ry, panW, rh, mouseX, mouseY, dt, principalLore) {
+    const leftFolioW = 370;
+    const rightFolioW = panW - 40 - leftFolioW - 14;
+    const leftX = panX + 20;
+    const rightX = leftX + leftFolioW + 14;
+
+    // ── Left Folio: Aged Archival Catalogue (Vellum Tome Index) ──
+    ctx.fillStyle = 'rgba(24, 20, 16, 0.94)';
+    ctx.strokeStyle = 'rgba(180, 130, 60, 0.55)';
+    ctx.lineWidth = 1.2;
+    roundRect(ctx, leftX, ry, leftFolioW, rh, 8);
+    ctx.fill(); ctx.stroke();
+
+    // Vellum wash / inner aged margin
+    ctx.fillStyle = 'rgba(40, 32, 24, 0.35)';
+    roundRect(ctx, leftX + 4, ry + 4, leftFolioW - 8, rh - 8, 6);
+    ctx.fill();
+
+    // Book spine shadow groove on right edge of left folio
+    const spineGrad = ctx.createLinearGradient(leftX + leftFolioW - 18, ry, leftX + leftFolioW, ry);
+    spineGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    spineGrad.addColorStop(1, 'rgba(0,0,0,0.5)');
+    ctx.fillStyle = spineGrad;
+    ctx.fillRect(leftX + leftFolioW - 18, ry, 18, rh);
+
+    // Left Folio Header Banner
+    ctx.fillStyle = '#fde68a';
+    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('¶ ARCHIVAL INDEX · TEN DESCENT TOMES', leftX + 16, ry + 14);
+
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(leftX + 16, ry + 30);
+    ctx.lineTo(leftX + leftFolioW - 24, ry + 30);
+    ctx.stroke();
+
+    // 10 Chapter Entries
+    const listY = ry + 38;
+    const itemH = 34;
+    const gap = 3;
+    const visibleCount = Math.floor((rh - 48) / (itemH + gap));
+    const maxScroll = Math.max(0, principalLore.length - visibleCount);
+    const scrollIdx = Math.min(_scrollOffset > 0 ? Math.floor(_scrollOffset / 20) : 0, maxScroll);
+
+    principalLore.forEach((item, idx) => {
+      const iy = listY + idx * (itemH + gap);
+      if (iy + itemH > ry + rh - 6) return;
+
+      const isSel = _selectedIndex === idx;
+      const isUnlocked = isLoreUnlocked(item.id);
+      const isHover = mouseX >= leftX + 12 && mouseX <= leftX + leftFolioW - 16 && mouseY >= iy && mouseY <= iy + itemH;
+
+      ctx.fillStyle = isSel
+        ? 'rgba(201, 168, 76, 0.28)'
+        : (isHover ? 'rgba(55, 45, 32, 0.65)' : 'rgba(28, 22, 17, 0.6)');
+      ctx.strokeStyle = isSel
+        ? '#fde68a'
+        : (isUnlocked ? 'rgba(201, 168, 76, 0.4)' : 'rgba(75, 60, 45, 0.35)');
+      ctx.lineWidth = isSel ? 1.4 : 1;
+      roundRect(ctx, leftX + 12, iy, leftFolioW - 26, itemH, 5);
+      ctx.fill(); ctx.stroke();
+
+      // Authentic Wax Seal (Ruby Seal for unlocked, lead ash for locked)
+      const sealX = leftX + 28;
+      const sealY = iy + itemH / 2;
+      const sealR = 9;
+
+      ctx.beginPath();
+      ctx.arc(sealX, sealY, sealR, 0, Math.PI * 2);
+      ctx.fillStyle = isUnlocked ? '#b91c1c' : '#334155';
+      ctx.fill();
+      ctx.strokeStyle = isUnlocked ? '#fca5a5' : '#64748b';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = isUnlocked ? '#ffffff' : '#94a3b8';
+      ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(isUnlocked ? '◉' : '⊗', sealX, sealY);
+
+      // Chapter Roman Numeral + Title
+      const romanNums = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+      const roman = romanNums[item.floor - 1] || `${item.floor}`;
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = isUnlocked ? (isSel ? '#fde68a' : '#f1f5f9') : '#64748b';
+      ctx.font = isSel ? 'bold 10px Cinzel, serif' : '9.5px Cinzel, serif';
+      const titleText = isUnlocked ? `LIBER ${roman} · ${item.title}` : `LIBER ${roman} · Sealed Parchment`;
+      let truncTitle = titleText;
+      const maxTW = leftFolioW - 95;
+      while (ctx.measureText(truncTitle + '…').width > maxTW && truncTitle.length > 4) {
+        truncTitle = truncTitle.slice(0, -1);
+      }
+      if (truncTitle !== titleText) truncTitle += '…';
+      ctx.fillText(truncTitle, leftX + 46, iy + 12);
+
+      // Subtitle provenance
+      ctx.fillStyle = isUnlocked ? 'rgba(217, 119, 6, 0.9)' : 'rgba(100, 116, 139, 0.7)';
+      ctx.font = '8px monospace';
+      ctx.fillText(isUnlocked ? `FLOOR ${item.floor} CANON` : `BURIED IN FLOOR ${item.floor}`, leftX + 46, iy + 24);
+
+      _zones.push({
+        id: `lore_item_${idx}`,
+        x: leftX + 12, y: iy, w: leftFolioW - 26, h: itemH,
+        action: () => {
+          if (_selectedIndex !== idx) {
+            _selectedIndex = idx;
+            SoundManager.snd('menu_hover');
           }
         }
       });
     });
 
-    // Content Region Split: Left List (280px) + Right Inspector (440px)
-    const contentY = tabY + tabH + 12;
-    const contentH = panY + panH - contentY - 48;
-    const leftW = 280;
-    const rightX = panX + 24 + leftW + 14;
-    const rightW = panW - 48 - leftW - 14;
-
-    // Left List Frame
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.55)';
-    ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, panX + 24, contentY, leftW, contentH, 6);
+    // ── Right Folio: Pentiment Rubricated Reading Folio ──
+    ctx.fillStyle = 'rgba(28, 22, 17, 0.96)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.65)';
+    ctx.lineWidth = 1.4;
+    roundRect(ctx, rightX, ry, rightFolioW, rh, 8);
     ctx.fill(); ctx.stroke();
 
-    // Right Inspector Frame
-    ctx.fillStyle = 'rgba(10, 15, 30, 0.82)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.4)';
-    roundRect(ctx, rightX, contentY, rightW, contentH, 6);
-    ctx.fill(); ctx.stroke();
+    // Subtle spine shadow on left edge of right folio
+    const rSpineGrad = ctx.createLinearGradient(rightX, ry, rightX + 18, ry);
+    rSpineGrad.addColorStop(0, 'rgba(0,0,0,0.45)');
+    rSpineGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = rSpineGrad;
+    ctx.fillRect(rightX, ry, 18, rh);
 
-    // ─────────────────────────────────────────────────────────────
-    // 1. LEFT LIST: ITEMS
-    // ─────────────────────────────────────────────────────────────
-    let activeItems = [];
-    if (_activeTab === 'lore') {
-      activeItems = principalLore;
-    } else if (_activeTab === 'bestiary') {
-      activeItems = BESTIARY_INFO;
-    } else {
-      activeItems = STORY_MEMORIES;
-    }
+    const selectedItem = principalLore[_selectedIndex] || principalLore[0];
+    const isUnlocked = selectedItem ? isLoreUnlocked(selectedItem.id) : false;
 
-    const itemH = 48;
-    const itemGap = 5;
-    const maxVisibleH = contentH - 12;
-    const totalListH = activeItems.length * (itemH + itemGap);
-    const maxScroll = Math.max(0, totalListH - maxVisibleH);
-    _scrollOffset = Math.min(_scrollOffset, maxScroll);
-
-    ctx.save();
-    ctx.beginPath();
-    roundRect(ctx, panX + 26, contentY + 4, leftW - 4, contentH - 8, 6);
-    ctx.clip();
-
-    activeItems.forEach((item, idx) => {
-      const iy = contentY + 6 + idx * (itemH + itemGap) - _scrollOffset;
-      if (iy + itemH < contentY || iy > contentY + contentH) return;
-
-      const isSel = _selectedIndex === idx;
-      let isUnlocked = false;
-      let displayTitle = '';
-      let subLabel = '';
-      let tag = '';
-      let subColor = '#94a3b8';
-
-      if (_activeTab === 'lore') {
-        isUnlocked = isLoreUnlocked(item.id);
-        tag = `F${item.floor}`;
-        subLabel = `FLOOR ${item.floor} · SCROLL`;
-        displayTitle = isUnlocked ? item.title : `Floor ${item.floor} — Sealed Scroll`;
-        subColor = isUnlocked ? '#fde047' : '#64748b';
-      } else if (_activeTab === 'bestiary') {
-        const isSecret = item.isSecret || item.id === 'absolute';
-        isUnlocked = isSecret ? SaveSystem.isSecretBestiaryUnlocked(item.id) : ((killsMap[item.id] || 0) > 0);
-        if (isSecret) {
-          tag = isUnlocked ? 'VOID' : '?';
-          subLabel = isUnlocked ? 'UNRECORDED ENTITY' : 'CLASSIFIED ENTITY';
-          displayTitle = isUnlocked ? item.name : 'Undiscovered Horror';
-          subColor = isUnlocked ? '#ef4444' : '#64748b';
-        } else {
-          tag = isUnlocked ? `${killsMap[item.id] || 0} slain` : '?';
-          subLabel = isUnlocked ? (item.category ? item.category.toUpperCase() : 'HORROR') : 'CLASSIFIED ENTITY';
-          displayTitle = isUnlocked ? item.name : 'Undiscovered Horror';
-          subColor = isUnlocked ? (item.col || '#f87171') : '#64748b';
-        }
-      } else {
-        isUnlocked = isMemoryUnlocked(item.id);
-        const isLegacy = item.id.startsWith('echo_');
-        const isEnding = item.id.startsWith('memory_ending_');
-
-        if (isEnding) {
-          const routeChar = item.chronology.includes('Route A') ? 'A' : (item.chronology.includes('Route B') ? 'B' : 'C');
-          tag = `END ${routeChar}`;
-          subLabel = `ENDING ROUTE ${routeChar}`;
-          displayTitle = isUnlocked ? item.title : `Sealed Ending Route ${routeChar}`;
-          subColor = isUnlocked ? '#c084fc' : '#64748b';
-        } else if (isLegacy) {
-          const echoNum = item.chronology.replace('Legacy Echo ', '');
-          tag = `ECHO ${echoNum}`;
-          subLabel = `LEGACY ECHO ${echoNum}`;
-          displayTitle = isUnlocked ? item.title : `Sealed Legacy Echo ${echoNum}`;
-          subColor = isUnlocked ? '#38bdf8' : '#64748b';
-        } else {
-          tag = `F${item.floor}`;
-          subLabel = `FLOOR ${item.floor} · CANON`;
-          displayTitle = isUnlocked ? item.title : `Floor ${item.floor} Sealed Memory`;
-          subColor = isUnlocked ? '#fde047' : '#64748b';
-        }
-      }
-
-      const cardW = leftW - 8;
-      const isHoverItem = mouseX >= panX + 28 && mouseX <= panX + 28 + cardW && mouseY >= iy && mouseY <= iy + itemH;
-
-      ctx.fillStyle = isSel
-        ? 'rgba(201, 168, 76, 0.25)'
-        : (isHoverItem ? 'rgba(30, 41, 59, 0.75)' : 'rgba(15, 23, 42, 0.6)');
-      ctx.strokeStyle = isSel
-        ? '#fde68a'
-        : (isUnlocked ? 'rgba(201, 168, 76, 0.45)' : 'rgba(51, 65, 85, 0.4)');
-      ctx.lineWidth = isSel ? 1.5 : 1;
-      roundRect(ctx, panX + 28, iy, cardW, itemH, 5);
-      ctx.fill(); ctx.stroke();
-
-      // Dedicated Tag Badge (Left: 46px wide, 32px tall, centered vertically)
-      const badgeW = 46;
-      const badgeH = 32;
-      const badgeX = panX + 34;
-      const badgeY = iy + Math.round((itemH - badgeH) / 2);
-
-      ctx.fillStyle = isUnlocked ? 'rgba(201, 168, 76, 0.18)' : 'rgba(51, 65, 85, 0.3)';
-      roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 4);
-      ctx.fill();
-
-      ctx.fillStyle = isUnlocked ? '#fde047' : '#64748b';
-      ctx.font = 'bold 9px Cinzel, serif';
+    if (!selectedItem || !isUnlocked) {
+      // Obscured locked folio state
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 13px Cinzel, serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(tag, badgeX + badgeW / 2, badgeY + badgeH / 2);
+      ctx.fillText(`SEALED ILLUMINATION · FLOOR ${selectedItem ? selectedItem.floor : '?'}`, rightX + rightFolioW / 2, ry + rh / 2 - 25);
 
-      // Text Region (Right of Badge: completely separate bounded area)
-      const textX = badgeX + badgeW + 8;
-      const maxTextW = panX + 28 + cardW - textX - 8;
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+      ctx.font = 'italic 11.5px Crimson Text, serif';
+      const lockedMsg = `This parchment is obscured in eternal abyss ash. Descend to Floor ${selectedItem ? selectedItem.floor : '?'} and recover the ancient lore scroll to illuminate its historical account.`;
+      const lines = this.wrapText(ctx, lockedMsg, rightFolioW - 60);
+      lines.forEach((l, idx) => {
+        ctx.fillText(l, rightX + rightFolioW / 2, ry + rh / 2 + 5 + idx * 18);
+      });
 
-      // Line 1: Category / Chronology Sub-Label (Top)
-      ctx.fillStyle = subColor;
-      ctx.font = 'bold 8px Cinzel, serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      let truncSub = subLabel;
-      while (ctx.measureText(truncSub).width > maxTextW && truncSub.length > 4) {
-        truncSub = truncSub.slice(0, -1);
+      // Draw faint abyssal glyphs in background of locked vellum
+      this.drawParchmentGlyphs(ctx, rightX + 40, ry + rh / 2 + 55, rightFolioW - 80, _ambientTimer, 0.25);
+      return;
+    }
+
+    // Unlocked Reading Page
+    // Top Ancient Glyph Transcription Ribbon
+    this.drawParchmentGlyphs(ctx, rightX + 24, ry + 14, rightFolioW - 48, _ambientTimer, 0.65);
+
+    // Chapter Header Inscription
+    const romanNums = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+    const roman = romanNums[selectedItem.floor - 1] || `${selectedItem.floor}`;
+
+    ctx.fillStyle = '#dc2626'; // Rubricated crimson title
+    ctx.font = 'bold 10px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`— LIBER ${roman} · CODEX VANGUARDIA —`, rightX + rightFolioW / 2, ry + 34);
+
+    ctx.fillStyle = '#fde68a';
+    ctx.font = 'bold 16px Cinzel, serif';
+    ctx.shadowColor = '#d97706';
+    ctx.shadowBlur = 6;
+    ctx.fillText(selectedItem.title.toUpperCase(), rightX + rightFolioW / 2, ry + 48);
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = 'rgba(217, 119, 6, 0.85)';
+    ctx.font = 'italic 10px Crimson Text, serif';
+    ctx.fillText(selectedItem.author || `Recovered from the depths of Floor ${selectedItem.floor}`, rightX + rightFolioW / 2, ry + 68);
+
+    // Ornamental Divider
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(rightX + 32, ry + 84);
+    ctx.lineTo(rightX + rightFolioW - 32, ry + 84);
+    ctx.stroke();
+
+    // Pentiment Rubricated Drop-Cap & Manuscript Text
+    const bodyText = selectedItem.text || '';
+    const firstLetter = bodyText.charAt(0) || 'I';
+    const remainingFirstParagraph = bodyText.slice(1);
+
+    // Decorative Drop-Cap Box (Left: 38x38 px)
+    const capX = rightX + 28;
+    const capY = ry + 96;
+    const capSize = 38;
+
+    ctx.fillStyle = 'rgba(185, 28, 28, 0.3)';
+    ctx.strokeStyle = '#dc2626';
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, capX, capY, capSize, capSize, 4);
+    ctx.fill(); ctx.stroke();
+
+    // Drop-Cap Initial Letter
+    ctx.fillStyle = '#fef08a';
+    ctx.font = 'bold 26px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(firstLetter, capX + capSize / 2, capY + capSize / 2);
+
+    // Text Wrap beside and below Drop-Cap
+    ctx.fillStyle = '#f1f5f9';
+    ctx.font = 'italic 12px Crimson Text, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+
+    // Lines beside drop-cap
+    const textNextX = capX + capSize + 10;
+    const textNextW = rightFolioW - (textNextX - rightX) - 28;
+    const allWords = remainingFirstParagraph.split(' ');
+
+    let line1 = '', line2 = '', restWords = [];
+    let cur = '';
+
+    for (let i = 0; i < allWords.length; i++) {
+      const test = cur ? cur + ' ' + allWords[i] : allWords[i];
+      if (ctx.measureText(test).width <= textNextW) {
+        cur = test;
+      } else {
+        if (!line1) {
+          line1 = cur;
+          cur = allWords[i];
+        } else if (!line2) {
+          line2 = cur;
+          restWords = allWords.slice(i);
+          break;
+        }
       }
-      ctx.fillText(truncSub, textX, iy + 8);
+    }
+    if (!line1) line1 = cur;
+    else if (!line2) line2 = cur;
 
-      // Line 2: Prominent Memory Title (Bottom)
-      ctx.fillStyle = isUnlocked ? (isSel ? '#fde68a' : '#f1f5f9') : '#64748b';
-      ctx.font = isSel ? 'bold 10.5px Cinzel, serif' : '10px Cinzel, serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      let truncated = displayTitle;
-      while (ctx.measureText(truncated + '…').width > maxTextW && truncated.length > 3) {
-        truncated = truncated.slice(0, -1);
+    ctx.fillText(line1, textNextX, capY + 4);
+    if (line2) ctx.fillText(line2, textNextX, capY + 22);
+
+    // Full width remaining lines below Drop-Cap
+    const fullTextW = rightFolioW - 56;
+    let fullCur = '';
+    const belowLines = [];
+    restWords.forEach(w => {
+      const test = fullCur ? fullCur + ' ' + w : w;
+      if (ctx.measureText(test).width > fullTextW) {
+        if (fullCur) belowLines.push(fullCur);
+        fullCur = w;
+      } else {
+        fullCur = test;
       }
-      if (truncated !== displayTitle) truncated += '…';
-      ctx.fillText(truncated, textX, iy + 22);
+    });
+    if (fullCur) belowLines.push(fullCur);
+
+    const startBelowY = capY + capSize + 10;
+    belowLines.slice(0, 7).forEach((bl, idx) => {
+      ctx.fillText(bl, rightX + 28, startBelowY + idx * 18);
+    });
+
+    // Floor Revelation Wax Stamp (Bottom)
+    const stampY = ry + rh - 40;
+    ctx.fillStyle = 'rgba(201, 168, 76, 0.12)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.5)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, rightX + 28, stampY, rightFolioW - 56, 26, 4);
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#fde68a';
+    ctx.font = 'bold 9px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`ARCHIVAL DEED PRESERVED · FLOOR ${selectedItem.floor} VANGUARD CANON`, rightX + rightFolioW / 2, stampY + 13);
+  },
+
+  drawParchmentGlyphs(ctx, x, y, w, timer, baseAlpha = 0.5) {
+    const glyphs = [15, 1, 4, 10, 6, 8, 3, 11, 14, 0, 7, 15, 2, 5, 12, 13];
+    const pitch = 22;
+    const maxCount = Math.floor(w / pitch);
+
+    ctx.save();
+    for (let i = 0; i < Math.min(glyphs.length, maxCount); i++) {
+      const gIdx = glyphs[i];
+      const gx = x + i * pitch;
+      const pulse = Math.sin(timer * 2.0 + i * 0.4);
+      ctx.fillStyle = `rgba(201, 168, 76, ${baseAlpha * (0.5 + pulse * 0.3)})`;
+
+      const pattern = ANCIENT_GLYPHS[gIdx] || ANCIENT_GLYPHS[0];
+      for (let r = 0; r < 7; r++) {
+        const bits = pattern[r];
+        for (let c = 0; c < 5; c++) {
+          if ((bits & (1 << (4 - c))) !== 0) {
+            ctx.fillRect(Math.round(gx + c * 1.5), Math.round(y + r * 1.5), 1, 1);
+          }
+        }
+      }
+    }
+    ctx.restore();
+  },
+
+  // ═════════════════════════════════════════════════════════════════
+  // 2. BESTIARY: MONSTER HUNTER SPECIMEN CONTAINMENT CHAMBER
+  // ═════════════════════════════════════════════════════════════════
+  drawBestiaryContainment(ctx, panX, ry, panW, rh, mouseX, mouseY, dt, killsMap) {
+    // ── Top Horizontal Specimen Carousel (850 × 44 px) ──
+    const carY = ry;
+    const carH = 44;
+    const carW = panW - 40;
+    const carX = panX + 20;
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+    ctx.strokeStyle = 'rgba(51, 65, 85, 0.5)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, carX, carY, carW, carH, 6);
+    ctx.fill(); ctx.stroke();
+
+    // Carousel Items
+    const tokenW = 90;
+    const tokenGap = 6;
+    const startTokX = carX + 8;
+
+    BESTIARY_INFO.forEach((creature, idx) => {
+      const tx = startTokX + idx * (tokenW + tokenGap);
+      if (tx + tokenW > carX + carW - 8) return;
+
+      const isSel = _selectedIndex === idx;
+      const isSecret = creature.isSecret || creature.id === 'absolute';
+      const isUnlocked = isSecret ? SaveSystem.isSecretBestiaryUnlocked(creature.id) : ((killsMap[creature.id] || 0) > 0);
+      const isHover = mouseX >= tx && mouseX <= tx + tokenW && mouseY >= carY + 4 && mouseY <= carY + carH - 4;
+
+      ctx.fillStyle = isSel
+        ? 'rgba(220, 38, 38, 0.35)'
+        : (isHover ? 'rgba(30, 41, 59, 0.8)' : 'rgba(10, 15, 28, 0.6)');
+      ctx.strokeStyle = isSel
+        ? '#f87171'
+        : (isUnlocked ? 'rgba(201, 168, 76, 0.45)' : 'rgba(71, 85, 105, 0.35)');
+      ctx.lineWidth = isSel ? 1.5 : 1;
+      roundRect(ctx, tx, carY + 4, tokenW, carH - 8, 4);
+      ctx.fill(); ctx.stroke();
+
+      // Slain / Threat pip
+      ctx.fillStyle = isUnlocked ? (creature.col || '#f87171') : '#64748b';
+      ctx.font = 'bold 8.5px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      let shortName = '???';
+      if (isUnlocked) {
+        if (creature.id === 'warden') shortName = 'WARDEN';
+        else if (creature.id === 'absolute') shortName = 'ABSOLUTE';
+        else if (creature.id === 'malakor') shortName = 'MALAKOR';
+        else if (creature.id === 'gorgaroth') shortName = 'GORGAROTH';
+        else if (creature.id === 'skeleton') shortName = 'SKELETON';
+        else if (creature.id === 'ghoul') shortName = 'GHOUL';
+        else if (creature.id === 'demon') shortName = 'DEMON';
+        else if (creature.id === 'wraith') shortName = 'WRAITH';
+        else shortName = creature.name.replace(/,.*/, '').split(' ')[0].toUpperCase();
+      }
+      ctx.fillText(shortName, tx + tokenW / 2, carY + 16);
+
+      ctx.fillStyle = isUnlocked ? '#fca5a5' : '#475569';
+      ctx.font = '8px monospace';
+      const kills = killsMap[creature.id] || 0;
+      ctx.fillText(isUnlocked ? `☠ ${kills}` : 'LOCKED', tx + tokenW / 2, carY + 28);
 
       _zones.push({
-        id: `item_${idx}`,
-        x: panX + 28, y: iy, w: cardW, h: itemH,
+        id: `bestiary_tok_${idx}`,
+        x: tx, y: carY + 4, w: tokenW, h: carH - 8,
+        action: () => {
+          if (_selectedIndex !== idx) {
+            _selectedIndex = idx;
+            SoundManager.snd('menu_hover');
+          }
+        }
+      });
+    });
+
+    // ── Chamber Split: Containment Dais (Left) + Tactical Threat Dossier (Right) ──
+    const mainY = carY + carH + 10;
+    const mainH = rh - carH - 10;
+    const daisW = 410;
+    const dossierW = panW - 40 - daisW - 14;
+    const daisX = panX + 20;
+    const dossierX = daisX + daisW + 14;
+
+    const selectedCreature = BESTIARY_INFO[_selectedIndex] || BESTIARY_INFO[0];
+    const isSecret = selectedCreature ? (selectedCreature.isSecret || selectedCreature.id === 'absolute') : false;
+    const isUnlocked = selectedCreature
+      ? (isSecret ? SaveSystem.isSecretBestiaryUnlocked(selectedCreature.id) : ((killsMap[selectedCreature.id] || 0) > 0))
+      : false;
+    const kills = selectedCreature ? (killsMap[selectedCreature.id] || 0) : 0;
+
+    // ── The Abyssal Specimen Containment Dais ──
+    ctx.fillStyle = 'rgba(10, 14, 28, 0.94)';
+    ctx.strokeStyle = isUnlocked ? 'rgba(239, 68, 68, 0.55)' : 'rgba(51, 65, 85, 0.4)';
+    ctx.lineWidth = 1.3;
+    roundRect(ctx, daisX, mainY, daisW, mainH, 8);
+    ctx.fill(); ctx.stroke();
+
+    // Runic Containment Grid Background
+    const daisCenterX = daisX + daisW / 2;
+    const daisCenterY = mainY + 130;
+
+    // Pulsing containment ring
+    const ringPulse = 0.5 + 0.5 * Math.sin(_ambientTimer * 2.5);
+    ctx.strokeStyle = isUnlocked
+      ? `rgba(239, 68, 68, ${0.25 + ringPulse * 0.25})`
+      : 'rgba(51, 65, 85, 0.25)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.arc(daisCenterX, daisCenterY + 45, 80, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(daisCenterX, daisCenterY + 45, 105, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Live Animated Monster Portrait Renderer (220 × 220 px)
+    const portW = 210, portH = 210;
+    BestiaryPortraitRenderer.drawPortrait(
+      ctx,
+      selectedCreature ? selectedCreature.id : 'skeleton',
+      daisCenterX - portW / 2,
+      mainY + 14,
+      portW,
+      portH,
+      isUnlocked,
+      _ambientTimer
+    );
+
+    // Specimen Threat & Habitat Plinth (Below Dais)
+    const plinthY = mainY + 234;
+    const plinthH = mainH - 242;
+    ctx.fillStyle = 'rgba(18, 24, 44, 0.9)';
+    ctx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, daisX + 12, plinthY, daisW - 24, plinthH, 6);
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = isUnlocked ? (selectedCreature.threat === 'boss' ? '#ef4444' : '#f59e0b') : '#64748b';
+    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const threatText = isUnlocked
+      ? (selectedCreature.threat === 'boss' ? '★ APOCALYPTIC BOSS THREAT ★' : 'THREAT LEVEL: HIGH RISK PREDATOR')
+      : 'CLASSIFIED ENTITY · THREAT UNRECORDED';
+    ctx.fillText(threatText, daisCenterX, plinthY + 10);
+
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = 'bold 9px monospace';
+    const habitat = isUnlocked ? (selectedCreature.floors || 'Floors 1-3') : 'Deep Labyrinth';
+    ctx.fillText(`HABITAT: ${habitat.toUpperCase()}    SLAIN: ${kills} CONQUERED`, daisCenterX, plinthY + 28);
+
+    ctx.fillStyle = isUnlocked ? '#86efac' : '#64748b';
+    ctx.fillText(`SOUL BOUNTY: ${isUnlocked ? (selectedCreature.threat === 'boss' ? '500+ Souls' : '35-75 Souls') : 'Unknown'}`, daisCenterX, plinthY + 44);
+
+    // ── Right: Tactical Threat Dossier ──
+    ctx.fillStyle = 'rgba(12, 16, 32, 0.94)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.5)';
+    ctx.lineWidth = 1.3;
+    roundRect(ctx, dossierX, mainY, dossierW, mainH, 8);
+    ctx.fill(); ctx.stroke();
+
+    // Dossier Header
+    ctx.fillStyle = isUnlocked ? (selectedCreature.col || '#fde68a') : '#64748b';
+    ctx.font = 'bold 15px Cinzel, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(isUnlocked ? selectedCreature.name.toUpperCase() : 'UNKNOWN ABYSSAL HORROR', dossierX + 18, mainY + 16);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 9px Cinzel, serif';
+    ctx.fillText(`TAXONOMY: ${isUnlocked ? (selectedCreature.category || 'Monstrosity').toUpperCase() : 'CLASSIFIED'}`, dossierX + 18, mainY + 36);
+
+    ctx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(dossierX + 18, mainY + 52);
+    ctx.lineTo(dossierX + dossierW - 18, mainY + 52);
+    ctx.stroke();
+
+    if (!isUnlocked) {
+      // Locked Dossier
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 11px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚠ SPECIMEN COMBAT DOSSIER CLASSIFIED ⚠', dossierX + dossierW / 2, mainY + 100);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'italic 11.5px Crimson Text, serif';
+      const msg = isSecret
+        ? 'No living witness has submitted observations of this entity. Its presence was recorded only through the madness of dying wanderers in the deepest void.'
+        : 'This creature has not yet been conquered in combat. Slay this specimen during your descent to decrypt its physiological vulnerabilities, attack vectors, and parry timings.';
+      const lLines = this.wrapText(ctx, msg, dossierW - 40);
+      lLines.forEach((l, idx) => {
+        ctx.fillText(l, dossierX + dossierW / 2, mainY + 130 + idx * 18);
+      });
+      return;
+    }
+
+    // Physiological Vulnerabilities Callouts
+    let curDossierY = mainY + 62;
+    ctx.fillStyle = '#fde047';
+    ctx.font = 'bold 9px Cinzel, serif';
+    ctx.fillText('PHYSIOLOGICAL VULNERABILITIES & AFFINITIES:', dossierX + 18, curDossierY);
+    curDossierY += 15;
+
+    // 2 Vulnerability Badges
+    const badgeW = (dossierW - 44) / 2;
+    const VULNS = {
+      skeleton: { weak: 'WEAK: BLUNT KNOCKBACK', resist: 'RESIST: POISON / BLEED' },
+      ghoul:    { weak: 'WEAK: FLANK SIDESTEP',   resist: 'RESIST: DARK MIASMA' },
+      demon:    { weak: 'WEAK: CHANNEL STRIKE',   resist: 'IMMUNE: BRIMSTONE FIRE' },
+      wraith:   { weak: 'WEAK: TORCHLIGHT HALO',  resist: 'PHASE: PHYSICAL WEAPONS' },
+      gorgaroth:{ weak: 'WEAK: SLAM RECOVERY',    resist: 'ARMOR: TITAN CARAPACE' },
+      malakor:  { weak: 'WEAK: ARRIVAL WINDOW',   resist: 'PHASE: VOID TELEPORT' },
+      warden:   { weak: 'WEAK: RIFT DESTRUCTION', resist: 'SUPREME: ABYSSAL PYRES' },
+      absolute: { weak: 'WEAK: REALITY ANCHOR',   resist: 'COGNITIVE DISSOLUTION' }
+    };
+    const vulnData = VULNS[selectedCreature.id] || { weak: 'WEAK: FLANK STRIKE', resist: 'RESIST: DARK ARMOR' };
+
+    // Badge 1: Weak point
+    ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+    roundRect(ctx, dossierX + 18, curDossierY, badgeW, 28, 4);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fca5a5';
+    ctx.font = 'bold 8px monospace';
+    ctx.fillText(vulnData.weak, dossierX + 24, curDossierY + 9);
+
+    // Badge 2: Resistance
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+    roundRect(ctx, dossierX + 26 + badgeW, curDossierY, badgeW, 28, 4);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#bae6fd';
+    ctx.fillText(vulnData.resist, dossierX + 32 + badgeW, curDossierY + 9);
+
+    curDossierY += 36;
+
+    // Tactical Observation
+    ctx.fillStyle = '#facc15';
+    ctx.font = 'bold 9px Cinzel, serif';
+    ctx.fillText('TACTICAL FIELD INTELLIGENCE:', dossierX + 18, curDossierY);
+    curDossierY += 15;
+
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = 'italic 11.5px Crimson Text, serif';
+    const tacLines = this.wrapText(ctx, selectedCreature.tactics || 'Maintain safe distance and evade telegraphed strikes before countering.', dossierW - 36);
+    tacLines.slice(0, 3).forEach((tl, idx) => {
+      ctx.fillText(tl, dossierX + 18, curDossierY + idx * 16);
+    });
+    curDossierY += Math.min(3, tacLines.length) * 16 + 10;
+
+    // Lore Inscription
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = 'bold 9px Cinzel, serif';
+    ctx.fillText('INQUISITOR OBSERVATION ARCHIVE:', dossierX + 18, curDossierY);
+    curDossierY += 15;
+
+    ctx.fillStyle = 'rgba(203, 213, 225, 0.85)';
+    ctx.font = 'italic 11px Crimson Text, serif';
+    const loreLines = this.wrapText(ctx, selectedCreature.desc || 'An ancient entity spawned from the abyssal strata.', dossierW - 36);
+    loreLines.slice(0, 4).forEach((ll, idx) => {
+      ctx.fillText(ll, dossierX + 18, curDossierY + idx * 15);
+    });
+  },
+
+  // ═════════════════════════════════════════════════════════════════
+  // 3. MEMORIES: DEEP ASTRAL VOID OF SUSPENDED MEMORY SHARDS
+  // ═════════════════════════════════════════════════════════════════
+  drawMemoriesAstralVoid(ctx, panX, ry, panW, rh, mouseX, mouseY, dt) {
+    const leftW = 400;
+    const rightW = panW - 40 - leftW - 14;
+    const leftX = panX + 20;
+    const rightX = leftX + leftW + 14;
+
+    // ── Deep Celestial Void Backdrop ──
+    ctx.fillStyle = 'rgba(3, 5, 14, 0.96)';
+    ctx.strokeStyle = 'rgba(147, 51, 234, 0.55)';
+    ctx.lineWidth = 1.3;
+    roundRect(ctx, leftX, ry, leftW, rh, 8);
+    ctx.fill(); ctx.stroke();
+
+    // Procedural Floating Cosmic Dust & Stars
+    ctx.save();
+    VOID_STARS.forEach((s) => {
+      const sx = leftX + ((s.x + _ambientTimer * 4 * s.speed) % (leftW - 10));
+      const sy = ry + ((s.y + Math.sin(_ambientTimer + s.phase) * 6) % (rh - 10));
+      const alpha = 0.3 + 0.4 * Math.sin(_ambientTimer * 2.0 + s.phase);
+
+      ctx.fillStyle = `rgba(192, 132, 252, ${alpha})`;
+      ctx.fillRect(sx, sy, s.size, s.size);
+    });
+    ctx.restore();
+
+    // Shard Grid Container Header
+    ctx.fillStyle = '#c084fc';
+    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('✦ SUSPENDED ASTRAL MEMORY SHARDS', leftX + 16, ry + 14);
+
+    ctx.strokeStyle = 'rgba(147, 51, 234, 0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(leftX + 16, ry + 30);
+    ctx.lineTo(leftX + leftW - 20, ry + 30);
+    ctx.stroke();
+
+    // 2-Column Grid of Floating Crystalline Memory Shards
+    const gridY = ry + 38;
+    const shardW = 175;
+    const shardH = 46;
+    const colGap = 10;
+    const rowGap = 6;
+
+    const visibleRows = Math.floor((rh - 48) / (shardH + rowGap));
+    const totalMemories = STORY_MEMORIES.length;
+    const totalRows = Math.ceil(totalMemories / 2);
+    const maxScroll = Math.max(0, totalRows - visibleRows);
+    const scrollRow = Math.min(_scrollOffset > 0 ? Math.floor(_scrollOffset / 25) : 0, maxScroll);
+
+    STORY_MEMORIES.forEach((mem, idx) => {
+      const col = idx % 2;
+      const row = Math.floor(idx / 2) - scrollRow;
+      if (row < 0 || row >= visibleRows) return;
+
+      const sx = leftX + 14 + col * (shardW + colGap);
+      const floatY = Math.sin(_ambientTimer * 1.8 + idx * 0.7) * 2;
+      const sy = gridY + row * (shardH + rowGap) + floatY;
+
+      const isSel = _selectedIndex === idx;
+      const isUnlocked = isMemoryUnlocked(mem.id);
+      const isEnding = mem.id.startsWith('memory_ending_');
+      const isLegacy = mem.id.startsWith('echo_');
+      const isHover = mouseX >= sx && mouseX <= sx + shardW && mouseY >= sy && mouseY <= sy + shardH;
+
+      // Color Theme by Type
+      let themeCol = '#fde68a';
+      let themeBg = 'rgba(217, 119, 6, 0.2)';
+      if (isEnding) {
+        themeCol = '#c084fc';
+        themeBg = 'rgba(147, 51, 234, 0.25)';
+      } else if (isLegacy) {
+        themeCol = '#38bdf8';
+        themeBg = 'rgba(14, 165, 233, 0.25)';
+      }
+
+      ctx.fillStyle = isSel
+        ? themeBg
+        : (isHover ? 'rgba(30, 41, 59, 0.75)' : 'rgba(10, 15, 28, 0.6)');
+      ctx.strokeStyle = isSel
+        ? themeCol
+        : (isUnlocked ? 'rgba(168, 85, 247, 0.45)' : 'rgba(51, 65, 85, 0.35)');
+      ctx.lineWidth = isSel ? 1.5 : 1;
+      roundRect(ctx, sx, sy, shardW, shardH, 6);
+      ctx.fill(); ctx.stroke();
+
+      // Prismatic Facet Shimmer Icon
+      const iconX = sx + 18;
+      const iconY = sy + shardH / 2;
+      ctx.fillStyle = isUnlocked ? themeCol : '#475569';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(isUnlocked ? '✦' : '◇', iconX, iconY);
+
+      // Title & Tag
+      ctx.textAlign = 'left';
+      ctx.fillStyle = isUnlocked ? themeCol : '#64748b';
+      ctx.font = 'bold 8px Cinzel, serif';
+      const typeLabel = isEnding ? 'ENDING DESTINY' : (isLegacy ? 'LEGACY ECHO' : `FLOOR ${mem.floor || '?'}`);
+      ctx.fillText(isUnlocked ? typeLabel : 'DORMANT SHARD', sx + 32, sy + 13);
+
+      ctx.fillStyle = isUnlocked ? (isSel ? '#ffffff' : '#f1f5f9') : '#475569';
+      ctx.font = isSel ? 'bold 9.5px Cinzel, serif' : '9px Cinzel, serif';
+      let tTitle = isUnlocked ? mem.title : 'Sealed Remembrance';
+      const maxTW = shardW - 40;
+      while (ctx.measureText(tTitle + '…').width > maxTW && tTitle.length > 4) {
+        tTitle = tTitle.slice(0, -1);
+      }
+      if (tTitle !== mem.title && isUnlocked) tTitle += '…';
+      ctx.fillText(tTitle, sx + 32, sy + 28);
+
+      _zones.push({
+        id: `memory_shard_${idx}`,
+        x: sx, y: sy, w: shardW, h: shardH,
         action: () => {
           if (_selectedIndex !== idx) {
             _selectedIndex = idx;
@@ -363,421 +988,129 @@ export const CodexUI = {
         }
       });
     });
-    ctx.restore();
 
-    // ─────────────────────────────────────────────────────────────
-    // 2. RIGHT INSPECTOR: SELECTED ITEM DETAILS
-    // ─────────────────────────────────────────────────────────────
-    const selectedItem = activeItems[_selectedIndex] || activeItems[0];
-    if (selectedItem) {
-      const isSelectedUnlocked = _activeTab === 'lore'
-        ? isLoreUnlocked(selectedItem.id)
-        : (_activeTab === 'bestiary'
-          ? ((selectedItem.isSecret || selectedItem.id === 'absolute')
-              ? SaveSystem.isSecretBestiaryUnlocked(selectedItem.id)
-              : ((killsMap[selectedItem.id] || 0) > 0))
-          : isMemoryUnlocked(selectedItem.id));
-
-      if (_activeTab === 'lore') {
-        this.drawChronicleInspector(ctx, selectedItem, rightX, contentY, rightW, contentH, isSelectedUnlocked);
-      } else if (_activeTab === 'bestiary') {
-        this.drawBestiaryInspector(ctx, selectedItem, rightX, contentY, rightW, contentH, isSelectedUnlocked, killsMap[selectedItem.id] || 0);
-      } else {
-        this.drawMemoryInspector(ctx, selectedItem, rightX, contentY, rightW, contentH, isSelectedUnlocked);
-      }
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 3. BOTTOM BAR: RETURN BUTTON
-    // ─────────────────────────────────────────────────────────────
-    const closeW = 200;
-    const closeH = 30;
-    const closeX = Math.round(panX + panW / 2 - closeW / 2);
-    const closeY = panY + panH - 38;
-    const isCloseHovered = mouseX >= closeX && mouseX <= closeX + closeW && mouseY >= closeY && mouseY <= closeY + closeH;
-
-    ctx.fillStyle = isCloseHovered ? 'rgba(75, 85, 99, 0.85)' : 'rgba(30, 41, 59, 0.8)';
-    ctx.strokeStyle = isCloseHovered ? '#fde68a' : 'rgba(148, 163, 184, 0.4)';
-    ctx.lineWidth = 1.2;
-    roundRect(ctx, closeX, closeY, closeW, closeH, 6);
+    // ── Right: Projected Stela of Remembrance ──
+    ctx.fillStyle = 'rgba(8, 12, 24, 0.94)';
+    ctx.strokeStyle = 'rgba(168, 85, 247, 0.6)';
+    ctx.lineWidth = 1.3;
+    roundRect(ctx, rightX, ry, rightW, rh, 8);
     ctx.fill(); ctx.stroke();
 
-    ctx.fillStyle = isCloseHovered ? '#ffffff' : '#cbd5e1';
-    ctx.font = 'bold 11px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('◈ RETURN ( Esc )', closeX + closeW / 2, closeY + closeH / 2);
+    const selectedMem = STORY_MEMORIES[_selectedIndex] || STORY_MEMORIES[0];
+    const isUnlocked = selectedMem ? isMemoryUnlocked(selectedMem.id) : false;
 
-    _zones.push({
-      id: 'btn_close',
-      x: closeX, y: closeY, w: closeW, h: closeH,
-      action: () => closeCodex()
-    });
-
-    ctx.restore();
-  },
-
-  // ─────────────────────────────────────────────────────────────
-  // CHRONICLES INSPECTOR
-  // ─────────────────────────────────────────────────────────────
-  drawChronicleInspector(ctx, item, rx, ry, rw, rh, isUnlocked) {
-    if (!isUnlocked) {
-      this.drawLockedState(ctx, rx, ry, rw, rh, `Floor ${item.floor} — Sealed Chronicle`, `This ancient parchment remains sealed within the stones of Floor ${item.floor}. Descend into the labyrinth to recover its lore.`);
-      return;
-    }
-
-    ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 15px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText(`◈ ${item.title.toUpperCase()}`, rx + rw / 2, ry + 18);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px Cinzel, serif';
-    ctx.fillText(item.author || `Recovered from Floor ${item.floor}`, rx + rw / 2, ry + 40);
-
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.4)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(rx + 24, ry + 56);
-    ctx.lineTo(rx + rw - 24, ry + 56);
-    ctx.stroke();
-
-    // Ancient Text Body with word wrapping
-    ctx.fillStyle = '#f1f5f9';
-    ctx.font = 'italic 12.5px Crimson Text, serif';
-    ctx.textAlign = 'left';
-    const lines = this.wrapText(ctx, item.text, rw - 48);
-    lines.forEach((l, idx) => {
-      ctx.fillText(l, rx + 24, ry + 72 + idx * 22);
-    });
-
-    // Floor Revelation Seal
-    const stampY = ry + rh - 44;
-    ctx.fillStyle = 'rgba(201, 168, 76, 0.15)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.5)';
-    roundRect(ctx, rx + 24, stampY, rw - 48, 26, 4);
-    ctx.fill(); ctx.stroke();
-
-    ctx.fillStyle = '#c9a84c';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`ARCHIVAL DEED PRESERVED · FLOOR ${item.floor} CANON`, rx + rw / 2, stampY + 13);
-  },
-
-  // ─────────────────────────────────────────────────────────────
-  // BESTIARY INSPECTOR (Authentic In-Game Pixel-Art Portrait)
-  // ─────────────────────────────────────────────────────────────
-  drawBestiaryInspector(ctx, item, rx, ry, rw, rh, isUnlocked, kills) {
-    const isSecret = item.isSecret || item.id === 'absolute';
-
-    // 1. Portrait Box (Left of Right Inspector: 140x140)
-    const portW = 140;
-    const portH = 140;
-    const portX = rx + 18;
-    const portY = ry + 18;
-
-    BestiaryPortraitRenderer.drawPortrait(ctx, item.id, portX, portY, portW, portH, isUnlocked, _ambientTimer);
-
-    // 2. Creature Meta & Stats (Right of Portrait Box)
-    const metaX = portX + portW + 18;
-    const metaW = rx + rw - metaX - 18;
-
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-
-    ctx.fillStyle = isUnlocked ? (item.col || '#fde68a') : '#64748b';
-    ctx.font = 'bold 15px Cinzel, serif';
-    ctx.fillText(isUnlocked ? item.name : 'Unknown Entity', metaX, ry + 20);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '10px Cinzel, serif';
-    ctx.fillText(`CATEGORY: ${isUnlocked ? (item.category || 'Abyssal Horror') : 'Classified'}`, metaX, ry + 42);
-    ctx.fillText(`ENCOUNTER: ${isUnlocked ? item.floors : 'Deep Floors'}`, metaX, ry + 58);
-    ctx.fillText(`STATUS / THREAT: ${isUnlocked ? item.threat.toUpperCase() : 'Unknown'}`, metaX, ry + 74);
-
-    if (isSecret) {
-      // Secret Observation Status Badge (Not an ordinary combat kill counter)
-      ctx.fillStyle = isUnlocked ? 'rgba(220, 38, 38, 0.18)' : 'rgba(51, 65, 85, 0.4)';
-      ctx.strokeStyle = isUnlocked ? 'rgba(220, 38, 38, 0.65)' : 'rgba(71, 85, 105, 0.5)';
-      roundRect(ctx, metaX, ry + 94, 160, 24, 4);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = isUnlocked ? '#fca5a5' : '#94a3b8';
-      ctx.font = 'bold 9px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(isUnlocked ? 'OBSERVATION LOGGED' : 'CLASSIFICATION SEALED', metaX + 80, ry + 106);
-    } else {
-      // Standard Kill Counter Badge
-      ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
-      ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
-      roundRect(ctx, metaX, ry + 94, 140, 24, 4);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = '#fca5a5';
-      ctx.font = 'bold 9.5px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`TOTAL SLAIN: ${kills}`, metaX + 70, ry + 106);
-    }
-
-    // Divider line
-    ctx.strokeStyle = isSecret ? 'rgba(220, 38, 38, 0.35)' : 'rgba(71, 85, 105, 0.35)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(rx + 18, portY + portH + 14);
-    ctx.lineTo(rx + rw - 18, portY + portH + 14);
-    ctx.stroke();
-
-    // 3. Information Section
-    const descY = portY + portH + 24;
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-
-    if (!isUnlocked) {
+    if (!selectedMem || !isUnlocked) {
+      // Locked Memory Stela
       ctx.fillStyle = '#64748b';
-      ctx.font = 'italic 12px Crimson Text, serif';
-      const lockedMsg = isSecret
-        ? 'No observation of this entity has been registered. Its existence lies beyond ordinary dungeon records, concealed in the deepest collapse of mortal consciousness.'
-        : 'This horror has not yet been conquered in combat. Slay it during your descent to decrypt its combat behavior, attack telegraphs, and elemental weaknesses.';
-      const uLines = this.wrapText(ctx, lockedMsg, rw - 40);
-      uLines.forEach((ul, idx) => {
-        ctx.fillText(ul, rx + 20, descY + idx * 16);
+      ctx.font = 'bold 13px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('DORMANT ASTRAL MEMORY SHARD', rightX + rightW / 2, ry + rh / 2 - 25);
+
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+      ctx.font = 'italic 11.5px Crimson Text, serif';
+      const msg = 'This memory shard remains frozen in the astral void. Ascend deeper into the crucible, confront the floor wardens, and unlock new fates to illuminate Rowan\'s recollections.';
+      const lines = this.wrapText(ctx, msg, rightW - 60);
+      lines.forEach((l, idx) => {
+        ctx.fillText(l, rightX + rightW / 2, ry + rh / 2 + 5 + idx * 18);
       });
       return;
     }
 
-    if (isSecret) {
-      // Ancient Inscription & Surviving Account
-      this.drawAncientInscription(ctx, rx + 20, descY, rw - 40, _ambientTimer);
-      return;
-    }
-
-    // Standard enemy lore & tactics
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillText('LORE OBSERVATION:', rx + 20, descY);
-
-    ctx.fillStyle = '#f1f5f9';
-    ctx.font = '11.5px Crimson Text, serif';
-    const dLines = this.wrapText(ctx, item.desc, rw - 40);
-    dLines.forEach((dl, idx) => {
-      ctx.fillText(dl, rx + 20, descY + 14 + idx * 16);
-    });
-
-    const tacticsY = descY + 14 + Math.max(2, dLines.length) * 16 + 10;
-    ctx.fillStyle = '#facc15';
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillText('TACTICAL OBSERVATION:', rx + 20, tacticsY);
-
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = '11.5px Crimson Text, serif';
-    const tLines = this.wrapText(ctx, item.tactics, rw - 40);
-    tLines.forEach((tl, idx) => {
-      ctx.fillText(tl, rx + 20, tacticsY + 14 + idx * 16);
-    });
-  },
-
-  drawAncientInscription(ctx, x, y, maxW, timer) {
-    ctx.fillStyle = '#ef4444';
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillText('ANCIENT INSCRIPTION (UNTRANSLATABLE):', x, y);
-
-    const glyphData = [
-      [15, 1, 4, 10, -1, 6, 8, 3, 11, -1, 14, 0, 7, -1, 15, 2, 5],
-      [2, 5, -1, 12, 13, 1, -1, -2, -2, -1, 9, 15, 4, -1, 10, -2],
-      [10, 7, 11, -1, 15, 1, 8, -1, 6, 3, -1, -3, -3, -3]
-    ];
-
-    const pSize = 1.6;
-    const glyphPitch = 18;
-    const linePitch = 18;
-    const startGlyphY = y + 16;
-
-    ctx.save();
-    glyphData.forEach((line, lineIdx) => {
-      let curX = x;
-      const curY = startGlyphY + lineIdx * linePitch;
-
-      line.forEach((gIdx, colIdx) => {
-        if (gIdx === -1) {
-          curX += 10;
-          return;
-        }
-
-        if (gIdx === -3) {
-          // Eroded dash
-          ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
-          ctx.fillRect(curX, curY + 5, 8, 2);
-          curX += 12;
-          return;
-        }
-
-        const pulse = Math.sin(timer * 2.2 + lineIdx * 1.4 + colIdx * 0.4);
-        const alpha = gIdx === -2
-          ? (0.2 + pulse * 0.08)
-          : (0.65 + pulse * 0.25);
-
-        ctx.fillStyle = `rgba(239, 68, 68, ${Math.max(0.15, alpha)})`;
-
-        const pattern = gIdx === -2
-          ? [0b00100, 0b00000, 0b01010, 0b00000, 0b10001, 0b00000, 0b00100] // chipped fragments
-          : (ANCIENT_GLYPHS[gIdx] || ANCIENT_GLYPHS[0]);
-
-        for (let r = 0; r < 7; r++) {
-          const rowBits = pattern[r];
-          for (let c = 0; c < 5; c++) {
-            if ((rowBits & (1 << (4 - c))) !== 0) {
-              ctx.fillRect(
-                Math.round(curX + c * pSize),
-                Math.round(curY + r * pSize),
-                Math.round(pSize),
-                Math.round(pSize)
-              );
-            }
-          }
-        }
-
-        curX += glyphPitch;
-      });
-    });
-    ctx.restore();
-
-    // Subtle divider line
-    const divY = startGlyphY + 3 * linePitch + 6;
-    ctx.strokeStyle = 'rgba(220, 38, 38, 0.35)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(x, divY);
-    ctx.lineTo(x + maxW, divY);
-    ctx.stroke();
-
-    // Secondary Surviving Observation
-    const obsY = divY + 10;
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillText('SURVIVING RECOLLECTION:', x, obsY);
-
-    ctx.fillStyle = '#f1f5f9';
-    ctx.font = 'italic 11.5px Crimson Text, serif';
-    const note = '“No origin is recorded. No age is known. The form observed during the collapse of sanity is the only surviving account.”';
-    const nLines = this.wrapText(ctx, note, maxW);
-    nLines.forEach((nl, idx) => {
-      ctx.fillText(nl, x, obsY + 14 + idx * 16);
-    });
-  },
-
-  // ─────────────────────────────────────────────────────────────
-  // MEMORIES INSPECTOR (Pixel-Art Scene Frame)
-  // ─────────────────────────────────────────────────────────────
-  drawMemoryInspector(ctx, item, rx, ry, rw, rh, isUnlocked) {
-    if (!isUnlocked) {
-      this.drawLockedState(ctx, rx, ry, rw, rh, 'Locked Memory Echo', 'This memory remains sealed in the deep void. Advance through cinematic trials and endings to unlock Rowan\'s journey recollections.');
-      return;
-    }
-
+    // Unlocked Stela Projection
     const transAlpha = Math.min(1, Math.max(0.1, _memoryTransition));
-    const slideOffset = (1 - _memoryTransition) * 6;
-
-    // Scene Thumbnail Preview Frame (180x102)
-    const thW = 180;
-    const thH = 102;
-    const thX = rx + Math.round((rw - thW) / 2);
-    const thY = ry + 12 + slideOffset;
-
-    BestiaryPortraitRenderer.drawMemoryThumbnail(ctx, item.sceneType, thX, thY, thW, thH, isUnlocked, _ambientTimer);
-
     ctx.save();
     ctx.globalAlpha = transAlpha;
 
-    let curY = thY + thH + 9;
+    // Scene Thumbnail Preview Frame (220 × 110 px)
+    const thW = 220;
+    const thH = 110;
+    const thX = rightX + Math.round((rightW - thW) / 2);
+    const thY = ry + 14;
+
+    BestiaryPortraitRenderer.drawMemoryThumbnail(
+      ctx,
+      selectedMem.sceneType,
+      thX,
+      thY,
+      thW,
+      thH,
+      isUnlocked,
+      _ambientTimer
+    );
+
+    let curY = thY + thH + 10;
 
     // Chronology Subtitle
     ctx.fillStyle = '#c084fc';
-    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.font = 'bold 9px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(item.chronology ? item.chronology.toUpperCase() : 'JOURNEY RECOLLECTION', rx + rw / 2, curY);
+    ctx.fillText(selectedMem.chronology ? selectedMem.chronology.toUpperCase() : 'JOURNEY RECOLLECTION', rightX + rightW / 2, curY);
     curY += 15;
 
     // Title
     ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 15px Cinzel, serif';
-    ctx.fillText(item.title, rx + rw / 2, curY);
-    curY += 21;
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.shadowColor = '#a855f7';
+    ctx.shadowBlur = 6;
+    ctx.fillText(selectedMem.title, rightX + rightW / 2, curY);
+    ctx.shadowBlur = 0;
+    curY += 20;
 
     // Spoken Quote (if present)
-    if (item.quote) {
-      ctx.fillStyle = '#fde047';
+    if (selectedMem.quote) {
+      ctx.fillStyle = '#fef08a';
       ctx.font = 'italic 11.5px Crimson Text, serif';
-      const qLines = this.wrapText(ctx, item.quote, rw - 44);
+      const qLines = this.wrapText(ctx, selectedMem.quote, rightW - 40);
       qLines.forEach((ql) => {
-        ctx.fillText(ql, rx + rw / 2, curY);
+        ctx.fillText(ql, rightX + rightW / 2, curY);
         curY += 15;
       });
       curY += 4;
     }
 
     // Divider
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.35)';
+    ctx.strokeStyle = 'rgba(147, 51, 234, 0.35)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(rx + 24, curY);
-    ctx.lineTo(rx + rw - 24, curY);
+    ctx.moveTo(rightX + 24, curY);
+    ctx.lineTo(rightX + rightW - 24, curY);
     ctx.stroke();
-    curY += 10;
+    curY += 8;
 
     // Narrative Recollection
     ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-
     ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillText('JOURNEY RECOLLECTION:', rx + 24, curY);
-    curY += 15;
+    ctx.font = 'bold 9px Cinzel, serif';
+    ctx.fillText('NARRATIVE RECOLLECTION:', rightX + 20, curY);
+    curY += 14;
 
     ctx.fillStyle = '#e2e8f0';
-    ctx.font = '11.5px Crimson Text, serif';
-    const lLines = this.wrapText(ctx, item.lore, rw - 48);
-    lLines.forEach((ll) => {
-      ctx.fillText(ll, rx + 24, curY);
-      curY += 16;
+    ctx.font = '11px Crimson Text, serif';
+    const lLines = this.wrapText(ctx, selectedMem.lore || '', rightW - 40);
+    lLines.slice(0, 4).forEach((ll) => {
+      ctx.fillText(ll, rightX + 20, curY);
+      curY += 15;
     });
 
-    if (item.significance) {
-      curY += 6;
+    if (selectedMem.significance) {
+      curY += 4;
       ctx.fillStyle = '#38bdf8';
-      ctx.font = 'bold 9.5px Cinzel, serif';
-      ctx.fillText('CRUCIBLE SIGNIFICANCE:', rx + 24, curY);
-      curY += 15;
+      ctx.font = 'bold 9px Cinzel, serif';
+      ctx.fillText('CRUCIBLE SIGNIFICANCE:', rightX + 20, curY);
+      curY += 14;
 
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = 'italic 11px Crimson Text, serif';
-      const sLines = this.wrapText(ctx, item.significance, rw - 48);
-      sLines.forEach((sl) => {
-        ctx.fillText(sl, rx + 24, curY);
-        curY += 15;
+      ctx.font = 'italic 10.5px Crimson Text, serif';
+      const sLines = this.wrapText(ctx, selectedMem.significance, rightW - 40);
+      sLines.slice(0, 2).forEach((sl) => {
+        ctx.fillText(sl, rightX + 20, curY);
+        curY += 14;
       });
     }
 
     ctx.restore();
-  },
-
-  drawLockedState(ctx, rx, ry, rw, rh, title, hint) {
-    ctx.fillStyle = '#64748b';
-    ctx.font = 'bold 14px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(title, rx + rw / 2, ry + rh / 2 - 30);
-
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
-    ctx.font = '12px Crimson Text, serif';
-    const lines = this.wrapText(ctx, hint, rw - 60);
-    lines.forEach((l, idx) => {
-      ctx.fillText(l, rx + rw / 2, ry + rh / 2 + idx * 18);
-    });
   },
 
   wrapText(ctx, text, maxWidth) {
@@ -803,6 +1136,44 @@ export const CodexUI = {
       closeCodex();
       return true;
     }
+    if (key === 'Tab') {
+      const tabs = ['lore', 'bestiary', 'memories'];
+      const idx = (tabs.indexOf(_activeTab) + 1) % tabs.length;
+      this.setTab(tabs[idx]);
+      SoundManager.snd('menu_select');
+      return true;
+    }
+    if (key === '1') {
+      this.setTab('lore');
+      SoundManager.snd('menu_select');
+      return true;
+    }
+    if (key === '2') {
+      this.setTab('bestiary');
+      SoundManager.snd('menu_select');
+      return true;
+    }
+    if (key === '3') {
+      this.setTab('memories');
+      SoundManager.snd('menu_select');
+      return true;
+    }
+    if (key === 'ArrowUp' || key === 'ArrowLeft') {
+      const total = _activeTab === 'lore'
+        ? LORE_SCROLLS_DATA.filter(l => l.floor >= 1 && l.floor <= 10 && l.revealedAt !== 'legacy').length
+        : (_activeTab === 'bestiary' ? BESTIARY_INFO.length : STORY_MEMORIES.length);
+      _selectedIndex = (_selectedIndex - 1 + total) % total;
+      SoundManager.snd('menu_hover');
+      return true;
+    }
+    if (key === 'ArrowDown' || key === 'ArrowRight') {
+      const total = _activeTab === 'lore'
+        ? LORE_SCROLLS_DATA.filter(l => l.floor >= 1 && l.floor <= 10 && l.revealedAt !== 'legacy').length
+        : (_activeTab === 'bestiary' ? BESTIARY_INFO.length : STORY_MEMORIES.length);
+      _selectedIndex = (_selectedIndex + 1) % total;
+      SoundManager.snd('menu_hover');
+      return true;
+    }
     return false;
   },
 
@@ -817,7 +1188,7 @@ export const CodexUI = {
     }
 
     // Click outside panel returns to Title
-    const panW = 820, panH = 510;
+    const panW = 890, panH = 520;
     const panX = (LW - panW) / 2, panY = (LH - panH) / 2;
     if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
       closeCodex();

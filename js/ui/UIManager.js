@@ -125,7 +125,7 @@ export const UIManager = {
         break;
 
       case GameStates.PAUSED:
-        PauseMenu.draw(ctx);
+        PauseMenu.draw(ctx, dt);
         break;
 
       case GameStates.SETTINGS:
