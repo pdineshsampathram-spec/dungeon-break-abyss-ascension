@@ -16,25 +16,82 @@ import { CodexUI, drawLoreModal, drawMemoryEchoModal, handleMemoryEchoClick } fr
 import { InventoryUI } from './InventoryUI.js';
 import { MobileControls } from './MobileControls.js';
 import { LW, LH } from '../core/Constants.js';
-import { FloorManager } from '../world/FloorManager.js';
+import { Credits } from '../cinematics/Credits.js';
+import { LastEmberCinematic } from '../cinematics/LastEmberCinematic.js';
+import { EndingCinematics, ACTIVE_ENDING } from '../cinematics/EndingCinematics.js';
+import { WardenDefeatCinematic } from '../cinematics/WardenDefeatCinematic.js';
+import { DeathCinematics, ACTIVE_DEATH_CINEMATIC } from '../cinematics/DeathCinematics.js';
+import { BossIntros } from '../cinematics/BossIntros.js';
+import { CinematicDirector } from '../cinematics/CinematicDirector.js';
+import { UITransitionManager } from './UITransitionManager.js';
 
 export const UIManager = {
   init(canvas) {
     if (!canvas) return;
 
-    // Attach pointer dispatcher
-    canvas.addEventListener('pointerdown', (e) => {
+    let _lastHandled = 0;
+    const trigger = (cx, cy) => {
+      const now = performance.now();
+      if (now - _lastHandled < 150) return;
+      _lastHandled = now;
       AudioManager.init();
-      this.handlePointerDown(e.clientX, e.clientY);
+      this.handlePointerDown(cx, cy);
+    };
+
+    // Primary pointer event (handles mouse, touch, and stylus without duplicate firing)
+    canvas.addEventListener('pointerdown', (e) => trigger(e.clientX, e.clientY));
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (GameState.STATE === GameStates.DEATH_SANITY || (typeof window !== 'undefined' && window.ShatteredMindCinematic && window.ShatteredMindCinematic.isActive())) {
+        const { mx, my } = InputManager.cssToGame(e.clientX, e.clientY);
+        DeathCinematics.handleMouseMove(mx, my);
+      }
     });
 
-    // Also support touchstart directly for responsive mobile touches
+    // Global pointer/click fallback for margins & letterboxing
+    window.addEventListener('pointerdown', (e) => {
+      if (e.target && e.target.closest && e.target.closest('#rampage-cutscene-trigger-bar')) return;
+      if (e.target !== canvas && (
+        GameState.STATE === GameStates.TITLE ||
+        GameState.STATE === GameStates.CINEMATIC ||
+        GameState.STATE === GameStates.DYING ||
+        GameState.STATE === GameStates.DEATH_NORMAL ||
+        GameState.STATE === GameStates.DEATH_SANITY ||
+        GameState.STATE === GameStates.DEATH_RESULTS ||
+        GameState.STATE === GameStates.CREDITS ||
+        GameState.STATE === 'credits' ||
+        GameState.STATE === GameStates.LAST_EMBER ||
+        GameState.STATE === 'last_ember' ||
+        GameState.STATE === 'endcard'
+      )) {
+        trigger(e.clientX, e.clientY);
+      }
+    });
+    window.addEventListener('click', (e) => {
+      if (e.target && e.target.closest && e.target.closest('#rampage-cutscene-trigger-bar')) return;
+      if (e.target !== canvas && (
+        GameState.STATE === GameStates.TITLE ||
+        GameState.STATE === GameStates.CINEMATIC ||
+        GameState.STATE === GameStates.DYING ||
+        GameState.STATE === GameStates.DEATH_NORMAL ||
+        GameState.STATE === GameStates.DEATH_SANITY ||
+        GameState.STATE === GameStates.DEATH_RESULTS ||
+        GameState.STATE === GameStates.CREDITS ||
+        GameState.STATE === 'credits' ||
+        GameState.STATE === GameStates.LAST_EMBER ||
+        GameState.STATE === 'last_ember' ||
+        GameState.STATE === 'endcard'
+      )) {
+        trigger(e.clientX, e.clientY);
+      }
+    });
+
+    // Touchstart directly for mobile responsiveness
     canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
-      AudioManager.init();
       if (e.changedTouches && e.changedTouches[0]) {
         const t = e.changedTouches[0];
-        this.handlePointerDown(t.clientX, t.clientY);
+        trigger(t.clientX, t.clientY);
       }
     }, { passive: false });
 
@@ -94,6 +151,9 @@ export const UIManager = {
       default:
         break;
     }
+
+    // 3. Cinematic Screen Transitions (fades / crossfades)
+    UITransitionManager.draw(ctx);
   },
 
   handlePointerDown(clientX, clientY) {
@@ -115,9 +175,22 @@ export const UIManager = {
       return;
     }
 
+    // 3.5. Cinematic Advance / Skip
+    if (GameState.STATE === GameStates.BOSS_DEFEAT_CINEMATIC || GameState.STATE === 'boss_defeat_cinematic') {
+      if (WardenDefeatCinematic.canSkip && WardenDefeatCinematic.canSkip()) {
+        WardenDefeatCinematic.skip();
+      }
+      return;
+    }
     // 4. Title State
     if (GameState.STATE === GameStates.TITLE) {
       MainMenu.handleClick(mx, my);
+      return;
+    }
+
+    // 4.5. Boss Intro Cinematic Skip
+    if (GameState.STATE === GameStates.BOSS_INTRO || GameState.BOSS_INTRO_ACTIVE) {
+      BossIntros.skip();
       return;
     }
 
@@ -152,23 +225,35 @@ export const UIManager = {
       return;
     }
 
-    // 10. Death Screens
-    if (GameState.STATE === GameStates.DEATH_NORMAL || GameState.STATE === GameStates.DEATH_SANITY || GameState.STATE === 'endcard') {
-      const btnW = 160, btnH = 46;
-      const btn1X = LW / 2 - btnW - 15;
-      const btn2X = LW / 2 + 15;
-      const btnY = 320;
-      if (mx >= btn1X && mx <= btn1X + btnW && my >= btnY && my <= btnY + btnH) {
-        // Retry
-        GameState.resetPlayer();
-        FloorManager.loadLevel(1);
-        GameState.setState(GameStates.PLAYING);
+    // 10. Credits State
+    if (GameState.STATE === GameStates.CREDITS || GameState.STATE === 'credits' || (Credits && Credits.active)) {
+      if (Credits.handleClick(mx, my)) return;
+      return;
+    }
+
+    // 10.5. The Last Ember State
+    if (GameState.STATE === GameStates.LAST_EMBER || GameState.STATE === 'last_ember' || (LastEmberCinematic && LastEmberCinematic.isActive())) {
+      if (LastEmberCinematic.handleClick(mx, my)) return;
+      return;
+    }
+
+    // 11. Cinematics (Opening & Endings)
+    if (GameState.STATE === GameStates.CINEMATIC) {
+      if (EndingCinematics.isActive()) {
+        if (EndingCinematics.handleClick(mx, my)) return;
         return;
       }
-      if (mx >= btn2X && mx <= btn2X + btnW && my >= btnY && my <= btnY + btnH) {
-        quitToMainMenu();
+      if (CinematicDirector.isActive()) {
+        if (CinematicDirector.handleClick(mx, my)) return;
         return;
       }
+    }
+
+
+
+    // 12. Death Screens (Normal & Sanity)
+    if (GameState.STATE === GameStates.DEATH_NORMAL || GameState.STATE === GameStates.DEATH_SANITY || GameState.STATE === GameStates.DYING || GameState.STATE === GameStates.DEATH_RESULTS || GameState.STATE === 'endcard') {
+      if (DeathCinematics.handleClick(mx, my)) return;
       return;
     }
 
@@ -210,3 +295,7 @@ export const UIManager = {
     }
   }
 };
+
+if (typeof window !== 'undefined') {
+  window.UIManager = UIManager;
+}
