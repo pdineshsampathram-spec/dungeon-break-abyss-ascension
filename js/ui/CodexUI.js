@@ -417,93 +417,166 @@ export const CodexUI = {
 
     const selectedItem = principalLore[_selectedIndex] || principalLore[0];
     const isUnlocked = selectedItem ? isLoreUnlocked(selectedItem.id) : false;
+    const romanNums = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+    const roman = selectedItem ? (romanNums[selectedItem.floor - 1] || `${selectedItem.floor}`) : '?';
 
+    // ─────────────────────────────────────────────────────────────
+    // 1. PROMINENT ILLUSTRATED SCENE (Dedicated Pixel-Art Canvas)
+    // ─────────────────────────────────────────────────────────────
+    const illX = rightX + 16;
+    const illY = ry + 12;
+    const illW = rightFolioW - 32;
+    const illH = 136;
+
+    BestiaryPortraitRenderer.drawChronicleIllustration(
+      ctx,
+      selectedItem ? selectedItem.floor : 1,
+      illX, illY, illW, illH,
+      isUnlocked,
+      _ambientTimer
+    );
+
+    // ─────────────────────────────────────────────────────────────
+    // 2. LOCKED FOLIO READING STATE
+    // ─────────────────────────────────────────────────────────────
     if (!selectedItem || !isUnlocked) {
-      // Obscured locked folio state
+      // Rubricated locked header
       ctx.fillStyle = '#64748b';
-      ctx.font = 'bold 13px Cinzel, serif';
+      ctx.font = 'bold 9.5px Cinzel, serif';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`SEALED ILLUMINATION · FLOOR ${selectedItem ? selectedItem.floor : '?'}`, rightX + rightFolioW / 2, ry + rh / 2 - 25);
+      ctx.textBaseline = 'top';
+      ctx.fillText(`— LIBER ${roman} · SEALED CHRONICLE —`, rightX + rightFolioW / 2, ry + 158);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 14px Cinzel, serif';
+      ctx.fillText(`SEALED STRATUM ${selectedItem ? selectedItem.floor : '?'} CHRONICLE`, rightX + rightFolioW / 2, ry + 172);
 
       ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
-      ctx.font = 'italic 11.5px Crimson Text, serif';
-      const lockedMsg = `This parchment is obscured in eternal abyss ash. Descend to Floor ${selectedItem ? selectedItem.floor : '?'} and recover the ancient lore scroll to illuminate its historical account.`;
-      const lines = this.wrapText(ctx, lockedMsg, rightFolioW - 60);
+      ctx.font = 'italic 10px "Crimson Text", serif';
+      ctx.fillText('Encrypted with Abyssal Seal & Ancient Vanguard Cipher', rightX + rightFolioW / 2, ry + 189);
+
+      // Ornamental Divider
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.35)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(rightX + 24, ry + 201);
+      ctx.lineTo(rightX + rightFolioW - 24, ry + 201);
+      ctx.stroke();
+
+      // Sealed Explanation
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
+      ctx.font = 'italic 12px "Crimson Text", serif';
+      ctx.textAlign = 'center';
+      const lockedMsg = `This parchment remains shrouded in eternal abyssal ash. Descend into the depths of Stratum Floor ${selectedItem ? selectedItem.floor : '?'} and recover the ancient lore scroll to break the wax seal, illuminate this historical account, and reveal Rowan's true trial.`;
+      const lines = this.wrapText(ctx, lockedMsg, rightFolioW - 56);
       lines.forEach((l, idx) => {
-        ctx.fillText(l, rightX + rightFolioW / 2, ry + rh / 2 + 5 + idx * 18);
+        ctx.fillText(l, rightX + rightFolioW / 2, ry + 218 + idx * 19);
       });
 
-      // Draw faint abyssal glyphs in background of locked vellum
-      this.drawParchmentGlyphs(ctx, rightX + 40, ry + rh / 2 + 55, rightFolioW - 80, _ambientTimer, 0.25);
+      // Ancient transcription glyphs along bottom of reading area
+      this.drawParchmentGlyphs(ctx, rightX + 32, ry + 300, rightFolioW - 64, _ambientTimer, 0.35);
+
+      // Compact Locked Archival Footer Plate
+      const provY = ry + rh - 48;
+      const provH = 38;
+      const provW = rightFolioW - 40;
+      const provX = rightX + 20;
+
+      ctx.fillStyle = 'rgba(12, 16, 26, 0.75)';
+      ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, provX, provY, provW, provH, 4);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 8.5px Cinzel, serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('◈ RECORD STATUS: SHROUDED IN ABYSSAL ASH', provX + 12, provY + 7);
+
+      ctx.fillStyle = 'rgba(100, 116, 139, 0.9)';
+      ctx.font = 'italic 10px "Crimson Text", serif';
+      ctx.fillText(`Requires Lore Scroll recovery from Stratum ${selectedItem ? selectedItem.floor : '?'}`, provX + 12, provY + 20);
+
+      // Lead ash wax seal on right
+      ctx.fillStyle = '#334155';
+      ctx.beginPath();
+      ctx.arc(provX + provW - 24, provY + provH / 2, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 8px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⊗', provX + provW - 24, provY + provH / 2);
       return;
     }
 
-    // Unlocked Reading Page
-    // Top Ancient Glyph Transcription Ribbon
-    this.drawParchmentGlyphs(ctx, rightX + 24, ry + 14, rightFolioW - 48, _ambientTimer, 0.65);
-
-    // Chapter Header Inscription
-    const romanNums = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-    const roman = romanNums[selectedItem.floor - 1] || `${selectedItem.floor}`;
-
-    ctx.fillStyle = '#dc2626'; // Rubricated crimson title
-    ctx.font = 'bold 10px Cinzel, serif';
+    // ─────────────────────────────────────────────────────────────
+    // 3. UNLOCKED NARRATIVE FOLIO READING STATE
+    // ─────────────────────────────────────────────────────────────
+    // Rubricated Crimson Chapter Inscription
+    ctx.fillStyle = '#dc2626';
+    ctx.font = 'bold 9.5px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(`— LIBER ${roman} · CODEX VANGUARDIA —`, rightX + rightFolioW / 2, ry + 34);
+    ctx.fillText(`— LIBER ${roman} · CODEX VANGUARDIA —`, rightX + rightFolioW / 2, ry + 158);
 
+    // Chapter Title
     ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 16px Cinzel, serif';
+    ctx.font = 'bold 14.5px Cinzel, serif';
     ctx.shadowColor = '#d97706';
     ctx.shadowBlur = 6;
-    ctx.fillText(selectedItem.title.toUpperCase(), rightX + rightFolioW / 2, ry + 48);
+    ctx.fillText(selectedItem.title.toUpperCase(), rightX + rightFolioW / 2, ry + 172);
     ctx.shadowBlur = 0;
 
-    ctx.fillStyle = 'rgba(217, 119, 6, 0.85)';
-    ctx.font = 'italic 10px Crimson Text, serif';
-    ctx.fillText(selectedItem.author || `Recovered from the depths of Floor ${selectedItem.floor}`, rightX + rightFolioW / 2, ry + 68);
+    // Subtitle provenance / inscription
+    ctx.fillStyle = 'rgba(217, 119, 6, 0.95)';
+    ctx.font = 'italic 10px "Crimson Text", serif';
+    ctx.fillText(`“${selectedItem.author}”`, rightX + rightFolioW / 2, ry + 189);
 
-    // Ornamental Divider
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.4)';
+    // Ornamental Divider Line
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(rightX + 32, ry + 84);
-    ctx.lineTo(rightX + rightFolioW - 32, ry + 84);
+    ctx.moveTo(rightX + 24, ry + 201);
+    ctx.lineTo(rightX + rightFolioW - 24, ry + 201);
     ctx.stroke();
 
-    // Pentiment Rubricated Drop-Cap & Manuscript Text
+    // Pentiment Rubricated Drop-Cap & Narrative Text
     const bodyText = selectedItem.text || '';
     const firstLetter = bodyText.charAt(0) || 'I';
     const remainingFirstParagraph = bodyText.slice(1);
 
-    // Decorative Drop-Cap Box (Left: 38x38 px)
-    const capX = rightX + 28;
-    const capY = ry + 94;
-    const capSize = 38;
+    // Decorative Rubricated Drop-Cap Box (Left: 34x34 px)
+    const capX = rightX + 20;
+    const capY = ry + 208;
+    const capSize = 34;
 
-    ctx.fillStyle = 'rgba(185, 28, 28, 0.3)';
+    ctx.fillStyle = 'rgba(185, 28, 28, 0.32)';
     ctx.strokeStyle = '#dc2626';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.4;
     roundRect(ctx, capX, capY, capSize, capSize, 4);
     ctx.fill(); ctx.stroke();
 
     // Drop-Cap Initial Letter
     ctx.fillStyle = '#fef08a';
-    ctx.font = 'bold 26px Cinzel, serif';
+    ctx.font = 'bold 22px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(firstLetter, capX + capSize / 2, capY + capSize / 2);
 
-    // Text Wrap beside and below Drop-Cap
+    // Word wrapping beside and below Drop-Cap
     ctx.fillStyle = '#f1f5f9';
-    ctx.font = 'italic 12.5px "Crimson Text", serif';
+    ctx.font = 'italic 12px "Crimson Text", serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
-    // Lines beside drop-cap
     const textNextX = capX + capSize + 10;
-    const textNextW = rightFolioW - (textNextX - rightX) - 28;
+    const textNextW = rightFolioW - (textNextX - rightX) - 20;
     const allWords = remainingFirstParagraph.split(' ');
 
     let line1 = '', line2 = '', restWords = [];
@@ -527,11 +600,11 @@ export const CodexUI = {
     if (!line1) line1 = cur;
     else if (!line2) line2 = cur;
 
-    ctx.fillText(line1, textNextX, capY + 3);
-    if (line2) ctx.fillText(line2, textNextX, capY + 22);
+    ctx.fillText(line1, textNextX, capY + 2);
+    if (line2) ctx.fillText(line2, textNextX, capY + 18);
 
     // Full width remaining lines below Drop-Cap
-    const fullTextW = rightFolioW - 56;
+    const fullTextW = rightFolioW - 40;
     let fullCur = '';
     const belowLines = [];
     restWords.forEach(w => {
@@ -545,63 +618,52 @@ export const CodexUI = {
     });
     if (fullCur) belowLines.push(fullCur);
 
-    const startBelowY = capY + capSize + 10;
-    const lineSpacing = 19.5;
-    belowLines.slice(0, 8).forEach((bl, idx) => {
-      ctx.fillText(bl, rightX + 28, startBelowY + idx * lineSpacing);
+    const startBelowY = capY + capSize + 6;
+    const lineSpacing = 18;
+    belowLines.forEach((bl, idx) => {
+      ctx.fillText(bl, rightX + 20, startBelowY + idx * lineSpacing);
     });
 
-    // Archival Provenance & In-World Seal Block (Eliminates empty void with authentic historical metadata)
-    const textEndY = startBelowY + Math.min(8, belowLines.length) * lineSpacing;
-    const provY = Math.max(textEndY + 14, ry + rh - 98);
-    const provH = (ry + rh - 44) - provY;
-    if (provH >= 42) {
-      ctx.fillStyle = 'rgba(15, 20, 32, 0.65)';
-      ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
-      ctx.lineWidth = 1;
-      roundRect(ctx, rightX + 28, provY, rightFolioW - 56, provH, 5);
-      ctx.fill(); ctx.stroke();
+    // ─────────────────────────────────────────────────────────────
+    // 4. COMPACT ARCHIVAL RECORD & CANON PROVENANCE FOOTER PLATE
+    // ─────────────────────────────────────────────────────────────
+    const provY = ry + rh - 48;
+    const provH = 38;
+    const provW = rightFolioW - 40;
+    const provX = rightX + 20;
 
-      ctx.fillStyle = '#fde68a';
-      ctx.font = 'bold 8.5px Cinzel, serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('◈ ARCHIVAL PROVENANCE & CANON RECORD', rightX + 38, provY + 8);
-
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
-      ctx.font = 'italic 10px "Crimson Text", serif';
-      const authorText = selectedItem.author ? `Attribution: ${selectedItem.author}` : `Recovered: Depths of Stratum Floor ${selectedItem.floor}`;
-      ctx.fillText(authorText, rightX + 38, provY + 22);
-
-      // Authenticated Seal emblem on right side of provenance box
-      ctx.fillStyle = '#b91c1c';
-      ctx.beginPath();
-      ctx.arc(rightX + rightFolioW - 54, provY + provH / 2, 13, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#fca5a5';
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 7.5px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('CANON', rightX + rightFolioW - 54, provY + provH / 2);
-    }
-
-    // Floor Revelation Wax Stamp (Bottom)
-    const stampY = ry + rh - 36;
-    ctx.fillStyle = 'rgba(201, 168, 76, 0.12)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.5)';
+    ctx.fillStyle = 'rgba(12, 16, 26, 0.85)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.4)';
     ctx.lineWidth = 1;
-    roundRect(ctx, rightX + 28, stampY, rightFolioW - 56, 24, 4);
+    roundRect(ctx, provX, provY, provW, provH, 4);
     ctx.fill(); ctx.stroke();
 
     ctx.fillStyle = '#fde68a';
     ctx.font = 'bold 8.5px Cinzel, serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('◈ CANONICAL ARCHIVAL DEED', provX + 12, provY + 7);
+
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.9)';
+    ctx.font = 'italic 10px "Crimson Text", serif';
+    ctx.fillText(`Stratum Floor ${selectedItem.floor} · Recovered Lore Scroll · Vanguard Historical Record`, provX + 12, provY + 20);
+
+    // Ruby Wax CANON Seal on right
+    const sealX = provX + provW - 34;
+    const sealY = provY + provH / 2;
+    ctx.fillStyle = '#b91c1c';
+    ctx.beginPath();
+    ctx.arc(sealX, sealY, 13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fca5a5';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 7.5px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`ARCHIVAL DEED PRESERVED · FLOOR ${selectedItem.floor} VANGUARD CANON`, rightX + rightFolioW / 2, stampY + 12);
+    ctx.fillText('CANON', sealX, sealY);
   },
 
   drawParchmentGlyphs(ctx, x, y, w, timer, baseAlpha = 0.5) {

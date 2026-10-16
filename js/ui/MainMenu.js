@@ -46,6 +46,9 @@ let _TITLE_ANIM_T = 0;
 let _revealTimer = 0;
 let _howToPlayActive = false;
 let _fieldGuideChapter = 0; // 0: Arsenal, 1: Footwork, 2: Sanity, 3: Rally, 4: Bosses
+let _fieldGuideInputMode = (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width:900px),(pointer:coarse)').matches) ? 'mobile' : 'pc';
+let _fieldGuideDemoRunning = false;
+let _fieldGuideDemoTimer = 0; // 0 to 2.5s controlled demonstration
 let _returnGoldenWash = 0;
 
 function wrapTextLines(ctx, text, maxWidth) {
@@ -1484,19 +1487,52 @@ export const MainMenu = {
         ctx.fill();
       }
 
-      // Title & Subtitle Header
+      // Title & Platform Mode Switcher Header
       ctx.fillStyle = '#fde68a';
-      ctx.font = 'bold 18px Cinzel, serif';
-      ctx.textAlign = 'center';
+      ctx.font = 'bold 16px Cinzel, serif';
+      ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.shadowColor = '#d97706';
       ctx.shadowBlur = 8;
-      ctx.fillText('◈ THE VANGUARD\'S FIELD MANUAL ◈', LW / 2, my + 14);
+      ctx.fillText('◈ THE VANGUARD\'S FIELD MANUAL ◈', mx + 24, my + 14);
       ctx.shadowBlur = 0;
 
       ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
-      ctx.font = 'italic 11px "Crimson Text", serif';
-      ctx.fillText('ARCHIVAL COMBAT DOCTRINE & SURVIVAL PROTOCOLS OF THE ABYSS', LW / 2, my + 34);
+      ctx.font = 'italic 10.5px "Crimson Text", serif';
+      ctx.fillText('ARCHIVAL COMBAT DOCTRINE & SURVIVAL PROTOCOLS OF THE ABYSS', mx + 26, my + 33);
+
+      // Platform Mode Switcher (Top Right: PC vs Mobile)
+      const isMobileMode = (_fieldGuideInputMode === 'mobile');
+      const pcBtnW = 112, mobBtnW = 112, swBtnH = 22;
+      const mobBtnX = mx + mw - 24 - mobBtnW;
+      const pcBtnX = mobBtnX - 8 - pcBtnW;
+      const swBtnY = my + 14;
+
+      const isHoverPC = mouseX >= pcBtnX && mouseX <= pcBtnX + pcBtnW && mouseY >= swBtnY && mouseY <= swBtnY + swBtnH;
+      const isHoverMob = mouseX >= mobBtnX && mouseX <= mobBtnX + mobBtnW && mouseY >= swBtnY && mouseY <= swBtnY + swBtnH;
+
+      // PC Toggle Button
+      ctx.fillStyle = !isMobileMode ? 'rgba(217, 119, 6, 0.3)' : (isHoverPC ? 'rgba(30, 41, 59, 0.8)' : 'rgba(15, 23, 42, 0.6)');
+      ctx.strokeStyle = !isMobileMode ? '#fde68a' : (isHoverPC ? '#94a3b8' : 'rgba(71, 85, 105, 0.5)');
+      ctx.lineWidth = !isMobileMode ? 1.5 : 1;
+      roundRect(ctx, pcBtnX, swBtnY, pcBtnW, swBtnH, 4);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = !isMobileMode ? '#ffffff' : '#94a3b8';
+      ctx.font = 'bold 8.5px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('⌨ KEYBOARD / PC', pcBtnX + pcBtnW / 2, swBtnY + swBtnH / 2);
+
+      // Mobile Toggle Button
+      ctx.fillStyle = isMobileMode ? 'rgba(56, 189, 248, 0.28)' : (isHoverMob ? 'rgba(30, 41, 59, 0.8)' : 'rgba(15, 23, 42, 0.6)');
+      ctx.strokeStyle = isMobileMode ? '#38bdf8' : (isHoverMob ? '#94a3b8' : 'rgba(71, 85, 105, 0.5)');
+      ctx.lineWidth = isMobileMode ? 1.5 : 1;
+      roundRect(ctx, mobBtnX, swBtnY, mobBtnW, swBtnH, 4);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = isMobileMode ? '#ffffff' : '#94a3b8';
+      ctx.fillText('📱 TOUCH / MOBILE', mobBtnX + mobBtnW / 2, swBtnY + swBtnH / 2);
 
       // Five Chapter Folio Tabs
       const chapterTabs = [
@@ -1509,7 +1545,7 @@ export const MainMenu = {
 
       const tabW = 148, tabH = 26;
       const tabStartX = mx + Math.round((mw - (chapterTabs.length * tabW + (chapterTabs.length - 1) * 6)) / 2);
-      const tabY = my + 52;
+      const tabY = my + 50;
 
       chapterTabs.forEach((tab, i) => {
         const tx = tabStartX + i * (tabW + 6);
@@ -1535,15 +1571,15 @@ export const MainMenu = {
       });
 
       // Split-Folio Spread Layout
-      const spreadY = my + 86;
-      const spreadH = 356;
+      const spreadY = my + 84;
+      const spreadH = 360;
       const leftW = 380;
       const rightW = mw - leftW - 48;
       const leftX = mx + 20;
       const rightX = leftX + leftW + 12;
 
       // ── Left Folio: Procedural Tactical Schematic Canvas ──
-      ctx.fillStyle = 'rgba(10, 15, 28, 0.85)';
+      ctx.fillStyle = 'rgba(10, 15, 28, 0.88)';
       ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
       ctx.lineWidth = 1;
       roundRect(ctx, leftX, spreadY, leftW, spreadH, 8);
@@ -1567,15 +1603,16 @@ export const MainMenu = {
       roundRect(ctx, leftX + 12, spreadY + 10, leftW - 24, 22, 4);
       ctx.fill(); ctx.stroke();
       ctx.fillStyle = '#c084fc';
-      ctx.font = 'bold 9.5px Cinzel, serif';
+      ctx.font = 'bold 9px Cinzel, serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('◈ VANGUARD TACTICAL DIAGRAM · FIELD SIMULATION ◈', leftX + leftW / 2, spreadY + 21);
+      const modeTag = isMobileMode ? 'TOUCH CONTROLS' : 'KEYBOARD & MOUSE';
+      ctx.fillText(`◈ VANGUARD SCHEMATIC · [ ${modeTag} ] ◈`, leftX + leftW / 2, spreadY + 21);
 
-      // Render Dynamic Diagram depending on active chapter
+      // ── CHAPTER SCHEMATICS ──
       if (_fieldGuideChapter === 0) {
         // CHAPTER 0: ARSENAL SCHEMATIC
-        const cx = leftX + leftW / 2, cy = spreadY + 140;
+        const cx = leftX + leftW / 2, cy = spreadY + 130;
 
         // Cleave Arc Vector
         ctx.save();
@@ -1607,57 +1644,97 @@ export const MainMenu = {
         ctx.fillStyle = '#fde68a';
         ctx.font = 'bold 10px Cinzel, serif';
         ctx.textAlign = 'center';
-        ctx.fillText('PRIMARY SWORD CLEAVE (68° ARC · STAGGER ZONE)', cx, cy + 62);
+        ctx.fillText('PRIMARY SWORD CLEAVE (68° ARC · STAGGER ZONE)', cx, cy + 56);
 
-        // Weapon Dock Mockup
-        const dockY = spreadY + 230;
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-        ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
-        roundRect(ctx, cx - 140, dockY, 280, 52, 6);
-        ctx.fill(); ctx.stroke();
-
-        const slots = [
-          { key: '1', name: 'BROADSWORD', active: true, col: '#fde68a' },
-          { key: '2', name: 'LONGBOW', active: false, col: '#38bdf8' },
-          { key: '3', name: 'RELIC', active: false, col: '#c084fc' }
-        ];
-        slots.forEach((s, idx) => {
-          const sx = cx - 130 + idx * 92;
-          ctx.fillStyle = s.active ? 'rgba(245, 158, 11, 0.25)' : 'rgba(30, 41, 59, 0.5)';
-          ctx.strokeStyle = s.active ? '#f59e0b' : 'rgba(71, 85, 105, 0.4)';
-          ctx.lineWidth = s.active ? 1.5 : 1;
-          roundRect(ctx, sx, dockY + 6, 84, 40, 4);
+        if (!isMobileMode) {
+          // PC Weapon Dock Mockup
+          const dockY = spreadY + 218;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+          ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
+          roundRect(ctx, cx - 140, dockY, 280, 52, 6);
           ctx.fill(); ctx.stroke();
 
-          ctx.fillStyle = s.active ? '#ffffff' : '#94a3b8';
-          ctx.font = 'bold 9px monospace';
-          ctx.textAlign = 'left';
-          ctx.fillText(`[${s.key}]`, sx + 6, dockY + 18);
-          ctx.fillStyle = s.col;
-          ctx.font = 'bold 8.5px Cinzel, serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(s.name, sx + 42, dockY + 32);
-        });
+          const slots = [
+            { key: '1', name: 'BROADSWORD', active: true, col: '#fde68a' },
+            { key: '2', name: 'LONGBOW', active: false, col: '#38bdf8' },
+            { key: '3', name: 'RELIC', active: false, col: '#c084fc' }
+          ];
+          slots.forEach((s, idx) => {
+            const sx = cx - 130 + idx * 92;
+            ctx.fillStyle = s.active ? 'rgba(245, 158, 11, 0.25)' : 'rgba(30, 41, 59, 0.5)';
+            ctx.strokeStyle = s.active ? '#f59e0b' : 'rgba(71, 85, 105, 0.4)';
+            ctx.lineWidth = s.active ? 1.5 : 1;
+            roundRect(ctx, sx, dockY + 6, 84, 40, 4);
+            ctx.fill(); ctx.stroke();
 
-        // Bow aim vector at bottom
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([4, 4]);
-        ctx.beginPath();
-        ctx.moveTo(cx - 120, spreadY + 316); ctx.lineTo(cx + 120, spreadY + 316);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = '#7dd3fc';
-        ctx.font = '9px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('--- [ HOLD SHIFT ] PIERCING ARROW TRAJECTORY --->', cx, spreadY + 332);
+            ctx.fillStyle = s.active ? '#ffffff' : '#94a3b8';
+            ctx.font = 'bold 9px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(`[${s.key}]`, sx + 6, dockY + 18);
+            ctx.fillStyle = s.col;
+            ctx.font = 'bold 8.5px Cinzel, serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(s.name, sx + 42, dockY + 32);
+          });
+
+          // Bow aim vector at bottom
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(cx - 120, spreadY + 310); ctx.lineTo(cx + 120, spreadY + 310);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#7dd3fc';
+          ctx.font = '9px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('--- [ HOLD SHIFT ] PIERCING ARROW TRAJECTORY --->', cx, spreadY + 326);
+        } else {
+          // Mobile Action Buttons Schematic
+          const mobBoxY = spreadY + 218;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+          roundRect(ctx, cx - 140, mobBoxY, 280, 96, 6);
+          ctx.fill(); ctx.stroke();
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 9px Cinzel, serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('ON-SCREEN TOUCH COMBAT INTERFACE', cx, mobBoxY + 12);
+
+          // 3 Touch Action Buttons Mockup
+          const mBtns = [
+            { label: '⚔ ATK', col: '#ef4444', r: 24, x: cx - 80, y: mobBoxY + 54, desc: 'Strike' },
+            { label: '🏹 SHOOT', col: '#34d399', r: 20, x: cx, y: mobBoxY + 54, desc: 'Bow' },
+            { label: '✦ SKILL', col: '#fbbf24', r: 18, x: cx + 76, y: mobBoxY + 54, desc: 'Special' }
+          ];
+          mBtns.forEach(b => {
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+            ctx.fillStyle = b.col + '28';
+            ctx.fill();
+            ctx.strokeStyle = b.col;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 8.5px Cinzel, serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(b.label, b.x, b.y);
+
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+            ctx.font = '8px monospace';
+            ctx.fillText(b.desc, b.x, b.y + b.r + 9);
+          });
+        }
 
       } else if (_fieldGuideChapter === 1) {
         // CHAPTER 1: FOOTWORK & DODGE CADENCE
-        const cx = leftX + leftW / 2, cy = spreadY + 120;
+        const cx = leftX + leftW / 2;
 
-        // Dodge roll vector schematic
-        const dy = spreadY + 140;
+        // 18-Frame Invulnerability Window timeline (Stable, non-flickering)
+        const dy = spreadY + 98;
         ctx.strokeStyle = '#38bdf8';
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -1673,67 +1750,130 @@ export const MainMenu = {
         ctx.closePath();
         ctx.fill();
 
-        // 4 after-images showing evasion phase
-        for (let g = 0; g < 4; g++) {
-          const gx = cx - 100 + g * 65;
-          ctx.fillStyle = `rgba(56, 189, 248, ${0.12 + g * 0.22})`;
-          ctx.strokeStyle = '#38bdf8';
+        // Frame markers: F0, F6 (Parry), F12, F18 (End)
+        const framePhases = [
+          { f: 'F0', label: 'WINDUP', x: cx - 100 },
+          { f: 'F6', label: 'PARRY', x: cx - 35, highlight: true },
+          { f: 'F12', label: 'I-FRAME', x: cx + 30 },
+          { f: 'F18', label: 'RECOVER', x: cx + 95 }
+        ];
+
+        framePhases.forEach(g => {
+          ctx.fillStyle = g.highlight ? 'rgba(245, 158, 11, 0.25)' : 'rgba(56, 189, 248, 0.18)';
+          ctx.strokeStyle = g.highlight ? '#f59e0b' : '#38bdf8';
           ctx.lineWidth = 1.2;
-          roundRect(ctx, gx - 14, dy - 26, 28, 28, 5);
+          roundRect(ctx, g.x - 18, dy - 26, 36, 26, 4);
           ctx.fill(); ctx.stroke();
 
-          ctx.fillStyle = '#ffffff';
+          ctx.fillStyle = g.highlight ? '#fde68a' : '#ffffff';
           ctx.font = 'bold 8.5px monospace';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(`F${g * 6}`, gx, dy - 12);
-        }
+          ctx.fillText(g.f, g.x, dy - 13);
+
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+          ctx.font = '7.5px monospace';
+          ctx.fillText(g.label, g.x, dy + 14);
+        });
 
         ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 10.5px Cinzel, serif';
+        ctx.font = 'bold 10px Cinzel, serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText('[ 18-FRAME ABSOLUTE INVULNERABILITY WINDOW ]', cx, dy + 24);
+        ctx.fillText('[ 18-FRAME ABSOLUTE INVULNERABILITY WINDOW ]', cx, dy + 28);
         ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
         ctx.font = 'italic 9.5px "Crimson Text", serif';
-        ctx.fillText('Rowan phases through monster physical sweeps, cleaves & projectile rings', cx, dy + 40);
+        ctx.fillText('Phases through physical swings, cleaves & projectile rings', cx, dy + 44);
 
-        // Directional WASD compass at bottom
-        const compassY = spreadY + 235;
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-        ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
-        roundRect(ctx, cx - 130, compassY, 260, 94, 6);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#fde68a';
-        ctx.font = 'bold 9.5px Cinzel, serif';
-        ctx.fillText('DIRECTIONAL EVASION CADENCE', cx, compassY + 12);
-
-        const keys = [
-          { label: 'W', x: cx, y: compassY + 34 },
-          { label: 'A', x: cx - 36, y: compassY + 62 },
-          { label: 'S', x: cx, y: compassY + 62 },
-          { label: 'D', x: cx + 36, y: compassY + 62 }
-        ];
-        keys.forEach(k => {
-          ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
-          ctx.strokeStyle = '#94a3b8';
-          ctx.lineWidth = 1;
-          roundRect(ctx, k.x - 14, k.y - 12, 28, 24, 3);
+        if (!isMobileMode) {
+          // PC Directional WASD keyboard compass
+          const compassY = spreadY + 205;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+          ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
+          roundRect(ctx, cx - 130, compassY, 260, 118, 6);
           ctx.fill(); ctx.stroke();
-          ctx.fillStyle = '#f1f5f9';
-          ctx.font = 'bold 9.5px monospace';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(k.label, k.x, k.y);
-        });
+
+          ctx.fillStyle = '#fde68a';
+          ctx.font = 'bold 9.5px Cinzel, serif';
+          ctx.fillText('KEYBOARD DIRECTIONAL CADENCE', cx, compassY + 12);
+
+          const keys = [
+            { label: 'W', hint: '▲', x: cx, y: compassY + 40 },
+            { label: 'A', hint: '◀', x: cx - 44, y: compassY + 74 },
+            { label: 'S', hint: '▼', x: cx, y: compassY + 74 },
+            { label: 'D', hint: '▶', x: cx + 44, y: compassY + 74 }
+          ];
+          keys.forEach(k => {
+            ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1;
+            roundRect(ctx, k.x - 16, k.y - 14, 32, 28, 4);
+            ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#f1f5f9';
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(k.label, k.x, k.y - 3);
+            ctx.fillStyle = '#f59e0b';
+            ctx.font = '7.5px monospace';
+            ctx.fillText(k.hint, k.x, k.y + 8);
+          });
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+          ctx.font = 'italic 8.5px Crimson Text, serif';
+          ctx.fillText('Or use directional Arrow Keys [ ↑ ← ↓ → ]', cx, compassY + 104);
+        } else {
+          // Mobile Virtual Joystick Diagram
+          const joyBoxY = spreadY + 205;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+          roundRect(ctx, cx - 130, joyBoxY, 260, 118, 6);
+          ctx.fill(); ctx.stroke();
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 9.5px Cinzel, serif';
+          ctx.fillText('ANALOG VIRTUAL JOYSTICK · 360° MOTION', cx, joyBoxY + 12);
+
+          // Outer Joystick Ring
+          const jBaseX = cx, jBaseY = joyBoxY + 65;
+          ctx.beginPath();
+          ctx.arc(jBaseX, jBaseY, 34, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.5)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // 8 Directional guide marks
+          for (let a = 0; a < 8; a++) {
+            const rad = (a * Math.PI) / 4;
+            ctx.beginPath();
+            ctx.moveTo(jBaseX + Math.cos(rad) * 24, jBaseY + Math.sin(rad) * 24);
+            ctx.lineTo(jBaseX + Math.cos(rad) * 32, jBaseY + Math.sin(rad) * 32);
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+            ctx.stroke();
+          }
+
+          // Center Knob (slightly deflected up-right)
+          const kx = jBaseX + 10, ky = jBaseY - 8;
+          ctx.beginPath();
+          ctx.arc(kx, ky, 14, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+          ctx.font = 'italic 8.5px Crimson Text, serif';
+          ctx.fillText('Touch & slide anywhere in bottom-left to navigate', cx, joyBoxY + 106);
+        }
 
       } else if (_fieldGuideChapter === 2) {
         // CHAPTER 2: ILLUMINATION & SANITY
-        const cx = leftX + leftW / 2, cy = spreadY + 125;
+        const cx = leftX + leftW / 2, cy = spreadY + 120;
 
         // Torchlight sanctuary circle
-        const rad = 68;
+        const rad = 66;
         const lightGrad = ctx.createRadialGradient(cx, cy, 8, cx, cy, rad);
         lightGrad.addColorStop(0, 'rgba(253, 230, 138, 0.45)');
         lightGrad.addColorStop(0.7, 'rgba(217, 119, 6, 0.18)');
@@ -1763,10 +1903,10 @@ export const MainMenu = {
         ctx.font = 'bold 9.5px Cinzel, serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText('SANCTUARY RADIUS · SANITY DRAIN HALTED', cx, cy + rad + 10);
+        ctx.fillText('SANCTUARY RADIUS · SANITY DRAIN HALTED', cx, cy + rad + 8);
 
         // Sanity Eye Gauge at bottom
-        const ey = spreadY + 230;
+        const ey = spreadY + 225;
         ctx.fillStyle = '#c084fc';
         ctx.font = 'bold 10px Cinzel, serif';
         ctx.fillText('COGNITIVE EQUILIBRIUM · THE EYE OF MADNESS', cx, ey);
@@ -1797,11 +1937,11 @@ export const MainMenu = {
         });
 
       } else if (_fieldGuideChapter === 3) {
-        // CHAPTER 3: GHOST HEALTH & RALLY SYSTEM
+        // CHAPTER 3: GHOST HEALTH & RALLY SYSTEM (STABLE & READABLE, ZERO RAPID FLICKER)
         const cx = leftX + leftW / 2;
 
         // Health Bar with Ghost Health
-        const hby = spreadY + 65;
+        const hby = spreadY + 54;
         ctx.fillStyle = '#94a3b8';
         ctx.font = 'bold 10px Cinzel, serif';
         ctx.textAlign = 'center';
@@ -1816,103 +1956,164 @@ export const MainMenu = {
         roundRect(ctx, bx, by, barW, barH, 4);
         ctx.fill(); ctx.stroke();
 
-        // Active HP (50%)
+        // Demonstration state calculations
+        if (_fieldGuideDemoRunning) {
+          _fieldGuideDemoTimer += dt;
+          if (_fieldGuideDemoTimer > 2.5) {
+            _fieldGuideDemoRunning = false;
+          }
+        }
+
+        const isDemonstrating = _fieldGuideDemoRunning;
+        const demoTime = isDemonstrating ? _fieldGuideDemoTimer : 0;
+        const hasRecovered = isDemonstrating && demoTime >= 1.5;
+
+        // Solid HP (50% base, rises to 78% on successful recovery)
+        const solidHpPct = hasRecovered ? 0.78 : 0.50;
         ctx.fillStyle = '#ef4444';
-        roundRect(ctx, bx + 2, by + 2, barW * 0.5, barH - 4, 3);
+        roundRect(ctx, bx + 2, by + 2, barW * solidHpPct, barH - 4, 3);
         ctx.fill();
 
-        // Ghost HP (28% flashing)
-        const ghostPulse = 0.5 + 0.3 * Math.sin(F * 0.15);
-        ctx.fillStyle = `rgba(203, 213, 225, ${ghostPulse})`;
-        roundRect(ctx, bx + 2 + barW * 0.5, by + 2, barW * 0.28, barH - 4, 3);
-        ctx.fill();
+        // Ghost HP (Steady 28% grey silver, clears when recovered)
+        if (!hasRecovered) {
+          ctx.fillStyle = 'rgba(203, 213, 225, 0.75)';
+          roundRect(ctx, bx + 2 + barW * 0.5, by + 2, barW * 0.28, barH - 4, 3);
+          ctx.fill();
+        }
 
         // Siphon arrow
         ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
-        ctx.moveTo(bx + barW * 0.78, by + 38);
-        ctx.quadraticCurveTo(bx + barW * 0.64, by + 50, bx + barW * 0.52, by + barH + 2);
+        ctx.moveTo(bx + barW * 0.76, by + 34);
+        ctx.quadraticCurveTo(bx + barW * 0.64, by + 46, bx + barW * 0.52, by + barH + 2);
         ctx.stroke();
 
         ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 9.5px Cinzel, serif';
+        ctx.font = 'bold 9px Cinzel, serif';
         ctx.textAlign = 'center';
-        ctx.fillText('COUNTER-ATTACK TO SIPHON GHOST HP BACK', cx, by + 52);
+        ctx.fillText('COUNTER-ATTACK TO SIPHON GHOST HP BACK', cx, by + 48);
 
-        // Emergency window timer bar
-        const ty = spreadY + 220;
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        // Emergency window timer box
+        const ty = spreadY + 195;
+        const twH = 135;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
         ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
-        roundRect(ctx, cx - 130, ty, 260, 94, 6);
+        roundRect(ctx, cx - 135, ty, 270, twH, 6);
         ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = '#fde68a';
         ctx.font = 'bold 9.5px Cinzel, serif';
-        ctx.fillText('2.5-SECOND EMERGENCY RETALIATION WINDOW', cx, ty + 12);
+        ctx.fillText('2.5-SECOND RETALIATION WINDOW', cx, ty + 12);
 
-        // Timer track
+        // Static graduated timeline track (Stable, legible time markers)
+        const tTrackW = 220;
+        const tTrackX = cx - tTrackW / 2;
+        const tTrackY = ty + 34;
+
         ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
-        roundRect(ctx, cx - 100, ty + 34, 200, 14, 3);
+        roundRect(ctx, tTrackX, tTrackY, tTrackW, 14, 3);
         ctx.fill();
 
-        const timerPulse = (F * 0.05) % 1.0;
-        ctx.fillStyle = '#38bdf8';
-        roundRect(ctx, cx - 100, ty + 34, 200 * (1 - timerPulse), 14, 3);
+        // Steady timer fill or controlled demonstration
+        const timerProgress = isDemonstrating ? Math.max(0, 1 - (demoTime / 2.5)) : 0.60;
+        ctx.fillStyle = hasRecovered ? '#4ade80' : '#38bdf8';
+        roundRect(ctx, tTrackX, tTrackY, tTrackW * timerProgress, 14, 3);
         ctx.fill();
 
-        ctx.fillStyle = '#e2e8f0';
-        ctx.font = 'bold 8.5px monospace';
-        ctx.fillText('STRIKE WITHIN WINDOW TO PREVENT LOSS', cx, ty + 62);
-        ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
-        ctx.font = 'italic 9px "Crimson Text", serif';
-        ctx.fillText('Ghost health decays completely if no counter-strike lands', cx, ty + 78);
+        // Time graduation ticks
+        const tTicks = [
+          { frac: 0.0, label: '0.0s (HIT)' },
+          { frac: 0.4, label: '1.0s' },
+          { frac: 0.8, label: '2.0s' },
+          { frac: 1.0, label: '2.5s (END)' }
+        ];
+        tTicks.forEach(tt => {
+          const ttx = tTrackX + tTrackW * tt.frac;
+          ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+          ctx.beginPath();
+          ctx.moveTo(ttx, tTrackY + 14);
+          ctx.lineTo(ttx, tTrackY + 18);
+          ctx.stroke();
+
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+          ctx.font = '7px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(tt.label, ttx, tTrackY + 20);
+        });
+
+        // Interactive Demonstration Button
+        const demoBtnW = 180, demoBtnH = 24;
+        const demoBtnX = cx - demoBtnW / 2;
+        const demoBtnY = ty + 70;
+        const isHoverDemo = mouseX >= demoBtnX && mouseX <= demoBtnX + demoBtnW && mouseY >= demoBtnY && mouseY <= demoBtnY + demoBtnH;
+
+        ctx.fillStyle = isHoverDemo ? 'rgba(56, 189, 248, 0.3)' : 'rgba(30, 41, 59, 0.7)';
+        ctx.strokeStyle = isDemonstrating ? '#4ade80' : (isHoverDemo ? '#38bdf8' : 'rgba(71, 85, 105, 0.6)');
+        ctx.lineWidth = 1.2;
+        roundRect(ctx, demoBtnX, demoBtnY, demoBtnW, demoBtnH, 4);
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = isDemonstrating ? '#4ade80' : (isHoverDemo ? '#ffffff' : '#38bdf8');
+        ctx.font = 'bold 8.5px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(isDemonstrating ? '↺ DEMONSTRATING...' : '↺ DEMONSTRATE CADENCE', cx, demoBtnY + demoBtnH / 2);
+
+        ctx.fillStyle = hasRecovered ? '#86efac' : 'rgba(148, 163, 184, 0.85)';
+        ctx.font = 'italic 8.5px Crimson Text, serif';
+        const demoMsg = hasRecovered ? '✔ Counter-strike landed! 100% ghost health restored' : 'Strike hostile targets within 2.5s to restore lost health';
+        ctx.fillText(demoMsg, cx, ty + 114);
 
       } else if (_fieldGuideChapter === 4) {
         // CHAPTER 4: CITADEL BOSSES
         const bosses = [
-          { name: 'GORGAROTH THE DEFILER', floor: 'FLOOR 3', title: 'THE MOLTEN FORGE', col: '#f97316', sigil: '⚔' },
-          { name: 'MALAKOR THE DREADLORD', floor: 'FLOOR 6', title: 'THE VOID RIFT', col: '#a855f7', sigil: '✦' },
-          { name: 'THE ABYSS WARDEN', floor: 'FLOOR 10', title: 'THE SUNKEN THRONE', col: '#ef4444', sigil: '♛' }
+          { name: 'GORGAROTH THE DEFILER', floor: 'FLOOR 3', title: 'THE MOLTEN FORGE', col: '#f97316', sigil: '⚔', note: 'Molten anvil cleaves · Dodge behind back' },
+          { name: 'MALAKOR THE DREADLORD', floor: 'FLOOR 6', title: 'THE VOID RIFT', col: '#a855f7', sigil: '✦', note: 'Spatial fractures · Strike phantom echoes' },
+          { name: 'THE ABYSS WARDEN', floor: 'FLOOR 10', title: 'THE SUNKEN THRONE', col: '#ef4444', sigil: '♛', note: 'Telekinetic greatswords · 3 lethal phases' }
         ];
 
         bosses.forEach((b, i) => {
-          const by = spreadY + 44 + i * 94;
+          const by = spreadY + 40 + i * 98;
           ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
           ctx.strokeStyle = b.col;
           ctx.lineWidth = 1.2;
-          roundRect(ctx, leftX + 16, by, leftW - 32, 82, 6);
+          roundRect(ctx, leftX + 16, by, leftW - 32, 86, 6);
           ctx.fill(); ctx.stroke();
 
           ctx.fillStyle = b.col;
           ctx.font = 'bold 9px monospace';
           ctx.textAlign = 'left';
           ctx.textBaseline = 'top';
-          ctx.fillText(b.floor, leftX + 28, by + 16);
+          ctx.fillText(b.floor, leftX + 28, by + 14);
 
           ctx.fillStyle = '#fde68a';
           ctx.font = 'bold 11px Cinzel, serif';
-          ctx.fillText(b.name, leftX + 28, by + 34);
+          ctx.fillText(b.name, leftX + 28, by + 30);
 
-          ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
           ctx.font = 'italic 9.5px "Crimson Text", serif';
-          ctx.fillText(`Locus: ${b.title} · Unlocks forged threshold`, leftX + 28, by + 52);
+          ctx.fillText(`Locus: ${b.title}`, leftX + 28, by + 48);
+
+          ctx.fillStyle = '#cbd5e1';
+          ctx.font = '8.5px monospace';
+          ctx.fillText(b.note, leftX + 28, by + 64);
 
           // Boss Runic Sigil Box on right
           ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
           ctx.strokeStyle = b.col;
-          roundRect(ctx, leftX + leftW - 74, by + 16, 50, 50, 4);
+          roundRect(ctx, leftX + leftW - 74, by + 18, 50, 50, 4);
           ctx.fill(); ctx.stroke();
           ctx.fillStyle = b.col;
           ctx.font = '16px Cinzel, serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(b.sigil, leftX + leftW - 49, by + 41);
+          ctx.fillText(b.sigil, leftX + leftW - 49, by + 43);
         });
       }
 
-      // ── Right Folio: Tactical Doctrine & Directives ──
-      ctx.fillStyle = 'rgba(12, 16, 32, 0.75)';
+      // ── Right Folio: Tactical Doctrine & Directives (Platform Aware) ──
+      ctx.fillStyle = 'rgba(12, 16, 32, 0.8)';
       ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
       ctx.lineWidth = 1;
       roundRect(ctx, rightX, spreadY, rightW, spreadH, 8);
@@ -1922,19 +2123,27 @@ export const MainMenu = {
         {
           num: 'CHAPTER I',
           title: 'THE VANGUARD ARSENAL',
-          subtitle: 'Armed Engagement, Stagger Poise & Rapid Switching',
-          points: [
+          subtitle: 'Armed Engagement, Poise Stagger & Weapon Switching',
+          points: isMobileMode ? [
+            { tag: '[ ⚔ ATK BUTTON ]', desc: 'Tap the red attack button to execute primary weapon cleave. Deals heavy physical poise stagger.' },
+            { tag: '[ 🏹 SHOOT BUTTON ]', desc: 'Tap or hold the green bow button to fire piercing arrows. Quiver auto-replenishes in combat.' },
+            { tag: '[ ✦ SPECIAL BUTTON ]', desc: 'Tap the gold special skill button to trigger Rowan\'s consecrated weapon-specific ability.' }
+          ] : [
             { tag: '[ SPACE / LMB ]', desc: 'Execute primary weapon cleave. Deals heavy physical poise damage and staggers frontliners.' },
             { tag: '[ HOLD SHIFT ]', desc: 'Draw the Longbow for piercing projectile shots. Quiver replenishes in active combat.' },
             { tag: '[ KEYS 1 - 3 ]', desc: 'Instant hotkey weapon switching. Swap between heavy blade, swift daggers, and shield mid-combo.' }
           ],
-          tip: 'Tip: Strike immediately following an enemy whiff to capitalize on recovery vulnerability frames.'
+          tip: isMobileMode ? 'Tip: Buttons can be freely repositioned or resized via the Settings > Touch Controls editor.' : 'Tip: Strike immediately following an enemy whiff to capitalize on recovery vulnerability frames.'
         },
         {
           num: 'CHAPTER II',
           title: 'FOOTWORK & DODGE CADENCE',
           subtitle: 'Invulnerability Frames & Directional Repositioning',
-          points: [
+          points: isMobileMode ? [
+            { tag: '[ VIRTUAL JOYSTICK ]', desc: 'Touch and drag anywhere in the bottom-left screen area for 360° fluid analog movement.' },
+            { tag: '[ EVASION ROLL ]', desc: 'Dodge rolling grants 18 frames of absolute invulnerability through all enemy swings and hazards.' },
+            { tag: '[ STAMINA PACING ]', desc: 'Circle opponents and avoid exhausting stamina so you always have a dodge ready for boss attacks.' }
+          ] : [
             { tag: '[ WASD / ARROWS ]', desc: 'Directional footwork. Rowan accelerates swiftly to maintain safe spacing and kite swarms.' },
             { tag: '[ EVASION ROLL ]', desc: 'Dodge rolling grants 18 frames of absolute invulnerability through all enemy swings and hazards.' },
             { tag: '[ STAMINA PACING ]', desc: 'Avoid exhausting your evasive cadence; reserve roll charges for telegraphed boss attacks.' }
@@ -2009,14 +2218,14 @@ export const MainMenu = {
         ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
         ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
         ctx.lineWidth = 1;
-        roundRect(ctx, rightX + 20, py, 140, 20, 4);
+        roundRect(ctx, rightX + 20, py, 148, 20, 4);
         ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = '#fde68a';
-        ctx.font = 'bold 9px monospace';
+        ctx.font = 'bold 8.5px monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(pt.tag, rightX + 90, py + 10);
+        ctx.fillText(pt.tag, rightX + 94, py + 10);
 
         // Word-wrapped description lines
         ctx.textAlign = 'left';
@@ -2295,15 +2504,57 @@ export const MainMenu = {
       const mw = 830, mh = 506;
       const mxX = Math.round((LW - mw) / 2), myY = Math.round((LH - mh) / 2);
 
+      // Platform Mode Switcher clicks (Top Right: PC vs Mobile)
+      const pcBtnW = 112, mobBtnW = 112, swBtnH = 22;
+      const mobBtnX = mxX + mw - 24 - mobBtnW;
+      const pcBtnX = mobBtnX - 8 - pcBtnW;
+      const swBtnY = myY + 14;
+
+      if (mx >= pcBtnX && mx <= pcBtnX + pcBtnW && my >= swBtnY && my <= swBtnY + swBtnH) {
+        _fieldGuideInputMode = 'pc';
+        _fieldGuideDemoRunning = false;
+        _fieldGuideDemoTimer = 0;
+        SoundManager.snd('menu_select');
+        return true;
+      }
+
+      if (mx >= mobBtnX && mx <= mobBtnX + mobBtnW && my >= swBtnY && my <= swBtnY + swBtnH) {
+        _fieldGuideInputMode = 'mobile';
+        _fieldGuideDemoRunning = false;
+        _fieldGuideDemoTimer = 0;
+        SoundManager.snd('menu_select');
+        return true;
+      }
+
       // Chapter tabs click detection (5 tabs)
       const tabW = 148, tabH = 26;
       const tabStartX = mxX + Math.round((mw - (5 * tabW + 4 * 6)) / 2);
-      const tabY = myY + 52;
+      const tabY = myY + 50;
       for (let i = 0; i < 5; i++) {
         const tx = tabStartX + i * (tabW + 6);
         if (mx >= tx && mx <= tx + tabW && my >= tabY && my <= tabY + tabH) {
           _fieldGuideChapter = i;
+          _fieldGuideDemoRunning = false;
+          _fieldGuideDemoTimer = 0;
           SoundManager.snd('menu_hover');
+          return true;
+        }
+      }
+
+      // Demonstration button in Chapter 3 (Rally)
+      if (_fieldGuideChapter === 3) {
+        const leftX = mxX + 20, leftW = 380;
+        const cx = leftX + leftW / 2;
+        const spreadY = myY + 84;
+        const ty = spreadY + 195;
+        const demoBtnW = 180, demoBtnH = 24;
+        const demoBtnX = cx - demoBtnW / 2;
+        const demoBtnY = ty + 70;
+
+        if (mx >= demoBtnX && mx <= demoBtnX + demoBtnW && my >= demoBtnY && my <= demoBtnY + demoBtnH) {
+          _fieldGuideDemoRunning = true;
+          _fieldGuideDemoTimer = 0;
+          SoundManager.snd('menu_press');
           return true;
         }
       }
@@ -2313,6 +2564,8 @@ export const MainMenu = {
       const bBarY = myY + mh - 44;
       if (mx >= leftX && mx <= leftX + 130 && my >= bBarY && my <= bBarY + 30) {
         _fieldGuideChapter = (_fieldGuideChapter - 1 + 5) % 5;
+        _fieldGuideDemoRunning = false;
+        _fieldGuideDemoTimer = 0;
         SoundManager.snd('menu_hover');
         return true;
       }
@@ -2321,6 +2574,8 @@ export const MainMenu = {
       const nextX = leftX + 140;
       if (mx >= nextX && mx <= nextX + 130 && my >= bBarY && my <= bBarY + 30) {
         _fieldGuideChapter = (_fieldGuideChapter + 1) % 5;
+        _fieldGuideDemoRunning = false;
+        _fieldGuideDemoTimer = 0;
         SoundManager.snd('menu_hover');
         return true;
       }
@@ -2329,6 +2584,8 @@ export const MainMenu = {
       const startW = 180;
       const startX = mxX + mw - 20 - startW;
       if (mx >= startX && mx <= startX + startW && my >= bBarY && my <= bBarY + 30) {
+        _fieldGuideDemoRunning = false;
+        _fieldGuideDemoTimer = 0;
         SoundManager.snd('menu_select');
         startGame();
         return true;
@@ -2338,6 +2595,8 @@ export const MainMenu = {
       const closeW = 150;
       const closeX = startX - 12 - closeW;
       if (mx >= closeX && mx <= closeX + closeW && my >= bBarY && my <= bBarY + 30) {
+        _fieldGuideDemoRunning = false;
+        _fieldGuideDemoTimer = 0;
         SoundManager.snd('panel_close');
         _howToPlayActive = false;
         return true;
@@ -2345,6 +2604,8 @@ export const MainMenu = {
 
       // Click outside modal closes it
       if (mx < mxX || mx > mxX + mw || my < myY || my > myY + mh) {
+        _fieldGuideDemoRunning = false;
+        _fieldGuideDemoTimer = 0;
         SoundManager.snd('panel_close');
         _howToPlayActive = false;
         return true;
@@ -2389,6 +2650,17 @@ export const MainMenu = {
     SaveSystem.dismissPhase3Invitation();
     const p = typeof document !== 'undefined' && document.getElementById('ending-debug-panel');
     if (p) p.style.display = 'flex';
+  },
+  openSurvivalGuide() {
+    _howToPlayActive = true;
+  },
+  closeSurvivalGuide() {
+    _howToPlayActive = false;
+    _fieldGuideDemoRunning = false;
+    _fieldGuideDemoTimer = 0;
+  },
+  handleSurvivalGuideClick(mx, my) {
+    return this.handleClick(mx, my);
   }
 };
 

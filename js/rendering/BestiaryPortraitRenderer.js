@@ -1366,5 +1366,1160 @@ export const BestiaryPortraitRenderer = {
     ctx.fillRect(x, y, w, h);
 
     ctx.restore();
+  },
+
+  /**
+   * Render an authentic illustrated pixel-art scene for each of the 10 Chronicles
+   * @param {CanvasRenderingContext2D} ctx
+   * @param {number} floorNum - 1 to 10
+   * @param {number} x - Bounding box X
+   * @param {number} y - Bounding box Y
+   * @param {number} w - Bounding box Width
+   * @param {number} h - Bounding box Height
+   * @param {boolean} isUnlocked - Whether chronicle is unlocked
+   * @param {number} time - Animation time in seconds
+   */
+  drawChronicleIllustration(ctx, floorNum, x, y, w, h, isUnlocked = true, time = 0) {
+    ctx.save();
+
+    // Outer Obsidian Frame & Inset Bevel
+    ctx.fillStyle = '#060810';
+    ctx.strokeStyle = isUnlocked ? 'rgba(201, 168, 76, 0.55)' : 'rgba(51, 65, 85, 0.4)';
+    ctx.lineWidth = 1.4;
+    roundRect(ctx, x, y, w, h, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // Clip to illustration canvas area
+    ctx.beginPath();
+    roundRect(ctx, x + 2, y + 2, w - 4, h - 4, 5);
+    ctx.clip();
+
+    const cx = Math.round(x + w / 2);
+    const cy = Math.round(y + h / 2);
+
+    // ─────────────────────────────────────────────────────────────
+    // LOCKED STATE: Bound Ancient Vellum with Iron Chains & Padlock
+    // ─────────────────────────────────────────────────────────────
+    if (!isUnlocked) {
+      // Dark aged leather / vellum texture
+      ctx.fillStyle = '#0a0d18';
+      ctx.fillRect(x, y, w, h);
+
+      // Vignette shadows
+      const lockVignette = ctx.createRadialGradient(cx, cy, 20, cx, cy, w * 0.55);
+      lockVignette.addColorStop(0, 'rgba(15, 23, 42, 0.2)');
+      lockVignette.addColorStop(1, 'rgba(2, 4, 10, 0.95)');
+      ctx.fillStyle = lockVignette;
+      ctx.fillRect(x, y, w, h);
+
+      // Crossed Iron Shackle Bands
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+
+      // Diagonal Band 1
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + 22, y);
+      ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x + w - 22, y + h);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+
+      // Diagonal Band 2
+      ctx.beginPath();
+      ctx.moveTo(x + w, y);
+      ctx.lineTo(x + w - 22, y);
+      ctx.lineTo(x, y + h);
+      ctx.lineTo(x + 22, y + h);
+      ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+
+      // Translucent drifting void mist
+      const mistShift = Math.sin(time * 0.8) * 25;
+      const mistGrad = ctx.createRadialGradient(cx + mistShift, cy, 10, cx + mistShift, cy, 90);
+      mistGrad.addColorStop(0, 'rgba(51, 65, 85, 0.35)');
+      mistGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = mistGrad;
+      ctx.fillRect(x, y, w, h);
+
+      // Heavy Embossed Iron Padlock at Center
+      const lockW = 32, lockH = 26;
+      const lockX = cx - lockW / 2;
+      const lockY = cy - lockH / 2 + 4;
+
+      // Shackle
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(cx, lockY - 2, 10, Math.PI, 0, false);
+      ctx.stroke();
+
+      // Padlock Body
+      ctx.fillStyle = '#1e293b';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, lockX, lockY, lockW, lockH, 4);
+      ctx.fill(); ctx.stroke();
+
+      // Brass Corner Studs on Padlock
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(lockX + 3, lockY + 3, 2, 2);
+      ctx.fillRect(lockX + lockW - 5, lockY + 3, 2, 2);
+      ctx.fillRect(lockX + 3, lockY + lockH - 5, 2, 2);
+      ctx.fillRect(lockX + lockW - 5, lockY + lockH - 5, 2, 2);
+
+      // Keyhole
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(cx, lockY + 9, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(cx - 1.5, lockY + 9, 3, 7);
+
+      // Text Ribbon
+      ctx.fillStyle = 'rgba(10, 14, 24, 0.85)';
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.5)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, cx - 120, y + h - 26, 240, 18, 4);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 8.5px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`◈ CHRONICLE VAULT SEALED · STRATUM ${floorNum} ◈`, cx, y + h - 17);
+
+      ctx.restore();
+      return;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // UNLOCKED STATE: 10 Dedicated Pixel-Art Scene Renderers
+    // ─────────────────────────────────────────────────────────────
+    switch (floorNum) {
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 1 — THE FORGOTTEN SEAL
+      // Vault entrance, dropped portcullis, fallen sword, warm lantern
+      // ───────────────────────────────────────────────────────────
+      case 1: {
+        // Vault chamber stonework
+        ctx.fillStyle = '#070c18';
+        ctx.fillRect(x, y, w, h);
+
+        // Stone masonry joints
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.45)';
+        ctx.lineWidth = 1;
+        for (let gy = y + 14; gy < y + h - 20; gy += 18) {
+          ctx.beginPath();
+          ctx.moveTo(x, gy); ctx.lineTo(x + w, gy);
+          ctx.stroke();
+        }
+
+        // Vault Keystone Archway in background
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(cx, y + h - 10, w * 0.35, Math.PI, 0, false);
+        ctx.stroke();
+
+        // Glowing blue ancient runes carved into the arch
+        const runePulse = Math.sin(time * 2.2) * 0.25 + 0.75;
+        ctx.strokeStyle = `rgba(56, 189, 248, ${0.65 * runePulse})`;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(cx, y + h - 10, w * 0.35 + 5, Math.PI * 1.05, Math.PI * 1.95, false);
+        ctx.stroke();
+
+        // Dropped Heavy Iron Portcullis
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        const barSpacing = 16;
+        for (let bx = x + 30; bx < x + w - 30; bx += barSpacing) {
+          // Vertical bars
+          ctx.fillRect(bx, y, 4, h - 22);
+          // Pointed spear tips driven into flagstones
+          ctx.beginPath();
+          ctx.moveTo(bx - 2, y + h - 22);
+          ctx.lineTo(bx + 2, y + h - 14);
+          ctx.lineTo(bx + 6, y + h - 22);
+          ctx.fill(); ctx.stroke();
+        }
+        // Horizontal reinforcing tie-beams with iron rivets
+        ctx.fillRect(x + 20, y + 28, w - 40, 6);
+        ctx.fillRect(x + 20, y + 68, w - 40, 6);
+        ctx.fillStyle = '#d97706';
+        for (let bx = x + 32; bx < x + w - 32; bx += barSpacing) {
+          ctx.fillRect(bx + 1, y + 30, 2, 2);
+          ctx.fillRect(bx + 1, y + 70, 2, 2);
+        }
+
+        // Flagstone floor
+        ctx.fillStyle = '#090e1a';
+        ctx.fillRect(x, y + h - 20, w, 20);
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, y + h - 20); ctx.lineTo(x + w, y + h - 20);
+        ctx.stroke();
+
+        // Warm Flickering Brass Lantern on left flags
+        const flamePulse = Math.sin(time * 5.5) * 0.15 + 0.85;
+        const lanternX = cx - 90;
+        const lanternY = y + h - 22;
+
+        const lanternGlow = ctx.createRadialGradient(lanternX, lanternY - 4, 3, lanternX, lanternY - 4, 75);
+        lanternGlow.addColorStop(0, `rgba(245, 158, 11, ${0.75 * flamePulse})`);
+        lanternGlow.addColorStop(0.4, `rgba(217, 119, 6, ${0.35 * flamePulse})`);
+        lanternGlow.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = lanternGlow;
+        ctx.fillRect(lanternX - 80, y, 160, h);
+
+        // Lantern housing
+        ctx.fillStyle = '#78350f';
+        ctx.fillRect(lanternX - 4, lanternY - 14, 8, 12);
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(lanternX - 2.5, lanternY - 12, 5, 8);
+        ctx.fillStyle = '#d97706';
+        ctx.strokeRect(lanternX - 4, lanternY - 14, 8, 12);
+        ctx.beginPath();
+        ctx.arc(lanternX, lanternY - 14, 3, Math.PI, 0, false);
+        ctx.stroke();
+
+        // Rowan's Vanguard Broadsword planted in the stones on the right
+        const swordX = cx + 80;
+        const swordY = y + h - 20;
+        ctx.save();
+        ctx.translate(swordX, swordY);
+        ctx.rotate(-0.16);
+
+        // Steel blade
+        ctx.fillStyle = '#cbd5e1';
+        ctx.fillRect(-2.5, -46, 5, 46);
+        // Glowing runic fuller
+        ctx.fillStyle = `rgba(56, 189, 248, ${0.85 * runePulse})`;
+        ctx.fillRect(-0.75, -42, 1.5, 36);
+        // Brass crossguard
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(-10, -48, 20, 4);
+        // Grip and pommel
+        ctx.fillStyle = '#451a03';
+        ctx.fillRect(-2, -58, 4, 10);
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath(); ctx.arc(0, -60, 3.5, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        // Floating dust motes caught in lantern light
+        ctx.fillStyle = `rgba(254, 240, 138, ${0.5 * flamePulse})`;
+        for (let i = 0; i < 6; i++) {
+          const dx = lanternX - 30 + Math.sin(time * 1.5 + i * 1.8) * 35;
+          const dy = y + 40 + Math.cos(time * 1.1 + i * 1.3) * 30;
+          ctx.fillRect(dx, dy, 1.5, 1.5);
+        }
+        break;
+      }
+
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 2 — THE DESERTERS' SILENCE
+      // Discarded buckler, broken spear, abandoned campsite, cold ashes
+      // ───────────────────────────────────────────────────────────
+      case 2: {
+        // Cold grey corridor masonry
+        ctx.fillStyle = '#060a12';
+        ctx.fillRect(x, y, w, h);
+
+        // Distant stone arch hallway receding into gloom
+        const corrGrad = ctx.createLinearGradient(cx - 60, y, cx + 60, y);
+        corrGrad.addColorStop(0, '#04070d');
+        corrGrad.addColorStop(0.5, '#020306');
+        corrGrad.addColorStop(1, '#04070d');
+        ctx.fillStyle = corrGrad;
+        roundRect(ctx, cx - 55, y + 10, 110, h - 30, 4);
+        ctx.fill();
+
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        roundRect(ctx, cx - 55, y + 10, 110, h - 30, 4);
+        ctx.stroke();
+
+        // Cold stone flags
+        ctx.fillStyle = '#0a0f1c';
+        ctx.fillRect(x, y + h - 22, w, 22);
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, y + h - 22); ctx.lineTo(x + w, y + h - 22);
+        ctx.stroke();
+
+        // Left: Cold Extinguished Camp Brazier with faint blue smoke
+        const brazierX = cx - 110;
+        const brazierY = y + h - 22;
+
+        // Tripod stand and iron bowl
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(brazierX - 16, brazierY - 14, 32, 6);
+        ctx.fillRect(brazierX - 12, brazierY - 8, 24, 8);
+        ctx.strokeStyle = '#334155';
+        ctx.beginPath();
+        ctx.moveTo(brazierX - 14, brazierY); ctx.lineTo(brazierX - 10, brazierY - 8);
+        ctx.moveTo(brazierX + 14, brazierY); ctx.lineTo(brazierX + 10, brazierY - 8);
+        ctx.stroke();
+
+        // Cold ash bed
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(brazierX - 14, brazierY - 16, 28, 3);
+
+        // Cold wisps of pale blue smoke curling into the air
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        for (let sy = 0; sy < 36; sy += 4) {
+          const sx = brazierX + Math.sin(time * 2.0 + sy * 0.2) * 5;
+          if (sy === 0) ctx.moveTo(sx, brazierY - 16);
+          else ctx.lineTo(sx, brazierY - 16 - sy);
+        }
+        ctx.stroke();
+
+        // Right: Discarded Vanguard Lion Shield leaning against masonry
+        const shieldX = cx + 75;
+        const shieldY = y + h - 22;
+
+        ctx.save();
+        ctx.translate(shieldX, shieldY);
+        ctx.rotate(0.2);
+
+        // Circular iron shield body
+        ctx.fillStyle = '#334155';
+        ctx.beginPath();
+        ctx.arc(0, -18, 18, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Brass rim
+        ctx.strokeStyle = '#b45309';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Golden Lion emblem in center
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath();
+        ctx.arc(0, -18, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Jagged battle crack running across the shield
+        ctx.strokeStyle = '#020617';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(-14, -28);
+        ctx.lineTo(-2, -18);
+        ctx.lineTo(8, -8);
+        ctx.stroke();
+        ctx.restore();
+
+        // Broken Vanguard Spear lying in dust
+        const spearX = cx - 10;
+        const spearY = y + h - 16;
+        ctx.strokeStyle = '#78350f'; // Ash wood haft
+        ctx.lineWidth = 2.2;
+        // Shaft piece 1
+        ctx.beginPath();
+        ctx.moveTo(spearX - 45, spearY - 4);
+        ctx.lineTo(spearX - 10, spearY - 2);
+        ctx.stroke();
+        // Broken split
+        ctx.fillStyle = '#451a03';
+        ctx.fillRect(spearX - 12, spearY - 3, 3, 3);
+        // Shaft piece 2 with iron spearhead
+        ctx.beginPath();
+        ctx.moveTo(spearX - 6, spearY);
+        ctx.lineTo(spearX + 35, spearY + 4);
+        ctx.stroke();
+        // Spearhead
+        ctx.fillStyle = '#94a3b8';
+        ctx.beginPath();
+        ctx.moveTo(spearX + 35, spearY + 4);
+        ctx.lineTo(spearX + 46, spearY + 5);
+        ctx.lineTo(spearX + 37, spearY + 1);
+        ctx.closePath();
+        ctx.fill();
+
+        // Discarded dispatch parchment scroll on flags
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(cx + 15, y + h - 14, 14, 7);
+        ctx.fillStyle = '#b91c1c'; // Broken seal fragment
+        ctx.fillRect(cx + 20, y + h - 12, 3, 3);
+        break;
+      }
+
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 3 — THE TRIAL OF IRON
+      // Gorgaroth's forge, colossal iron chains, cracked anvil pillar, lava
+      // ───────────────────────────────────────────────────────────
+      case 3: {
+        // Deep subterranean volcanic forge
+        ctx.fillStyle = '#140604';
+        ctx.fillRect(x, y, w, h);
+
+        // Radiant Molten Lava Rivers at bottom
+        const lavaPulse = Math.sin(time * 3.5) * 0.15 + 0.85;
+        const lavaGrad = ctx.createLinearGradient(x, y + h - 26, x, y + h);
+        lavaGrad.addColorStop(0, `rgba(234, 88, 12, ${0.9 * lavaPulse})`);
+        lavaGrad.addColorStop(0.5, `rgba(249, 115, 22, ${1.0 * lavaPulse})`);
+        lavaGrad.addColorStop(1, '#7c2d12');
+        ctx.fillStyle = lavaGrad;
+        ctx.fillRect(x, y + h - 22, w, 22);
+
+        // Slag rock crust floating in lava
+        ctx.fillStyle = '#262626';
+        ctx.fillRect(x + 20, y + h - 16, 40, 7);
+        ctx.fillRect(x + 90, y + h - 18, 55, 8);
+        ctx.fillRect(cx + 40, y + h - 16, 60, 7);
+        ctx.fillRect(cx + 120, y + h - 19, 50, 9);
+
+        // Colossal Spiked Iron Chains hanging from ceiling
+        ctx.fillStyle = '#3f3f46';
+        ctx.strokeStyle = '#18181b';
+        ctx.lineWidth = 1;
+        const chainCols = [x + 50, x + 110, cx + 80, cx + 140];
+        chainCols.forEach((chX, idx) => {
+          const sway = Math.sin(time * 1.8 + idx * 1.5) * 4;
+          for (let cyLink = y; cyLink < y + h - 35; cyLink += 10) {
+            ctx.strokeRect(chX + sway - 3, cyLink, 6, 8);
+            ctx.fillRect(chX + sway - 2, cyLink + 1, 4, 6);
+          }
+        });
+
+        // Center: Gorgaroth's Colossal Cracked Anvil Pillar
+        const anvilW = 68, anvilH = 54;
+        const anvilX = cx - anvilW / 2;
+        const anvilY = y + h - 22 - anvilH;
+
+        // Anvil base & waist
+        ctx.fillStyle = '#27272a';
+        ctx.strokeStyle = '#52525b';
+        ctx.lineWidth = 1.2;
+        roundRect(ctx, anvilX + 8, anvilY + 22, anvilW - 16, anvilH - 22, 3);
+        ctx.fill(); ctx.stroke();
+
+        // Anvil horn & face plate
+        ctx.fillStyle = '#3f3f46';
+        ctx.fillRect(anvilX - 6, anvilY, anvilW + 12, 22);
+        ctx.strokeRect(anvilX - 6, anvilY, anvilW + 12, 22);
+
+        // Glowing red-hot fractures down anvil center
+        ctx.strokeStyle = `rgba(239, 68, 68, ${0.9 * lavaPulse})`;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(cx - 3, anvilY + 2);
+        ctx.lineTo(cx + 2, anvilY + 16);
+        ctx.lineTo(cx - 4, anvilY + 34);
+        ctx.lineTo(cx + 3, anvilY + 50);
+        ctx.stroke();
+
+        // Gorgaroth's silhouetted monolithic horned skull looming in smoke
+        ctx.fillStyle = 'rgba(24, 9, 8, 0.75)';
+        ctx.beginPath();
+        ctx.arc(cx, anvilY - 26, 16, 0, Math.PI * 2);
+        ctx.fill();
+        // Horns
+        ctx.beginPath();
+        ctx.moveTo(cx - 14, anvilY - 32);
+        ctx.lineTo(cx - 32, anvilY - 48);
+        ctx.lineTo(cx - 10, anvilY - 22);
+        ctx.moveTo(cx + 14, anvilY - 32);
+        ctx.lineTo(cx + 32, anvilY - 48);
+        ctx.lineTo(cx + 10, anvilY - 22);
+        ctx.fill();
+        // Glowing orange molten eyes
+        ctx.fillStyle = `rgba(249, 115, 22, ${0.95 * lavaPulse})`;
+        ctx.fillRect(cx - 7, anvilY - 28, 3.5, 3.5);
+        ctx.fillRect(cx + 3.5, anvilY - 28, 3.5, 3.5);
+
+        // Rising volcanic sparks and burning embers
+        ctx.fillStyle = '#fbbf24';
+        for (let i = 0; i < 9; i++) {
+          const ex = cx - 120 + ((i * 37 + time * 35) % 240);
+          const ey = y + h - 25 - ((i * 17 + time * 45) % (h - 30));
+          ctx.fillRect(ex, ey, 2, 2);
+        }
+        break;
+      }
+
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 4 — THE DEEPER MEASURE
+      // Clockwork dungeon, rotating gears, floor spike grid, ledger stela
+      // ───────────────────────────────────────────────────────────
+      case 4: {
+        // Geometric stone limestone chamber
+        ctx.fillStyle = '#0c0f16';
+        ctx.fillRect(x, y, w, h);
+
+        // Massive Interlocking Bronze Clockwork Gears in Background
+        const drawGear = (gx, gy, radius, teeth, rot) => {
+          ctx.save();
+          ctx.translate(gx, gy);
+          ctx.rotate(rot);
+          ctx.fillStyle = '#78350f';
+          ctx.strokeStyle = '#b45309';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(0, 0, radius, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+
+          // Teeth
+          ctx.fillStyle = '#b45309';
+          for (let t = 0; t < teeth; t++) {
+            const angle = (t / teeth) * Math.PI * 2;
+            const tx = Math.cos(angle) * radius;
+            const ty = Math.sin(angle) * radius;
+            ctx.save();
+            ctx.translate(tx, ty);
+            ctx.rotate(angle);
+            ctx.fillRect(-3, -3, 6, 6);
+            ctx.restore();
+          }
+
+          // Gear core hole
+          ctx.fillStyle = '#0c0f16';
+          ctx.beginPath();
+          ctx.arc(0, 0, radius * 0.35, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+          ctx.restore();
+        };
+
+        drawGear(cx - 100, y + 42, 34, 12, time * 0.3);
+        drawGear(cx - 45, y + 26, 24, 8, -time * 0.42);
+
+        // Flagstone floor
+        ctx.fillStyle = '#111827';
+        ctx.fillRect(x, y + h - 24, w, 24);
+
+        // Retractable Floor Spike Grid (Limestone tiles with steel spikes)
+        const spikeCols = [cx - 130, cx - 95, cx - 60, cx - 25, cx + 10, cx + 45];
+        spikeCols.forEach((spX, idx) => {
+          // Floor hole
+          ctx.fillStyle = '#030712';
+          ctx.fillRect(spX - 5, y + h - 24, 10, 4);
+
+          // Alternating spike extension
+          const ext = Math.max(0, Math.sin(time * 2.8 + idx * 1.1)) * 18;
+          if (ext > 2) {
+            ctx.fillStyle = '#cbd5e1';
+            ctx.beginPath();
+            ctx.moveTo(spX - 3.5, y + h - 22);
+            ctx.lineTo(spX, y + h - 22 - ext);
+            ctx.lineTo(spX + 3.5, y + h - 22);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        });
+
+        // Right side: The Ancient Ledger Stela (Chiseled measuring stone)
+        const stelaX = cx + 85;
+        const stelaY = y + 14;
+        const stelaW = 55, stelaH = h - 38;
+
+        ctx.fillStyle = '#1f2937';
+        ctx.strokeStyle = '#4b5563';
+        ctx.lineWidth = 1.2;
+        roundRect(ctx, stelaX, stelaY, stelaW, stelaH, 3);
+        ctx.fill(); ctx.stroke();
+
+        // Chiseled tally marks and measuring glyphs on stela
+        ctx.fillStyle = 'rgba(6, 182, 212, 0.85)'; // Glowing cyan measure lines
+        for (let row = 0; row < 5; row++) {
+          const ryLine = stelaY + 12 + row * 14;
+          for (let m = 0; m < 4; m++) {
+            ctx.fillRect(stelaX + 8 + m * 8, ryLine, 2, 7);
+          }
+          ctx.beginPath();
+          ctx.moveTo(stelaX + 6, ryLine + 7);
+          ctx.lineTo(stelaX + 38, ryLine);
+          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = 'rgba(6, 182, 212, 0.85)';
+          ctx.stroke();
+        }
+
+        // Shifting corridor seam in background
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx + 60, y + 6); ctx.lineTo(cx + 60, y + h - 24);
+        ctx.stroke();
+        break;
+      }
+
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 5 — THE WEIGHT OF THE DARK
+      // Shadow miasma, dying blue torch flame, watchful red void eyes
+      // ───────────────────────────────────────────────────────────
+      case 5: {
+        // Deep lightless pitch-black stratum
+        ctx.fillStyle = '#020307';
+        ctx.fillRect(x, y, w, h);
+
+        // Undulating Shadow Miasma Tendrils along the bottom
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
+        ctx.beginPath();
+        ctx.moveTo(x, y + h);
+        for (let mx = 0; mx <= w; mx += 15) {
+          const my = y + h - 22 + Math.sin(time * 2.0 + mx * 0.05) * 8 + Math.cos(time * 1.4 + mx * 0.03) * 6;
+          ctx.lineTo(x + mx, my);
+        }
+        ctx.lineTo(x + w, y + h);
+        ctx.closePath();
+        ctx.fill();
+
+        // Dying Wall Torch in Iron Sconce (Left-Center)
+        const torchX = cx - 80;
+        const torchY = y + 48;
+
+        // Iron bracket
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(torchX - 3, torchY, 6, 22);
+        ctx.fillRect(torchX - 10, torchY + 6, 14, 3);
+
+        // Sputtering, struggling eerie cold-blue flame
+        const sputter = Math.sin(time * 8.0) * Math.cos(time * 3.5) * 0.35 + 0.65;
+        const torchHalo = ctx.createRadialGradient(torchX, torchY - 8, 2, torchX, torchY - 8, 48 * sputter);
+        torchHalo.addColorStop(0, `rgba(56, 189, 248, ${0.85 * sputter})`);
+        torchHalo.addColorStop(0.5, `rgba(3, 105, 161, ${0.35 * sputter})`);
+        torchHalo.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = torchHalo;
+        ctx.fillRect(torchX - 55, torchY - 55, 110, 110);
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(torchX, torchY - 6, 4 * sputter, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f0f9ff';
+        ctx.fillRect(torchX - 1.5, torchY - 9, 3, 5);
+
+        // The Unblinking Void Eyes watching from ceiling darkness
+        const eyeLocations = [
+          { ex: cx - 20, ey: y + 26, scale: 1.0, ph: 0 },
+          { ex: cx + 45, ey: y + 36, scale: 0.8, ph: 1.8 },
+          { ex: cx + 110, ey: y + 22, scale: 1.15, ph: 3.2 }
+        ];
+
+        eyeLocations.forEach(eye => {
+          const blink = Math.sin(time * 1.5 + eye.ph);
+          const openH = Math.max(1, Math.abs(blink) * 7 * eye.scale);
+
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.ellipse(eye.ex, eye.ey, 11 * eye.scale, openH, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Black slit pupil
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(eye.ex - 1.2, eye.ey - openH * 0.85, 2.4, openH * 1.7);
+
+          // Eerie eye glow
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.55)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+
+        // Lone lost vanguard soldier huddled against masonry
+        const solX = cx + 80;
+        const solY = y + h - 16;
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(solX, solY - 14, 7, 0, Math.PI * 2); // Head
+        ctx.fill();
+        ctx.fillRect(solX - 8, solY - 8, 16, 16); // Body huddled
+        // Crossed hands over ears in agony
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(solX - 7, solY - 8); ctx.lineTo(solX - 2, solY - 14);
+        ctx.moveTo(solX + 7, solY - 8); ctx.lineTo(solX + 2, solY - 14);
+        ctx.stroke();
+        break;
+      }
+
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 6 — THE VOID'S QUESTION
+      // Malakor's spatial fracture tear, dimensional rift, floating shards
+      // ───────────────────────────────────────────────────────────
+      case 6: {
+        // Fractured deep void space
+        ctx.fillStyle = '#030108';
+        ctx.fillRect(x, y, w, h);
+
+        // Distant Star Field visible through geometry
+        ctx.fillStyle = '#e9d5ff';
+        for (let s = 0; s < 18; s++) {
+          const sx = x + ((s * 29 + time * 1.5) % w);
+          const sy = y + ((s * 19) % (h - 20));
+          const sz = (s % 3 === 0) ? 1.5 : 1;
+          ctx.fillRect(sx, sy, sz, sz);
+        }
+
+        // Center: Dimensional Spatial Fracture Rift (Jagged reality tear)
+        const riftPulse = Math.sin(time * 3.2) * 0.2 + 0.8;
+        const riftGrad = ctx.createLinearGradient(cx - 30, y, cx + 30, y);
+        riftGrad.addColorStop(0, 'rgba(124, 58, 237, 0)');
+        riftGrad.addColorStop(0.5, `rgba(192, 38, 211, ${0.85 * riftPulse})`);
+        riftGrad.addColorStop(1, 'rgba(124, 58, 237, 0)');
+        ctx.fillStyle = riftGrad;
+        ctx.fillRect(cx - 35, y + 6, 70, h - 12);
+
+        // Jagged reality fracture line
+        ctx.strokeStyle = '#f0abfc';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(cx, y + 6);
+        ctx.lineTo(cx - 8, y + 26);
+        ctx.lineTo(cx + 10, y + 48);
+        ctx.lineTo(cx - 12, y + 74);
+        ctx.lineTo(cx + 6, y + 102);
+        ctx.lineTo(cx, y + h - 8);
+        ctx.stroke();
+
+        // Inner cosmic white core
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Floating shattered obsidian shards hovering in zero-g
+        const shards = [
+          { sx: cx - 80, sy: y + 42, sw: 18, sh: 12, rot: 0.4 },
+          { sx: cx - 45, sy: y + 88, sw: 14, sh: 22, rot: -0.6 },
+          { sx: cx + 55, sy: y + 36, sw: 20, sh: 14, rot: 0.8 },
+          { sx: cx + 90, sy: y + 78, sw: 16, sh: 16, rot: -0.3 }
+        ];
+
+        shards.forEach((sh, idx) => {
+          const bob = Math.sin(time * 2.0 + idx * 1.3) * 5;
+          ctx.save();
+          ctx.translate(sh.sx, sh.sy + bob);
+          ctx.rotate(sh.rot + time * 0.15 * (idx % 2 === 0 ? 1 : -1));
+
+          ctx.fillStyle = '#180d2b';
+          ctx.strokeStyle = '#a855f7';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(-sh.sw / 2, 0);
+          ctx.lineTo(0, -sh.sh / 2);
+          ctx.lineTo(sh.sw / 2, 0);
+          ctx.lineTo(0, sh.sh / 2);
+          ctx.closePath();
+          ctx.fill(); ctx.stroke();
+          ctx.restore();
+        });
+
+        // Electric purple arc discharges between shards
+        ctx.strokeStyle = 'rgba(216, 180, 254, 0.75)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cx - 80, y + 42);
+        ctx.lineTo(cx - 30, y + 54);
+        ctx.lineTo(cx + 10, y + 48);
+        ctx.stroke();
+        break;
+      }
+
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 7 — ECHOES OF PURPOSE
+      // Sacred temple crucible, golden celestial beam, consecrated weapons
+      // ───────────────────────────────────────────────────────────
+      case 7: {
+        // Pristine symmetrical sacred sanctuary
+        ctx.fillStyle = '#060a14';
+        ctx.fillRect(x, y, w, h);
+
+        // Symmetrical Classical Stone Pillars flanking the altar
+        const drawColumn = (colX) => {
+          ctx.fillStyle = '#1e293b';
+          ctx.strokeStyle = '#334155';
+          ctx.lineWidth = 1;
+          ctx.fillRect(colX - 8, y + 8, 16, h - 28);
+          ctx.strokeRect(colX - 8, y + 8, 16, h - 28);
+          // Capital & Base
+          ctx.fillRect(colX - 12, y + 8, 24, 6);
+          ctx.fillRect(colX - 12, y + h - 26, 24, 6);
+        };
+        drawColumn(cx - 120);
+        drawColumn(cx + 120);
+
+        // Radiant Celestial Light Beam cascading down onto central plinth
+        const beamPulse = Math.sin(time * 2.0) * 0.1 + 0.9;
+        const beamGrad = ctx.createLinearGradient(cx, y, cx, y + h - 20);
+        beamGrad.addColorStop(0, `rgba(254, 240, 138, ${0.45 * beamPulse})`);
+        beamGrad.addColorStop(0.7, `rgba(217, 119, 6, ${0.25 * beamPulse})`);
+        beamGrad.addColorStop(1, 'rgba(0,0,0,0)');
+
+        ctx.fillStyle = beamGrad;
+        ctx.beginPath();
+        ctx.moveTo(cx - 24, y);
+        ctx.lineTo(cx + 24, y);
+        ctx.lineTo(cx + 65, y + h - 20);
+        ctx.lineTo(cx - 65, y + h - 20);
+        ctx.closePath();
+        ctx.fill();
+
+        // Altar Plinth
+        const plinthW = 88, plinthH = 26;
+        const plinthX = cx - plinthW / 2;
+        const plinthY = y + h - 20 - plinthH;
+
+        ctx.fillStyle = '#1e293b';
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 1.4;
+        roundRect(ctx, plinthX, plinthY, plinthW, plinthH, 4);
+        ctx.fill(); ctx.stroke();
+
+        // Imperial Crimson Velvet Cloth draped on plinth
+        ctx.fillStyle = '#991b1b';
+        roundRect(ctx, plinthX + 6, plinthY + 2, plinthW - 12, 6, 2);
+        ctx.fill();
+
+        // Consecrated Broadsword resting on plinth
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(cx - 30, plinthY - 3, 45, 3.5);
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(cx + 15, plinthY - 5, 4, 7);
+        ctx.fillRect(cx + 19, plinthY - 3, 8, 3);
+
+        // Consecrated Longbow resting beside sword
+        ctx.strokeStyle = '#b45309';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx - 6, plinthY - 1, 24, Math.PI * 0.8, Math.PI * 1.35, false);
+        ctx.stroke();
+
+        // Sacred Mathematical Geometry Lines on floor flags
+        ctx.strokeStyle = 'rgba(251, 191, 36, 0.45)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cx, y + h - 16, 42, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeRect(cx - 30, y + h - 18, 60, 4);
+
+        // Rising golden light motes
+        ctx.fillStyle = '#fef08a';
+        for (let i = 0; i < 7; i++) {
+          const px = cx - 35 + ((i * 22 + time * 20) % 70);
+          const py = plinthY - 5 - ((i * 14 + time * 25) % 55);
+          ctx.fillRect(px, py, 1.5, 1.5);
+        }
+        break;
+      }
+
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 8 — BEFORE THE BLADE
+      // Ancient armorer's blood forge, primordial ichor basin, runic veins
+      // ───────────────────────────────────────────────────────────
+      case 8: {
+        // Deep obsidian blood forge
+        ctx.fillStyle = '#100305';
+        ctx.fillRect(x, y, w, h);
+
+        // Left: Primordial Ichor Quenching Basin
+        const basinX = cx - 90;
+        const basinY = y + h - 22;
+        const basinW = 54, basinH = 34;
+
+        ctx.fillStyle = '#1f1315';
+        ctx.strokeStyle = '#7f1d1d';
+        ctx.lineWidth = 1.2;
+        roundRect(ctx, basinX - basinW / 2, basinY - basinH, basinW, basinH, 4);
+        ctx.fill(); ctx.stroke();
+
+        // Glowing Primordial Crimson Ichor fluid in basin
+        const ichorPulse = Math.sin(time * 3.0) * 0.15 + 0.85;
+        const ichorGrad = ctx.createLinearGradient(basinX - 22, basinY - basinH + 6, basinX + 22, basinY - 6);
+        ichorGrad.addColorStop(0, `rgba(239, 68, 68, ${0.95 * ichorPulse})`);
+        ichorGrad.addColorStop(1, '#991b1b');
+        ctx.fillStyle = ichorGrad;
+        roundRect(ctx, basinX - basinW / 2 + 4, basinY - basinH + 4, basinW - 8, 12, 2);
+        ctx.fill();
+
+        // Center: Heavy Basalt Armorer's Anvil
+        const anvilX = cx + 30;
+        const anvilY = y + h - 22;
+        ctx.fillStyle = '#262626';
+        ctx.fillRect(anvilX - 24, anvilY - 26, 48, 26);
+        ctx.strokeStyle = '#525252';
+        ctx.strokeRect(anvilX - 24, anvilY - 26, 48, 26);
+
+        // Broadsword Blade on the Anvil glowing cherry red
+        const bladeGrad = ctx.createLinearGradient(anvilX - 18, anvilY - 28, anvilX + 20, anvilY - 28);
+        bladeGrad.addColorStop(0, '#f87171');
+        bladeGrad.addColorStop(0.5, '#fb923c');
+        bladeGrad.addColorStop(1, '#fca5a5');
+        ctx.fillStyle = bladeGrad;
+        ctx.fillRect(anvilX - 18, anvilY - 29, 36, 4);
+
+        // Chiseled Blood-Vein Canals connecting Basin to Anvil
+        ctx.strokeStyle = `rgba(220, 38, 38, ${0.85 * ichorPulse})`;
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        ctx.moveTo(basinX + basinW / 2, basinY - 14);
+        ctx.lineTo(anvilX - 30, basinY - 14);
+        ctx.lineTo(anvilX - 24, anvilY - 20);
+        ctx.stroke();
+
+        // Wisps of red steam rising from the quenching basin
+        ctx.strokeStyle = 'rgba(248, 113, 113, 0.45)';
+        ctx.lineWidth = 1.2;
+        for (let st = 0; st < 3; st++) {
+          ctx.beginPath();
+          const startSx = basinX - 12 + st * 12;
+          for (let sy = 0; sy < 32; sy += 4) {
+            const sx = startSx + Math.sin(time * 2.5 + sy * 0.2 + st) * 4;
+            if (sy === 0) ctx.moveTo(sx, basinY - basinH + 4);
+            else ctx.lineTo(sx, basinY - basinH + 4 - sy);
+          }
+          ctx.stroke();
+        }
+
+        // Flying sparks from anvil forging
+        ctx.fillStyle = '#fde047';
+        for (let sp = 0; sp < 6; sp++) {
+          const px = anvilX - 10 + Math.sin(time * 4.0 + sp * 2) * 20;
+          const py = anvilY - 32 - Math.abs(Math.cos(time * 3.5 + sp)) * 22;
+          ctx.fillRect(px, py, 1.5, 1.5);
+        }
+        break;
+      }
+
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 9 — THE LAST MEASURE
+      // Threshold archway, giant burning Absolute Eye, Rowan at precipice
+      // ───────────────────────────────────────────────────────────
+      case 9: {
+        // Crimson-tinged abyssal chasm
+        ctx.fillStyle = '#060207';
+        ctx.fillRect(x, y, w, h);
+
+        // Glowing red abyssal mist from chasm gulf below
+        const chasmGrad = ctx.createLinearGradient(x, y + h - 25, x, y + h);
+        chasmGrad.addColorStop(0, 'rgba(185, 28, 28, 0.15)');
+        chasmGrad.addColorStop(1, 'rgba(220, 38, 38, 0.65)');
+        ctx.fillStyle = chasmGrad;
+        ctx.fillRect(x, y + h - 25, w, 25);
+
+        // Giant Burning Absolute Eye in the ceiling of the abyss
+        const eyePulse = Math.sin(time * 2.0) * 0.1 + 0.9;
+        const eyeX = cx, eyeY = y + 36;
+
+        // Ocular burning aura
+        const eyeAura = ctx.createRadialGradient(eyeX, eyeY, 6, eyeX, eyeY, 52);
+        eyeAura.addColorStop(0, `rgba(220, 38, 38, ${0.85 * eyePulse})`);
+        eyeAura.addColorStop(0.5, `rgba(153, 27, 27, ${0.45 * eyePulse})`);
+        eyeAura.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = eyeAura;
+        ctx.fillRect(eyeX - 55, eyeY - 55, 110, 110);
+
+        // Sclera
+        ctx.fillStyle = '#991b1b';
+        ctx.beginPath();
+        ctx.ellipse(eyeX, eyeY, 28 * eyePulse, 16 * eyePulse, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Burning Iris
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(eyeX, eyeY, 11 * eyePulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Black vertical slit pupil
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(eyeX - 2.5, eyeY - 14 * eyePulse, 5, 28 * eyePulse);
+
+        // Cyclopean Archway framing the precipice
+        ctx.fillStyle = '#110c14';
+        ctx.strokeStyle = '#27172b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + 20, y);
+        ctx.lineTo(x + 50, y);
+        ctx.lineTo(x + 50, y + h - 20);
+        ctx.lineTo(x + 20, y + h - 20);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x + w - 20, y);
+        ctx.lineTo(x + w - 50, y);
+        ctx.lineTo(x + w - 50, y + h - 20);
+        ctx.lineTo(x + w - 20, y + h - 20);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        // Stone bridge ending abruptly at the chasm edge
+        ctx.fillStyle = '#1c1917';
+        ctx.fillRect(x + 40, y + h - 20, cx - 10 - (x + 40), 20);
+        ctx.strokeStyle = '#44403c';
+        ctx.strokeRect(x + 40, y + h - 20, cx - 10 - (x + 40), 20);
+
+        // Lone Silhouette of Rowan standing at the cliff edge facing the abyss
+        const rowanX = cx - 22;
+        const rowanY = y + h - 20;
+
+        ctx.fillStyle = '#000000';
+        // Legs & Torso
+        ctx.fillRect(rowanX - 3, rowanY - 18, 6, 18);
+        // Head with hooded mantle
+        ctx.beginPath();
+        ctx.arc(rowanX, rowanY - 22, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Billowing Red Cloak in updraft wind
+        const windSway = Math.sin(time * 4.5) * 6;
+        ctx.fillStyle = '#b91c1c';
+        ctx.beginPath();
+        ctx.moveTo(rowanX - 2, rowanY - 20);
+        ctx.lineTo(rowanX - 16 + windSway, rowanY - 14);
+        ctx.lineTo(rowanX - 14 + windSway, rowanY - 4);
+        ctx.lineTo(rowanX, rowanY - 8);
+        ctx.closePath();
+        ctx.fill();
+
+        // Drawn sword pointing toward the chasm
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(rowanX + 2, rowanY - 14);
+        ctx.lineTo(rowanX + 16, rowanY - 10);
+        ctx.stroke();
+        break;
+      }
+
+      // ───────────────────────────────────────────────────────────
+      // FLOOR 10 — THE WARDEN'S LAST TRIAL (ENDGAME REVELATION)
+      // Sunken Throne, fallen greatsword, gravitational singularity ring
+      // ───────────────────────────────────────────────────────────
+      case 10: {
+        // Deep cosmic throne room
+        ctx.fillStyle = '#070312';
+        ctx.fillRect(x, y, w, h);
+
+        // Behind Throne: Swirling Gravitational Singularity Accretion Ring
+        const singX = cx, singY = y + 42;
+        const singRadius = 42;
+
+        // Concentric swirling accretion disks
+        ctx.save();
+        ctx.translate(singX, singY);
+        ctx.rotate(time * 0.6);
+
+        const singGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, singRadius);
+        singGrad.addColorStop(0, '#000000');
+        singGrad.addColorStop(0.35, '#581c87');
+        singGrad.addColorStop(0.7, '#7c3aed');
+        singGrad.addColorStop(0.9, '#f59e0b');
+        singGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = singGrad;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, singRadius, singRadius * 0.45, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Accretion light ring
+        ctx.strokeStyle = '#fef08a';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+        ctx.restore();
+
+        // Central Pitch-Black Singularity Core
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(singX, singY, 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        // The Stepped Dais and Vacant Sunken Throne
+        const throneW = 54, throneH = 50;
+        const throneX = cx - throneW / 2;
+        const throneY = y + h - 20 - throneH;
+
+        // Stepped dais
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(cx - 60, y + h - 22, 120, 22);
+        ctx.fillRect(cx - 45, y + h - 26, 90, 4);
+
+        // High-backed Obsidian Throne
+        ctx.fillStyle = '#0f172a';
+        ctx.strokeStyle = '#4338ca';
+        ctx.lineWidth = 1.4;
+        roundRect(ctx, throneX, throneY, throneW, throneH, 3);
+        ctx.fill(); ctx.stroke();
+
+        // Crown crest atop throne
+        ctx.fillStyle = '#d97706';
+        ctx.beginPath();
+        ctx.moveTo(throneX + 8, throneY);
+        ctx.lineTo(throneX + 16, throneY - 8);
+        ctx.lineTo(cx, throneY - 3);
+        ctx.lineTo(throneX + throneW - 16, throneY - 8);
+        ctx.lineTo(throneX + throneW - 8, throneY);
+        ctx.closePath();
+        ctx.fill();
+
+        // Fallen Abyss Warden's Curved Greatsword driven into the dais
+        const gswordX = cx + 24;
+        const gswordY = y + h - 24;
+        ctx.save();
+        ctx.translate(gswordX, gswordY);
+        ctx.rotate(0.24);
+
+        // Heavy dark iron blade
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(-3, -36, 6, 36);
+        // Crimson blood groove
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(-1, -32, 2, 28);
+        // Crossguard & pommel
+        ctx.fillStyle = '#d97706';
+        ctx.fillRect(-9, -38, 18, 3.5);
+        ctx.fillStyle = '#1e1b4b';
+        ctx.fillRect(-2, -46, 4, 8);
+        ctx.fillStyle = '#dc2626';
+        ctx.beginPath(); ctx.arc(0, -48, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        // Floating Soul Essence Motes rising toward singularity
+        ctx.fillStyle = '#a5f3fc';
+        for (let sm = 0; sm < 8; sm++) {
+          const px = singX - 40 + ((sm * 21 + time * 18) % 80);
+          const py = y + h - 35 - ((sm * 12 + time * 24) % 65);
+          ctx.fillRect(px, py, 1.5, 1.5);
+        }
+        break;
+      }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Atmospheric Overlay & Watermark Badge
+    // ─────────────────────────────────────────────────────────────
+    // Top-left Stratum Badge
+    ctx.fillStyle = 'rgba(6, 9, 20, 0.75)';
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.45)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, x + 8, y + 8, 126, 17, 3);
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#fde68a';
+    ctx.font = 'bold 8px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`STRATUM ${floorNum} · CANON SCENE`, x + 71, y + 16.5);
+
+    // Subtle edge scanlines & glass sheen bevel
+    const glassSheen = ctx.createLinearGradient(x, y, x + w, y + h);
+    glassSheen.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
+    glassSheen.addColorStop(0.3, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = glassSheen;
+    ctx.fillRect(x, y, w, h);
+
+    ctx.restore();
   }
 };
+

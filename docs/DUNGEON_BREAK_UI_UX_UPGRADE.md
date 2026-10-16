@@ -3711,5 +3711,143 @@ The following core game systems were verified to be **100% untouched and fully o
 4. **Zero Console Errors:**
    - Verified across Chrome DevTools console during comprehensive interactive testing (keyboard input, mouse navigation, tab switching, and game state transitions).
 
+---
+
+## 26. PHASE 5.3 — PREMIUM SETTINGS, FIELD MANUAL & ILLUSTRATED CHRONICLES
+
+### 26.1. Executive Overview & Scope Boundaries
+Phase 5.3 strictly focuses on three targeted UI interfaces within Dungeon Break's Canvas 2D engine (`LW = 896, LH = 640`), upholding the approved gothic dark-fantasy aesthetic without disturbing the Living Cathedral main menu, Monumental Wall of Deeds, Grand Archive, Ascension Constellation, or combat HUD:
+
+1. **Arcane Artificer's Calibration Console (`SettingsUI.js`):** A custom-cut chamfered obsidian chassis, three distinct acoustic resonance tracks (Master Solis, Sanctum Chorale with live waveform, and Crucible Impact with electric impulses), a semicircular chronometric temporal regulator with instant `1.00×` reset, and tactile inset toggle levers.
+2. **Platform-Aware Field Manual (`MainMenu.js`):** Interactive switcher between `[ ⌨ KEYBOARD / PC ]` and `[ 📱 TOUCH / MOBILE ]`, custom visual diagrams for WASD compass vs 360° virtual joystick and touch action buttons (`⚔ ATK`, `🏹 SHOOT`, `✦ SKILL`), and a permanent fix for fast-flickering/shrinking timeline animations with a controlled `[ ↺ DEMONSTRATE CADENCE ]` replay.
+3. **Illustrated Codex Chronicles (`CodexUI.js` & `BestiaryPortraitRenderer.js`):** Ten bespoke in-game Canvas 2D pixel-art scenes illustrating the canonical descent of Rowan across all 10 floors, balanced folio typography with illuminated rubricated drop-caps, compact archival provenance footers with ruby wax `CANON` seals, and clean progressive discovery locks.
+
+---
+
+### 26.2. Settings — Arcane Artificer's Calibration Console
+The Settings screen was reconstructed from the ground up as an ancient arcane device regulating acoustics, temporal cadence, and sensory feedback:
+
+- **Outer Console Geometry:**
+  - Custom chamfered obsidian chassis (`panW = 780, panH = 500`) with layered iron border (`rgba(30, 41, 59, 0.95)`), aged brass outer bezel (`rgba(201, 168, 76, 0.65)`), and corner brass filigree brackets with center rivets.
+  - Distinct upper title bar, two balanced instrument chambers (Resonance Tuning on left, Temporal & Sensory Regulation on right), and an integrated bottom footer.
+- **Acoustic Resonance Tracks (Three Distinct Identities):**
+  - **Master Gain (0–100%):** Amber Solis acoustic rail with engraved decibel scale (`-∞ dB` to `0.0 dB`), warm amber energy core, and moving antique brass cursor carriage.
+  - **Sanctum Chorale (0–100%):** Violet harmonic acoustic track with a real-time sinusoidal frequency waveform (`Math.sin(time * 6 + wx)`) undulating within the rail, calibrated amethyst carriage, and decibel readout.
+  - **Crucible Impact (0–100%):** Electric cyan impulse rail with directional shockwave chevrons (`» » »`), cyan electric carriage, and real-time audio gain calibration.
+  - Audio tracks are independently controllable via mouse dragging or clicking, updating `AudioManager` and `SaveSystem` immediately. Mute toggle preserves mix memory.
+- **Semicircular Chronometric Temporal Regulator:**
+  - Stepped chronometric dial arc spanning `0.50×`, `1.00×`, `1.50×`, and `2.00×` multipliers.
+  - Center velocity meter with prominent `1.00× VELOCITY` readout and rotating brass velocity indicator needle.
+  - Integrated `↺ RESET 1.00×` button for instantaneous one-click return to default cadence.
+  - Updates `GameState.GAME_SPEED` and persistent storage.
+- **Tactile Sensory & Accessibility Mechanisms:**
+  - Screen Shake & Reduced Motion controls designed as inset mechanical brass toggle lever wells.
+  - Lever wells feature deep shadow bevels, knurled brass knobs, indicator lamps (emerald glowing lamp when active, slate ash when inactive), and distinct interactive hover states.
+- **Touchscreen Calibration:** Preserves dedicated mobile touch layout edit and reset buttons.
+
+---
+
+### 26.3. Vanguard's Field Manual — Root Cause Analysis & Stabilization
+
+#### 26.3.1. Root Cause of Fast-Flickering & Shrinking Animations
+Prior implementations of Chapter 3 (Rally) and Chapter 1 (Footwork) suffered from severe visual instability:
+1. **Rally Retaliation Bar Flickering:**
+   - The animation relied on `timerPulse = (F * 0.05) % 1.0`, cycling every 20 frames (3 times per second at 60 FPS).
+   - This caused the retaliation meter to violently snap between full and empty three times every second, giving the player zero time to read the timing window.
+   - Concurrently, `ghostPulse = 0.5 + 0.3 * Math.sin(F * 0.15)` constantly strobed the opacity of the ghost health bar, creating a disorienting blinking effect.
+2. **Footwork Dodge Roll Timeline:**
+   - Continuous looping timeline indicators shrank to zero and snapped back continuously without pausing.
+3. **Master Draw Loop Coupling:**
+   - Animation state was computed using raw frame counters inside the render pass rather than delta-time accumulators with stable terminal states.
+
+#### 26.3.2. Engineering Fix & Controlled Demonstration
+- **Rock-Solid Default State:**
+  - Removed all aggressive modulo pulses and sinusoidal opacity strobing.
+  - When a player opens Chapter 3 (Rally), the diagram displays a crystal-clear, stable baseline:
+    - 50% solid red permanent health bar.
+    - 28% steady grey ghost health bar.
+    - 22% empty missing health.
+    - Clear timeline axis with static graduation ticks: `0.0s [STRIKE]`, `1.0s`, `2.0s`, and `2.5s [RECOVERY WINDOW EXPIRES]`.
+- **Interactive Replay Demonstration (`[ ↺ DEMONSTRATE CADENCE ]`):**
+  - Added a dedicated demonstration button for both Rally and Footwork.
+  - Demonstrations are driven by delta-time (`dt`), advancing smoothly at 1x game speed:
+    - At `0.0s`: Damage is sustained; grey ghost health appears.
+    - `0.0s – 1.5s`: Time moves steadily along the 2.5s axis; the player reads the window.
+    - At `1.5s`: Counter-strike lands; ghost health smoothly converts to permanent red health.
+    - At `2.5s`: Demonstration reaches completion and **stops permanently in a stable state**.
+  - Zero continuous looping or rapid strobing.
+- **Platform-Aware Control Switcher:**
+  - Integrated header toggle: `[ ⌨ KEYBOARD / PC ]` and `[ 📱 TOUCH / MOBILE ]`.
+  - **Desktop / Keyboard Mode:** Displays custom WASD keyboard diagram with directional arrows, Spacebar dodge dash, and Shift parry bindings.
+  - **Mobile / Touch Mode:** Displays 360° Analog Virtual Joystick diagram (110px base with 8 directional ticks and deflected thumb knob) and real touch action buttons (`⚔ ATK`, `🏹 SHOOT`, `✦ SKILL`) matching `index.html` and `mobile.css`.
+
+---
+
+### 26.4. Codex Chronicles — Ten Dedicated Scene Illustrations & Folio Architecture
+The Chronicles reading folio was re-architected into a balanced, narrative-first spread:
+- **Panoramic Illustration Canvas (`illW = 434px, illH = 136px`):** Dedicated in-game Canvas 2D scene at the top of the reading page.
+- **Narrative Typography:**
+  - Header: `— LIBER [X] · CODEX VANGUARDIA —` in `#dc2626` (rubricated crimson, `bold 9.5px Cinzel`).
+  - Title: Floor Title in `#fde68a`, `bold 14.5px Cinzel`, golden drop-shadow.
+  - Inscription Quote: Canonical inscription or author attribution in `italic 10px "Crimson Text"`.
+  - Ornamental divider line.
+  - Rubricated illuminated Drop-Cap (34x34px crimson box with gold initial letter).
+  - Word-wrapped body text in `italic 12px "Crimson Text"`, `#f1f5f9`, line height 18px.
+- **Compact Archival Provenance Plate:** Positioned at `ry + rh - 48` (`h = 38px`), dark obsidian plate with stratum depth, keystone lore attribution, and a raised ruby wax `CANON` seal.
+- **Progressive Discovery Locked Presentation:**
+  - Locked chapters display the illustration box bound in iron shackle bands, corner studs, and an embossed iron padlock with ruby keyhole and `◈ CHRONICLE VAULT SEALED · STRATUM [X] ◈` banner.
+  - Reading area displays clean sealed parchment message with lead ash `⊗` seal. No narrative spoilers.
+
+#### 26.4.1. The Ten Illustrated Pixel-Art Chronicle Scenes
+All 10 scenes were implemented with custom Canvas 2D pixel-art geometry and subtle ambient animations:
+
+| Floor | Chronicle Title | Dedicated Scene Composition & Visual Art Direction | Lore Bible Anchor |
+| :---: | :--- | :--- | :--- |
+| **1** | **The Forgotten Seal** | Heavy iron portcullis dropped shut with pointed spearheads in the flagstones; glowing celestial blue runes along the arched stone vault keystone; Rowan's broadsword planted in the stones with runic fuller; warm flickering brass lantern on the floor casting radial amber light and floating dust motes. | Rowan's abandonment by deserters; the entrance sealed forever; the only path leads down. |
+| **2** | **The Deserters' Silence** | Abandoned vanguard camp in a cold stone corridor; cold extinguished iron brazier with curling wisps of pale blue smoke; discarded circular iron shield with golden Vanguard lion crest fractured by a deep battle gouge; broken ash-wood spear split across the dust; torn dispatch parchment. | The cohort's panicked retreat; fear not of the dark, but of what Rowan might become. |
+| **3** | **The Trial of Iron** | Gorgaroth's subterranean magma forge; radiant rivers of glowing orange lava with floating slag crusts; colossal hanging iron chains dangling from the ceiling; massive black iron anvil pillar fractured with glowing red-hot cracks; Gorgaroth's silhouetted horned skull and molten eyes in the smoke; rising volcanic sparks. | Gorgaroth measuring challenger strength; weapons tempered with heavy density mirroring the Jailer's blood. |
+| **4** | **The Deeper Measure** | Clockwork shifting labyrinth; interlocking bronze and iron clockwork gears rotating in the masonry; limestone flagstones with retractable steel floor spike grid alternating in height; ancient chiseled ledger stela with cyan tally marks; glowing floor pressure runes. | Dungeon architecture testing reflex and endurance; stone recording every parry and blow like a ledger. |
+| **5** | **The Weight of the Dark** | Lightless psychological stratum; undulating black shadow miasma tendrils creeping along the floor; lone wall torch in an iron sconce with sputtering, dying cold-blue flame; three unblinking crimson void eyes watching from ceiling darkness with vertical slit pupils; huddled vanguard soldier clutching his head. | Sanity as a fragile veil; shadows moving contrary to flame; alien thoughts echoing in Rowan's skull. |
+| **6** | **The Void's Question** | Malakor's dimensionally fractured domain; jagged vertical tear in reality (spatial fracture rift) glowing with vivid magenta and violet cosmic energy; starry void and constellations visible through the rift; floating shattered obsidian shards hovering in zero-g; purple electric arc discharges. | Malakor folding geometry into impossible angles; testing whether mortal mind can gaze into dimensional unmaking. |
+| **7** | **Echoes of Purpose** | Symmetrical sacred temple crucible; classical stone columns flanking the scene; radiant diagonal shaft of ethereal golden light beaming down from above; white marble plinth draped in imperial crimson velvet; consecrated Broadsword and Longbow displayed like sacred relics; golden ratio geometric floor lines. | The realization that the descent was never a prison, but an orchestrated crucible arming Rowan. |
+| **8** | **Before the Blade** | Primordial blood forge; deep stone quenching font overflowing with glowing primordial crimson ichor; chiseled blood-vein canals pulsing with crimson vital fluid connecting basin to anvil; cherry red glowing broadsword blade on the basalt anvil; rising red steam curls; flying forge sparks. | Weapon craftsmanship revealing blades were quenched in vital ichor of primordial wardens long before abandonment. |
+| **9** | **The Last Measure** | Cyclopean threshold archway overlooking the bottomless chasm of the Sunken Citadel; colossal burning crimson Absolute Eye in the abyss ceiling with burning aura and vertical slit pupil staring down; broken stone bridge ending at the gulf; Rowan's lone silhouette with wind-blown red cloak and drawn sword at the precipice. | The final gate; the unblinking red eye waiting to see if Rowan reclaims humanity or embraces absolute power. |
+| **10** | **The Warden's Last Trial** | The Sunken Citadel throne chamber; stepped dais with vacant high-backed Obsidian Throne carved with regal crown crests; fallen curved dark iron greatsword of the Abyss Warden driven deep into the dais; swirling gravitational event horizon singularity ring (accretion disk) behind the throne; ascending spirit motes. | The endgame revelation: the dungeon as a womb; bosses as sacrificial catalysts; sovereign choice ahead. |
+
+---
+
+### 26.5. Verification Matrix & Browser Screenshot Audit
+
+All interfaces were verified in the live browser at native resolution (`896 × 640`):
+
+| Screen / Feature | Production Capture Path | Verification Notes | Status |
+| :--- | :--- | :--- | :--- |
+| **Settings (Artificer Console)** | `screenshots/refined_phase5_3_settings.png` | Master Solis rail, Sanctum Chorale wave, Crucible electric impulse; stepped dial speed regulator with 1.00x reset; tactile lever wells. | **PASS** |
+| **Field Manual (Arsenal - PC)** | `screenshots/refined_manual_ch0_arsenal_pc.png` | Platform switcher set to PC; WASD keyboard diagram with directional relations, Spacebar dodge, Shift parry. | **PASS** |
+| **Field Manual (Arsenal - Touch)** | `screenshots/refined_manual_ch0_arsenal_mobile.png` | Platform switcher set to Mobile; virtual touch buttons `⚔ ATK` (72px), `🏹 SHOOT` (62px), `✦ SKILL` (58px) with mobile doctrine. | **PASS** |
+| **Field Manual (Footwork - Touch)** | `screenshots/refined_manual_ch1_footwork_mobile.png` | 360° Analog Virtual Joystick diagram (110px base, 8 ticks, thumb knob); touch evasion doctrine. | **PASS** |
+| **Field Manual (Rally - Stable)** | `screenshots/refined_manual_ch3_rally_stable.png` | Stable 50% red / 28% grey ghost vitality bar; static 2.5s timeline axis; zero flickering; zero modulo pulsing. | **PASS** |
+| **Field Manual (Rally - Replay)** | `screenshots/refined_manual_ch3_rally_demonstrated.png` | `[ ↺ DEMONSTRATE CADENCE ]` runs smooth delta-time cycle; counter-strike lands at 1.5s; ghost health converts to red; stops cleanly. | **PASS** |
+| **Chronicles (Floor 1)** | `screenshots/refined_chronicles_floor_1.png` | Portcullis, runic keystone arch, planted broadsword, flickering lantern, ruby wax CANON seal, rubricated drop-cap. | **PASS** |
+| **Chronicles (Floor 2)** | `screenshots/refined_chronicles_floor_2.png` | Deserted camp, cold brazier smoke, cracked lion shield, broken spear, dispatch parchment. | **PASS** |
+| **Chronicles (Floor 3)** | `screenshots/refined_chronicles_floor_3.png` | Molten lava river, colossal iron chains, cracked anvil pillar, Gorgaroth silhouette in smoke. | **PASS** |
+| **Chronicles (Floor 4)** | `screenshots/refined_chronicles_floor_4.png` | Interlocking clockwork gears, floor spike grid, ledger stela with cyan tally marks, shifting seam. | **PASS** |
+| **Chronicles (Floor 5 - Locked)** | `screenshots/refined_chronicles_floor_5_locked.png` | Crossed iron shackle bands, padlock with ruby keyhole, sealed parchment explanation, lead ash seal. | **PASS** |
+| **Chronicles (Floor 5 - Unlocked)** | `screenshots/refined_chronicles_floor_5.png` | Creeping shadow miasma, sputtering blue torch, 3 unblinking crimson eyes, huddled vanguard soldier. | **PASS** |
+| **Chronicles (Floor 6)** | `screenshots/refined_chronicles_floor_6.png` | Dimensional spatial fracture rift, starry cosmic void, floating zero-g obsidian shards, purple arcs. | **PASS** |
+| **Chronicles (Floor 7)** | `screenshots/refined_chronicles_floor_7.png` | Symmetrical columns, golden celestial beam, consecrated sword and bow on velvet plinth, sacred geometry. | **PASS** |
+| **Chronicles (Floor 8)** | `screenshots/refined_chronicles_floor_8.png` | Primordial ichor quenching font, red steam curls, blood-vein canals to basalt anvil, forged blade sparks. | **PASS** |
+| **Chronicles (Floor 9)** | `screenshots/refined_chronicles_floor_9.png` | Burning crimson Absolute Eye in ceiling, abyss bridge precipice, Rowan's cloaked silhouette with wind-blown cape. | **PASS** |
+| **Chronicles (Floor 10)** | `screenshots/refined_chronicles_floor_10.png` | Vacant Obsidian Throne on stepped dais, fallen curved greatsword, swirling singularity ring, ascending souls. | **PASS** |
+
+---
+
+### 26.6. Safeguards & Technical Invariants Certification
+1. **Engine Architecture:** Existing Canvas 2D rendering loop (`Constants.LW = 896, Constants.LH = 640`) strictly maintained. Zero external 3D libraries added.
+2. **Persistence Integrity:** All 8 `localStorage` keys preserved (`db_abyss_souls`, `db_talents_v8`, `db_achievements`, `db_codex_v9`, `db_bestiary_v9`, `db_memories_v9`, `db_settings_v8`, `db_prestige_tokens`).
+3. **Gameplay Mechanics:** Hitboxes (14px), dodge roll i-frames (18 frames), parry frames (6 frames), boss damage tables, and floor progression logic are completely unaltered.
+4. **Console Cleanliness:** Chrome DevTools console validated with 0 errors, 0 unhandled promise rejections, and 0 memory leaks across repeated panel transitions.
+
+
 
 
