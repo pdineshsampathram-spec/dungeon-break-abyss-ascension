@@ -8,7 +8,7 @@
 // =====================================================================
 
 import { GameState, GameStates } from '../core/GameState.js';
-import { LW, LH, T, easeInOut } from '../core/Constants.js';
+import { LW, LH, T, COLS, ROWS, easeInOut } from '../core/Constants.js';
 import { SoundManager } from '../audio/AudioManager.js';
 import { EventBus } from '../core/EventBus.js';
 import { FloorManager } from '../world/FloorManager.js';
@@ -103,6 +103,24 @@ export const GorgarothCinematics = {
   getActivePlayerDeath() {
     return _activePlayerDeath;
   },
+  canSkip() {
+    return !!_activeDefeat && (_activeDefeat.timer >= 0.25 || !_activeDefeat.hitStopActive);
+  },
+  skip() {
+    if (!this.canSkip()) return;
+    const cine = _activeDefeat;
+    console.log('[GORGAROTH] Defeat cinematic skipped by player');
+    if (cine.boss) {
+      cine.boss.weaponDropped = true;
+      cine.boss.collapseProg = 1.0;
+      cine.boss.vaporizeProg = 1.0;
+      cine.boss.weaponDissolveProg = 1.0;
+      cine.boss.cinematicConsumed = true;
+      cine.boss.alive = false;
+    }
+    AchievementSystem.unlock('jailbreaker');
+    this.finishPortalFormation();
+  },
 
   // ═════════════════════════════════════════════════════════════
   // PART 1: GORGAROTH DEFEAT TRIGGER
@@ -115,10 +133,13 @@ export const GorgarothCinematics = {
     console.log('[GORGAROTH] Defeat cinematic initiated');
 
     const P = GameState.P;
-    const px = P ? P.x : 24;
-    const py = P ? P.y : 22;
-    const bx = boss ? boss.x : 24;
-    const by = boss ? boss.y : 14;
+    const room = (GameState.ROOMS && GameState.ROOMS[0]) || { x: ((COLS - 42) / 2) | 0, y: ((ROWS - 28) / 2) | 0, w: 42, h: 28, cx: (COLS / 2) | 0, cy: (ROWS / 2) | 0 };
+    const defaultCx = room.cx || ((COLS / 2) | 0);
+    const defaultCy = room.cy || ((ROWS / 2) | 0);
+    const px = P ? P.x : defaultCx;
+    const py = P ? P.y : (room.y + room.h - 3);
+    const bx = boss ? boss.x : defaultCx;
+    const by = boss ? boss.y : (defaultCy - 2);
     const facing = bx >= px ? 1 : -1;
 
     // 2. Lock Gameplay & Freeze normal interactions
@@ -206,9 +227,9 @@ export const GorgarothCinematics = {
       });
     }
 
-    // Portal location: Directly in the north dais center beyond the boss
-    const portalX = 24.0;
-    const portalY = 8.5;
+    // Portal location: Directly in the north dais center of the boss arena
+    const portalX = defaultCx;
+    const portalY = room.y + 2.0;
 
     _activeDefeat = {
       timer: 0,
@@ -269,10 +290,13 @@ export const GorgarothCinematics = {
     console.log('[GORGAROTH] Player death cinematic initiated');
 
     const P = GameState.P;
-    const px = P ? P.x : 24;
-    const py = P ? P.y : 22;
-    const bx = boss ? boss.x : 24;
-    const by = boss ? boss.y : 16;
+    const room = (GameState.ROOMS && GameState.ROOMS[0]) || { x: ((COLS - 42) / 2) | 0, y: ((ROWS - 28) / 2) | 0, w: 42, h: 28, cx: (COLS / 2) | 0, cy: (ROWS / 2) | 0 };
+    const defaultCx = room.cx || ((COLS / 2) | 0);
+    const defaultCy = room.cy || ((ROWS / 2) | 0);
+    const px = P ? P.x : defaultCx;
+    const py = P ? P.y : (room.y + room.h - 3);
+    const bx = boss ? boss.x : defaultCx;
+    const by = boss ? boss.y : (defaultCy - 2);
     const bossFacing = px >= bx ? 1 : -1;
 
     // Immediately take cinematic control & prevent generic death scenes
@@ -714,10 +738,11 @@ export const GorgarothCinematics = {
         }
 
         // Gentle ceiling dust motes
+        const room = (GameState.ROOMS && GameState.ROOMS[0]) || { x: ((COLS - 42) / 2) | 0, y: ((ROWS - 28) / 2) | 0, w: 42, h: 28 };
         for (let i = 0; i < 24; i++) {
           ARENA_DUST_MOTES.push({
-            x: (12 + Math.random() * 24) * T,
-            y: (5 + Math.random() * 4) * T,
+            x: (room.x + Math.random() * room.w) * T,
+            y: (room.y + Math.random() * 4) * T,
             vy: 10 + Math.random() * 18,
             vx: (Math.random() - 0.5) * 4,
             r: 1.0 + Math.random() * 1.5,
@@ -977,8 +1002,11 @@ export const GorgarothCinematics = {
       }
 
       // Camera gently centers both characters in a tragic, dignified frame
-      const midX = (cine.rowan.staggerX * 0.60 + (boss ? boss.x : 24) * 0.40);
-      const midY = (cine.rowan.y * 0.60 + (boss ? boss.y : 16) * 0.40);
+      const room = (GameState.ROOMS && GameState.ROOMS[0]) || { x: ((COLS - 42) / 2) | 0, y: ((ROWS - 28) / 2) | 0, cx: (COLS / 2) | 0, cy: (ROWS / 2) | 0 };
+      const defaultCx = room.cx || ((COLS / 2) | 0);
+      const defaultCy = room.cy || ((ROWS / 2) | 0);
+      const midX = (cine.rowan.staggerX * 0.60 + (boss ? boss.x : defaultCx) * 0.40);
+      const midY = (cine.rowan.y * 0.60 + (boss ? boss.y : defaultCy) * 0.40);
       cine.camera.targetX = midX;
       cine.camera.targetY = midY;
       cine.camera.targetZoom = 1.30;
@@ -1242,6 +1270,15 @@ export const GorgarothCinematics = {
         ctx.fillStyle = 'rgba(234, 88, 12, 0.40)';
         ctx.fillRect(0, barH - 1, LW, 1);
         ctx.fillRect(0, LH - barH, LW, 1);
+      }
+
+      // Skip prompt
+      if (this.canSkip()) {
+        const skipAlpha = Math.min(0.60, (cine.timer - 0.5) / 0.8);
+        ctx.fillStyle = `rgba(251, 146, 60, ${skipAlpha})`;
+        ctx.font = 'bold 9px "Cinzel", Georgia, serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('SPACE / CLICK TO SKIP', LW - 18, LH - barH - 8);
       }
 
       // Traversal darkening at end

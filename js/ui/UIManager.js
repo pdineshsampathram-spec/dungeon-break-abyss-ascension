@@ -20,6 +20,7 @@ import { Credits } from '../cinematics/Credits.js';
 import { LastEmberCinematic } from '../cinematics/LastEmberCinematic.js';
 import { EndingCinematics, ACTIVE_ENDING } from '../cinematics/EndingCinematics.js';
 import { WardenDefeatCinematic } from '../cinematics/WardenDefeatCinematic.js';
+import { GorgarothCinematics } from '../cinematics/GorgarothCinematics.js';
 import { DeathCinematics, ACTIVE_DEATH_CINEMATIC } from '../cinematics/DeathCinematics.js';
 import { BossIntros } from '../cinematics/BossIntros.js';
 import { CinematicDirector } from '../cinematics/CinematicDirector.js';
@@ -179,6 +180,11 @@ export const UIManager = {
     if (GameState.STATE === GameStates.BOSS_DEFEAT_CINEMATIC || GameState.STATE === 'boss_defeat_cinematic') {
       if (WardenDefeatCinematic.canSkip && WardenDefeatCinematic.canSkip()) {
         WardenDefeatCinematic.skip();
+        return;
+      }
+      if (GorgarothCinematics.canSkip && GorgarothCinematics.canSkip()) {
+        GorgarothCinematics.skip();
+        return;
       }
       return;
     }

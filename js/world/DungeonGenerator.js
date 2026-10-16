@@ -327,13 +327,17 @@ export const DungeonGenerator = {
       // Place cosmic exit portal in the furthest room from spawn for expansive exploration
       let maxDist = 0;
       let goal = rooms[rooms.length - 1];
-      for (let i = 1; i < rooms.length; i++) {
-        const d = Math.hypot(rooms[i].cx - start.cx, rooms[i].cy - start.cy);
-        if (d > maxDist) {
-          maxDist = d;
-          goal = rooms[i];
+      for (let i = 0; i < rooms.length; i++) {
+        rooms[i].isPortalRoom = false;
+        if (i > 0) {
+          const d = Math.hypot(rooms[i].cx - start.cx, rooms[i].cy - start.cy);
+          if (d > maxDist) {
+            maxDist = d;
+            goal = rooms[i];
+          }
         }
       }
+      goal.isPortalRoom = true;
       map[goal.cy][goal.cx] = 2; // Portal Tile
 
       // BFS Reachability Verification across entire dungeon

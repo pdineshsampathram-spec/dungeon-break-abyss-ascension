@@ -14,7 +14,7 @@ import { RelicSystem } from '../systems/RelicSystem.js';
 import { getStoryMemoryForFloor } from '../data/memories.js';
 import { LORE_SCROLLS_DATA } from '../data/lore.js';
 import { EventBus } from '../core/EventBus.js';
-import { MAX_LV } from '../core/Constants.js';
+import { MAX_LV, COLS, ROWS } from '../core/Constants.js';
 import { EndingCinematics, EndingDispatcher } from '../cinematics/EndingCinematics.js';
 import { PortalTransition } from '../cinematics/PortalTransition.js';
 import { HallucinationSystem } from '../systems/HallucinationSystem.js';
@@ -163,7 +163,7 @@ export const FloorManager = {
     // Relic trigger on entering new floor
     RelicSystem.onFloorEnter();
 
-    // Populate Normal Floors with Structured Encounter Groups
+    // Populate Normal Floors with Structured Encounter Groups across expanded 34-42 room dungeon
     GameState.ENE = [];
     if (!isBossFloor(LV) && GameState.ROOMS && GameState.ROOMS.length > 1) {
       // Calibrated enemy health baselines and progression curve
@@ -172,63 +172,207 @@ export const FloorManager = {
 
       // Available non-start rooms (Room 0 is strictly safe start)
       const encounterRooms = GameState.ROOMS.slice(1);
-      // Populate 16 to 28 encounter chambers across the expanded 34-42 room dungeon
-      const numEncounters = Math.min(
-        encounterRooms.length,
-        LV === 1 ? 16 : (LV === 2 ? 20 : (LV <= 4 ? 24 : 28))
-      );
+      const map = GameState.MAP;
 
-      for (let rIdx = 0; rIdx < numEncounters; rIdx++) {
+      // Helper to check tile walkability and safety for enemy spawns
+      const isSpawnTileValid = (x, y) => {
+        const tx = Math.floor(x);
+        const ty = Math.floor(y);
+        if (ty < 1 || ty >= ROWS - 1 || tx < 1 || tx >= COLS - 1 || !map[ty]) return false;
+        const t = map[ty][tx];
+        if (t !== 0 && t !== 4 && t !== 5) return false;
+        if (isInOpeningSafeZone(tx, ty, LV)) return false;
+        if (Math.hypot(tx - P.x, ty - P.y) < (LV === 1 ? 6.5 : 4.5)) return false;
+        for (let i = 0; i < GameState.ENE.length; i++) {
+          if (Math.hypot(GameState.ENE[i].x - x, GameState.ENE[i].y - y) < 1.1) return false;
+        }
+        return true;
+      };
+
+      for (let rIdx = 0; rIdx < encounterRooms.length; rIdx++) {
         const rm = encounterRooms[rIdx];
-        const isPortalRoom = (rIdx === encounterRooms.length - 1);
+        const isPortalRoom = !!rm.isPortalRoom || (map && map[rm.cy] && map[rm.cy][rm.cx] === 2);
+        const rType = rm.type || 'rect';
 
-        // Group composition based on floor level
+        // Group composition based on floor level, room archetype, and exploration rhythm
         let groupTypes = [];
-        if (LV === 1) {
-          // Floor 1: Patrol pairs and skirmish trios (skeletons and ghouls)
-          if (rIdx % 2 === 0) {
-            groupTypes = ['skeleton', 'skeleton', Math.random() < 0.45 ? 'skeleton' : 'ghoul'];
+        let forceElite = false;
+
+        // 1. FLOOR 1 SCRIPTED AMBUSH ROOM
+        if (LV === 1 && rIdx === 0) {
+          // Room 1: Authorship preserved — trio of ambush skeletons
+          groupTypes = ['skeleton', 'skeleton', 'skeleton'];
+        }
+        // 2. PORTAL ROOM — Gatekeeper Stronghold
+        else if (isPortalRoom) {
+          if (LV === 1) {
+            groupTypes = ['skeleton', 'skeleton', 'skeleton'];
+          } else if (LV === 2) {
+            groupTypes = ['ghoul', 'ghoul', 'skeleton', 'skeleton'];
+          } else if (LV <= 4) {
+            groupTypes = ['demon', 'ghoul', 'ghoul', 'skeleton'];
+            forceElite = true;
+          } else if (LV <= 7) {
+            groupTypes = ['wraith', 'demon', 'demon', 'ghoul'];
+            forceElite = true;
           } else {
-            groupTypes = ['ghoul', 'skeleton', Math.random() < 0.35 ? 'ghoul' : 'skeleton'];
+            groupTypes = ['demon', 'wraith', 'wraith', 'ghoul', 'demon'];
+            forceElite = true;
           }
-        } else if (LV === 2) {
-          // Floor 2: Mixed encounters
-          groupTypes = ['skeleton', 'ghoul', Math.random() < 0.5 ? 'ghoul' : 'skeleton'];
-          if (Math.random() < 0.4) groupTypes.push('skeleton');
-        } else if (LV <= 4) {
-          // Floors 3-4: Introduce brimstone demons
-          groupTypes = ['skeleton', 'ghoul', 'demon'];
-          if (Math.random() < 0.5) groupTypes.push('demon');
-          if (Math.random() < 0.4) groupTypes.push('ghoul');
-        } else if (LV <= 7) {
-          // Floors 5-7: Wraiths, demons, and ghouls
-          groupTypes = ['ghoul', 'demon', 'wraith'];
-          if (Math.random() < 0.6) groupTypes.push('skeleton');
-          if (Math.random() < 0.5) groupTypes.push('demon');
-        } else {
-          // Floors 8-9: High pressure combat encounters
-          groupTypes = ['demon', 'wraith', 'ghoul', 'skeleton'];
-          if (Math.random() < 0.6) groupTypes.push('wraith');
-          if (Math.random() < 0.6) groupTypes.push('demon');
+        }
+        // 3. ARCHETYPE-BASED ENCOUNTER PROFILES
+        else if (rType === 'grand_hall') {
+          // Colonnade nave: vanguard flanked by casters
+          if (LV <= 2) {
+            groupTypes = ['skeleton', 'skeleton', 'ghoul'];
+          } else if (LV <= 4) {
+            groupTypes = ['demon', 'ghoul', 'skeleton', 'ghoul'];
+            if (Math.random() < 0.35) forceElite = true;
+          } else if (LV <= 7) {
+            groupTypes = ['demon', 'wraith', 'ghoul', 'demon'];
+            if (Math.random() < 0.45) forceElite = true;
+          } else {
+            groupTypes = ['demon', 'wraith', 'demon', 'wraith', 'ghoul'];
+            if (Math.random() < 0.55) forceElite = true;
+          }
+        }
+        else if (rType === 'cross_hub') {
+          // 4-way crossroad: multi-directional flanking sentries
+          if (LV <= 2) {
+            groupTypes = ['skeleton', 'ghoul', 'skeleton'];
+          } else if (LV <= 4) {
+            groupTypes = ['demon', 'ghoul', 'skeleton'];
+          } else if (LV <= 7) {
+            groupTypes = ['wraith', 'demon', 'ghoul'];
+            if (Math.random() < 0.30) forceElite = true;
+          } else {
+            groupTypes = ['demon', 'wraith', 'demon', 'ghoul'];
+            if (Math.random() < 0.40) forceElite = true;
+          }
+        }
+        else if (rType === 'cathedral') {
+          // Altar sanctuary
+          if (LV <= 2) {
+            groupTypes = ['skeleton', 'ghoul', 'skeleton'];
+          } else if (LV <= 4) {
+            groupTypes = ['demon', 'ghoul', 'skeleton'];
+            if (Math.random() < 0.40) forceElite = true;
+          } else if (LV <= 7) {
+            groupTypes = ['demon', 'wraith', 'demon'];
+            if (Math.random() < 0.45) forceElite = true;
+          } else {
+            groupTypes = ['demon', 'wraith', 'wraith', 'demon'];
+            if (Math.random() < 0.50) forceElite = true;
+          }
+        }
+        else if (rType === 'treasure_vault') {
+          // Fortified cache vault: elite guardian + fast skirmishers
+          if (LV <= 2) {
+            groupTypes = ['ghoul', 'skeleton'];
+          } else {
+            groupTypes = ['demon', 'ghoul', 'wraith'];
+            forceElite = true;
+          }
+        }
+        else if (rType === 'crypt_vault') {
+          // Sarcophagus ambushers
+          if (LV <= 2) {
+            groupTypes = ['skeleton', 'skeleton'];
+          } else if (LV <= 4) {
+            groupTypes = ['ghoul', 'skeleton'];
+          } else {
+            groupTypes = ['ghoul', 'wraith'];
+          }
+        }
+        else if (rType === 'chasm_cavern') {
+          // Tactical chasm crossfire
+          if (LV <= 2) {
+            groupTypes = ['skeleton', 'skeleton'];
+          } else if (LV <= 4) {
+            groupTypes = ['demon', 'ghoul'];
+          } else {
+            groupTypes = ['demon', 'wraith', 'ghoul'];
+          }
+        }
+        else if (rType === 'ruined_labyrinth') {
+          // Close-quarters ambush
+          if (LV <= 2) {
+            groupTypes = ['skeleton', 'ghoul'];
+          } else if (LV <= 4) {
+            groupTypes = ['ghoul', 'demon'];
+          } else {
+            groupTypes = ['wraith', 'ghoul'];
+          }
+        }
+        // 4. STANDARD RECT CHAMBERS — EXPLORATION RHYTHM
+        else {
+          const rhythmRoll = (rIdx * 7 + LV * 3) % 10;
+          if (rhythmRoll <= 1 && rIdx > 2) {
+            // Quiet / Respite room (20%): traversal break, no enemies
+            groupTypes = [];
+          } else if (rhythmRoll <= 5) {
+            // Small skirmish (40%): 1-2 scouts
+            if (LV === 1) groupTypes = ['skeleton'];
+            else if (LV <= 3) groupTypes = [Math.random() < 0.6 ? 'skeleton' : 'ghoul'];
+            else if (LV <= 6) groupTypes = [Math.random() < 0.5 ? 'ghoul' : 'demon'];
+            else groupTypes = [Math.random() < 0.5 ? 'demon' : 'wraith'];
+          } else {
+            // Standard combat encounter (40%): 2-3 enemies
+            if (LV === 1) {
+              groupTypes = ['skeleton', 'skeleton'];
+            } else if (LV === 2) {
+              groupTypes = ['skeleton', 'ghoul'];
+            } else if (LV <= 4) {
+              groupTypes = ['demon', 'ghoul', 'skeleton'];
+            } else if (LV <= 7) {
+              groupTypes = ['ghoul', 'demon', 'wraith'];
+            } else {
+              groupTypes = ['demon', 'wraith', 'ghoul'];
+            }
+          }
         }
 
-        // Portal room gets an extra guard pack or elite
-        if (isPortalRoom) {
-          groupTypes.push(LV >= 4 ? 'demon' : 'skeleton');
-        }
-
-        // Spawn enemies within room boundary
+        // Spawn allocated enemies safely within room boundary
         groupTypes.forEach((type, memberIdx) => {
-          // Offset each member safely within the room
-          const ox = ((memberIdx % 2 === 0 ? 1 : -1) * (1.2 + Math.floor(memberIdx / 2) * 0.8));
-          const oy = ((memberIdx % 3 === 0 ? 1 : -1) * (1.1 + Math.floor(memberIdx / 3) * 0.7));
-          let ex = Math.max(rm.x + 1, Math.min(rm.x + rm.w - 2, rm.cx + ox));
-          let ey = Math.max(rm.y + 1, Math.min(rm.y + rm.h - 2, rm.cy + oy));
+          let placed = false;
+          let ex = rm.cx;
+          let ey = rm.cy;
+
+          for (let attempt = 0; attempt < 30; attempt++) {
+            const ox = ((memberIdx % 2 === 0 ? 1 : -1) * (1.2 + Math.floor(memberIdx / 2) * 1.1)) + (Math.random() - 0.5) * 1.5;
+            const oy = ((memberIdx % 3 === 0 ? 1 : -1) * (1.1 + Math.floor(memberIdx / 3) * 1.0)) + (Math.random() - 0.5) * 1.5;
+            const testX = Math.max(rm.x + 1.2, Math.min(rm.x + rm.w - 2.2, rm.cx + ox));
+            const testY = Math.max(rm.y + 1.2, Math.min(rm.y + rm.h - 2.2, rm.cy + oy));
+            if (isSpawnTileValid(testX, testY)) {
+              ex = testX;
+              ey = testY;
+              placed = true;
+              break;
+            }
+          }
+
+          if (!placed && !isSpawnTileValid(ex, ey)) {
+            for (let ry = rm.y + 1; ry < rm.y + rm.h - 1; ry++) {
+              for (let rx = rm.x + 1; rx < rm.x + rm.w - 1; rx++) {
+                if (isSpawnTileValid(rx + 0.5, ry + 0.5)) {
+                  ex = rx + 0.5;
+                  ey = ry + 0.5;
+                  placed = true;
+                  break;
+                }
+              }
+              if (placed) break;
+            }
+          }
+
+          if (!placed) return;
 
           let hp = Math.round(BASE_HP[type] * FLOOR_HP_MULT);
           let isElite = false;
-          // Elite chance on floor 4+ or portal guards
-          if ((LV >= 4 && Math.random() < 0.18) || (isPortalRoom && LV >= 4 && memberIdx === 0)) {
+          if (forceElite && memberIdx === 0) {
+            hp = Math.round(hp * 2.5);
+            isElite = true;
+          } else if (LV >= 4 && Math.random() < 0.14 && memberIdx === 0) {
             hp = Math.round(hp * 2.5);
             isElite = true;
           }
@@ -268,6 +412,56 @@ export const FloorManager = {
             telegraphType: null
           });
         });
+      }
+
+      // 5. CORRIDOR SENTRIES (Floors 2+) — Solitary sentries holding passageways between distant wings
+      if (LV >= 2 && map) {
+        const numCorridorSentries = Math.min(8, 3 + LV);
+        for (let cs = 0; cs < numCorridorSentries; cs++) {
+          for (let attempt = 0; attempt < 100; attempt++) {
+            const rx = 8 + Math.floor(Math.random() * (COLS - 16));
+            const ry = 8 + Math.floor(Math.random() * (ROWS - 16));
+            if (map[ry] && map[ry][rx] === 0) {
+              const inAnyRoom = GameState.ROOMS.some(rm => rx >= rm.x && rx < rm.x + rm.w && ry >= rm.y && ry < rm.y + rm.h);
+              if (!inAnyRoom && isSpawnTileValid(rx + 0.5, ry + 0.5)) {
+                const sType = LV <= 3 ? (Math.random() < 0.7 ? 'skeleton' : 'ghoul') : (Math.random() < 0.5 ? 'ghoul' : 'demon');
+                let hp = Math.round(BASE_HP[sType] * FLOOR_HP_MULT);
+                const sPoise = sType === 'demon' ? 45 : (sType === 'ghoul' ? 25 : 15);
+                GameState.ENE.push({
+                  x: rx + 0.5,
+                  y: ry + 0.5,
+                  homeX: rx + 0.5,
+                  homeY: ry + 0.5,
+                  vx: 0,
+                  vy: 0,
+                  alive: true,
+                  hp,
+                  maxHp: hp,
+                  armor: sType === 'demon' ? 0.10 : (sType === 'ghoul' ? 0.05 : 0.0),
+                  poise: sPoise,
+                  currentPoise: sPoise,
+                  staggerCooldown: 0,
+                  type: sType,
+                  alertT: 0,
+                  atkC: 0,
+                  ph: Math.random() * 6.28,
+                  dAnim: 0,
+                  hitFlash: 0,
+                  animState: 'idle',
+                  animTimer: 0,
+                  walkCycle: 0,
+                  isElite: false,
+                  roomId: 0,
+                  isAlerted: false,
+                  telegraphing: false,
+                  telegraphTimer: 0,
+                  telegraphType: null
+                });
+                break;
+              }
+            }
+          }
+        }
       }
     }
 

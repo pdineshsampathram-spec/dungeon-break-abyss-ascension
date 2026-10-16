@@ -168,6 +168,11 @@ function bootstrap() {
         e.preventDefault();
         if (WardenDefeatCinematic.canSkip && WardenDefeatCinematic.canSkip()) {
           WardenDefeatCinematic.skip();
+          return;
+        }
+        if (GorgarothCinematics.canSkip && GorgarothCinematics.canSkip()) {
+          GorgarothCinematics.skip();
+          return;
         }
         return;
       }

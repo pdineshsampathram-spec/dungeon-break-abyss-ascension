@@ -58,6 +58,12 @@ export const EnemyAI = {
         e.isAlerted = true;
         e.alertT = 0.35; // Brief alert pause before charge
       }
+    } else if (dist > 28 && !e.isAlerted && (e.hitFlash || 0) <= 0) {
+      // Performance governor: Distant dormant enemies do not perform expensive per-frame pathing
+      e.aiState = 'IDLE';
+      e.vx = 0;
+      e.vy = 0;
+      return;
     }
 
     const maxSpd = diff.espd * (isWraith ? 1.4 : isGhoul ? 1.3 : isDemon ? 0.95 : isElite ? 0.85 : 1.0);
@@ -272,18 +278,23 @@ export const EnemyAI = {
     e.vy = (e.vy || 0) + (desiredVy - (e.vy || 0)) * Math.min(1, dt * accel);
 
     // Natural separation forces (enemies maintain spacing and avoid stacking)
-    ENE.forEach((o, oi) => {
-      if (oi === ei || !o.alive) return;
-      const ox = e.x - o.x;
-      const oy = e.y - o.y;
-      const sd = Math.hypot(ox, oy);
-      const spacingRadius = (e.isElite || o.isElite) ? 1.25 : 0.95;
-      if (sd < spacingRadius && sd > 0.001) {
-        const push = ((spacingRadius - sd) / spacingRadius) * 4.0;
-        e.vx += (ox / sd) * push * dt;
-        e.vy += (oy / sd) * push * dt;
+    if (dist <= 22 || e.isAlerted) {
+      for (let oi = 0; oi < ENE.length; oi++) {
+        if (oi === ei) continue;
+        const o = ENE[oi];
+        if (!o.alive) continue;
+        const ox = e.x - o.x;
+        const oy = e.y - o.y;
+        if (Math.abs(ox) > 1.3 || Math.abs(oy) > 1.3) continue;
+        const sd = Math.hypot(ox, oy);
+        const spacingRadius = (e.isElite || o.isElite) ? 1.25 : 0.95;
+        if (sd < spacingRadius && sd > 0.001) {
+          const push = ((spacingRadius - sd) / spacingRadius) * 4.0;
+          e.vx += (ox / sd) * push * dt;
+          e.vy += (oy / sd) * push * dt;
+        }
       }
-    });
+    }
 
     e.vx *= Math.pow(0.88, dt * TARGET_FPS);
     e.vy *= Math.pow(0.88, dt * TARGET_FPS);
