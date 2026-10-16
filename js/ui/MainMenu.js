@@ -48,6 +48,7 @@ let _howToPlayActive = false;
 let _fieldGuideChapter = 0; // 0: Arsenal, 1: Footwork, 2: Sanity, 3: Rally, 4: Bosses
 let _fieldGuideInputMode = (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width:900px),(pointer:coarse)').matches) ? 'mobile' : 'pc';
 let _fieldGuideDemoRunning = false;
+let _fieldGuideDemoCompleted = false;
 let _fieldGuideDemoTimer = 0; // 0 to 2.5s controlled demonstration
 let _returnGoldenWash = 0;
 
@@ -1612,7 +1613,7 @@ export const MainMenu = {
       // ── CHAPTER SCHEMATICS ──
       if (_fieldGuideChapter === 0) {
         // CHAPTER 0: ARSENAL SCHEMATIC
-        const cx = leftX + leftW / 2, cy = spreadY + 130;
+        const cx = leftX + leftW / 2, cy = spreadY + 112;
 
         // Cleave Arc Vector
         ctx.save();
@@ -1642,16 +1643,16 @@ export const MainMenu = {
         ctx.restore();
 
         ctx.fillStyle = '#fde68a';
-        ctx.font = 'bold 10px Cinzel, serif';
+        ctx.font = 'bold 9.5px Cinzel, serif';
         ctx.textAlign = 'center';
-        ctx.fillText('PRIMARY SWORD CLEAVE (68° ARC · STAGGER ZONE)', cx, cy + 56);
+        ctx.fillText('PRIMARY SWORD CLEAVE (68° ARC · STAGGER ZONE)', cx, cy + 54);
 
         if (!isMobileMode) {
           // PC Weapon Dock Mockup
-          const dockY = spreadY + 218;
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-          ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
-          roundRect(ctx, cx - 140, dockY, 280, 52, 6);
+          const dockY = spreadY + 188;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+          ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)';
+          roundRect(ctx, cx - 145, dockY, 290, 54, 6);
           ctx.fill(); ctx.stroke();
 
           const slots = [
@@ -1660,11 +1661,11 @@ export const MainMenu = {
             { key: '3', name: 'RELIC', active: false, col: '#c084fc' }
           ];
           slots.forEach((s, idx) => {
-            const sx = cx - 130 + idx * 92;
-            ctx.fillStyle = s.active ? 'rgba(245, 158, 11, 0.25)' : 'rgba(30, 41, 59, 0.5)';
-            ctx.strokeStyle = s.active ? '#f59e0b' : 'rgba(71, 85, 105, 0.4)';
+            const sx = cx - 138 + idx * 94;
+            ctx.fillStyle = s.active ? 'rgba(245, 158, 11, 0.28)' : 'rgba(30, 41, 59, 0.55)';
+            ctx.strokeStyle = s.active ? '#f59e0b' : 'rgba(71, 85, 105, 0.45)';
             ctx.lineWidth = s.active ? 1.5 : 1;
-            roundRect(ctx, sx, dockY + 6, 84, 40, 4);
+            roundRect(ctx, sx, dockY + 6, 88, 42, 4);
             ctx.fill(); ctx.stroke();
 
             ctx.fillStyle = s.active ? '#ffffff' : '#94a3b8';
@@ -1672,29 +1673,54 @@ export const MainMenu = {
             ctx.textAlign = 'left';
             ctx.fillText(`[${s.key}]`, sx + 6, dockY + 18);
             ctx.fillStyle = s.col;
-            ctx.font = 'bold 8.5px Cinzel, serif';
+            ctx.font = 'bold 8px Cinzel, serif';
             ctx.textAlign = 'center';
-            ctx.fillText(s.name, sx + 42, dockY + 32);
+            ctx.fillText(s.name, sx + 44, dockY + 32);
           });
 
-          // Bow aim vector at bottom
-          ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 1.5;
-          ctx.setLineDash([4, 4]);
-          ctx.beginPath();
-          ctx.moveTo(cx - 120, spreadY + 310); ctx.lineTo(cx + 120, spreadY + 310);
-          ctx.stroke();
-          ctx.setLineDash([]);
-          ctx.fillStyle = '#7dd3fc';
-          ctx.font = '9px monospace';
-          ctx.textAlign = 'center';
-          ctx.fillText('--- [ HOLD SHIFT ] PIERCING ARROW TRAJECTORY --->', cx, spreadY + 326);
+          // Secondary & interaction controls sub-dock
+          const subDockY = spreadY + 252;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+          ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
+          roundRect(ctx, cx - 145, subDockY, 290, 96, 6);
+          ctx.fill(); ctx.stroke();
+
+          const subActions = [
+            { key: 'SHIFT', act: 'QUICK BOW PIERCE', desc: 'Direct ranged arrow without swapping weapon', col: '#38bdf8' },
+            { key: 'Q', act: 'CONSECRATED ABILITY', desc: 'Triggers weapon-specific relic ability', col: '#fbbf24' },
+            { key: 'E / G', act: 'GROUND SWAP & MODAL', desc: '[E] swaps active ground weapon · [G] replace modal', col: '#4ade80' }
+          ];
+
+          subActions.forEach((sa, saIdx) => {
+            const say = subDockY + 8 + saIdx * 29;
+            ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+            ctx.strokeStyle = sa.col;
+            ctx.lineWidth = 1;
+            roundRect(ctx, cx - 138, say, 48, 22, 3);
+            ctx.fill(); ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 8px monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(sa.key, cx - 114, say + 11);
+
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = sa.col;
+            ctx.font = 'bold 8.5px Cinzel, serif';
+            ctx.fillText(sa.act, cx - 82, say + 2);
+
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
+            ctx.font = '7.5px monospace';
+            ctx.fillText(sa.desc, cx - 82, say + 13);
+          });
         } else {
           // Mobile Action Buttons Schematic
-          const mobBoxY = spreadY + 218;
+          const mobBoxY = spreadY + 188;
           ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
           ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-          roundRect(ctx, cx - 140, mobBoxY, 280, 96, 6);
+          roundRect(ctx, cx - 145, mobBoxY, 290, 160, 6);
           ctx.fill(); ctx.stroke();
 
           ctx.fillStyle = '#38bdf8';
@@ -1704,9 +1730,9 @@ export const MainMenu = {
 
           // 3 Touch Action Buttons Mockup
           const mBtns = [
-            { label: '⚔ ATK', col: '#ef4444', r: 24, x: cx - 80, y: mobBoxY + 54, desc: 'Strike' },
-            { label: '🏹 SHOOT', col: '#34d399', r: 20, x: cx, y: mobBoxY + 54, desc: 'Bow' },
-            { label: '✦ SKILL', col: '#fbbf24', r: 18, x: cx + 76, y: mobBoxY + 54, desc: 'Special' }
+            { label: '⚔ ATK', col: '#ef4444', r: 24, x: cx - 85, y: mobBoxY + 62, desc: 'Primary Strike' },
+            { label: '🏹 SHOOT', col: '#34d399', r: 20, x: cx, y: mobBoxY + 62, desc: 'Piercing Bow' },
+            { label: '✨ SPECIAL', col: '#fbbf24', r: 20, x: cx + 85, y: mobBoxY + 62, desc: 'Weapon Ability' }
           ];
           mBtns.forEach(b => {
             ctx.beginPath();
@@ -1718,93 +1744,99 @@ export const MainMenu = {
             ctx.stroke();
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 8.5px Cinzel, serif';
+            ctx.font = 'bold 8px Cinzel, serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(b.label, b.x, b.y);
 
-            ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
             ctx.font = '8px monospace';
             ctx.fillText(b.desc, b.x, b.y + b.r + 9);
           });
+
+          // Touch joystick placement notice
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+          ctx.font = 'italic 8.5px Crimson Text, serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Left Screen: 360° Analog Touch Joystick · Right Screen: Combat Actions', cx, mobBoxY + 126);
+          ctx.fillText('Buttons can be freely repositioned via Settings > Touch Controls', cx, mobBoxY + 142);
         }
 
       } else if (_fieldGuideChapter === 1) {
-        // CHAPTER 1: FOOTWORK & DODGE CADENCE
+        // CHAPTER 1: TACTICAL FOOTWORK & SPACING
         const cx = leftX + leftW / 2;
 
-        // 18-Frame Invulnerability Window timeline (Stable, non-flickering)
-        const dy = spreadY + 98;
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(cx - 120, dy); ctx.lineTo(cx + 110, dy);
-        ctx.stroke();
-
-        // Arrow head on vector
-        ctx.fillStyle = '#38bdf8';
-        ctx.beginPath();
-        ctx.moveTo(cx + 120, dy);
-        ctx.lineTo(cx + 105, dy - 6);
-        ctx.lineTo(cx + 105, dy + 6);
-        ctx.closePath();
-        ctx.fill();
-
-        // Frame markers: F0, F6 (Parry), F12, F18 (End)
-        const framePhases = [
-          { f: 'F0', label: 'WINDUP', x: cx - 100 },
-          { f: 'F6', label: 'PARRY', x: cx - 35, highlight: true },
-          { f: 'F12', label: 'I-FRAME', x: cx + 30 },
-          { f: 'F18', label: 'RECOVER', x: cx + 95 }
-        ];
-
-        framePhases.forEach(g => {
-          ctx.fillStyle = g.highlight ? 'rgba(245, 158, 11, 0.25)' : 'rgba(56, 189, 248, 0.18)';
-          ctx.strokeStyle = g.highlight ? '#f59e0b' : '#38bdf8';
-          ctx.lineWidth = 1.2;
-          roundRect(ctx, g.x - 18, dy - 26, 36, 26, 4);
-          ctx.fill(); ctx.stroke();
-
-          ctx.fillStyle = g.highlight ? '#fde68a' : '#ffffff';
-          ctx.font = 'bold 8.5px monospace';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(g.f, g.x, dy - 13);
-
-          ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
-          ctx.font = '7.5px monospace';
-          ctx.fillText(g.label, g.x, dy + 14);
-        });
+        // Tactical Spacing & Cadence Diagram (Bait, Evade, Punish)
+        const dy = spreadY + 46;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+        ctx.lineWidth = 1;
+        roundRect(ctx, cx - 145, dy, 290, 140, 6);
+        ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 10px Cinzel, serif';
+        ctx.font = 'bold 9.5px Cinzel, serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        ctx.fillText('[ 18-FRAME ABSOLUTE INVULNERABILITY WINDOW ]', cx, dy + 28);
-        ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
-        ctx.font = 'italic 9.5px "Crimson Text", serif';
-        ctx.fillText('Phases through physical swings, cleaves & projectile rings', cx, dy + 44);
+        ctx.fillText('TACTICAL SPACING & CADENCE MATRIX', cx, dy + 8);
+
+        // 3 Step Teaching Diagram: 1. BAIT -> 2. EVADE -> 3. PUNISH
+        const phases = [
+          { num: 'I', title: 'BAIT', desc: 'Circle-strafe at outer melee edge to trigger swing telegraph', col: '#fbbf24', x: cx - 94 },
+          { num: 'II', title: 'EVADE', desc: 'Step outside the 68° hazard cone during enemy swing arc', col: '#38bdf8', x: cx },
+          { num: 'III', title: 'PUNISH', desc: 'Cleave enemy during their post-swing recovery frames', col: '#4ade80', x: cx + 94 }
+        ];
+
+        phases.forEach((p, pIdx) => {
+          const px = p.x;
+          const py = dy + 32;
+
+          ctx.fillStyle = p.col + '22';
+          ctx.strokeStyle = p.col;
+          ctx.lineWidth = 1.2;
+          roundRect(ctx, px - 42, py, 84, 94, 4);
+          ctx.fill(); ctx.stroke();
+
+          // Phase badge
+          ctx.fillStyle = p.col;
+          ctx.font = 'bold 9px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(`PHASE ${p.num}`, px, py + 8);
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 9.5px Cinzel, serif';
+          ctx.fillText(p.title, px, py + 22);
+
+          ctx.fillStyle = 'rgba(203, 213, 225, 0.85)';
+          ctx.font = '8px "Crimson Text", serif';
+          const pLines = wrapTextLines(ctx, p.desc, 76);
+          pLines.forEach((pl, lIdx) => {
+            ctx.fillText(pl, px, py + 40 + lIdx * 11);
+          });
+        });
 
         if (!isMobileMode) {
           // PC Directional WASD keyboard compass
-          const compassY = spreadY + 205;
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
-          ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
-          roundRect(ctx, cx - 130, compassY, 260, 118, 6);
+          const compassY = spreadY + 196;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+          ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)';
+          roundRect(ctx, cx - 145, compassY, 290, 152, 6);
           ctx.fill(); ctx.stroke();
 
           ctx.fillStyle = '#fde68a';
           ctx.font = 'bold 9.5px Cinzel, serif';
+          ctx.textAlign = 'center';
           ctx.fillText('KEYBOARD DIRECTIONAL CADENCE', cx, compassY + 12);
 
           const keys = [
-            { label: 'W', hint: '▲', x: cx, y: compassY + 40 },
-            { label: 'A', hint: '◀', x: cx - 44, y: compassY + 74 },
-            { label: 'S', hint: '▼', x: cx, y: compassY + 74 },
-            { label: 'D', hint: '▶', x: cx + 44, y: compassY + 74 }
+            { label: 'W', hint: '▲', x: cx, y: compassY + 44 },
+            { label: 'A', hint: '◀', x: cx - 44, y: compassY + 78 },
+            { label: 'S', hint: '▼', x: cx, y: compassY + 78 },
+            { label: 'D', hint: '▶', x: cx + 44, y: compassY + 78 }
           ];
           keys.forEach(k => {
-            ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+            ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
             ctx.strokeStyle = '#94a3b8';
             ctx.lineWidth = 1;
             roundRect(ctx, k.x - 16, k.y - 14, 32, 28, 4);
@@ -1818,28 +1850,33 @@ export const MainMenu = {
             ctx.font = '7.5px monospace';
             ctx.fillText(k.hint, k.x, k.y + 8);
           });
-          ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = 'bold 8.5px monospace';
+          ctx.fillText('Directional Arrow Keys [ ↑ ← ↓ → ] also supported', cx, compassY + 114);
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
           ctx.font = 'italic 8.5px Crimson Text, serif';
-          ctx.fillText('Or use directional Arrow Keys [ ↑ ← ↓ → ]', cx, compassY + 104);
+          ctx.fillText('Rowan accelerates rapidly to kite mobs into single-file corridors', cx, compassY + 132);
         } else {
           // Mobile Virtual Joystick Diagram
-          const joyBoxY = spreadY + 205;
+          const joyBoxY = spreadY + 196;
           ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
           ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-          roundRect(ctx, cx - 130, joyBoxY, 260, 118, 6);
+          roundRect(ctx, cx - 145, joyBoxY, 290, 152, 6);
           ctx.fill(); ctx.stroke();
 
           ctx.fillStyle = '#38bdf8';
           ctx.font = 'bold 9.5px Cinzel, serif';
+          ctx.textAlign = 'center';
           ctx.fillText('ANALOG VIRTUAL JOYSTICK · 360° MOTION', cx, joyBoxY + 12);
 
           // Outer Joystick Ring
-          const jBaseX = cx, jBaseY = joyBoxY + 65;
+          const jBaseX = cx, jBaseY = joyBoxY + 74;
           ctx.beginPath();
-          ctx.arc(jBaseX, jBaseY, 34, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(30, 41, 59, 0.5)';
+          ctx.arc(jBaseX, jBaseY, 36, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.55)';
           ctx.fill();
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
           ctx.lineWidth = 1.5;
           ctx.stroke();
 
@@ -1847,30 +1884,37 @@ export const MainMenu = {
           for (let a = 0; a < 8; a++) {
             const rad = (a * Math.PI) / 4;
             ctx.beginPath();
-            ctx.moveTo(jBaseX + Math.cos(rad) * 24, jBaseY + Math.sin(rad) * 24);
-            ctx.lineTo(jBaseX + Math.cos(rad) * 32, jBaseY + Math.sin(rad) * 32);
+            ctx.moveTo(jBaseX + Math.cos(rad) * 26, jBaseY + Math.sin(rad) * 26);
+            ctx.lineTo(jBaseX + Math.cos(rad) * 34, jBaseY + Math.sin(rad) * 34);
             ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
             ctx.stroke();
           }
 
-          // Center Knob (slightly deflected up-right)
-          const kx = jBaseX + 10, ky = jBaseY - 8;
+          // Center Knob (deflected up-right indicating direction)
+          const kx = jBaseX + 12, ky = jBaseY - 10;
           ctx.beginPath();
-          ctx.arc(kx, ky, 14, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+          ctx.arc(kx, ky, 15, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
           ctx.fill();
           ctx.strokeStyle = '#ffffff';
           ctx.lineWidth = 1.5;
           ctx.stroke();
 
-          ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 8px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('JOYSTICK', kx, ky);
+
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
           ctx.font = 'italic 8.5px Crimson Text, serif';
-          ctx.fillText('Touch & slide anywhere in bottom-left to navigate', cx, joyBoxY + 106);
+          ctx.fillText('Touch & drag anywhere in bottom-left zone for 360° precision', cx, joyBoxY + 126);
+          ctx.fillText('Dynamic centering follows thumb placement automatically', cx, joyBoxY + 140);
         }
 
       } else if (_fieldGuideChapter === 2) {
         // CHAPTER 2: ILLUMINATION & SANITY
-        const cx = leftX + leftW / 2, cy = spreadY + 120;
+        const cx = leftX + leftW / 2, cy = spreadY + 116;
 
         // Torchlight sanctuary circle
         const rad = 66;
@@ -1906,7 +1950,7 @@ export const MainMenu = {
         ctx.fillText('SANCTUARY RADIUS · SANITY DRAIN HALTED', cx, cy + rad + 8);
 
         // Sanity Eye Gauge at bottom
-        const ey = spreadY + 225;
+        const ey = spreadY + 220;
         ctx.fillStyle = '#c084fc';
         ctx.font = 'bold 10px Cinzel, serif';
         ctx.fillText('COGNITIVE EQUILIBRIUM · THE EYE OF MADNESS', cx, ey);
@@ -1937,184 +1981,240 @@ export const MainMenu = {
         });
 
       } else if (_fieldGuideChapter === 3) {
-        // CHAPTER 3: GHOST HEALTH & RALLY SYSTEM (STABLE & READABLE, ZERO RAPID FLICKER)
+        // CHAPTER 3: GHOST HEALTH & RALLY SYSTEM (STABLE & READABLE, 100% TIMELINE AGREEMENT)
         const cx = leftX + leftW / 2;
 
-        // Health Bar with Ghost Health
-        const hby = spreadY + 54;
-        ctx.fillStyle = '#94a3b8';
+        // Demonstration state update
+        if (_fieldGuideDemoRunning) {
+          _fieldGuideDemoTimer += dt;
+          if (_fieldGuideDemoTimer >= 2.5) {
+            _fieldGuideDemoTimer = 2.5;
+            _fieldGuideDemoRunning = false;
+            _fieldGuideDemoCompleted = true;
+          }
+        }
+
+        const isDemonstrating = _fieldGuideDemoRunning;
+        const isFinished = _fieldGuideDemoCompleted;
+        const demoTime = isDemonstrating ? _fieldGuideDemoTimer : (isFinished ? 2.5 : 0);
+        const hasRecovered = isFinished || (isDemonstrating && demoTime >= 1.5);
+
+        // Header Title
+        const hby = spreadY + 40;
+        ctx.fillStyle = '#fde68a';
         ctx.font = 'bold 10px Cinzel, serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillText('ROWAN VITALITY & GHOST HEALTH RALLY', cx, hby);
 
-        const barW = 280, barH = 26;
-        const bx = cx - barW / 2, by = hby + 16;
+        // Segment Legend (Not relying on color alone)
+        const legY = hby + 16;
+        const legends = [
+          { label: '■ PERMANENT HP (50%)', col: '#ef4444', x: cx - 100 },
+          { label: hasRecovered ? '■ RECOVERED HP (+28%)' : '■ GHOST HP (28% · 2.5s)', col: hasRecovered ? '#4ade80' : '#cbd5e1', x: cx + 45 }
+        ];
+        legends.forEach(l => {
+          ctx.fillStyle = l.col;
+          ctx.font = 'bold 8px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(l.label, l.x, legY);
+        });
 
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-        ctx.strokeStyle = 'rgba(71, 85, 105, 0.6)';
+        // Health Bar Container
+        const barW = 280, barH = 26;
+        const bx = cx - barW / 2, by = legY + 14;
+
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.95)';
+        ctx.strokeStyle = 'rgba(71, 85, 105, 0.7)';
+        ctx.lineWidth = 1.2;
         roundRect(ctx, bx, by, barW, barH, 4);
         ctx.fill(); ctx.stroke();
 
-        // Demonstration state calculations
-        if (_fieldGuideDemoRunning) {
-          _fieldGuideDemoTimer += dt;
-          if (_fieldGuideDemoTimer > 2.5) {
-            _fieldGuideDemoRunning = false;
-          }
-        }
-
-        const isDemonstrating = _fieldGuideDemoRunning;
-        const demoTime = isDemonstrating ? _fieldGuideDemoTimer : 0;
-        const hasRecovered = isDemonstrating && demoTime >= 1.5;
-
         // Solid HP (50% base, rises to 78% on successful recovery)
         const solidHpPct = hasRecovered ? 0.78 : 0.50;
-        ctx.fillStyle = '#ef4444';
+        ctx.fillStyle = hasRecovered ? '#22c55e' : '#ef4444';
         roundRect(ctx, bx + 2, by + 2, barW * solidHpPct, barH - 4, 3);
         ctx.fill();
 
-        // Ghost HP (Steady 28% grey silver, clears when recovered)
+        // Ghost HP (Steady 28% grey silver, siphons away into green permanent on recovery)
         if (!hasRecovered) {
-          ctx.fillStyle = 'rgba(203, 213, 225, 0.75)';
+          ctx.fillStyle = 'rgba(203, 213, 225, 0.85)';
           roundRect(ctx, bx + 2 + barW * 0.5, by + 2, barW * 0.28, barH - 4, 3);
           ctx.fill();
         }
 
-        // Siphon arrow
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.moveTo(bx + barW * 0.76, by + 34);
-        ctx.quadraticCurveTo(bx + barW * 0.64, by + 46, bx + barW * 0.52, by + barH + 2);
-        ctx.stroke();
+        // Percentage text inside health bar
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(hasRecovered ? '78 / 100 HP [ RECOVERED ]' : '50 / 100 HP (+28 GHOST)', cx, by + barH / 2);
 
-        ctx.fillStyle = '#38bdf8';
+        // Counter-strike cue
+        ctx.fillStyle = hasRecovered ? '#86efac' : '#38bdf8';
         ctx.font = 'bold 9px Cinzel, serif';
         ctx.textAlign = 'center';
-        ctx.fillText('COUNTER-ATTACK TO SIPHON GHOST HP BACK', cx, by + 48);
+        ctx.textBaseline = 'top';
+        const hitCue = hasRecovered
+          ? '✔ COUNTER-STRIKE HIT! 100% GHOST HEALTH RESTORED'
+          : 'COUNTER-ATTACK WITHIN 2.5s TO RESTORE GHOST HEALTH';
+        ctx.fillText(hitCue, cx, by + barH + 8);
 
-        // Emergency window timer box
-        const ty = spreadY + 195;
-        const twH = 135;
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-        ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
-        roundRect(ctx, cx - 135, ty, 270, twH, 6);
+        // Retaliation Window Box
+        const ty = spreadY + 168;
+        const twH = 176;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.strokeStyle = 'rgba(71, 85, 105, 0.6)';
+        roundRect(ctx, cx - 145, ty, 290, twH, 6);
         ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = '#fde68a';
         ctx.font = 'bold 9.5px Cinzel, serif';
-        ctx.fillText('2.5-SECOND RETALIATION WINDOW', cx, ty + 12);
+        ctx.textAlign = 'center';
+        ctx.fillText('2.5-SECOND RETALIATION TIMELINE', cx, ty + 12);
 
-        // Static graduated timeline track (Stable, legible time markers)
-        const tTrackW = 220;
+        // Stationary Graduated Timeline Track
+        const tTrackW = 240;
         const tTrackX = cx - tTrackW / 2;
-        const tTrackY = ty + 34;
+        const tTrackY = ty + 36;
 
-        ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
-        roundRect(ctx, tTrackX, tTrackY, tTrackW, 14, 3);
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
+        roundRect(ctx, tTrackX, tTrackY, tTrackW, 16, 4);
         ctx.fill();
 
-        // Steady timer fill or controlled demonstration
-        const timerProgress = isDemonstrating ? Math.max(0, 1 - (demoTime / 2.5)) : 0.60;
-        ctx.fillStyle = hasRecovered ? '#4ade80' : '#38bdf8';
-        roundRect(ctx, tTrackX, tTrackY, tTrackW * timerProgress, 14, 3);
-        ctx.fill();
+        // Timer fill: counts down from 1.0 to 0.0 during demonstration
+        const timerProgress = isDemonstrating
+          ? Math.max(0, 1 - (demoTime / 2.5))
+          : (isFinished ? 0.0 : 1.0);
 
-        // Time graduation ticks
+        if (timerProgress > 0) {
+          ctx.fillStyle = (demoTime >= 1.5) ? '#4ade80' : '#38bdf8';
+          roundRect(ctx, tTrackX, tTrackY, tTrackW * timerProgress, 16, 4);
+          ctx.fill();
+        }
+
+        // Graduation Ticks along 2.5s timeline
         const tTicks = [
           { frac: 0.0, label: '0.0s (HIT)' },
           { frac: 0.4, label: '1.0s' },
-          { frac: 0.8, label: '2.0s' },
+          { frac: 0.6, label: '1.5s (STRIKE)' },
           { frac: 1.0, label: '2.5s (END)' }
         ];
         tTicks.forEach(tt => {
           const ttx = tTrackX + tTrackW * tt.frac;
-          ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)';
+          ctx.strokeStyle = tt.frac === 0.6 ? '#f59e0b' : 'rgba(148, 163, 184, 0.55)';
+          ctx.lineWidth = tt.frac === 0.6 ? 1.5 : 1;
           ctx.beginPath();
-          ctx.moveTo(ttx, tTrackY + 14);
-          ctx.lineTo(ttx, tTrackY + 18);
+          ctx.moveTo(ttx, tTrackY + 16);
+          ctx.lineTo(ttx, tTrackY + 22);
           ctx.stroke();
 
-          ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
-          ctx.font = '7px monospace';
+          ctx.fillStyle = tt.frac === 0.6 ? '#fde68a' : 'rgba(148, 163, 184, 0.8)';
+          ctx.font = tt.frac === 0.6 ? 'bold 7.5px monospace' : '7px monospace';
           ctx.textAlign = 'center';
-          ctx.fillText(tt.label, ttx, tTrackY + 20);
+          ctx.fillText(tt.label, ttx, tTrackY + 24);
         });
 
+        // Time Readout
+        const remSec = isDemonstrating ? Math.max(0, 2.5 - demoTime).toFixed(1) : (isFinished ? '0.0' : '2.5');
+        ctx.fillStyle = isFinished ? '#4ade80' : '#ffffff';
+        ctx.font = 'bold 9px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`WINDOW REMAINING: ${remSec}s / 2.5s`, cx, ty + 78);
+
         // Interactive Demonstration Button
-        const demoBtnW = 180, demoBtnH = 24;
+        const demoBtnW = 200, demoBtnH = 26;
         const demoBtnX = cx - demoBtnW / 2;
-        const demoBtnY = ty + 70;
+        const demoBtnY = ty + 96;
         const isHoverDemo = mouseX >= demoBtnX && mouseX <= demoBtnX + demoBtnW && mouseY >= demoBtnY && mouseY <= demoBtnY + demoBtnH;
 
-        ctx.fillStyle = isHoverDemo ? 'rgba(56, 189, 248, 0.3)' : 'rgba(30, 41, 59, 0.7)';
-        ctx.strokeStyle = isDemonstrating ? '#4ade80' : (isHoverDemo ? '#38bdf8' : 'rgba(71, 85, 105, 0.6)');
+        ctx.fillStyle = isHoverDemo ? 'rgba(56, 189, 248, 0.35)' : 'rgba(30, 41, 59, 0.8)';
+        ctx.strokeStyle = isDemonstrating ? '#4ade80' : (isHoverDemo ? '#38bdf8' : 'rgba(71, 85, 105, 0.65)');
         ctx.lineWidth = 1.2;
         roundRect(ctx, demoBtnX, demoBtnY, demoBtnW, demoBtnH, 4);
         ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = isDemonstrating ? '#4ade80' : (isHoverDemo ? '#ffffff' : '#38bdf8');
-        ctx.font = 'bold 8.5px Cinzel, serif';
+        ctx.font = 'bold 9px Cinzel, serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(isDemonstrating ? '↺ DEMONSTRATING...' : '↺ DEMONSTRATE CADENCE', cx, demoBtnY + demoBtnH / 2);
+        const btnLabel = isDemonstrating
+          ? '↺ EXECUTING CADENCE...'
+          : (isFinished ? '↺ REPLAY DEMONSTRATION' : '↺ DEMONSTRATE CADENCE');
+        ctx.fillText(btnLabel, cx, demoBtnY + demoBtnH / 2);
 
-        ctx.fillStyle = hasRecovered ? '#86efac' : 'rgba(148, 163, 184, 0.85)';
+        // Status explanation message
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = isFinished ? '#86efac' : (isDemonstrating && demoTime >= 1.5 ? '#fde68a' : 'rgba(148, 163, 184, 0.9)');
         ctx.font = 'italic 8.5px Crimson Text, serif';
-        const demoMsg = hasRecovered ? '✔ Counter-strike landed! 100% ghost health restored' : 'Strike hostile targets within 2.5s to restore lost health';
-        ctx.fillText(demoMsg, cx, ty + 114);
+        let demoMsg = 'Press [ DEMONSTRATE CADENCE ] to view counter-strike recovery.';
+        if (isDemonstrating) {
+          demoMsg = demoTime < 1.5
+            ? `Retaliation window counting down (${remSec}s left)...`
+            : `Counter-strike landed at 1.5s! Siphoning ghost health...`;
+        } else if (isFinished) {
+          demoMsg = '✔ Recovery confirmed! 100% ghost health restored to permanent vitality.';
+        }
+        ctx.fillText(demoMsg, cx, ty + 132);
+
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+        ctx.font = '8px monospace';
+        ctx.fillText('Demonstration illustrates cadence; final state holds for inspection.', cx, ty + 152);
 
       } else if (_fieldGuideChapter === 4) {
-        // CHAPTER 4: CITADEL BOSSES
+        // CHAPTER 4: CITADEL TITANS & BOSS PROTOCOLS
         const bosses = [
-          { name: 'GORGAROTH THE DEFILER', floor: 'FLOOR 3', title: 'THE MOLTEN FORGE', col: '#f97316', sigil: '⚔', note: 'Molten anvil cleaves · Dodge behind back' },
-          { name: 'MALAKOR THE DREADLORD', floor: 'FLOOR 6', title: 'THE VOID RIFT', col: '#a855f7', sigil: '✦', note: 'Spatial fractures · Strike phantom echoes' },
-          { name: 'THE ABYSS WARDEN', floor: 'FLOOR 10', title: 'THE SUNKEN THRONE', col: '#ef4444', sigil: '♛', note: 'Telekinetic greatswords · 3 lethal phases' }
+          { name: 'GORGAROTH THE DEFILER', floor: 'FLOOR 3', title: 'THE MOLTEN FORGE', col: '#f97316', sigil: '⚔', note: 'Heavy anvil smashes & lava rivers · Dodge behind back during windup' },
+          { name: 'MALAKOR THE DREADLORD', floor: 'FLOOR 6', title: 'THE VOID RIFT', col: '#a855f7', sigil: '✦', note: 'Spatial fissures & phantom clones · Slay echoes to breach vulnerability' },
+          { name: 'THE ABYSS WARDEN', floor: 'FLOOR 10', title: 'THE SUNKEN THRONE', col: '#ef4444', sigil: '♛', note: 'Telekinetic greatswords & singularity vortex · 3 escalating lethal phases' }
         ];
 
         bosses.forEach((b, i) => {
-          const by = spreadY + 40 + i * 98;
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+          const by = spreadY + 36 + i * 102;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
           ctx.strokeStyle = b.col;
           ctx.lineWidth = 1.2;
-          roundRect(ctx, leftX + 16, by, leftW - 32, 86, 6);
+          roundRect(ctx, leftX + 14, by, leftW - 28, 92, 6);
           ctx.fill(); ctx.stroke();
 
           ctx.fillStyle = b.col;
           ctx.font = 'bold 9px monospace';
           ctx.textAlign = 'left';
           ctx.textBaseline = 'top';
-          ctx.fillText(b.floor, leftX + 28, by + 14);
+          ctx.fillText(b.floor, leftX + 26, by + 12);
 
           ctx.fillStyle = '#fde68a';
           ctx.font = 'bold 11px Cinzel, serif';
-          ctx.fillText(b.name, leftX + 28, by + 30);
+          ctx.fillText(b.name, leftX + 26, by + 28);
 
           ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
           ctx.font = 'italic 9.5px "Crimson Text", serif';
-          ctx.fillText(`Locus: ${b.title}`, leftX + 28, by + 48);
+          ctx.fillText(`Locus: ${b.title}`, leftX + 26, by + 46);
 
           ctx.fillStyle = '#cbd5e1';
-          ctx.font = '8.5px monospace';
-          ctx.fillText(b.note, leftX + 28, by + 64);
+          ctx.font = '8px monospace';
+          const bLines = wrapTextLines(ctx, b.note, leftW - 90);
+          bLines.forEach((bl, blIdx) => {
+            ctx.fillText(bl, leftX + 26, by + 62 + blIdx * 11);
+          });
 
           // Boss Runic Sigil Box on right
-          ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.85)';
           ctx.strokeStyle = b.col;
-          roundRect(ctx, leftX + leftW - 74, by + 18, 50, 50, 4);
+          roundRect(ctx, leftX + leftW - 68, by + 20, 44, 44, 4);
           ctx.fill(); ctx.stroke();
           ctx.fillStyle = b.col;
           ctx.font = '16px Cinzel, serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(b.sigil, leftX + leftW - 49, by + 43);
+          ctx.fillText(b.sigil, leftX + leftW - 46, by + 42);
         });
       }
 
       // ── Right Folio: Tactical Doctrine & Directives (Platform Aware) ──
-      ctx.fillStyle = 'rgba(12, 16, 32, 0.8)';
-      ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
+      ctx.fillStyle = 'rgba(12, 16, 32, 0.85)';
+      ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)';
       ctx.lineWidth = 1;
       roundRect(ctx, rightX, spreadY, rightW, spreadH, 8);
       ctx.fill(); ctx.stroke();
@@ -2125,30 +2225,30 @@ export const MainMenu = {
           title: 'THE VANGUARD ARSENAL',
           subtitle: 'Armed Engagement, Poise Stagger & Weapon Switching',
           points: isMobileMode ? [
-            { tag: '[ ⚔ ATK BUTTON ]', desc: 'Tap the red attack button to execute primary weapon cleave. Deals heavy physical poise stagger.' },
-            { tag: '[ 🏹 SHOOT BUTTON ]', desc: 'Tap or hold the green bow button to fire piercing arrows. Quiver auto-replenishes in combat.' },
-            { tag: '[ ✦ SPECIAL BUTTON ]', desc: 'Tap the gold special skill button to trigger Rowan\'s consecrated weapon-specific ability.' }
+            { tag: '[ ⚔ ATK BUTTON ]', desc: 'Tap the red attack button to execute primary weapon cleave. Deals heavy physical poise stagger to frontline foes.' },
+            { tag: '[ 🏹 SHOOT BUTTON ]', desc: 'Tap or hold the green bow button to fire piercing arrows directly across the arena without manually swapping weapons.' },
+            { tag: '[ ✨ SPECIAL BUTTON ]', desc: 'Tap the gold special button to trigger Rowan\'s consecrated weapon-specific relic ability.' }
           ] : [
             { tag: '[ SPACE / LMB ]', desc: 'Execute primary weapon cleave. Deals heavy physical poise damage and staggers frontliners.' },
-            { tag: '[ HOLD SHIFT ]', desc: 'Draw the Longbow for piercing projectile shots. Quiver replenishes in active combat.' },
-            { tag: '[ KEYS 1 - 3 ]', desc: 'Instant hotkey weapon switching. Swap between heavy blade, swift daggers, and shield mid-combo.' }
+            { tag: '[ HOLD SHIFT ]', desc: 'Draw and fire the Longbow for piercing projectile shots directly without manual weapon swapping.' },
+            { tag: '[ KEYS 1 - 3 ]', desc: 'Instant hotkey weapon switching. Swap between heavy blade, swift longbow, and relics mid-combo.' }
           ],
-          tip: isMobileMode ? 'Tip: Buttons can be freely repositioned or resized via the Settings > Touch Controls editor.' : 'Tip: Strike immediately following an enemy whiff to capitalize on recovery vulnerability frames.'
+          tip: isMobileMode ? 'Tip: Buttons can be freely repositioned or resized via Settings > Touch Controls.' : 'Tip: [E] swaps nearby ground weapons; [G] opens the full weapon inventory replacement modal.'
         },
         {
           num: 'CHAPTER II',
-          title: 'FOOTWORK & DODGE CADENCE',
-          subtitle: 'Invulnerability Frames & Directional Repositioning',
+          title: 'TACTICAL FOOTWORK & SPACING',
+          subtitle: 'Kiting Cadence, Hazard Avoidance & Recovery Punishment',
           points: isMobileMode ? [
-            { tag: '[ VIRTUAL JOYSTICK ]', desc: 'Touch and drag anywhere in the bottom-left screen area for 360° fluid analog movement.' },
-            { tag: '[ EVASION ROLL ]', desc: 'Dodge rolling grants 18 frames of absolute invulnerability through all enemy swings and hazards.' },
-            { tag: '[ STAMINA PACING ]', desc: 'Circle opponents and avoid exhausting stamina so you always have a dodge ready for boss attacks.' }
+            { tag: '[ VIRTUAL JOYSTICK ]', desc: 'Touch and drag anywhere in the bottom-left screen area for 360° fluid analog motion.' },
+            { tag: '[ BAIT & PUNISH ]', desc: 'Circle opponents at outer melee reach to trigger their windup, then step in to strike during recovery.' },
+            { tag: '[ CHOKEPOINTS ]', desc: 'Funnel hordes into narrow corridors so enemies can only approach single-file.' }
           ] : [
             { tag: '[ WASD / ARROWS ]', desc: 'Directional footwork. Rowan accelerates swiftly to maintain safe spacing and kite swarms.' },
-            { tag: '[ EVASION ROLL ]', desc: 'Dodge rolling grants 18 frames of absolute invulnerability through all enemy swings and hazards.' },
-            { tag: '[ STAMINA PACING ]', desc: 'Avoid exhausting your evasive cadence; reserve roll charges for telegraphed boss attacks.' }
+            { tag: '[ BAIT & PUNISH ]', desc: 'Circle opponents at outer melee reach to trigger their windup, then step in to strike during recovery.' },
+            { tag: '[ CHOKEPOINTS ]', desc: 'Funnel hordes into narrow corridors so enemies can only approach single-file.' }
           ],
-          tip: 'Tip: Never roll directly into walls or corners where recovery frames can be punished.'
+          tip: 'Tip: Strike immediately following an enemy whiff to capitalize on recovery vulnerability frames.'
         },
         {
           num: 'CHAPTER III',
@@ -2535,6 +2635,7 @@ export const MainMenu = {
         if (mx >= tx && mx <= tx + tabW && my >= tabY && my <= tabY + tabH) {
           _fieldGuideChapter = i;
           _fieldGuideDemoRunning = false;
+          _fieldGuideDemoCompleted = false;
           _fieldGuideDemoTimer = 0;
           SoundManager.snd('menu_hover');
           return true;
@@ -2546,13 +2647,14 @@ export const MainMenu = {
         const leftX = mxX + 20, leftW = 380;
         const cx = leftX + leftW / 2;
         const spreadY = myY + 84;
-        const ty = spreadY + 195;
-        const demoBtnW = 180, demoBtnH = 24;
+        const ty = spreadY + 168;
+        const demoBtnW = 200, demoBtnH = 26;
         const demoBtnX = cx - demoBtnW / 2;
-        const demoBtnY = ty + 70;
+        const demoBtnY = ty + 96;
 
         if (mx >= demoBtnX && mx <= demoBtnX + demoBtnW && my >= demoBtnY && my <= demoBtnY + demoBtnH) {
           _fieldGuideDemoRunning = true;
+          _fieldGuideDemoCompleted = false;
           _fieldGuideDemoTimer = 0;
           SoundManager.snd('menu_press');
           return true;
@@ -2565,6 +2667,7 @@ export const MainMenu = {
       if (mx >= leftX && mx <= leftX + 130 && my >= bBarY && my <= bBarY + 30) {
         _fieldGuideChapter = (_fieldGuideChapter - 1 + 5) % 5;
         _fieldGuideDemoRunning = false;
+        _fieldGuideDemoCompleted = false;
         _fieldGuideDemoTimer = 0;
         SoundManager.snd('menu_hover');
         return true;
@@ -2575,6 +2678,7 @@ export const MainMenu = {
       if (mx >= nextX && mx <= nextX + 130 && my >= bBarY && my <= bBarY + 30) {
         _fieldGuideChapter = (_fieldGuideChapter + 1) % 5;
         _fieldGuideDemoRunning = false;
+        _fieldGuideDemoCompleted = false;
         _fieldGuideDemoTimer = 0;
         SoundManager.snd('menu_hover');
         return true;
@@ -2585,6 +2689,7 @@ export const MainMenu = {
       const startX = mxX + mw - 20 - startW;
       if (mx >= startX && mx <= startX + startW && my >= bBarY && my <= bBarY + 30) {
         _fieldGuideDemoRunning = false;
+        _fieldGuideDemoCompleted = false;
         _fieldGuideDemoTimer = 0;
         SoundManager.snd('menu_select');
         startGame();
@@ -2596,6 +2701,7 @@ export const MainMenu = {
       const closeX = startX - 12 - closeW;
       if (mx >= closeX && mx <= closeX + closeW && my >= bBarY && my <= bBarY + 30) {
         _fieldGuideDemoRunning = false;
+        _fieldGuideDemoCompleted = false;
         _fieldGuideDemoTimer = 0;
         SoundManager.snd('panel_close');
         _howToPlayActive = false;
@@ -2605,6 +2711,7 @@ export const MainMenu = {
       // Click outside modal closes it
       if (mx < mxX || mx > mxX + mw || my < myY || my > myY + mh) {
         _fieldGuideDemoRunning = false;
+        _fieldGuideDemoCompleted = false;
         _fieldGuideDemoTimer = 0;
         SoundManager.snd('panel_close');
         _howToPlayActive = false;
@@ -2657,6 +2764,7 @@ export const MainMenu = {
   closeSurvivalGuide() {
     _howToPlayActive = false;
     _fieldGuideDemoRunning = false;
+    _fieldGuideDemoCompleted = false;
     _fieldGuideDemoTimer = 0;
   },
   handleSurvivalGuideClick(mx, my) {

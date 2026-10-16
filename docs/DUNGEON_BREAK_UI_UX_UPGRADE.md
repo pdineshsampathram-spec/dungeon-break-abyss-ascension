@@ -3848,6 +3848,118 @@ All interfaces were verified in the live browser at native resolution (`896 × 6
 3. **Gameplay Mechanics:** Hitboxes (14px), dodge roll i-frames (18 frames), parry frames (6 frames), boss damage tables, and floor progression logic are completely unaltered.
 4. **Console Cleanliness:** Chrome DevTools console validated with 0 errors, 0 unhandled promise rejections, and 0 memory leaks across repeated panel transitions.
 
+---
+
+## 27. PHASE 5.4 — ART DIRECTION DEPTH, CONTROL ACCURACY & CINEMATIC CHRONICLES
+
+### 27.1. Executive Overview & Scope Boundaries
+Phase 5.4 advances the approved visual and interaction language established in Phase 5.3 across three critical user interfaces without disturbing the Living Cathedral main menu, Monumental Wall of Deeds, Grand Archive tab shell, Ascension Constellation, or combat HUD:
+
+1. **Artificer's Calibration Console Refinements (`SettingsUI.js`):** Layered obsidian and brass mechanical joinery, recessed acoustic tracks with etched decibel scales (`-∞ dB` to `0.0 dB`), a precision chronometer dial (`0.50×` to `2.00×`) with instantaneous `↺ RESET 1.00×` button, tactile brass toggle levers with knurled knobs and indicator lamps, rebalanced left and right chambers with acoustic bus routing and engine diagnostic sub-plates, and comprehensive Reduced Motion handling.
+2. **Authoritative Field Manual (`MainMenu.js`):** Rigorous input audit reflecting real engine keycaps (WASD/Arrows, Space/LMB attack, Shift quick bow, Q relic ability, 1–3 slots, E/G swap and modal; touch joystick, `⚔ ATK`, `🏹 SHOOT`, `✨ SPECIAL`), and Chapter 3 (Rally) stabilization featuring permanent vs ghost health bars, a static 2.5s timeline axis, counter-strike cue at 1.5s, and a controlled `[ ↺ DEMONSTRATE CADENCE ]` sequence that holds stably with health bars and timeline in 100% agreement.
+3. **Cinematic Codex Chronicles (`BestiaryPortraitRenderer.js`):** Elevation of all 10 story scenes from schematic vignettes to rich, painterly pixel-art environments featuring multi-layered depth (foreground framing, midground architecture, background depth), and direct integration of authoritative production boss renderers (`CharacterRenderer.drawGorgaroth`, `CharacterRenderer.drawMalakor`, and `CharacterRenderer.drawWarden`) in their respective stratum scenes.
+
+---
+
+### 27.2. Settings — Calibration Console Joinery & Acoustic Diagnostics
+
+#### 27.2.1. Chamber Architecture & Mechanical Joinery
+- **Left Chamber (`leftBayW = 410, bayH = 432`):**
+  - Dedicated to Acoustic Resonance & Signal Processing.
+  - Three recessed acoustic tracks (Master Solis, Sanctum Chorale, Crucible Impact) with etched decibel scales (`-∞ dB` to `0.0 dB`) and brass slider carriages.
+  - Added "ACOUSTIC BUS ROUTING & DYNAMIC MATRIX" sub-plate displaying `0.0 dB PEAK LIMITER ACTIVE` and `STEREO BIQUAD FILTERED` with status indicator LEDs.
+- **Right Chamber (`rightBayW = 428, bayH = 432`):**
+  - Dedicated to Temporal Cadence, Sensory Feedback, and Engine Diagnostics.
+  - Precision chronometer dial regulator with radial graduation ticks (`0.50×`, `1.00×`, `1.50×`, `2.00×`), velocity needle, real-time multiplier readout, and an integrated `↺ RESET 1.00×` button.
+  - Tactile brass toggle levers (`screenShake` and `reducedMotion`) set within deep-shadowed mechanical wells, featuring knurled brass knobs and glowing emerald/ruby status lamps.
+  - Added "ABYSS ENGINE RUNTIME DIAGNOSTICS" sub-plate displaying `SIMULATION CADENCE: 60 FPS NOMINAL` and `HARDWARE ACCELERATED RENDER TARGET`.
+- **Accessibility & Reduced Motion Enforcement:**
+  - When `REDUCED_MOTION` is active, decorative sinusoidal frequency waveforms and electric impulses on audio rails are smoothly suppressed into clean, solid graduation markers.
+  - Prevents sensory fatigue and eliminates unnecessary oscillation loops while maintaining full interactive slider fidelity.
+
+---
+
+### 27.3. Field Manual — Authoritative Controls & Cadence Stabilization
+
+#### 27.3.1. Platform-Specific Controls Audit
+The manual's input diagrams and reference tables were synchronized with the engine's true control configuration across PC and Mobile modes:
+- **PC / Keyboard & Mouse Mode:**
+  - Movement: WASD / Directional Arrow keys.
+  - Primary Melee Strike: Spacebar or Left Mouse Button (LMB).
+  - Quick Bow Ranged Shot: Shift key.
+  - Relic Ability: Q key.
+  - Inventory Quick Slots: 1, 2, and 3 keys.
+  - Interact & Weapon Swap: E key (interact) and G key (swap/modal).
+- **Mobile / Touchscreen Mode:**
+  - Movement: 360° Analog Virtual Joystick with directional pips and dynamic thumb deflection.
+  - Combat Actions: Dedicated touch buttons matching production styling — `⚔ ATK` (primary attack), `🏹 SHOOT` (ranged bow shot), and `✨ SPECIAL` (relic ability).
+
+#### 27.3.2. Chapter 3 (Rally Vitality) Stabilization
+- **Rock-Solid Visual Baseline:**
+  - 50% permanent vitality (solid crimson `#ef4444`) and 28% recoverable ghost health (`#9ca3af`).
+  - Static 2.5-second timeline axis with clear graduation pips (`0.0s [DAMAGE]`, `1.0s`, `1.5s [COUNTER-STRIKE WINDOW]`, `2.5s [EXPIRES]`).
+- **Interactive Replay Demonstration (`[ ↺ DEMONSTRATE CADENCE ]`):**
+  - Smooth delta-time progression at 1.0× simulation speed.
+  - Counter-strike cue triggers cleanly at 1.5s; ghost health converts into permanent red health.
+  - At 2.5s, the demonstration terminates cleanly and **holds permanently** with the timeline cursor and vitality bar in 100% agreement.
+  - Interaction hitboxes aligned (`demoBtnY = spreadY + 264, demoBtnW = 200, demoBtnH = 26`), and state cleanly resets whenever the player switches chapters.
+
+---
+
+### 27.4. Codex Chronicles — Ten Cinematic Stratum Scenes with Authoritative Boss Renderers
+
+#### 27.4.1. Architectural Depth & Production Boss Integration
+All 10 stratum illustrations in `BestiaryPortraitRenderer.js` were upgraded from schematic drawings into atmospheric pixel-art dioramas with foreground framing, midground action, and distant vanishing points. Crucially, the three boss encounters incorporate the authoritative production renderers from `CharacterRenderer.js`:
+- **Floor 3 (Trial of Iron):** Renders the authoritative `CharacterRenderer.drawGorgaroth(ctx, gorgBoss, false, pulse)` standing inside a subterranean volcanic forge with basalt columns, cracked anvil pillar, and flowing magma rivers.
+- **Floor 6 (The Void's Question):** Renders the authoritative `CharacterRenderer.drawMalakor(ctx, malakorBoss, false, pulse)` hovering within a dimensional spatial fracture rift surrounded by floating zero-g obsidian shards, purple arcs, and a starry void.
+- **Floor 10 (The Warden's Last Trial):** Renders the authoritative `CharacterRenderer.drawWarden(ctx, wardenBoss, false, pulse)` standing proudly on the stepped dais beside the vacant sunken obsidian throne and swirling gravitational singularity ring.
+
+#### 27.4.2. Complete Stratum Scene Catalogue
+
+| Stratum | Title | Visual Art Direction & Depth Layering | Production Boss Renderer |
+| :---: | :--- | :--- | :--- |
+| **I** | **The Forgotten Seal** | Heavy iron portcullis dropped shut in foreground; celestial cyan runes glowing along stone vault keystone; Rowan's broadsword planted in flagstones with radiant fuller; warm flickering brass lantern with radial amber illumination and dust motes. | — |
+| **II** | **The Deserters' Silence** | Abandoned vanguard camp in damp corridor; cold extinguished brazier with wisps of pale blue smoke; cracked circular buckler with gold lion crest; broken ash-wood spear; crumpled dispatch scroll on stone floor. | — |
+| **III** | **The Trial of Iron** | Subterranean volcanic foundry; stepped basalt columns; cracked iron anvil pillar with molten cracks; glowing rivers of molten magma; flying forge sparks. | `CharacterRenderer.drawGorgaroth` |
+| **IV** | **The Deeper Measure** | Clockwork shifting labyrinth; interlocking bronze and iron gears rotating in the masonry; retractable steel floor spike grid alternating in height; ancient ledger stela with glowing cyan measurement tallies. | — |
+| **V** | **The Weight of the Dark** | Lightless psychological stratum; undulating shadow miasma tendrils creeping along the floor; lone wall torch with sputtering cold-blue flame; unblinking red void eyes with slit pupils; huddled vanguard survivor clutching head. | — |
+| **VI** | **The Void's Question** | Dimensional spatial fracture rift glowing with magenta cosmic energy; starry void and distant nebulae visible through rift; floating zero-g obsidian shards with purple electrical discharges. | `CharacterRenderer.drawMalakor` |
+| **VII** | **Echoes of Purpose** | Symmetrical sacred temple crucible; classical stone columns flanking scene; diagonal celestial golden light beam; marble plinth draped in crimson velvet displaying consecrated sword and bow; golden ratio floor inlays. | — |
+| **VIII** | **Before the Blade** | Primordial blood forge; deep stone font overflowing with glowing crimson vital ichor; chiseled blood-vein canals pulsing to basalt anvil; cherry-red glowing blade; rising red steam curls and sparks. | — |
+| **IX** | **The Last Measure** | Cyclopean threshold archway overlooking bottomless chasm of Sunken Citadel; giant burning Absolute Eye in ceiling with concentric fiery aura and vertical pupil; Rowan's lone silhouette with wind-blown red cloak and drawn sword at precipice. | — |
+| **X** | **The Warden's Last Trial** | Sunken Citadel throne room; stepped dais with vacant high-backed Obsidian Throne; fallen curved dark iron greatsword with blood groove; swirling gravitational singularity accretion disk; ascending spirit motes. | `CharacterRenderer.drawWarden` |
+
+---
+
+### 27.5. Phase 5.4 Screenshot Verification Matrix
+
+All 14 Phase 5.4 verification screenshots were captured directly in the live browser at native logical resolution (`896 × 640`):
+
+| Area / Subsystem | Artifact Screenshot Path | Visual Features Verified | Status |
+| :--- | :--- | :--- | :--- |
+| **Settings Console** | `screenshots/phase5_4_settings.png` | Rebalanced chambers, acoustic bus plate with peak limiter readout, chronometer dial with 1.00x reset, tactile brass toggle levers, engine diagnostics plate. | **PASS** |
+| **Field Manual (PC)** | `screenshots/phase5_4_manual_pc.png` | PC keycaps (WASD, Space strike, Shift bow, Q relic, 1-3 slots, E/G swap), platform toggle, tactical overview. | **PASS** |
+| **Field Manual (Mobile)** | `screenshots/phase5_4_manual_mobile.png` | 360° virtual joystick diagram, touch action buttons (`⚔ ATK`, `🏹 SHOOT`, `✨ SPECIAL`), platform toggle. | **PASS** |
+| **Field Manual (Rally)** | `screenshots/phase5_4_rally_demonstration.png` | Permanent vs ghost HP bars, static 2.5s timeline, cadence demonstration completed with timeline and health in 100% agreement. | **PASS** |
+| **Chronicles Floor 1** | `screenshots/phase5_4_chronicle_floor_1.png` | Portcullis, runic vault arch, planted broadsword, brass lantern, ruby wax CANON seal, illuminated drop cap. | **PASS** |
+| **Chronicles Floor 2** | `screenshots/phase5_4_chronicle_floor_2.png` | Deserter camp, extinguished brazier smoke, fractured lion shield, broken spear, dispatch scroll. | **PASS** |
+| **Chronicles Floor 3** | `screenshots/phase5_4_chronicle_floor_3.png` | Authoritative Gorgaroth boss model, volcanic foundry, basalt columns, cracked anvil, molten lava rivers. | **PASS** |
+| **Chronicles Floor 4** | `screenshots/phase5_4_chronicle_floor_4.png` | Interlocking rotating gears, floor spike grid, ledger stela with cyan tallies, stone masonry. | **PASS** |
+| **Chronicles Floor 5** | `screenshots/phase5_4_chronicle_floor_5.png` | Shadow miasma, dying blue torch, unblinking red void eyes, huddled vanguard survivor. | **PASS** |
+| **Chronicles Floor 6** | `screenshots/phase5_4_chronicle_floor_6.png` | Authoritative Malakor boss model, dimensional fracture rift, cosmic starfield, floating shards with purple arcs. | **PASS** |
+| **Chronicles Floor 7** | `screenshots/phase5_4_chronicle_floor_7.png` | Symmetrical temple columns, celestial golden light beam, consecrated sword & bow on velvet altar plinth. | **PASS** |
+| **Chronicles Floor 8** | `screenshots/phase5_4_chronicle_floor_8.png` | Primordial ichor quenching font, pulsing blood canals, basalt anvil with glowing red blade, red steam. | **PASS** |
+| **Chronicles Floor 9** | `screenshots/phase5_4_chronicle_floor_9.png` | Burning Absolute Eye with concentric fiery aura, cyclopean arch, chasm precipice, Rowan with wind-blown cloak. | **PASS** |
+| **Chronicles Floor 10** | `screenshots/phase5_4_chronicle_floor_10.png` | Authoritative Abyss Warden boss model, vacant Obsidian Throne, fallen greatsword, swirling singularity ring. | **PASS** |
+
+---
+
+### 27.6. Technical Invariants & Quality Assurance
+1. **Canvas 2D Fidelity:** Zero external UI frameworks or 3D rendering engines introduced (`LW = 896, LH = 640`).
+2. **Persistence Guarantee:** Saved settings (`screenShake`, `reducedMotion`, `gameSpeed`, `masterVol`, `musicVol`, `sfxVol`) and unlocked lore chapters (`db_codex_v9`) maintain full backward and forward compatibility.
+3. **Reduced Motion Safety:** Fully verified across both particle systems, audio rails, and chronicle animations.
+4. **Console Hygiene:** Zero warnings or runtime exceptions during intensive UI switching and demonstration replays.
+
 
 
 

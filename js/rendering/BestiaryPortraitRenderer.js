@@ -1499,17 +1499,22 @@ export const BestiaryPortraitRenderer = {
     // ─────────────────────────────────────────────────────────────
     // UNLOCKED STATE: 10 Dedicated Pixel-Art Scene Renderers
     // ─────────────────────────────────────────────────────────────
+    const isReducedMotion = (typeof GameState !== 'undefined' && GameState.REDUCED_MOTION) ||
+      (typeof window !== 'undefined' && window.SaveSystem && window.SaveSystem.getSettings && window.SaveSystem.getSettings().reducedMotion);
+    const animTime = isReducedMotion ? 0 : time;
+    const pulse = isReducedMotion ? 0.75 : (Math.sin(time * 2.5) * 0.5 + 0.5);
+
     switch (floorNum) {
       // ───────────────────────────────────────────────────────────
       // FLOOR 1 — THE FORGOTTEN SEAL
       // Vault entrance, dropped portcullis, fallen sword, warm lantern
       // ───────────────────────────────────────────────────────────
       case 1: {
-        // Vault chamber stonework
+        // Vault chamber stonework background
         ctx.fillStyle = '#070c18';
         ctx.fillRect(x, y, w, h);
 
-        // Stone masonry joints
+        // Stone masonry joints & weathered block texture
         ctx.strokeStyle = 'rgba(30, 41, 59, 0.45)';
         ctx.lineWidth = 1;
         for (let gy = y + 14; gy < y + h - 20; gy += 18) {
@@ -1517,18 +1522,27 @@ export const BestiaryPortraitRenderer = {
           ctx.moveTo(x, gy); ctx.lineTo(x + w, gy);
           ctx.stroke();
         }
+        for (let row = 0; row < 5; row++) {
+          const ry = y + 14 + row * 18;
+          const off = (row % 2 === 0) ? 0 : 35;
+          for (let gx = x + off; gx < x + w; gx += 70) {
+            ctx.beginPath();
+            ctx.moveTo(gx, ry); ctx.lineTo(gx, ry + 18);
+            ctx.stroke();
+          }
+        }
 
         // Vault Keystone Archway in background
         ctx.strokeStyle = '#1e293b';
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 7;
         ctx.beginPath();
         ctx.arc(cx, y + h - 10, w * 0.35, Math.PI, 0, false);
         ctx.stroke();
 
-        // Glowing blue ancient runes carved into the arch
-        const runePulse = Math.sin(time * 2.2) * 0.25 + 0.75;
-        ctx.strokeStyle = `rgba(56, 189, 248, ${0.65 * runePulse})`;
-        ctx.lineWidth = 1.2;
+        // Glowing cyan ancient runes carved into the arch
+        const runePulse = isReducedMotion ? 0.8 : (Math.sin(time * 2.2) * 0.25 + 0.75);
+        ctx.strokeStyle = `rgba(56, 189, 248, ${0.75 * runePulse})`;
+        ctx.lineWidth = 1.4;
         ctx.beginPath();
         ctx.arc(cx, y + h - 10, w * 0.35 + 5, Math.PI * 1.05, Math.PI * 1.95, false);
         ctx.stroke();
@@ -1560,18 +1574,18 @@ export const BestiaryPortraitRenderer = {
         // Flagstone floor
         ctx.fillStyle = '#090e1a';
         ctx.fillRect(x, y + h - 20, w, 20);
-        ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(x, y + h - 20); ctx.lineTo(x + w, y + h - 20);
         ctx.stroke();
 
         // Warm Flickering Brass Lantern on left flags
-        const flamePulse = Math.sin(time * 5.5) * 0.15 + 0.85;
-        const lanternX = cx - 90;
+        const flamePulse = isReducedMotion ? 0.9 : (Math.sin(time * 5.5) * 0.15 + 0.85);
+        const lanternX = cx - 95;
         const lanternY = y + h - 22;
 
-        const lanternGlow = ctx.createRadialGradient(lanternX, lanternY - 4, 3, lanternX, lanternY - 4, 75);
+        const lanternGlow = ctx.createRadialGradient(lanternX, lanternY - 4, 3, lanternX, lanternY - 4, 80);
         lanternGlow.addColorStop(0, `rgba(245, 158, 11, ${0.75 * flamePulse})`);
         lanternGlow.addColorStop(0.4, `rgba(217, 119, 6, ${0.35 * flamePulse})`);
         lanternGlow.addColorStop(1, 'rgba(0,0,0,0)');
@@ -1613,11 +1627,13 @@ export const BestiaryPortraitRenderer = {
         ctx.restore();
 
         // Floating dust motes caught in lantern light
-        ctx.fillStyle = `rgba(254, 240, 138, ${0.5 * flamePulse})`;
-        for (let i = 0; i < 6; i++) {
-          const dx = lanternX - 30 + Math.sin(time * 1.5 + i * 1.8) * 35;
-          const dy = y + 40 + Math.cos(time * 1.1 + i * 1.3) * 30;
-          ctx.fillRect(dx, dy, 1.5, 1.5);
+        if (!isReducedMotion) {
+          ctx.fillStyle = `rgba(254, 240, 138, ${0.5 * flamePulse})`;
+          for (let i = 0; i < 6; i++) {
+            const dx = lanternX - 30 + Math.sin(time * 1.5 + i * 1.8) * 35;
+            const dy = y + 40 + Math.cos(time * 1.1 + i * 1.3) * 30;
+            ctx.fillRect(dx, dy, 1.5, 1.5);
+          }
         }
         break;
       }
@@ -1677,14 +1693,14 @@ export const BestiaryPortraitRenderer = {
         ctx.lineWidth = 1.2;
         ctx.beginPath();
         for (let sy = 0; sy < 36; sy += 4) {
-          const sx = brazierX + Math.sin(time * 2.0 + sy * 0.2) * 5;
+          const sx = brazierX + (isReducedMotion ? 0 : Math.sin(animTime * 2.0 + sy * 0.2) * 5);
           if (sy === 0) ctx.moveTo(sx, brazierY - 16);
           else ctx.lineTo(sx, brazierY - 16 - sy);
         }
         ctx.stroke();
 
         // Right: Discarded Vanguard Lion Shield leaning against masonry
-        const shieldX = cx + 75;
+        const shieldX = cx + 80;
         const shieldY = y + h - 22;
 
         ctx.save();
@@ -1754,8 +1770,8 @@ export const BestiaryPortraitRenderer = {
       }
 
       // ───────────────────────────────────────────────────────────
-      // FLOOR 3 — THE TRIAL OF IRON
-      // Gorgaroth's forge, colossal iron chains, cracked anvil pillar, lava
+      // FLOOR 3 — THE TRIAL OF IRON (BOSS: GORGAROTH)
+      // Authoritative Gorgaroth production renderer, volcanic forge, lava
       // ───────────────────────────────────────────────────────────
       case 3: {
         // Deep subterranean volcanic forge
@@ -1763,7 +1779,7 @@ export const BestiaryPortraitRenderer = {
         ctx.fillRect(x, y, w, h);
 
         // Radiant Molten Lava Rivers at bottom
-        const lavaPulse = Math.sin(time * 3.5) * 0.15 + 0.85;
+        const lavaPulse = isReducedMotion ? 0.9 : (Math.sin(animTime * 3.5) * 0.15 + 0.85);
         const lavaGrad = ctx.createLinearGradient(x, y + h - 26, x, y + h);
         lavaGrad.addColorStop(0, `rgba(234, 88, 12, ${0.9 * lavaPulse})`);
         lavaGrad.addColorStop(0.5, `rgba(249, 115, 22, ${1.0 * lavaPulse})`);
@@ -1775,74 +1791,81 @@ export const BestiaryPortraitRenderer = {
         ctx.fillStyle = '#262626';
         ctx.fillRect(x + 20, y + h - 16, 40, 7);
         ctx.fillRect(x + 90, y + h - 18, 55, 8);
-        ctx.fillRect(cx + 40, y + h - 16, 60, 7);
-        ctx.fillRect(cx + 120, y + h - 19, 50, 9);
+        ctx.fillRect(cx + 60, y + h - 16, 60, 7);
+        ctx.fillRect(cx + 140, y + h - 19, 50, 9);
+
+        // Basalt pillars in background
+        ctx.fillStyle = '#1c1917';
+        ctx.strokeStyle = '#292524';
+        ctx.lineWidth = 1;
+        ctx.fillRect(x + 15, y, 22, h - 22);
+        ctx.strokeRect(x + 15, y, 22, h - 22);
+        ctx.fillRect(x + w - 37, y, 22, h - 22);
+        ctx.strokeRect(x + w - 37, y, 22, h - 22);
 
         // Colossal Spiked Iron Chains hanging from ceiling
         ctx.fillStyle = '#3f3f46';
         ctx.strokeStyle = '#18181b';
         ctx.lineWidth = 1;
-        const chainCols = [x + 50, x + 110, cx + 80, cx + 140];
+        const chainCols = [x + 55, x + 115, cx + 115, cx + 165];
         chainCols.forEach((chX, idx) => {
-          const sway = Math.sin(time * 1.8 + idx * 1.5) * 4;
+          const sway = isReducedMotion ? 0 : Math.sin(animTime * 1.8 + idx * 1.5) * 3;
           for (let cyLink = y; cyLink < y + h - 35; cyLink += 10) {
             ctx.strokeRect(chX + sway - 3, cyLink, 6, 8);
             ctx.fillRect(chX + sway - 2, cyLink + 1, 4, 6);
           }
         });
 
-        // Center: Gorgaroth's Colossal Cracked Anvil Pillar
-        const anvilW = 68, anvilH = 54;
-        const anvilX = cx - anvilW / 2;
+        // Left: Gorgaroth's Colossal Cracked Anvil Pillar
+        const anvilW = 60, anvilH = 46;
+        const anvilX = cx - 95;
         const anvilY = y + h - 22 - anvilH;
 
         // Anvil base & waist
         ctx.fillStyle = '#27272a';
         ctx.strokeStyle = '#52525b';
         ctx.lineWidth = 1.2;
-        roundRect(ctx, anvilX + 8, anvilY + 22, anvilW - 16, anvilH - 22, 3);
+        roundRect(ctx, anvilX + 6, anvilY + 18, anvilW - 12, anvilH - 18, 3);
         ctx.fill(); ctx.stroke();
 
         // Anvil horn & face plate
         ctx.fillStyle = '#3f3f46';
-        ctx.fillRect(anvilX - 6, anvilY, anvilW + 12, 22);
-        ctx.strokeRect(anvilX - 6, anvilY, anvilW + 12, 22);
+        ctx.fillRect(anvilX - 4, anvilY, anvilW + 8, 18);
+        ctx.strokeRect(anvilX - 4, anvilY, anvilW + 8, 18);
 
         // Glowing red-hot fractures down anvil center
         ctx.strokeStyle = `rgba(239, 68, 68, ${0.9 * lavaPulse})`;
         ctx.lineWidth = 1.8;
         ctx.beginPath();
-        ctx.moveTo(cx - 3, anvilY + 2);
-        ctx.lineTo(cx + 2, anvilY + 16);
-        ctx.lineTo(cx - 4, anvilY + 34);
-        ctx.lineTo(cx + 3, anvilY + 50);
+        ctx.moveTo(anvilX + anvilW / 2 - 3, anvilY + 2);
+        ctx.lineTo(anvilX + anvilW / 2 + 2, anvilY + 14);
+        ctx.lineTo(anvilX + anvilW / 2 - 4, anvilY + 28);
+        ctx.lineTo(anvilX + anvilW / 2 + 3, anvilY + 44);
         ctx.stroke();
 
-        // Gorgaroth's silhouetted monolithic horned skull looming in smoke
-        ctx.fillStyle = 'rgba(24, 9, 8, 0.75)';
-        ctx.beginPath();
-        ctx.arc(cx, anvilY - 26, 16, 0, Math.PI * 2);
-        ctx.fill();
-        // Horns
-        ctx.beginPath();
-        ctx.moveTo(cx - 14, anvilY - 32);
-        ctx.lineTo(cx - 32, anvilY - 48);
-        ctx.lineTo(cx - 10, anvilY - 22);
-        ctx.moveTo(cx + 14, anvilY - 32);
-        ctx.lineTo(cx + 32, anvilY - 48);
-        ctx.lineTo(cx + 10, anvilY - 22);
-        ctx.fill();
-        // Glowing orange molten eyes
-        ctx.fillStyle = `rgba(249, 115, 22, ${0.95 * lavaPulse})`;
-        ctx.fillRect(cx - 7, anvilY - 28, 3.5, 3.5);
-        ctx.fillRect(cx + 3.5, anvilY - 28, 3.5, 3.5);
+        // Authoritative Production Boss Renderer: Gorgaroth standing in the volcanic forge!
+        ctx.save();
+        ctx.translate(cx + 40, y + h - 20);
+        ctx.scale(0.66, 0.66);
+        const gorgBoss = {
+          id: 'gorgaroth',
+          phase: 1,
+          defeatState: null,
+          introRevealStage: null,
+          weaponDropped: false,
+          ph: animTime
+        };
+        CharacterRenderer.drawGorgaroth(ctx, gorgBoss, false, pulse);
+        ctx.restore();
 
         // Rising volcanic sparks and burning embers
-        ctx.fillStyle = '#fbbf24';
-        for (let i = 0; i < 9; i++) {
-          const ex = cx - 120 + ((i * 37 + time * 35) % 240);
-          const ey = y + h - 25 - ((i * 17 + time * 45) % (h - 30));
-          ctx.fillRect(ex, ey, 2, 2);
+        if (!isReducedMotion) {
+          ctx.fillStyle = '#fbbf24';
+          for (let i = 0; i < 9; i++) {
+            const ex = cx - 120 + ((i * 37 + animTime * 35) % 240);
+            const ey = y + h - 25 - ((i * 17 + animTime * 45) % (h - 30));
+            ctx.fillRect(ex, ey, 2, 2);
+          }
         }
         break;
       }
@@ -1889,8 +1912,9 @@ export const BestiaryPortraitRenderer = {
           ctx.restore();
         };
 
-        drawGear(cx - 100, y + 42, 34, 12, time * 0.3);
-        drawGear(cx - 45, y + 26, 24, 8, -time * 0.42);
+        const gearRot = isReducedMotion ? 0 : animTime;
+        drawGear(cx - 100, y + 42, 34, 12, gearRot * 0.3);
+        drawGear(cx - 45, y + 26, 24, 8, -gearRot * 0.42);
 
         // Flagstone floor
         ctx.fillStyle = '#111827';
@@ -1904,7 +1928,7 @@ export const BestiaryPortraitRenderer = {
           ctx.fillRect(spX - 5, y + h - 24, 10, 4);
 
           // Alternating spike extension
-          const ext = Math.max(0, Math.sin(time * 2.8 + idx * 1.1)) * 18;
+          const ext = isReducedMotion ? 10 : Math.max(0, Math.sin(animTime * 2.8 + idx * 1.1)) * 18;
           if (ext > 2) {
             ctx.fillStyle = '#cbd5e1';
             ctx.beginPath();
@@ -1968,7 +1992,7 @@ export const BestiaryPortraitRenderer = {
         ctx.beginPath();
         ctx.moveTo(x, y + h);
         for (let mx = 0; mx <= w; mx += 15) {
-          const my = y + h - 22 + Math.sin(time * 2.0 + mx * 0.05) * 8 + Math.cos(time * 1.4 + mx * 0.03) * 6;
+          const my = y + h - 22 + (isReducedMotion ? 0 : Math.sin(animTime * 2.0 + mx * 0.05) * 8 + Math.cos(animTime * 1.4 + mx * 0.03) * 6);
           ctx.lineTo(x + mx, my);
         }
         ctx.lineTo(x + w, y + h);
@@ -1985,7 +2009,7 @@ export const BestiaryPortraitRenderer = {
         ctx.fillRect(torchX - 10, torchY + 6, 14, 3);
 
         // Sputtering, struggling eerie cold-blue flame
-        const sputter = Math.sin(time * 8.0) * Math.cos(time * 3.5) * 0.35 + 0.65;
+        const sputter = isReducedMotion ? 0.75 : (Math.sin(animTime * 8.0) * Math.cos(animTime * 3.5) * 0.35 + 0.65);
         const torchHalo = ctx.createRadialGradient(torchX, torchY - 8, 2, torchX, torchY - 8, 48 * sputter);
         torchHalo.addColorStop(0, `rgba(56, 189, 248, ${0.85 * sputter})`);
         torchHalo.addColorStop(0.5, `rgba(3, 105, 161, ${0.35 * sputter})`);
@@ -2008,7 +2032,7 @@ export const BestiaryPortraitRenderer = {
         ];
 
         eyeLocations.forEach(eye => {
-          const blink = Math.sin(time * 1.5 + eye.ph);
+          const blink = isReducedMotion ? 1.0 : Math.sin(animTime * 1.5 + eye.ph);
           const openH = Math.max(1, Math.abs(blink) * 7 * eye.scale);
 
           ctx.fillStyle = '#dc2626';
@@ -2045,8 +2069,8 @@ export const BestiaryPortraitRenderer = {
       }
 
       // ───────────────────────────────────────────────────────────
-      // FLOOR 6 — THE VOID'S QUESTION
-      // Malakor's spatial fracture tear, dimensional rift, floating shards
+      // FLOOR 6 — THE VOID'S QUESTION (BOSS: MALAKOR)
+      // Authoritative Malakor production renderer, spatial rift, starfield
       // ───────────────────────────────────────────────────────────
       case 6: {
         // Fractured deep void space
@@ -2056,14 +2080,14 @@ export const BestiaryPortraitRenderer = {
         // Distant Star Field visible through geometry
         ctx.fillStyle = '#e9d5ff';
         for (let s = 0; s < 18; s++) {
-          const sx = x + ((s * 29 + time * 1.5) % w);
+          const sx = x + ((s * 29 + (isReducedMotion ? 0 : animTime * 1.5)) % w);
           const sy = y + ((s * 19) % (h - 20));
           const sz = (s % 3 === 0) ? 1.5 : 1;
           ctx.fillRect(sx, sy, sz, sz);
         }
 
         // Center: Dimensional Spatial Fracture Rift (Jagged reality tear)
-        const riftPulse = Math.sin(time * 3.2) * 0.2 + 0.8;
+        const riftPulse = isReducedMotion ? 0.85 : (Math.sin(animTime * 3.2) * 0.2 + 0.8);
         const riftGrad = ctx.createLinearGradient(cx - 30, y, cx + 30, y);
         riftGrad.addColorStop(0, 'rgba(124, 58, 237, 0)');
         riftGrad.addColorStop(0.5, `rgba(192, 38, 211, ${0.85 * riftPulse})`);
@@ -2088,19 +2112,33 @@ export const BestiaryPortraitRenderer = {
         ctx.lineWidth = 1;
         ctx.stroke();
 
+        // Authoritative Production Boss Renderer: Malakor hovering in the rift!
+        ctx.save();
+        ctx.translate(cx, y + h * 0.46);
+        ctx.scale(0.70, 0.70);
+        const malakorBoss = {
+          id: 'malakor',
+          phase: 1,
+          vulnTimer: 0,
+          isChargingVolley: false,
+          ph: animTime * 4
+        };
+        CharacterRenderer.drawMalakor(ctx, malakorBoss, false, pulse);
+        ctx.restore();
+
         // Floating shattered obsidian shards hovering in zero-g
         const shards = [
-          { sx: cx - 80, sy: y + 42, sw: 18, sh: 12, rot: 0.4 },
-          { sx: cx - 45, sy: y + 88, sw: 14, sh: 22, rot: -0.6 },
-          { sx: cx + 55, sy: y + 36, sw: 20, sh: 14, rot: 0.8 },
-          { sx: cx + 90, sy: y + 78, sw: 16, sh: 16, rot: -0.3 }
+          { sx: cx - 85, sy: y + 42, sw: 18, sh: 12, rot: 0.4 },
+          { sx: cx - 50, sy: y + 96, sw: 14, sh: 22, rot: -0.6 },
+          { sx: cx + 60, sy: y + 36, sw: 20, sh: 14, rot: 0.8 },
+          { sx: cx + 95, sy: y + 84, sw: 16, sh: 16, rot: -0.3 }
         ];
 
         shards.forEach((sh, idx) => {
-          const bob = Math.sin(time * 2.0 + idx * 1.3) * 5;
+          const bob = isReducedMotion ? 0 : Math.sin(animTime * 2.0 + idx * 1.3) * 5;
           ctx.save();
           ctx.translate(sh.sx, sh.sy + bob);
-          ctx.rotate(sh.rot + time * 0.15 * (idx % 2 === 0 ? 1 : -1));
+          ctx.rotate(sh.rot + (isReducedMotion ? 0 : animTime * 0.15 * (idx % 2 === 0 ? 1 : -1)));
 
           ctx.fillStyle = '#180d2b';
           ctx.strokeStyle = '#a855f7';
@@ -2116,13 +2154,17 @@ export const BestiaryPortraitRenderer = {
         });
 
         // Electric purple arc discharges between shards
-        ctx.strokeStyle = 'rgba(216, 180, 254, 0.75)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(cx - 80, y + 42);
-        ctx.lineTo(cx - 30, y + 54);
-        ctx.lineTo(cx + 10, y + 48);
-        ctx.stroke();
+        if (!isReducedMotion) {
+          ctx.strokeStyle = 'rgba(216, 180, 254, 0.75)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(cx - 85, y + 42);
+          ctx.lineTo(cx - 40, y + 54);
+          ctx.lineTo(cx - 20, y + 48);
+          ctx.moveTo(cx + 20, y + 48);
+          ctx.lineTo(cx + 60, y + 36);
+          ctx.stroke();
+        }
         break;
       }
 
@@ -2150,7 +2192,7 @@ export const BestiaryPortraitRenderer = {
         drawColumn(cx + 120);
 
         // Radiant Celestial Light Beam cascading down onto central plinth
-        const beamPulse = Math.sin(time * 2.0) * 0.1 + 0.9;
+        const beamPulse = isReducedMotion ? 0.9 : (Math.sin(animTime * 2.0) * 0.1 + 0.9);
         const beamGrad = ctx.createLinearGradient(cx, y, cx, y + h - 20);
         beamGrad.addColorStop(0, `rgba(254, 240, 138, ${0.45 * beamPulse})`);
         beamGrad.addColorStop(0.7, `rgba(217, 119, 6, ${0.25 * beamPulse})`);
@@ -2204,11 +2246,13 @@ export const BestiaryPortraitRenderer = {
         ctx.strokeRect(cx - 30, y + h - 18, 60, 4);
 
         // Rising golden light motes
-        ctx.fillStyle = '#fef08a';
-        for (let i = 0; i < 7; i++) {
-          const px = cx - 35 + ((i * 22 + time * 20) % 70);
-          const py = plinthY - 5 - ((i * 14 + time * 25) % 55);
-          ctx.fillRect(px, py, 1.5, 1.5);
+        if (!isReducedMotion) {
+          ctx.fillStyle = '#fef08a';
+          for (let i = 0; i < 7; i++) {
+            const px = cx - 35 + ((i * 22 + animTime * 20) % 70);
+            const py = plinthY - 5 - ((i * 14 + animTime * 25) % 55);
+            ctx.fillRect(px, py, 1.5, 1.5);
+          }
         }
         break;
       }
@@ -2234,7 +2278,7 @@ export const BestiaryPortraitRenderer = {
         ctx.fill(); ctx.stroke();
 
         // Glowing Primordial Crimson Ichor fluid in basin
-        const ichorPulse = Math.sin(time * 3.0) * 0.15 + 0.85;
+        const ichorPulse = isReducedMotion ? 0.9 : (Math.sin(animTime * 3.0) * 0.15 + 0.85);
         const ichorGrad = ctx.createLinearGradient(basinX - 22, basinY - basinH + 6, basinX + 22, basinY - 6);
         ichorGrad.addColorStop(0, `rgba(239, 68, 68, ${0.95 * ichorPulse})`);
         ichorGrad.addColorStop(1, '#991b1b');
@@ -2274,7 +2318,7 @@ export const BestiaryPortraitRenderer = {
           ctx.beginPath();
           const startSx = basinX - 12 + st * 12;
           for (let sy = 0; sy < 32; sy += 4) {
-            const sx = startSx + Math.sin(time * 2.5 + sy * 0.2 + st) * 4;
+            const sx = startSx + (isReducedMotion ? 0 : Math.sin(animTime * 2.5 + sy * 0.2 + st) * 4);
             if (sy === 0) ctx.moveTo(sx, basinY - basinH + 4);
             else ctx.lineTo(sx, basinY - basinH + 4 - sy);
           }
@@ -2282,11 +2326,13 @@ export const BestiaryPortraitRenderer = {
         }
 
         // Flying sparks from anvil forging
-        ctx.fillStyle = '#fde047';
-        for (let sp = 0; sp < 6; sp++) {
-          const px = anvilX - 10 + Math.sin(time * 4.0 + sp * 2) * 20;
-          const py = anvilY - 32 - Math.abs(Math.cos(time * 3.5 + sp)) * 22;
-          ctx.fillRect(px, py, 1.5, 1.5);
+        if (!isReducedMotion) {
+          ctx.fillStyle = '#fde047';
+          for (let sp = 0; sp < 6; sp++) {
+            const px = anvilX - 10 + Math.sin(animTime * 4.0 + sp * 2) * 20;
+            const py = anvilY - 32 - Math.abs(Math.cos(animTime * 3.5 + sp)) * 22;
+            ctx.fillRect(px, py, 1.5, 1.5);
+          }
         }
         break;
       }
@@ -2308,7 +2354,7 @@ export const BestiaryPortraitRenderer = {
         ctx.fillRect(x, y + h - 25, w, 25);
 
         // Giant Burning Absolute Eye in the ceiling of the abyss
-        const eyePulse = Math.sin(time * 2.0) * 0.1 + 0.9;
+        const eyePulse = isReducedMotion ? 0.95 : (Math.sin(animTime * 2.0) * 0.1 + 0.9);
         const eyeX = cx, eyeY = y + 36;
 
         // Ocular burning aura
@@ -2374,7 +2420,7 @@ export const BestiaryPortraitRenderer = {
         ctx.fill();
 
         // Billowing Red Cloak in updraft wind
-        const windSway = Math.sin(time * 4.5) * 6;
+        const windSway = isReducedMotion ? 0 : Math.sin(animTime * 4.5) * 6;
         ctx.fillStyle = '#b91c1c';
         ctx.beginPath();
         ctx.moveTo(rowanX - 2, rowanY - 20);
@@ -2395,8 +2441,8 @@ export const BestiaryPortraitRenderer = {
       }
 
       // ───────────────────────────────────────────────────────────
-      // FLOOR 10 — THE WARDEN'S LAST TRIAL (ENDGAME REVELATION)
-      // Sunken Throne, fallen greatsword, gravitational singularity ring
+      // FLOOR 10 — THE WARDEN'S LAST TRIAL (BOSS: ABYSS WARDEN)
+      // Authoritative Warden production renderer, throne, singularity
       // ───────────────────────────────────────────────────────────
       case 10: {
         // Deep cosmic throne room
@@ -2404,13 +2450,13 @@ export const BestiaryPortraitRenderer = {
         ctx.fillRect(x, y, w, h);
 
         // Behind Throne: Swirling Gravitational Singularity Accretion Ring
-        const singX = cx, singY = y + 42;
+        const singX = cx - 20, singY = y + 42;
         const singRadius = 42;
 
         // Concentric swirling accretion disks
         ctx.save();
         ctx.translate(singX, singY);
-        ctx.rotate(time * 0.6);
+        ctx.rotate(isReducedMotion ? 0 : animTime * 0.6);
 
         const singGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, singRadius);
         singGrad.addColorStop(0, '#000000');
@@ -2435,15 +2481,15 @@ export const BestiaryPortraitRenderer = {
         ctx.arc(singX, singY, 12, 0, Math.PI * 2);
         ctx.fill();
 
-        // The Stepped Dais and Vacant Sunken Throne
+        // The Stepped Dais and Vacant Sunken Throne (Left-Center)
         const throneW = 54, throneH = 50;
-        const throneX = cx - throneW / 2;
+        const throneX = cx - 75;
         const throneY = y + h - 20 - throneH;
 
         // Stepped dais
         ctx.fillStyle = '#1e1b4b';
-        ctx.fillRect(cx - 60, y + h - 22, 120, 22);
-        ctx.fillRect(cx - 45, y + h - 26, 90, 4);
+        ctx.fillRect(x + 20, y + h - 22, w - 40, 22);
+        ctx.fillRect(cx - 95, y + h - 26, 95, 4);
 
         // High-backed Obsidian Throne
         ctx.fillStyle = '#0f172a';
@@ -2457,14 +2503,14 @@ export const BestiaryPortraitRenderer = {
         ctx.beginPath();
         ctx.moveTo(throneX + 8, throneY);
         ctx.lineTo(throneX + 16, throneY - 8);
-        ctx.lineTo(cx, throneY - 3);
+        ctx.lineTo(throneX + throneW / 2, throneY - 3);
         ctx.lineTo(throneX + throneW - 16, throneY - 8);
         ctx.lineTo(throneX + throneW - 8, throneY);
         ctx.closePath();
         ctx.fill();
 
         // Fallen Abyss Warden's Curved Greatsword driven into the dais
-        const gswordX = cx + 24;
+        const gswordX = cx - 18;
         const gswordY = y + h - 24;
         ctx.save();
         ctx.translate(gswordX, gswordY);
@@ -2485,12 +2531,31 @@ export const BestiaryPortraitRenderer = {
         ctx.beginPath(); ctx.arc(0, -48, 3, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
 
+        // Authoritative Production Boss Renderer: Abyss Warden standing beside the throne!
+        ctx.save();
+        ctx.translate(cx + 45, y + h - 22);
+        ctx.scale(0.64, 0.64);
+        const wardenBoss = {
+          id: 'abyss_warden',
+          phase: 1,
+          defeatState: null,
+          introRevealStage: null,
+          weaponDropped: false,
+          crackedArmor: false,
+          eyeGlow: 1.0,
+          ph: animTime * 3
+        };
+        CharacterRenderer.drawWarden(ctx, wardenBoss, false, pulse);
+        ctx.restore();
+
         // Floating Soul Essence Motes rising toward singularity
-        ctx.fillStyle = '#a5f3fc';
-        for (let sm = 0; sm < 8; sm++) {
-          const px = singX - 40 + ((sm * 21 + time * 18) % 80);
-          const py = y + h - 35 - ((sm * 12 + time * 24) % 65);
-          ctx.fillRect(px, py, 1.5, 1.5);
+        if (!isReducedMotion) {
+          ctx.fillStyle = '#a5f3fc';
+          for (let sm = 0; sm < 8; sm++) {
+            const px = singX - 40 + ((sm * 21 + animTime * 18) % 80);
+            const py = y + h - 35 - ((sm * 12 + animTime * 24) % 65);
+            ctx.fillRect(px, py, 1.5, 1.5);
+          }
         }
         break;
       }
