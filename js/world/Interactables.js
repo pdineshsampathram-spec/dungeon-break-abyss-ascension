@@ -108,6 +108,7 @@ export const Interactables = {
             dealDamage({
               isTrap: true,
               environmental: true,
+              trapType: t.type,
               type: t.type,
               attackId: t.attackId,
               x: t.x,

@@ -19,24 +19,25 @@ export const PlayerStats = {
 
   getEffectiveDamageMultiplier(weaponId = null) {
     const furyRank = (GameState.TALENTS && GameState.TALENTS.fury) || 0;
-    let baseMult = 1 + furyRank * 0.15;
+    let weaponBonus = 0;
 
-    // Weapon-specific Soul Talents
+    // Weapon-specific Soul Talents (additive bonuses to prevent runaway compounding)
     if (weaponId === 'bow') {
       const hRank = (GameState.TALENTS && GameState.TALENTS.hunters_focus) || 0;
-      baseMult *= (1 + hRank * 0.12);
+      weaponBonus = hRank * 0.08;
     } else if (weaponId === 'dagger') {
       const dRank = (GameState.TALENTS && GameState.TALENTS.rift_discipline) || 0;
-      baseMult *= (1 + dRank * 0.08);
+      weaponBonus = dRank * 0.06;
     } else if (weaponId === 'axe') {
       const aRank = (GameState.TALENTS && GameState.TALENTS.explosive_might) || 0;
-      baseMult *= (1 + aRank * 0.12);
+      weaponBonus = aRank * 0.08;
     } else if (weaponId === 'spear') {
       const sRank = (GameState.TALENTS && GameState.TALENTS.lance_precision) || 0;
-      baseMult *= (1 + sRank * 0.10);
+      weaponBonus = sRank * 0.07;
     }
 
-    const boost = (GameState.P && GameState.P.dmgBoost) ? GameState.P.dmgBoost : 1.0;
+    const baseMult = 1 + (furyRank * 0.10) + weaponBonus;
+    const boost = (GameState.P && GameState.P.dmgBoost) ? Math.min(1.5, GameState.P.dmgBoost) : 1.0;
     return baseMult * boost;
   },
 
@@ -69,4 +70,8 @@ export const PlayerStats = {
     return 100 + resilienceRank * 10;
   }
 };
+
+if (typeof window !== 'undefined') {
+  window.PlayerStats = PlayerStats;
+}
 

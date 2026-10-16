@@ -72,18 +72,49 @@ export function dealDamage(source, target, amount, damageType = 'melee') {
     target._hitBySwings[source.attackId] = true;
   }
 
-  // Target is Boss
-  const isCrit = (source && source.isCrit) || (Math.random() < ((GameState.TALENTS && GameState.TALENTS.fury ? GameState.TALENTS.fury * 0.08 : 0) + (source && source.isPlayer ? 0.08 : 0)));
+  // Target is Boss or Enemy
+  const isCrit = (source && typeof source.isCrit === 'boolean') 
+    ? source.isCrit 
+    : (Math.random() < ((GameState.TALENTS && GameState.TALENTS.fury ? GameState.TALENTS.fury * 0.08 : 0) + (source && source.isPlayer ? 0.08 : 0)));
   const finalAmount = isCrit ? Math.max(1, Math.round(amount * 1.75)) : amount;
 
   if (target.isBoss || target === BOSS) {
-    damageBoss(finalAmount, isCrit, damageType, source);
+    const bossArmor = target.armor !== undefined ? target.armor : (BOSS ? (BOSS.armor || 0) : 0);
+    const bossDmg = Math.max(1, Math.round(finalAmount * (1 - bossArmor)));
+    damageBoss(bossDmg, isCrit, damageType, source);
     return true;
   }
 
-  // Regular Enemy
-  target.hp = Math.max(0, target.hp - finalAmount);
+  // Regular Enemy: Armor Mitigation
+  const enemyArmor = Math.min(0.75, target.armor || 0);
+  const mitigatedAmount = Math.max(1, Math.round(finalAmount * (1 - enemyArmor)));
+  target.hp = Math.max(0, target.hp - mitigatedAmount);
   target._engagedTimer = 3.5;
+
+  // Poise Damage & Stagger Evaluation
+  let poiseDamage = 14;
+  if (damageType === 'heavy') poiseDamage = 35;
+  else if (damageType === 'pierce') poiseDamage = 18;
+  else if (damageType === 'ranged') poiseDamage = 12;
+  else if (source && (source.weaponId === 'dagger' || (source.weapon && source.weapon.id === 'dagger'))) poiseDamage = 8;
+  if (isCrit) poiseDamage = Math.round(poiseDamage * 1.5);
+
+  if (target.currentPoise === undefined) {
+    target.currentPoise = target.poise || 20;
+  }
+  target.currentPoise -= poiseDamage;
+
+  const canStagger = (target.staggerCooldown || 0) <= 0;
+  const isStaggered = (damageType === 'heavy') || isCrit || (target.currentPoise <= 0 && canStagger);
+
+  if (isStaggered) {
+    target.staggerTimer = 0.60;
+    target.staggerCooldown = 1.0; // 1.0s anti-stunlock immunity against light interrupts
+    target.currentPoise = target.poise || 20;
+    target.aiState = 'HURT';
+    target.telegraphing = false;
+    target.telegraphTimer = 0;
+  }
 
   // Layered Combat Feedback: LIGHT, HEAVY, CRITICAL, PIERCE
   if (isCrit) {
@@ -92,7 +123,7 @@ export function dealDamage(source, target, amount, damageType = 'melee') {
     GameState.CAM.shk = Math.max(GameState.CAM.shk, 8);
     ParticleRenderer.spawnP(target.x, target.y, 8, { col: '#facc15', spd: 1.8, r: 3.5, star: true });
     ParticleRenderer.spawnRing(target.x, target.y, '#fef08a');
-    ParticleRenderer.showFloatingText('CRIT! ' + finalAmount, target.x, target.y, '#facc15', 15, true);
+    ParticleRenderer.showFloatingText('CRIT! ' + mitigatedAmount, target.x, target.y, '#facc15', 15, true);
     SoundManager.snd('talent_unlock');
   } else if (damageType === 'heavy') {
     target.hitFlash = 0.30;
@@ -100,7 +131,7 @@ export function dealDamage(source, target, amount, damageType = 'melee') {
     GameState.CAM.shk = Math.max(GameState.CAM.shk, 12);
     ParticleRenderer.spawnP(target.x, target.y, 7, { col: '#fb923c', spd: 1.5, r: 3 });
     ParticleRenderer.spawnRing(target.x, target.y, '#fb923c');
-    ParticleRenderer.showFloatingText(String(finalAmount), target.x, target.y, '#f97316', 13, false);
+    ParticleRenderer.showFloatingText(String(mitigatedAmount), target.x, target.y, '#f97316', 13, false);
     SoundManager.snd('melee_hit');
     SoundManager.snd('shockwave');
   } else if (damageType === 'pierce') {
@@ -108,7 +139,7 @@ export function dealDamage(source, target, amount, damageType = 'melee') {
     triggerHitStop(0.05);
     GameState.CAM.shk = Math.max(GameState.CAM.shk, 5);
     ParticleRenderer.spawnP(target.x, target.y, 5, { col: '#38bdf8', spd: 1.1, r: 2.5 });
-    ParticleRenderer.showFloatingText(String(finalAmount), target.x, target.y, '#38bdf8', 12, false);
+    ParticleRenderer.showFloatingText(String(mitigatedAmount), target.x, target.y, '#38bdf8', 12, false);
     SoundManager.snd('melee_hit');
   } else {
     // Light / standard hit
@@ -116,12 +147,12 @@ export function dealDamage(source, target, amount, damageType = 'melee') {
     triggerHitStop(0.035);
     GameState.CAM.shk = Math.max(GameState.CAM.shk, 3);
     ParticleRenderer.spawnP(target.x, target.y, 3, { col: '#fde68a', spd: 0.8, r: 2 });
-    ParticleRenderer.showFloatingText(String(finalAmount), target.x, target.y, '#f1f5f9', 11, false);
+    ParticleRenderer.showFloatingText(String(mitigatedAmount), target.x, target.y, '#f1f5f9', 11, false);
     SoundManager.snd('melee_hit');
   }
 
-  // Knockback
-  if (source && source.x !== undefined) {
+  // Knockback (heavy hits and crits always knock back; light hits only knock back when staggered)
+  if (source && source.x !== undefined && (isStaggered || damageType === 'heavy' || isCrit)) {
     const kx = target.x - source.x;
     const ky = target.y - source.y;
     const kl = Math.hypot(kx, ky) || 1;
@@ -130,7 +161,7 @@ export function dealDamage(source, target, amount, damageType = 'melee') {
     target.vy = (ky / kl) * kb;
   }
 
-  EventBus.emit('combat:enemy_hit', { enemy: target, amount: finalAmount, damageType, isCrit, source });
+  EventBus.emit('combat:enemy_hit', { enemy: target, amount: mitigatedAmount, damageType, isCrit, source, isStaggered });
 
   // Life steal check from Vampiric Touch talent
   const siphonRank = (GameState.TALENTS && GameState.TALENTS.siphon) || 0;
@@ -173,18 +204,18 @@ export function killEnemy(e) {
   const lv = GameState.LV || 1;
   let soulCount = 1;
   if (e.isMiniBoss) {
-    soulCount = lv >= 7 ? 12 : 8;
+    soulCount = lv >= 7 ? 16 : 10;
   } else if (e.isElite || e.elite) {
-    soulCount = lv <= 3 ? 3 : (lv <= 6 ? 5 : 8);
+    soulCount = lv <= 3 ? 8 : (lv <= 6 ? 10 : (lv <= 9 ? 12 : 15));
   } else if (e.type === 'demon') {
-    soulCount = lv <= 4 ? 2 : (lv <= 7 ? 3 : 4);
+    soulCount = lv <= 4 ? 3 : (lv <= 7 ? 4 : 5);
   } else if (e.type === 'wraith') {
-    soulCount = lv <= 6 ? 2 : (lv <= 8 ? 3 : 4);
+    soulCount = lv <= 5 ? 4 : (lv <= 8 ? 5 : 6);
   } else if (e.type === 'ghoul') {
-    soulCount = lv >= 5 ? 2 : 1;
+    soulCount = lv >= 5 ? 3 : 2;
   } else {
     // skeleton
-    soulCount = lv >= 7 ? 2 : 1;
+    soulCount = lv >= 6 ? 2 : 1;
   }
 
   GameState.ITEMS.push({
@@ -248,10 +279,10 @@ export function damageBoss(amount, isCrit = false, damageType = 'melee', source 
   if (BOSS.hp <= 0) {
     if (!BOSS._soulsAwarded) {
       BOSS._soulsAwarded = true;
-      let bossSouls = 30;
-      if (BOSS.id === 'abyss_warden') bossSouls = 100;
-      else if (BOSS.id === 'malakor') bossSouls = 50;
-      else if (BOSS.id === 'gorgaroth') bossSouls = 30;
+      let bossSouls = 60;
+      if (BOSS.id === 'abyss_warden') bossSouls = 400;
+      else if (BOSS.id === 'malakor') bossSouls = 150;
+      else if (BOSS.id === 'gorgaroth') bossSouls = 60;
       ProgressionSystem.addSouls(bossSouls);
       ParticleRenderer.showFloatingText(`+${bossSouls} SOULS`, BOSS.x, BOSS.y, '#c084fc', 20, true);
       SoundManager.snd('talent_unlock');

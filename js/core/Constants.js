@@ -5,8 +5,8 @@
 
 export const LW = 896;
 export const LH = 640;
-export const COLS = 48;
-export const ROWS = 32;
+export const COLS = 144;
+export const ROWS = 96;
 export const T = 32;
 export const TARGET_FPS = 60;
 export const MAX_LV = 10;

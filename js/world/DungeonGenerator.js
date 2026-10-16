@@ -76,23 +76,26 @@ export const DungeonGenerator = {
         map.push(new Array(COLS).fill(1));
       }
 
-      // Sprawling dungeon with 10 to 16 diverse architectural chambers
-      const targetRooms = 11 + Math.floor(Math.random() * 5);
-      const archetypes = ['cathedral', 'chasm_cavern', 'sacrificial_sanctuary', 'crypt_vault', 'ruined_labyrinth', 'rect'];
+      // Sprawling vast dungeon with 34 to 42 diverse architectural chambers (10x world scale)
+      const targetRooms = 34 + Math.floor(Math.random() * 8);
+      const archetypes = [
+        'cathedral', 'chasm_cavern', 'sacrificial_sanctuary', 'crypt_vault',
+        'ruined_labyrinth', 'grand_hall', 'cross_hub', 'treasure_vault', 'rect'
+      ];
 
-      for (let tries = 0; tries < 450 && rooms.length < targetRooms; tries++) {
+      for (let tries = 0; tries < 2000 && rooms.length < targetRooms; tries++) {
         // First room (Spawn) is clean and spacious
         const isFloor1 = (GameState.LV === 1);
         const isSpawn = rooms.length === 0;
-        const rw = isSpawn ? (isFloor1 ? 9 : 8) : (6 + Math.floor(Math.random() * 8));
-        const rh = isSpawn ? 7 : (5 + Math.floor(Math.random() * 6));
+        const rw = isSpawn ? (isFloor1 ? 10 : 9) : (7 + Math.floor(Math.random() * 10));
+        const rh = isSpawn ? 8 : (6 + Math.floor(Math.random() * 8));
         let rx, ry;
         if (isFloor1) {
           if (isSpawn) {
             rx = 6;
             ry = 12;
           } else if (rooms.length === 1) {
-            rx = 18 + Math.floor(Math.random() * Math.max(1, COLS - rw - 20));
+            rx = 20 + Math.floor(Math.random() * 10);
             ry = 10 + Math.floor(Math.random() * 8);
           } else {
             rx = 2 + Math.floor(Math.random() * (COLS - rw - 4));
@@ -246,10 +249,47 @@ export const DungeonGenerator = {
             roomObj.pillars.push({ x: rx + 3, y: ry + 2 });
             roomObj.pillars.push({ x: rx + rw - 4, y: ry + rh - 3 });
           }
+
+          // 6. GRAND BASILICA HALL — Colonnade corridors and wide ceremonial floor
+          else if (type === 'grand_hall' && rw >= 8 && rh >= 6) {
+            const colX1 = rx + 2;
+            const colX2 = rx + rw - 3;
+            for (let r = ry + 2; r <= ry + rh - 3; r += 2) {
+              map[r][colX1] = 1;
+              map[r][colX2] = 1;
+              roomObj.pillars.push({ x: colX1, y: r });
+              roomObj.pillars.push({ x: colX2, y: r });
+            }
+            for (let c = rx + 2; c < rx + rw - 2; c++) {
+              if (map[cy][c] === 0) map[cy][c] = 5;
+            }
+          }
+
+          // 7. CROSSROAD HUB — 4-way intersection chamber with central raised dais
+          else if (type === 'cross_hub' && rw >= 7 && rh >= 7) {
+            for (let dy = -1; dy <= 1; dy++) {
+              for (let dx = -1; dx <= 1; dx++) {
+                map[cy + dy][cx + dx] = 5;
+              }
+            }
+          }
+
+          // 8. TREASURE VAULT — Fortified sarcophagi and corner columns
+          else if (type === 'treasure_vault' && rw >= 7 && rh >= 6) {
+            map[ry + 2][rx + 2] = 1;
+            map[ry + 2][rx + rw - 3] = 1;
+            map[ry + rh - 3][rx + 2] = 1;
+            map[ry + rh - 3][rx + rw - 3] = 1;
+            roomObj.pillars.push({ x: rx + 2, y: ry + 2 });
+            roomObj.pillars.push({ x: rx + rw - 3, y: ry + 2 });
+            roomObj.pillars.push({ x: rx + 2, y: ry + rh - 3 });
+            roomObj.pillars.push({ x: rx + rw - 3, y: ry + rh - 3 });
+            if (map[cy][cx] === 0) map[cy][cx] = 5;
+          }
         }
       }
 
-      if (rooms.length < 8) continue;
+      if (rooms.length < 24) continue;
 
       // Connect sequential rooms with wide, navigable corridors
       for (let i = 0; i < rooms.length - 1; i++) {
@@ -273,8 +313,8 @@ export const DungeonGenerator = {
         }
       }
 
-      // Add extra cross-corridors for multi-pathing and flanking loops
-      const extraLoops = Math.min(6, Math.floor(rooms.length / 2));
+      // Add extra cross-corridors for multi-pathing and flanking loops across vast world
+      const extraLoops = Math.min(18, Math.floor(rooms.length / 2));
       for (let i = 0; i < extraLoops; i++) {
         const a = (Math.random() * rooms.length) | 0;
         const b = (Math.random() * rooms.length) | 0;
@@ -284,7 +324,16 @@ export const DungeonGenerator = {
       }
 
       const start = rooms[0];
-      const goal = rooms[rooms.length - 1];
+      // Place cosmic exit portal in the furthest room from spawn for expansive exploration
+      let maxDist = 0;
+      let goal = rooms[rooms.length - 1];
+      for (let i = 1; i < rooms.length; i++) {
+        const d = Math.hypot(rooms[i].cx - start.cx, rooms[i].cy - start.cy);
+        if (d > maxDist) {
+          maxDist = d;
+          goal = rooms[i];
+        }
+      }
       map[goal.cy][goal.cx] = 2; // Portal Tile
 
       // BFS Reachability Verification across entire dungeon

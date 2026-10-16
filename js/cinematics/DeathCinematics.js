@@ -59,11 +59,20 @@ export function requestDeath(reason = 'dungeon_normal', source = null) {
   console.log(`[DEATH] DEATH_REQUESTED: reason=${_deathReason}, source=${_deathSource}, floor=${_deathFloor}`);
 
   // Authoritative Achievement Unlocks on Death
+  const isWardenDeath = (_deathReason === 'warden' || _deathSource === 'warden' || _deathReason === 'boss_warden' || _deathReason === 'boss_abyss_warden' || (GameState.LV === 10 && GameState.BOSS && GameState.BOSS.id === 'abyss_warden'));
+
+  const isTrapDeath = (typeof _deathReason === 'string' && (_deathReason.includes('trap') || _deathReason === 'spike' || _deathReason === 'fire')) ||
+                      (typeof _deathSource === 'string' && (_deathSource.includes('trap') || _deathSource === 'spike' || _deathSource === 'fire')) ||
+                      (typeof _deathSource === 'object' && _deathSource && (_deathSource.isTrap || _deathSource.environmental || (_deathSource.type && ['spike', 'fire', 'pit', 'chasm'].includes(_deathSource.type))));
+
+  const isVoidOrDarkness = (typeof _deathReason === 'string' && (_deathReason.includes('void') || _deathReason.includes('darkness') || _deathReason.includes('chasm') || _deathReason.includes('pit') || _deathReason === 'insanity_rampage')) ||
+                          (typeof _deathSource === 'string' && (_deathSource.includes('void') || _deathSource.includes('darkness') || _deathSource.includes('chasm') || _deathSource.includes('pit')));
+
   if (isSanity) {
     AchievementSystem.unlock('mind_break');
-  } else if (_deathReason === 'warden' || _deathSource === 'warden' || _deathReason === 'boss_warden' || (GameState.LV === 10 && GameState.BOSS && GameState.BOSS.id === 'abyss_warden')) {
+  } else if (isWardenDeath) {
     AchievementSystem.unlock('executed');
-  } else if (_deathReason === 'trap' || _deathReason === 'void' || _deathReason === 'darkness') {
+  } else if (isTrapDeath || isVoidOrDarkness) {
     AchievementSystem.unlock('consumed');
   } else {
     AchievementSystem.unlock('overwhelmed');

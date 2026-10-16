@@ -26,10 +26,10 @@ export const BossArenaGenerator = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // FLOOR 3: GORGAROTH'S IRON JAIL (34x22)
+  // FLOOR 3: GORGAROTH'S IRON JAIL (42x28)
   // ─────────────────────────────────────────────────────────────
   buildGorgarothIronJail() {
-    const aw = 34, ah = 22;
+    const aw = 42, ah = 28;
     const ax = ((COLS - aw) / 2) | 0;
     const ay = ((ROWS - ah) / 2) | 0;
     const cx = ax + (aw / 2) | 0;
@@ -44,9 +44,9 @@ export const BossArenaGenerator = {
 
     // Heavy iron pillars
     const pillars = [
-      [cx - 8, cy - 5], [cx + 8, cy - 5],
-      [cx - 8, cy + 5], [cx + 8, cy + 5],
-      [cx - 12, cy],    [cx + 12, cy]
+      [cx - 10, cy - 6], [cx + 10, cy - 6],
+      [cx - 10, cy + 6], [cx + 10, cy + 6],
+      [cx - 15, cy],     [cx + 15, cy]
     ];
     pillars.forEach(([c, r]) => {
       if (r > 0 && r < ROWS - 1 && c > 0 && c < COLS - 1) {
@@ -57,10 +57,10 @@ export const BossArenaGenerator = {
 
     // Wall-mounted torches for ancient vaulted atmosphere
     const wallTorches = [
-      [cx - 7, ay + 1], [cx + 7, ay + 1],
-      [ax + 1, cy - 4], [ax + 1, cy + 4],
-      [ax + aw - 2, cy - 4], [ax + aw - 2, cy + 4],
-      [cx - 3, ay + ah - 2], [cx + 3, ay + ah - 2]
+      [cx - 9, ay + 1], [cx + 9, ay + 1],
+      [ax + 1, cy - 5], [ax + 1, cy + 5],
+      [ax + aw - 2, cy - 5], [ax + aw - 2, cy + 5],
+      [cx - 4, ay + ah - 2], [cx + 4, ay + ah - 2]
     ];
     wallTorches.forEach(([c, r]) => {
       if (r > 0 && r < ROWS - 1 && c > 0 && c < COLS - 1) {
@@ -93,11 +93,11 @@ export const BossArenaGenerator = {
       type: 'gorgaroth_arena',
       floorRunes: true,
       wallChains: [
-        [cx - 10, ay + 1], [cx + 10, ay + 1],
+        [cx - 12, ay + 1], [cx + 12, ay + 1],
         [ax + 1, cy], [ax + aw - 2, cy]
       ],
       winches: [
-        [cx - 10, cy - 5], [cx + 10, cy - 5]
+        [cx - 12, cy - 6], [cx + 12, cy - 6]
       ]
     }];
 
@@ -109,10 +109,10 @@ export const BossArenaGenerator = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // FLOOR 6: MALAKOR'S VOID SANCTUM (36x24)
+  // FLOOR 6: MALAKOR'S VOID SANCTUM (44x30)
   // ─────────────────────────────────────────────────────────────
   buildMalakorVoidSanctum() {
-    const aw = 36, ah = 24;
+    const aw = 44, ah = 30;
     const ax = ((COLS - aw) / 2) | 0;
     const ay = ((ROWS - ah) / 2) | 0;
     const cx = ax + (aw / 2) | 0;
@@ -123,8 +123,8 @@ export const BossArenaGenerator = {
       for (let c = ax; c < ax + aw; c++) {
         // Corner bevels
         const isCorner =
-          (r === ay && (c < ax + 3 || c > ax + aw - 4)) ||
-          (r === ay + ah - 1 && (c < ax + 3 || c > ax + aw - 4));
+          (r === ay && (c < ax + 4 || c > ax + aw - 5)) ||
+          (r === ay + ah - 1 && (c < ax + 4 || c > ax + aw - 5));
         if (!isCorner) {
           GameState.MAP[r][c] = 0;
         }
@@ -133,9 +133,9 @@ export const BossArenaGenerator = {
 
     // Arcane obelisks with void sconces
     const obelisks = [
-      [cx - 10, cy - 6], [cx + 10, cy - 6],
-      [cx - 10, cy + 6], [cx + 10, cy + 6],
-      [cx - 13, cy],     [cx + 13, cy]
+      [cx - 12, cy - 7], [cx + 12, cy - 7],
+      [cx - 12, cy + 7], [cx + 12, cy + 7],
+      [cx - 16, cy],     [cx + 16, cy]
     ];
     obelisks.forEach(([c, r]) => {
       if (r > 0 && r < ROWS - 1 && c > 0 && c < COLS - 1) {
@@ -159,10 +159,10 @@ export const BossArenaGenerator = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // FLOOR 10: THE ABYSS WARDEN'S THRONE CHAMBER (38x26)
+  // FLOOR 10: THE ABYSS WARDEN'S THRONE CHAMBER (48x34)
   // ─────────────────────────────────────────────────────────────
   buildAbyssWardenThroneRoom() {
-    const aw = 38, ah = 26;
+    const aw = 48, ah = 34;
     const ax = ((COLS - aw) / 2) | 0;
     const ay = ((ROWS - ah) / 2) | 0;
     const cx = ax + (aw / 2) | 0;
@@ -182,10 +182,10 @@ export const BossArenaGenerator = {
 
     // Colossal Pillars flanking the grand royal carpet
     const grandPillars = [
-      [cx - 9, cy - 8],  [cx + 9, cy - 8],
-      [cx - 11, cy - 3], [cx + 11, cy - 3],
-      [cx - 11, cy + 3], [cx + 11, cy + 3],
-      [cx - 9, cy + 8],  [cx + 9, cy + 8]
+      [cx - 11, cy - 10], [cx + 11, cy - 10],
+      [cx - 14, cy - 4],  [cx + 14, cy - 4],
+      [cx - 14, cy + 4],  [cx + 14, cy + 4],
+      [cx - 11, cy + 10], [cx + 11, cy + 10]
     ];
     grandPillars.forEach(([c, r]) => {
       if (r > 0 && r < ROWS - 1 && c > 0 && c < COLS - 1) {

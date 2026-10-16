@@ -166,8 +166,8 @@ export const HealthSystem = {
         if (id === 'malakor') return 'boss_malakor';
         return 'boss_abyss_warden';
       }
-      if (source.isTrap || source.trapType) {
-        return 'trap_' + (source.trapType || 'spike');
+      if (source.isTrap || source.trapType || source.environmental) {
+        return 'trap_' + (source.trapType || source.type || 'spike');
       }
       if (source.enemyType) {
         return 'enemy_' + source.enemyType;

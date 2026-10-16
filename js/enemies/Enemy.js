@@ -24,5 +24,10 @@ export class Enemy {
     this.isElite = isElite;
     this.telegraphing = false;
     this.telegraphTimer = 0;
+    this.poise = 20;
+    this.currentPoise = 20;
+    this.armor = 0;
+    this.staggerCooldown = 0;
+    this.staggerTimer = 0;
   }
 }

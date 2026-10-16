@@ -24,6 +24,16 @@ export const EnemyAI = {
     e.ph = (e.ph || 0) + 0.04 * dt * TARGET_FPS;
     if (e.atkC > 0) e.atkC = Math.max(0, e.atkC - dt);
     if (e.hitFlash > 0) e.hitFlash = Math.max(0, e.hitFlash - dt);
+    if (e.staggerCooldown > 0) e.staggerCooldown = Math.max(0, e.staggerCooldown - dt);
+    if (e.staggerTimer > 0) e.staggerTimer = Math.max(0, e.staggerTimer - dt);
+
+    // Poise passive regeneration when not actively hurt
+    if ((e.hitFlash || 0) <= 0 && (e.staggerTimer || 0) <= 0) {
+      const maxP = e.poise || 20;
+      if ((e.currentPoise || 0) < maxP) {
+        e.currentPoise = Math.min(maxP, (e.currentPoise || 0) + 15 * dt);
+      }
+    }
 
     const dx = P.x - e.x;
     const dy = P.y - e.y;
@@ -53,8 +63,20 @@ export const EnemyAI = {
     const maxSpd = diff.espd * (isWraith ? 1.4 : isGhoul ? 1.3 : isDemon ? 0.95 : isElite ? 0.85 : 1.0);
     const accel = 12.0;
 
-    // Interrupt / cancel attack on heavy stagger
-    if (e.hitFlash > 0.08) {
+    // Count how many melee enemies are currently telegraphing/attacking player
+    let activeMeleeAttackers = 0;
+    if (ENE) {
+      for (let i = 0; i < ENE.length; i++) {
+        const o = ENE[i];
+        if (o.alive && o !== e && o.telegraphing && o.type !== 'demon') {
+          activeMeleeAttackers++;
+        }
+      }
+    }
+    const canInitiateAttack = isDemon || (activeMeleeAttackers < 2);
+
+    // Interrupt only on true stagger (heavy attack, critical hit, or poise broken)
+    if (e.staggerTimer > 0) {
       e.aiState = 'HURT';
       e.telegraphing = false;
       e.telegraphTimer = 0;
@@ -63,7 +85,7 @@ export const EnemyAI = {
       e.alertT -= dt;
     } else if (e.isAlerted && !P.dead) {
       const attackRange = isDemon ? 5.5 : isGhoul ? 1.3 : 1.0;
-      if (dist <= attackRange && e.atkC <= 0) {
+      if (dist <= attackRange && e.atkC <= 0 && (e.telegraphing || canInitiateAttack)) {
         e.aiState = 'ATTACK';
       } else {
         e.aiState = 'CHASE';
@@ -99,21 +121,29 @@ export const EnemyAI = {
         desiredVx = ((dx / dist) * 0.75 + perpX * 0.45 * flankSign) * maxSpd;
         desiredVy = ((dy / dist) * 0.75 + perpY * 0.45 * flankSign) * maxSpd;
       } else {
-        // Skeleton & Elite direct pursuit
-        desiredVx = (dx / dist) * maxSpd;
-        desiredVy = (dy / dist) * maxSpd;
+        // Skeleton & Elite pursuit with flank spacing if 2+ allies already attacking
+        if (dist < 1.8 && activeMeleeAttackers >= 2) {
+          const perpX = -dy / dist;
+          const perpY = dx / dist;
+          const flankSign = (ei % 2 === 0) ? 1 : -1;
+          desiredVx = ((dx / dist) * 0.35 + perpX * 0.65 * flankSign) * maxSpd;
+          desiredVy = ((dy / dist) * 0.35 + perpY * 0.65 * flankSign) * maxSpd;
+        } else {
+          desiredVx = (dx / dist) * maxSpd;
+          desiredVy = (dy / dist) * maxSpd;
+        }
       }
     }
     // ─────────────────────────────────────────────────────────────
-    // STATE: ATTACK with Readable Telegraphs
+    // STATE: ATTACK with Readable Telegraphs & Fair Recovery Windows
     // ─────────────────────────────────────────────────────────────
     else if (e.aiState === 'ATTACK') {
-      // 1. DEMON — Fireball projectile charge
+      // 1. DEMON — Fireball projectile charge (0.65s telegraph)
       if (isDemon) {
         if (!e.telegraphing) {
           e.telegraphing = true;
           e.telegraphType = 'proj_charge';
-          e.telegraphTimer = 0.60;
+          e.telegraphTimer = 0.65;
         } else {
           e.telegraphTimer -= dt;
           if (e.telegraphTimer <= 0) {
@@ -137,17 +167,17 @@ export const EnemyAI = {
           }
         }
       }
-      // 2. GHOUL — Crouches low with red glow, then leaps forward
+      // 2. GHOUL — Crouches low with feral green/red glow, then leaps forward (0.38s telegraph)
       else if (isGhoul) {
         if (!e.telegraphing) {
           e.telegraphing = true;
           e.telegraphType = 'crouch_leap';
-          e.telegraphTimer = 0.35;
+          e.telegraphTimer = 0.38;
         } else {
           e.telegraphTimer -= dt;
           if (e.telegraphTimer <= 0) {
             e.telegraphing = false;
-            e.atkC = 1.1;
+            e.atkC = 1.3;
             // Leap thrust
             e.vx += (dx / dist) * 6.5;
             e.vy += (dy / dist) * 6.5;
@@ -157,35 +187,35 @@ export const EnemyAI = {
           }
         }
       }
-      // 3. WRAITH — Void glow then shadow strike
+      // 3. WRAITH — Void glow then shadow strike (0.45s telegraph)
       else if (isWraith) {
         if (!e.telegraphing) {
           e.telegraphing = true;
           e.telegraphType = 'void_glow';
-          e.telegraphTimer = 0.40;
+          e.telegraphTimer = 0.45;
         } else {
           e.telegraphTimer -= dt;
           if (e.telegraphTimer <= 0) {
             e.telegraphing = false;
-            e.atkC = 1.4;
+            e.atkC = 1.6;
             if (dist < 1.2 && !P.shieldActive && P.dcd <= 0 && !P.dead) {
               dealDamage({ isEnemy: true, attackId: 'wraith_' + ei + '_' + (++_enemyAttackCounter), x: e.x, y: e.y }, P, isElite ? 2 : 1, 'melee');
             }
           }
         }
       }
-      // 4. ELITE — Red ground indicator then crushing blow
+      // 4. ELITE — Red ground danger zone then crushing blow (0.60s telegraph)
       else if (isElite) {
         if (!e.telegraphing) {
           e.telegraphing = true;
           e.telegraphType = 'ground_indicator';
-          e.telegraphTimer = 0.55;
+          e.telegraphTimer = 0.60;
           e.groundTelegraph = { x: P.x, y: P.y, r: 1.3 };
         } else {
           e.telegraphTimer -= dt;
           if (e.telegraphTimer <= 0) {
             e.telegraphing = false;
-            e.atkC = 1.6;
+            e.atkC = 1.8;
             if (e.groundTelegraph && Math.hypot(P.x - e.groundTelegraph.x, P.y - e.groundTelegraph.y) < 1.35) {
               dealDamage({ isEnemy: true, attackId: 'elite_' + ei + '_' + (++_enemyAttackCounter), x: e.x, y: e.y }, P, 2, 'heavy');
             }
@@ -193,17 +223,17 @@ export const EnemyAI = {
           }
         }
       }
-      // 5. SKELETON — Weapon raises high with golden/white highlight
+      // 5. SKELETON — Weapon raises high with golden highlight (0.35s telegraph)
       else {
         if (!e.telegraphing) {
           e.telegraphing = true;
           e.telegraphType = 'weapon_raise';
-          e.telegraphTimer = 0.45;
+          e.telegraphTimer = 0.35;
         } else {
           e.telegraphTimer -= dt;
           if (e.telegraphTimer <= 0) {
             e.telegraphing = false;
-            e.atkC = 1.3;
+            e.atkC = 1.2;
             if (dist < 1.05 && !P.shieldActive && P.dcd <= 0 && !P.dead) {
               dealDamage({ isEnemy: true, attackId: 'skel_' + ei + '_' + (++_enemyAttackCounter), x: e.x, y: e.y }, P, 1, 'melee');
             }

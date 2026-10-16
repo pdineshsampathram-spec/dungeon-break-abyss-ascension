@@ -166,12 +166,17 @@ export const FloorManager = {
     // Populate Normal Floors with Structured Encounter Groups
     GameState.ENE = [];
     if (!isBossFloor(LV) && GameState.ROOMS && GameState.ROOMS.length > 1) {
-      const BASE_HP = { skeleton: 4, ghoul: 6, demon: 9, wraith: 8 };
-      const FLOOR_HP_MULT = 1 + (LV - 1) * 0.15;
+      // Calibrated enemy health baselines and progression curve
+      const BASE_HP = { skeleton: 18, ghoul: 28, demon: 52, wraith: 60 };
+      const FLOOR_HP_MULT = 1 + (LV - 1) * 0.22;
 
       // Available non-start rooms (Room 0 is strictly safe start)
       const encounterRooms = GameState.ROOMS.slice(1);
-      const numEncounters = Math.min(encounterRooms.length, LV === 1 ? 4 : LV === 2 ? 5 : 7);
+      // Populate 16 to 28 encounter chambers across the expanded 34-42 room dungeon
+      const numEncounters = Math.min(
+        encounterRooms.length,
+        LV === 1 ? 16 : (LV === 2 ? 20 : (LV <= 4 ? 24 : 28))
+      );
 
       for (let rIdx = 0; rIdx < numEncounters; rIdx++) {
         const rm = encounterRooms[rIdx];
@@ -180,30 +185,30 @@ export const FloorManager = {
         // Group composition based on floor level
         let groupTypes = [];
         if (LV === 1) {
-          // Floor 1: 3-4 skeletons or 2-3 ghouls or guard pair
+          // Floor 1: Patrol pairs and skirmish trios (skeletons and ghouls)
           if (rIdx % 2 === 0) {
-            groupTypes = ['skeleton', 'skeleton', 'skeleton', Math.random() < 0.5 ? 'skeleton' : 'ghoul'];
+            groupTypes = ['skeleton', 'skeleton', Math.random() < 0.45 ? 'skeleton' : 'ghoul'];
           } else {
-            groupTypes = ['ghoul', 'ghoul', Math.random() < 0.6 ? 'ghoul' : 'skeleton'];
+            groupTypes = ['ghoul', 'skeleton', Math.random() < 0.35 ? 'ghoul' : 'skeleton'];
           }
         } else if (LV === 2) {
-          // Floor 2: Mixed encounters (3-4 skeletons + 2-3 ghouls)
-          groupTypes = ['skeleton', 'skeleton', 'ghoul', 'ghoul'];
-          if (Math.random() < 0.5) groupTypes.push('skeleton');
+          // Floor 2: Mixed encounters
+          groupTypes = ['skeleton', 'ghoul', Math.random() < 0.5 ? 'ghoul' : 'skeleton'];
+          if (Math.random() < 0.4) groupTypes.push('skeleton');
         } else if (LV <= 4) {
-          // Floors 4: Introduce demons
+          // Floors 3-4: Introduce brimstone demons
           groupTypes = ['skeleton', 'ghoul', 'demon'];
-          if (Math.random() < 0.6) groupTypes.push('demon');
-          if (Math.random() < 0.5) groupTypes.push('ghoul');
+          if (Math.random() < 0.5) groupTypes.push('demon');
+          if (Math.random() < 0.4) groupTypes.push('ghoul');
         } else if (LV <= 7) {
-          // Floors 5-7: Wraiths, demons, ghouls, skeletons
+          // Floors 5-7: Wraiths, demons, and ghouls
           groupTypes = ['ghoul', 'demon', 'wraith'];
-          if (Math.random() < 0.7) groupTypes.push('skeleton');
+          if (Math.random() < 0.6) groupTypes.push('skeleton');
           if (Math.random() < 0.5) groupTypes.push('demon');
         } else {
           // Floors 8-9: High pressure combat encounters
           groupTypes = ['demon', 'wraith', 'ghoul', 'skeleton'];
-          if (Math.random() < 0.7) groupTypes.push('wraith');
+          if (Math.random() < 0.6) groupTypes.push('wraith');
           if (Math.random() < 0.6) groupTypes.push('demon');
         }
 
@@ -223,10 +228,14 @@ export const FloorManager = {
           let hp = Math.round(BASE_HP[type] * FLOOR_HP_MULT);
           let isElite = false;
           // Elite chance on floor 4+ or portal guards
-          if ((LV >= 4 && Math.random() < 0.18) || (isPortalRoom && LV >= 5 && memberIdx === 0)) {
-            hp = Math.round(hp * 1.8);
+          if ((LV >= 4 && Math.random() < 0.18) || (isPortalRoom && LV >= 4 && memberIdx === 0)) {
+            hp = Math.round(hp * 2.5);
             isElite = true;
           }
+
+          const basePoise = type === 'demon' ? 45 : (type === 'wraith' ? 35 : (type === 'ghoul' ? 25 : 15));
+          const poise = isElite ? Math.round(basePoise * 2.5) : basePoise;
+          const armor = isElite ? 0.20 : (type === 'wraith' ? 0.15 : (type === 'demon' ? 0.10 : (type === 'ghoul' ? 0.05 : 0.0)));
 
           GameState.ENE.push({
             x: ex,
@@ -238,6 +247,10 @@ export const FloorManager = {
             alive: true,
             hp,
             maxHp: hp,
+            armor,
+            poise,
+            currentPoise: poise,
+            staggerCooldown: 0,
             type,
             alertT: 0,
             atkC: 0,
@@ -261,7 +274,7 @@ export const FloorManager = {
     // Allies / Survivors (Normal floors only)
     GameState.ALLIES = [];
     if (!isBossFloor(LV)) {
-      for (let i = 0; i < 1 + Math.floor(LV / 3); i++) {
+      for (let i = 0; i < 2 + Math.floor(LV / 3); i++) {
         const p = rndFloor(7);
         GameState.ALLIES.push({ x: p.x, y: p.y, rescued: false, rescueAnim: 0, ph: Math.random() * 6.28 });
       }
@@ -276,7 +289,7 @@ export const FloorManager = {
         { type: 'astral', name: 'Astral Obelisk', desc: '+40 Sanity & Mind Shield (45s)', icon: '✨', col: '#a855f7', glow: 'rgba(168,85,247,0.4)' },
         { type: 'wind', name: 'Shrine of Zephyr', desc: '+35% Move Speed & Fast Attack (45s)', icon: '💨', col: '#38bdf8', glow: 'rgba(56,189,248,0.4)' }
       ];
-      const shrineCount = 1 + (Math.random() < 0.4 ? 1 : 0);
+      const shrineCount = 2 + (Math.random() < 0.6 ? 2 : 1);
       for (let s = 0; s < shrineCount; s++) {
         const p = rndFloorOpen(6);
         const def = shrineTypes[(Math.random() * shrineTypes.length) | 0];
@@ -301,24 +314,26 @@ export const FloorManager = {
       const p = rndFloor(4);
       const sub = WK[(Math.random() * WK.length) | 0];
       GameState.ITEMS.push({ x: p.x, y: p.y, taken: false, kind: 'weapon', sub, rarity: rollRarity() });
-      if (LV >= 3) {
+      if (LV >= 2) {
         const p2 = rndFloor(5);
         const sub2 = WK[(Math.random() * WK.length) | 0];
         GameState.ITEMS.push({ x: p2.x, y: p2.y, taken: false, kind: 'weapon', sub: sub2, rarity: rollRarity() });
       }
-      if (LV > 2 || Math.random() < 0.5) {
+      if (LV >= 4) {
         const p3 = rndFloor(5);
-        GameState.ITEMS.push({ x: p3.x, y: p3.y, taken: false, kind: 'health' });
+        const sub3 = WK[(Math.random() * WK.length) | 0];
+        GameState.ITEMS.push({ x: p3.x, y: p3.y, taken: false, kind: 'weapon', sub: sub3, rarity: rollRarity() });
       }
-      if (LV >= 5 && Math.random() < 0.5) {
-        const p4 = rndFloor(6);
-        GameState.ITEMS.push({ x: p4.x, y: p4.y, taken: false, kind: 'health' });
+      // Health and Sanity recoveries throughout expanded exploration
+      for (let h = 0; h < (LV >= 4 ? 3 : 2); h++) {
+        const hpDrop = rndFloor(5);
+        GameState.ITEMS.push({ x: hpDrop.x, y: hpDrop.y, taken: false, kind: 'health' });
       }
-      if (LV >= 3 && Math.random() < 0.5) {
-        const p5 = rndFloor(5);
-        GameState.ITEMS.push({ x: p5.x, y: p5.y, taken: false, kind: 'sanity' });
+      for (let s = 0; s < (LV >= 3 ? 2 : 1); s++) {
+        const sanDrop = rndFloor(5);
+        GameState.ITEMS.push({ x: sanDrop.x, y: sanDrop.y, taken: false, kind: 'sanity' });
       }
-      if (Math.random() < (LV > 3 ? 0.55 : 0.25)) {
+      if (Math.random() < 0.5) {
         const p6 = rndFloor(5);
         GameState.ITEMS.push({ x: p6.x, y: p6.y, taken: false, kind: 'shield' });
       }
@@ -331,9 +346,9 @@ export const FloorManager = {
         ? GameState.ROOMS.slice(1)
         : GameState.ROOMS;
 
-      for (let i = 0; i < diff.traps; i++) {
+      const trapTarget = Math.min(Math.round(diff.traps * 2.4), 28);
+      for (let i = 0; i < trapTarget; i++) {
         let placed = false;
-        // Attempt 1: Authoritative placement inside non-start encounter rooms outside safe zone
         for (let attempt = 0; attempt < 80; attempt++) {
           const rm = candidateRooms[(Math.random() * candidateRooms.length) | 0];
           const tx = rm.x + 1 + ((Math.random() * Math.max(1, rm.w - 2)) | 0);
@@ -343,7 +358,7 @@ export const FloorManager = {
           const isWalkable = map && map[ty] && (map[ty][tx] === 0 || map[ty][tx] === 5);
           if (isWalkable &&
               !isInOpeningSafeZone(tx, ty, LV) &&
-              !GameState.TRAPS.some(t => Math.hypot(t.x - tx, t.y - ty) < 2.0)) {
+              !GameState.TRAPS.some(t => Math.hypot(t.x - tx, t.y - ty) < 2.5)) {
             GameState.TRAPS.push({
               x: tx,
               y: ty,
@@ -355,11 +370,10 @@ export const FloorManager = {
           }
         }
 
-        // Attempt 2: Use rndTrapFloor fallback strictly outside safe zone
         if (!placed) {
           const p = rndTrapFloor(4);
           if (p && !isInOpeningSafeZone(p.x, p.y, LV) &&
-              !GameState.TRAPS.some(t => Math.hypot(t.x - p.x, t.y - p.y) < 1.5)) {
+              !GameState.TRAPS.some(t => Math.hypot(t.x - p.x, t.y - p.y) < 2.0)) {
             GameState.TRAPS.push({
               x: p.x,
               y: p.y,

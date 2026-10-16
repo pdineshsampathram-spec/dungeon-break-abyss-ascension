@@ -212,12 +212,23 @@ export const WorldRenderer = {
   },
 
   drawTiles(ctx) {
-    const { MAP, LV } = GameState;
+    const { MAP, LV, CAM } = GameState;
     if (!MAP || MAP.length === 0) return;
     const theme = getTheme(LV);
 
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
+    // High-performance viewport culling: only render tiles in camera view + 2-tile margin
+    const camX = CAM ? CAM.x : (COLS / 2);
+    const camY = CAM ? CAM.y : (ROWS / 2);
+    const camZoom = CAM ? (CAM.z || 1.0) : 1.0;
+    const halfW = (LW / 2) / (T * camZoom);
+    const halfH = (LH / 2) / (T * camZoom);
+    const minC = Math.max(0, Math.floor(camX - halfW) - 2);
+    const maxC = Math.min(COLS - 1, Math.ceil(camX + halfW) + 2);
+    const minR = Math.max(0, Math.floor(camY - halfH) - 2);
+    const maxR = Math.min(ROWS - 1, Math.ceil(camY + halfH) + 2);
+
+    for (let r = minR; r <= maxR; r++) {
+      for (let c = minC; c <= maxC; c++) {
         const tile = MAP[r] ? MAP[r][c] : 1;
         const x = c * T;
         const y = r * T;

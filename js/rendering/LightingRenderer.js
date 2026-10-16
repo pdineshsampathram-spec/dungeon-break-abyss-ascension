@@ -150,9 +150,16 @@ export const LightingRenderer = {
     // Cut holes via destination-out
     fc.globalCompositeOperation = 'destination-out';
 
-    // 1. Explored dimmed tiles (clear visibility for discovered rooms)
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < COLS; c++) {
+    // 1. Explored dimmed tiles (clear visibility for discovered rooms with viewport culling)
+    const halfW = (LW / 2) / (T * camZoom);
+    const halfH = (LH / 2) / (T * camZoom);
+    const minC = Math.max(0, Math.floor(camX - halfW) - 1);
+    const maxC = Math.min(COLS - 1, Math.ceil(camX + halfW) + 1);
+    const minR = Math.max(0, Math.floor(camY - halfH) - 1);
+    const maxR = Math.min(ROWS - 1, Math.ceil(camY + halfH) + 1);
+
+    for (let r = minR; r <= maxR; r++) {
+      for (let c = minC; c <= maxC; c++) {
         if (!exploredTiles || !exploredTiles[r] || !exploredTiles[r][c]) continue;
         const wx = (c + 0.5) * T;
         const wy = (r + 0.5) * T;

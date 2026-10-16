@@ -37,21 +37,27 @@ export const BossManager = {
     let name = 'THE ABYSS WARDEN';
     let title = 'Scourge of the Sunken Citadel';
     let type = 'abyss_warden';
-    let hp = 400;
+    let hp = 2600;
+    let armor = 0.25; // 25% damage mitigation
+    let poise = 220;
 
     if (bossId === 'gorgaroth') {
       name = 'GORGAROTH';
       title = 'The Iron Jailer';
       type = 'iron_warden';
-      hp = 180;
+      hp = 680;
+      armor = 0.15; // 15% damage mitigation
+      poise = 130;
     } else if (bossId === 'malakor') {
       name = 'MALAKOR';
       title = 'The Void Sorcerer';
       type = 'void_reaver';
-      hp = 240;
+      hp = 1250;
+      armor = 0.20; // 20% void mitigation
+      poise = 160;
     }
 
-    const spawnY = (bossId === 'abyss_warden') ? cy - 6 : cy - 2;
+    const spawnY = (bossId === 'abyss_warden') ? cy - 6 : (bossId === 'malakor' ? cy - 3 : cy - 2);
 
     GameState.BOSS = {
       id: bossId,
@@ -64,6 +70,10 @@ export const BossManager = {
       vy: 0,
       hp,
       maxHp: hp,
+      armor,
+      poise,
+      currentPoise: poise,
+      staggerCooldown: 0,
       alive: true,
       phase: 1,
       atkC: 2.5,
