@@ -3,16 +3,23 @@
 //  Authoritative Boss Lifecycle, Spawning, AI Updates, & Defeat Pipeline
 // =====================================================================
 
-import { GameState } from '../core/GameState.js';
+import { GameState, GameStates } from '../core/GameState.js';
 import { getFloorBoss, isBossFloor } from '../data/floors.js';
 import { COLS, ROWS, TARGET_FPS } from '../core/Constants.js';
 import { solidAt } from '../world/PathValidator.js';
-import { dealDamage } from '../combat/DamageSystem.js';
 import { SoundManager } from '../audio/AudioManager.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
+import { ParticleRenderer } from '../rendering/ParticleRenderer.js';
+import { BossIntros } from '../cinematics/BossIntros.js';
+import { triggerCinematicBanner } from '../ui/HUD.js';
 import { EventBus } from '../core/EventBus.js';
 
-let _bossAttackCounter = 0;
+import { Gorgaroth } from './Gorgaroth.js';
+import { Malakor } from './Malakor.js';
+import { AbyssWarden } from './AbyssWarden.js';
+import { EndingCinematics, EndingDispatcher } from '../cinematics/EndingCinematics.js';
+import { WardenDefeatCinematic } from '../cinematics/WardenDefeatCinematic.js';
+import { GorgarothCinematics } from '../cinematics/GorgarothCinematics.js';
 
 export const BossManager = {
   spawnBoss(bossIdOverride = null) {
@@ -44,10 +51,12 @@ export const BossManager = {
       hp = 240;
     }
 
+    const spawnY = (bossId === 'abyss_warden') ? cy - 6 : cy - 2;
+
     GameState.BOSS = {
       id: bossId,
       x: cx,
-      y: cy - 2,
+      y: spawnY,
       name,
       title,
       type,
@@ -67,6 +76,7 @@ export const BossManager = {
       projC: 3.0,
       isBoss: true,
       teleportC: 0,
+      vulnTimer: 0,
       attacks: []
     };
 
@@ -78,36 +88,75 @@ export const BossManager = {
     GameState.BOSS_PROJECTILES = [];
     GameState.BOSS_HAZARDS = [];
 
+    if (bossId === 'abyss_warden' && WardenDefeatCinematic && WardenDefeatCinematic.reset) {
+      WardenDefeatCinematic.reset();
+    }
+    if (bossId === 'gorgaroth' && GorgarothCinematics && GorgarothCinematics.reset) {
+      GorgarothCinematics.reset();
+    }
+
+    BossIntros.start(bossId);
     EventBus.emit('boss:spawned', GameState.BOSS);
   },
 
   tick(dt) {
-    const { BOSS, P, PROJECTILES, LV } = GameState;
+    const { BOSS, P, LV } = GameState;
     if (!BOSS) return;
+
+    if (BOSS.hp <= 0) {
+      if (BOSS.id === 'abyss_warden') {
+        if (BOSS.alive && !WardenDefeatCinematic.isActive() && !WardenDefeatCinematic.isDefeated() && !EndingDispatcher.isDispatched()) {
+          BOSS.alive = false;
+          GameState.BOSS_DEAD = true;
+          WardenDefeatCinematic.start(BOSS);
+        }
+        return;
+      }
+      if (BOSS.id === 'gorgaroth') {
+        if (BOSS.alive && !GorgarothCinematics.isActive() && !GorgarothCinematics.isDefeated()) {
+          BOSS.alive = false;
+          BOSS.vx = 0;
+          BOSS.vy = 0;
+          BOSS.attacks = [];
+          BOSS.slamWarning = null;
+          GameState.BOSS_PROJECTILES = [];
+          GameState.BOSS_HAZARDS = [];
+          GameState.BOSS_DEAD = true;
+          GameState.BOSS_PORTAL_UNLOCKED = false;
+          GameState.BOSS_AI_ACTIVE = false;
+          EventBus.emit('boss:defeated', BOSS);
+          GorgarothCinematics.startDefeat(BOSS);
+        }
+        return;
+      }
+      if (BOSS.alive) {
+        BOSS.alive = false;
+        BOSS.vx = 0;
+        BOSS.vy = 0;
+        BOSS.attacks = [];
+        BOSS.slamWarning = null;
+        GameState.BOSS_PROJECTILES = [];
+        GameState.BOSS_HAZARDS = [];
+        GameState.BOSS_DEAD = true;
+        GameState.BOSS_PORTAL_UNLOCKED = false;
+        GameState.BOSS_AI_ACTIVE = false;
+        EventBus.emit('boss:defeated', BOSS);
+        BossIntros.startDefeat(BOSS);
+        return;
+      }
+      return;
+    }
 
     if (!GameState.BOSS_AI_ACTIVE && BOSS.alive) {
       BOSS.ph += 0.03 * dt * TARGET_FPS;
       return;
     }
 
-    // Death sequence
     if (!BOSS.alive) {
-      BOSS.dAnim = Math.max(0, (BOSS.dAnim || 0) - dt);
-      if (BOSS.dAnim <= 0 && !GameState.BOSS_PORTAL_UNLOCKED) {
-        GameState.BOSS_PORTAL_UNLOCKED = true;
-        GameState.BOSS_DEAD = true;
-        GameState.CAM.shk = 18;
-
-        if (BOSS.id === 'gorgaroth') AchievementSystem.unlock('jailbreaker');
-        if (BOSS.id === 'malakor') AchievementSystem.unlock('void_conqueror');
-        if (BOSS.id === 'abyss_warden') AchievementSystem.unlock('boss_slayer');
-
-        SoundManager.snd('boss_roar');
-        EventBus.emit('boss:defeated', BOSS);
-      }
       return;
     }
 
+    // Tick timers
     BOSS.ph += 0.03 * dt * TARGET_FPS;
     if (BOSS.atkC > 0) BOSS.atkC = Math.max(0, BOSS.atkC - dt);
     if (BOSS.hitFlash > 0) BOSS.hitFlash = Math.max(0, BOSS.hitFlash - dt);
@@ -115,95 +164,23 @@ export const BossManager = {
     if (BOSS.slamAnim > 0) BOSS.slamAnim = Math.max(0, BOSS.slamAnim - dt);
     if (BOSS.projC > 0) BOSS.projC = Math.max(0, BOSS.projC - dt);
 
-    const hpPct = BOSS.hp / BOSS.maxHp;
-    const prevPhase = BOSS.phase;
-    if (hpPct <= 0.3) BOSS.phase = 3;
-    else if (hpPct <= 0.65) BOSS.phase = 2;
-    else BOSS.phase = 1;
-
-    if (BOSS.phase > prevPhase) {
-      GameState.CAM.shk = 16;
-      SoundManager.snd('boss_roar');
-      EventBus.emit('boss:phase_change', { boss: BOSS, phase: BOSS.phase });
+    // Delegate to individual boss modules
+    if (BOSS.id === 'gorgaroth') {
+      Gorgaroth.tick(BOSS, dt);
+    } else if (BOSS.id === 'malakor') {
+      Malakor.tick(BOSS, dt);
+    } else {
+      AbyssWarden.tick(BOSS, dt);
     }
 
-    const dx = P.x - BOSS.x;
-    const dy = P.y - BOSS.y;
-    const dist = Math.hypot(dx, dy) || 1;
-
-    const spd =
-      BOSS.type === 'iron_warden' ? (BOSS.phase === 3 ? 1.2 : 0.9) :
-      BOSS.type === 'void_reaver' ? 1.3 :
-      (BOSS.phase === 3 ? 1.6 : BOSS.phase === 2 ? 1.3 : 1.0);
-
-    // Smooth physics steering with friction
-    if (dist > 1.2) {
-      BOSS.vx += (dx / dist) * spd * 0.15 * dt * TARGET_FPS;
-      BOSS.vy += (dy / dist) * spd * 0.15 * dt * TARGET_FPS;
-    }
-    const curSpd = Math.hypot(BOSS.vx, BOSS.vy);
-    if (curSpd > spd * dt * TARGET_FPS) {
-      BOSS.vx = (BOSS.vx / curSpd) * spd * dt * TARGET_FPS;
-      BOSS.vy = (BOSS.vy / curSpd) * spd * dt * TARGET_FPS;
-    }
+    // Natural physics & collision resolution
     BOSS.vx *= Math.pow(0.85, dt * TARGET_FPS);
     BOSS.vy *= Math.pow(0.85, dt * TARGET_FPS);
 
-    const nx = BOSS.x + BOSS.vx;
-    const ny = BOSS.y + BOSS.vy;
+    const nx = BOSS.x + BOSS.vx * dt;
+    const ny = BOSS.y + BOSS.vy * dt;
     if (!solidAt(nx, BOSS.y)) BOSS.x = nx; else BOSS.vx *= -0.5;
     if (!solidAt(BOSS.x, ny)) BOSS.y = ny; else BOSS.vy *= -0.5;
-
-    // Melee Ground Slam Telegraph
-    if (dist < 1.8 && BOSS.atkC <= 0) {
-      BOSS.atkC = BOSS.phase === 3 ? 1.0 : 1.6;
-      BOSS.slamAnim = 0.4;
-      BOSS.slamWarning = {
-        x: P.x,
-        y: P.y,
-        timer: 0.6,
-        fired: false,
-        attackId: ++_bossAttackCounter
-      };
-      GameState.CAM.shk = 6;
-      SoundManager.snd('melee_hit');
-    }
-
-    if (BOSS.slamWarning && !BOSS.slamWarning.fired) {
-      BOSS.slamWarning.timer = Math.max(0, BOSS.slamWarning.timer - dt);
-      if (BOSS.slamWarning.timer <= 0) {
-        BOSS.slamWarning.fired = true;
-        GameState.CAM.shk = 14;
-        if (Math.hypot(P.x - BOSS.slamWarning.x, P.y - BOSS.slamWarning.y) < 2.0) {
-          dealDamage({ isBoss: true, attackId: BOSS.slamWarning.attackId, x: BOSS.slamWarning.x, y: BOSS.slamWarning.y }, P, 2, 'boss');
-        }
-      }
-    }
-
-    // Ranged Projectile Spreads
-    if (BOSS.projC <= 0 && (BOSS.type === 'void_reaver' || BOSS.phase >= 2)) {
-      BOSS.projC = BOSS.phase === 3 ? 1.2 : 2.0;
-      const ang = Math.atan2(dy, dx);
-      const count = BOSS.type === 'void_reaver' ? 4 : (BOSS.phase === 3 ? 3 : 1);
-      const atkId = ++_bossAttackCounter;
-
-      for (let i = -count; i <= count; i += 2) {
-        const a = ang + i * 0.25;
-        PROJECTILES.push({
-          x: BOSS.x,
-          y: BOSS.y,
-          vx: Math.cos(a) * 8.5,
-          vy: Math.sin(a) * 8.5,
-          life: 0,
-          maxLife: 4.5,
-          damage: 1,
-          fromPlayer: false,
-          hit: false,
-          isBoss: true,
-          attackId: atkId
-        });
-      }
-    }
   }
 };
 

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 400" width="200" height="400">
+  <defs>
+    <linearGradient id="dagSteel" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="40%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <polygon points="90,100 100,340 110,100" fill="url(#dagSteel)"/>
+  <line x1="100" y1="110" x2="100" y2="280" stroke="#a855f7" stroke-width="2"/>
+  <rect x="70" y="90" width="60" height="14" rx="3" fill="#334155"/>
+  <rect x="94" y="30" width="12" height="60" rx="2" fill="#1e293b"/>
+  <circle cx="100" cy="24" r="10" fill="#475569"/>
+</svg>

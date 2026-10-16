@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#040206"/>
+  <!-- Pavement Grid -->
+  <g stroke="#0c0712" stroke-width="3" opacity="0.6">
+    <line x1="200" y1="0" x2="200" y2="1080"/><line x1="600" y1="0" x2="600" y2="1080"/>
+    <line x1="1000" y1="0" x2="1000" y2="1080"/><line x1="1400" y1="0" x2="1400" y2="1080"/>
+    <line x1="0" y1="360" x2="1920" y2="360"/><line x1="0" y1="720" x2="1920" y2="720"/>
+  </g>
+  <!-- Blood Pools & Runic Channels -->
+  <g fill="#7f1d1d" opacity="0.85">
+    <ellipse cx="960" cy="540" rx="220" ry="110"/>
+    <ellipse cx="820" cy="590" rx="140" ry="70"/>
+    <ellipse cx="1120" cy="510" rx="110" ry="60"/>
+    <path d="M 960 540 Q 900 800 940 1080 L 980 1080 Q 940 800 960 540 Z"/>
+    <path d="M 960 540 Q 1200 680 1600 750 L 1600 780 Q 1200 710 960 540 Z"/>
+  </g>
+  <text x="960" y="960" fill="#fca5a5" font-family="Cinzel, serif" font-size="28" text-anchor="middle" letter-spacing="6">WHOSE BLOOD DID YOU SHED?</text>
+</svg>

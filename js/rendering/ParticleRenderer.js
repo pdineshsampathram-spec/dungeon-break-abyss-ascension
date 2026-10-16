@@ -115,33 +115,80 @@ export const ParticleRenderer = {
       const sx = tr.wx * T + T / 2;
       const sy = tr.wy * T + T / 2;
       ctx.save();
-      ctx.globalAlpha = t2 * 0.9;
+      ctx.globalAlpha = t2 * 0.92;
       if (tr.isRing) {
         const rad = (1 - t2) * T * 0.95 + T * 0.18;
         ctx.strokeStyle = tr.col;
         ctx.lineWidth = 2.5 * t2;
-        ctx.shadowColor = tr.col;
-        ctx.shadowBlur = tr.slashGlow * t2;
+        if (!GameState.REDUCED_MOTION && tr.slashGlow) {
+          ctx.shadowColor = tr.col;
+          ctx.shadowBlur = tr.slashGlow * t2;
+        }
         ctx.beginPath();
         ctx.arc(sx, sy, rad, 0, 6.28);
         ctx.stroke();
+      } else if (tr.isSpear || tr.weaponId === 'spear') {
+        // SPEAR / TRIDENT: Linear Forward Piercing Corridor Thrust
+        const thrustLen = tr.range * T * 0.98;
+        const ex = sx + Math.cos(tr.angle) * thrustLen;
+        const ey = sy + Math.sin(tr.angle) * thrustLen;
+
+        ctx.strokeStyle = tr.col || '#38bdf8';
+        ctx.lineWidth = (tr.slashW || 3.2) * (1 + t2 * 0.7);
+        ctx.lineCap = 'round';
+        if (!GameState.REDUCED_MOTION && tr.slashGlow) {
+          ctx.shadowColor = tr.col || '#38bdf8';
+          ctx.shadowBlur = tr.slashGlow * t2;
+        }
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
+
+        // Piercing Trident Diamond Head
+        const headSz = 6 * (0.8 + t2 * 0.4);
+        const normAng = tr.angle + Math.PI / 2;
+        const nx = Math.cos(normAng) * headSz * 0.6;
+        const ny = Math.sin(normAng) * headSz * 0.6;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(ex + Math.cos(tr.angle) * headSz, ey + Math.sin(tr.angle) * headSz);
+        ctx.lineTo(ex - nx, ey - ny);
+        ctx.lineTo(ex - Math.cos(tr.angle) * (headSz * 0.4), ey - Math.sin(tr.angle) * (headSz * 0.4));
+        ctx.lineTo(ex + nx, ey + ny);
+        ctx.closePath();
+        ctx.fill();
+
+        // White specular shaft core
+        ctx.globalAlpha = t2 * 0.6;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = (tr.slashW || 3.2) * 0.35;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ex, ey);
+        ctx.stroke();
       } else {
+        // SWORD, AXE, DAGGER: Directional Swing Arcs
         const sa = tr.angle - tr.arc / 2;
         const ea = tr.angle + tr.arc / 2;
         const rad = tr.range * T * 0.92;
+
         ctx.strokeStyle = tr.col;
         ctx.lineWidth = tr.slashW * (1 + t2 * 0.6);
-        ctx.shadowColor = tr.col;
-        ctx.shadowBlur = tr.slashGlow * t2;
         ctx.lineCap = 'round';
+        if (!GameState.REDUCED_MOTION && tr.slashGlow) {
+          ctx.shadowColor = tr.col;
+          ctx.shadowBlur = tr.slashGlow * t2;
+        }
         ctx.beginPath();
         ctx.arc(sx, sy, rad, sa, ea);
         ctx.stroke();
 
+        // Blade Edge Specular Highlight
         ctx.globalAlpha = t2 * 0.55;
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = tr.slashW * 0.35;
-        ctx.shadowBlur = 4;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(1, tr.slashW * 0.32);
+        if (!GameState.REDUCED_MOTION) ctx.shadowBlur = 4;
         ctx.beginPath();
         ctx.arc(sx, sy, rad, sa, ea);
         ctx.stroke();

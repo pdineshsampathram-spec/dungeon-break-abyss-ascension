@@ -13,15 +13,25 @@ import { EnemyManager } from '../enemies/EnemyManager.js';
 import { BossManager } from '../bosses/BossManager.js';
 import { ParticleRenderer } from '../rendering/ParticleRenderer.js';
 import { SanitySystem } from '../systems/SanitySystem.js';
+import { HallucinationSystem } from '../systems/HallucinationSystem.js';
 import { Interactables } from '../world/Interactables.js';
 import { solidAt } from '../world/PathValidator.js';
 import { Portal } from '../world/Portal.js';
 import { PortalTransition } from '../cinematics/PortalTransition.js';
 import { BossIntros } from '../cinematics/BossIntros.js';
 import { CinematicDirector } from '../cinematics/CinematicDirector.js';
+import { DeathCinematics } from '../cinematics/DeathCinematics.js';
+import { EndingCinematics } from '../cinematics/EndingCinematics.js';
+import { WardenDefeatCinematic } from '../cinematics/WardenDefeatCinematic.js';
+import { GorgarothCinematics } from '../cinematics/GorgarothCinematics.js';
+import { Credits } from '../cinematics/Credits.js';
+import { LastEmberCinematic } from '../cinematics/LastEmberCinematic.js';
 import { MainMenuScene } from '../cinematics/MainMenuScene.js';
 import { HIT_STOP_TIMER, tickHitStop } from '../combat/HitStop.js';
 import { tickCinematicBanner } from '../ui/HUD.js';
+import { UITransitionManager } from '../ui/UITransitionManager.js';
+import { MusicManager } from '../audio/MusicManager.js';
+import { AbyssDissolution } from '../systems/AbyssDissolution.js';
 
 let _rafId = null;
 let _lastTime = 0;
@@ -67,6 +77,12 @@ export const GameLoop = {
     // Master frame counter
     GameState.F = (GameState.F || 0) + 1;
 
+    // Authoritative Music Director
+    MusicManager.update(dt);
+
+    // UI Transition State Progress
+    UITransitionManager.tick(dt);
+
     // Hit-Stop Micro Freeze
     tickHitStop(dt);
     if (HIT_STOP_TIMER > 0) {
@@ -86,18 +102,30 @@ export const GameLoop = {
     // State-specific updates
     switch (GameState.STATE) {
       case GameStates.PLAYING:
+        if (GameState.levelTransitionActive || GameState.WARP_ACTIVE) {
+          PortalTransition.tick(dt);
+          break;
+        }
         PlayerController.tickPlayer(gameDt);
         Interactables.tickTraps(gameDt);
         Interactables.collectAllies();
+        Interactables.tickShrines(gameDt);
         ProjectileSystem.tick(gameDt, solidAt);
         EnemyManager.tick(gameDt);
         BossManager.tick(gameDt);
         ParticleRenderer.tick(gameDt);
+        AbyssDissolution.tick(gameDt);
         SanitySystem.tick(gameDt);
+        HallucinationSystem.tick(gameDt);
         Portal.checkExit();
         PortalTransition.tick(dt);
         BossIntros.tick(dt);
         tickCinematicBanner(dt);
+        break;
+
+      case GameStates.WARP:
+      case 'warp':
+        PortalTransition.tick(dt);
         break;
 
       case GameStates.TITLE:
@@ -106,9 +134,39 @@ export const GameLoop = {
 
       case GameStates.CINEMATIC:
         CinematicDirector.tick(dt);
+        EndingCinematics.tick(dt);
+        ParticleRenderer.tick(dt); // Keep existing particles alive during cinematics
+        AbyssDissolution.tick(dt);
+        break;
+
+      case GameStates.BOSS_DEFEAT_CINEMATIC:
+      case 'boss_defeat_cinematic':
+        WardenDefeatCinematic.tick(dt);
+        if (GorgarothCinematics.isActive()) {
+          GorgarothCinematics.tick(dt);
+        }
+        ParticleRenderer.tick(dt);
+        AbyssDissolution.tick(dt);
+        break;
+
+      case GameStates.CREDITS:
+        Credits.tick(dt);
+        break;
+
+      case GameStates.LAST_EMBER:
+      case 'last_ember':
+        LastEmberCinematic.tick(dt);
+        break;
+
+      case GameStates.DYING:
+      case GameStates.DEATH_NORMAL:
+      case GameStates.DEATH_SANITY:
+      case GameStates.DEATH_RESULTS:
+        DeathCinematics.tick(dt);
         break;
 
       case GameStates.BOSS_INTRO:
+        ParticleRenderer.tick(gameDt);
         BossIntros.tick(dt);
         break;
 

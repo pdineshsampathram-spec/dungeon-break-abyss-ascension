@@ -3,8 +3,10 @@
   "version": "8.0.0",
   "description": "Dungeon Break: Abyss Ascension — 2D Roguelite Action Dungeon Crawler",
   "main": "index.html",
+  "type": "module",
   "scripts": {
-    "start": "npx serve .",
+    "start": "node server.js",
+    "dev": "node server.js",
     "build": "mkdir -p dist && cp index.html dist/index.html",
     "android:init": "npm run build && npx cap add android",
     "android:sync": "npm run build && npx cap sync android",

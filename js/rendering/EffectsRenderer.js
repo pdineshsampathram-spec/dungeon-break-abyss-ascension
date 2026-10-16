@@ -57,6 +57,19 @@ export const EffectsRenderer = {
 
       ctx.restore();
     }
+
+    // 3. Gradual Light Purple Sanity Deterioration Warning (approaching 0 sanity)
+    // Progression: sanity 30 barely noticeable, 20 visible, 10 strong, 5 very noticeable, 0 collapse
+    if (P.san < 30 && !P.dead && typeof window !== 'undefined' && (!window.ShatteredMindCinematic || !window.ShatteredMindCinematic.isActive())) {
+      const t = Math.max(0, Math.min(1.0, (30 - P.san) / 30));
+      const pulse = Math.sin((GameState.F || 0) * 0.05) * 0.015;
+      const alpha = Math.max(0, Math.min(0.35, 0.02 + Math.pow(t, 1.3) * 0.30 + pulse));
+
+      ctx.save();
+      ctx.fillStyle = `rgba(147, 51, 234, ${alpha})`;
+      ctx.fillRect(0, 0, LW, LH);
+      ctx.restore();
+    }
   },
 
   drawFade(ctx) {

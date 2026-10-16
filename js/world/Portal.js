@@ -11,17 +11,35 @@ import { AchievementSystem } from '../systems/AchievementSystem.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { EventBus } from '../core/EventBus.js';
 
+import { FloorManager } from './FloorManager.js';
+import { EndingCinematics, EndingDispatcher } from '../cinematics/EndingCinematics.js';
+import { WardenDefeatCinematic } from '../cinematics/WardenDefeatCinematic.js';
+import { GorgarothCinematics } from '../cinematics/GorgarothCinematics.js';
+
 export const Portal = {
   checkExit() {
     const { P, MAP, LV } = GameState;
-    if (GameState.levelTransitionActive || GameState.PORTAL_USED || P.dead || GameState.WARP_ACTIVE) return;
+    if (FloorManager.isTransitionActive() || GameState.levelTransitionActive || GameState.PORTAL_USED || P.dead || GameState.WARP_ACTIVE || EndingDispatcher.isDispatched() || (WardenDefeatCinematic && WardenDefeatCinematic.isActive()) || (GorgarothCinematics && GorgarothCinematics.isActive())) return;
 
     const tx = Math.round(P.x);
     const ty = Math.round(P.y);
-    if (!MAP[ty] || MAP[ty][tx] !== 2) return;
-    if (isBossFloor(LV) && !GameState.BOSS_DEAD) return;
 
-    GameState.levelTransitionActive = true;
+    // Forgiving hit-testing: exact tile or within 1.35 tile radius of any portal tile
+    let onPortal = (MAP[ty] && MAP[ty][tx] === 2);
+    if (!onPortal) {
+      for (let dr = -1; dr <= 1 && !onPortal; dr++) {
+        for (let dc = -1; dc <= 1 && !onPortal; dc++) {
+          const r = ty + dr, c = tx + dc;
+          if (MAP[r] && MAP[r][c] === 2 && Math.hypot(P.x - c, P.y - r) < 1.35) {
+            onPortal = true;
+          }
+        }
+      }
+    }
+    if (!onPortal) return;
+    if (isBossFloor(LV) && (!GameState.BOSS_DEAD || !GameState.BOSS_PORTAL_UNLOCKED)) return;
+
+    // One-shot activation lock
     GameState.PORTAL_USED = true;
     SoundManager.snd('portal_enter');
 
@@ -33,13 +51,9 @@ export const Portal = {
     }
 
     SaveSystem.saveRun();
-    EventBus.emit('portal:activated', { fromFloor: LV });
+    EventBus.emit('PORTAL_ENTERED', { fromFloor: LV });
 
-    if (LV >= MAX_LV) {
-      EventBus.emit('portal:victory', { floor: LV });
-    } else {
-      EventBus.emit('portal:warp_requested', { nextFloor: LV + 1 });
-    }
+    FloorManager.startTransition(LV);
   }
 };
 

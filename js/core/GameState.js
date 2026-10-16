@@ -11,16 +11,22 @@ export const GameStates = {
   PAUSED: 'pause',
   BOSS_INTRO: 'boss_intro',
   CINEMATIC: 'cinematic',
+  WARP: 'warp',
   SANCTUM: 'sanctum',
   CODEX: 'codex',
   SETTINGS: 'settings',
   ACHIEVEMENTS: 'achievements',
   VICTORY: 'victory',
   GAME_OVER: 'game_over',
+  DYING: 'dying',
   DEATH_NORMAL: 'death_normal',
   DEATH_SANITY: 'death_sanity',
+  DEATH_RESULTS: 'death_results',
   WEAPON_REPLACE: 'weapon_replace',
-  MEMORY: 'memory'
+  MEMORY: 'memory',
+  CREDITS: 'credits',
+  BOSS_DEFEAT_CINEMATIC: 'boss_defeat_cinematic',
+  LAST_EMBER: 'last_ember'
 };
 
 export const GameState = {
@@ -36,6 +42,8 @@ export const GameState = {
   PORTAL_USED: false,
   PORTAL_DISCOVERED: false,
   levelTransitionActive: false,
+  transitionStarted: false,
+  transitionComplete: false,
 
   // Master frame & timing
   F: 0,
@@ -43,6 +51,9 @@ export const GameState = {
   FREEZE_TIME: 0,
   FADE: 0,
   FADEIN: false,
+  GAME_SPEED: 1.0,
+  SCREEN_SHAKE_ENABLED: true,
+  REDUCED_MOTION: false,
 
   // Camera
   CAM: {
@@ -57,6 +68,9 @@ export const GameState = {
     trauma: 0
   },
 
+  // Master run tracking token for session safety
+  RUN_ID: 1,
+
   // Player Model
   P: {
     x: 3,
@@ -69,7 +83,12 @@ export const GameState = {
     displayHp: 10,
     ghostHp: 10,
     ghostHpTimer: 0,
-    san: 15,
+    san: 100,
+    qCooldown: 0,
+    qMaxCooldown: 5.0,
+    furyBuffTimer: 0,
+    mindShieldTimer: 0,
+    hasteBuffTimer: 0,
     wep: 'sword',
     wepRarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)', weight: 50 },
     activePrefix: null,
@@ -85,8 +104,10 @@ export const GameState = {
     fy: 0,
     shieldActive: false,
     shieldTimer: 0,
-    deathCause: 'enemy',
+    deathCause: null,
     dead: false,
+    dying: false,
+    nearTorch: false,
     relics: [],
     dmgBoost: 1,
     siphonBoost: false,
@@ -96,14 +117,15 @@ export const GameState = {
     breathCycle: 0
   },
 
-  // 3-Slot Weapon Inventory
+  // 3-Slot Weapon Inventory (Starts with Sword in Slot 1 and Hunter's Bow in Slot 2)
   weaponSlots: [
-    { id: 'sword', name: '⚔️ Sword', damage: 2, dmg: 2, range: 1.4, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false },
-    null,
+    { id: 'sword', name: '⚔️ Sword', damage: 3.5, dmg: 3.5, range: 1.5, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false },
+    { id: 'bow', name: "🏹 Hunter's Bow", damage: 3.5, dmg: 3.5, range: 12.0, cooldown: 0.42, cd: 0.42, projectile: true, projSpd: 9.5, projDmg: 3.5, projRange: 14, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 5 },
     null
   ],
   activeWeaponSlot: 0,
   pendingWeaponDrop: null,
+  ACTIVE_WEAPON_REPLACE_MODAL: null,
 
   // World and Level collections
   MAP: [],
@@ -114,6 +136,7 @@ export const GameState = {
   ITEMS: [],
   TRAPS: [],
   TORCHES: [],
+  SHRINES: [],
   BLOOD: [],
   PROJECTILES: [],
   PRT: [],
@@ -121,6 +144,8 @@ export const GameState = {
   SURVIVORS: [],
   ECHOES: [],
   ACTIVE_SPEECH_BUBBLES: [],
+  GATE: null,
+  GATES: [],
 
   // Boss state
   BOSS: null,
@@ -129,6 +154,8 @@ export const GameState = {
   BOSS_PORTAL_UNLOCKED: false,
   BOSS_AI_ACTIVE: false,
   BOSS_INTRO_ACTIVE: false,
+  BOSS_INTRO_WING_SPREAD: 1.0,
+  BOSS_INTRO_EYE_GLOW: 1.0,
   BOSS_PROJECTILES: [],
   BOSS_HAZARDS: [],
 
@@ -144,7 +171,16 @@ export const GameState = {
   // Meta Progression (Persisted)
   ABYSS_SOULS: 0,
   PRESTIGE_TOKENS: 0,
-  TALENTS: { vitality: 0, clarity: 0, fury: 0, haste: 0, siphon: 0 },
+  RUN_PRESTIGE_AWARDED: false,
+  NEW_GAME_PLUS: 0,
+  TALENTS: {
+    vitality: 0, clarity: 0, fury: 0, haste: 0, siphon: 0,
+    iron_skin: 0, resilience: 0, hunters_focus: 0, rift_discipline: 0,
+    explosive_might: 0, lance_precision: 0, technique_mastery: 0, soul_harvest: 0
+  },
+  LEGACY_TALENTS: {
+    legacy_souls: 0, legacy_defense: 0, legacy_sanity: 0, legacy_defiance: 0, legacy_mastery: 0
+  },
   UNLOCKED_LORE: {},
   UNLOCKED_MEMORIES: {},
   BESTIARY_KILLS: {
@@ -152,6 +188,8 @@ export const GameState = {
     gorgaroth: 0, malakor: 0, warden: 0
   },
   BOW_KILLS: 0,
+  PHASE3_GIFT_ELIGIBLE: false,
+  PHASE3_INVITATION_DISMISSED: false,
 
   // Change state machine state cleanly
   setState(newState, payload = null) {
@@ -163,12 +201,22 @@ export const GameState = {
 
   // Reset player for new run
   resetPlayer() {
-    this.P.hp = 10 + (this.TALENTS.vitality || 0) * 2;
+    const baseHp = 10;
+    const vitHp = (this.TALENTS.vitality || 0) * 2;
+    const legHp = (this.LEGACY_TALENTS.legacy_defense || 0) * 15;
+    this.P.hp = baseHp + vitHp + legHp;
     this.P.maxHp = this.P.hp;
     this.P.displayHp = this.P.hp;
     this.P.ghostHp = this.P.hp;
-    this.P.ghostHpTimer = 0;
-    this.P.san = 15;
+    const resRank = (this.TALENTS.resilience || 0);
+    this.P.maxSan = 100 + resRank * 10;
+    this.P.san = this.P.maxSan;
+    this.P._defianceUsed = false;
+    this.P.qCooldown = 0;
+    this.P.qMaxCooldown = Math.max(2.5, 5.0 - (this.TALENTS.technique_mastery || 0) * 0.4 - (this.LEGACY_TALENTS.legacy_mastery || 0) * 1.0);
+    this.P.furyBuffTimer = 0;
+    this.P.mindShieldTimer = 0;
+    this.P.hasteBuffTimer = 0;
     this.P.vx = 0;
     this.P.vy = 0;
     this.P.saved = 0;
@@ -180,22 +228,43 @@ export const GameState = {
     this.P.hitFlash = 0;
     this.P.shieldActive = false;
     this.P.shieldTimer = 0;
-    this.P.deathCause = 'enemy';
+    this.P.deathCause = null;
     this.P.dead = false;
+    this.P.dying = false;
+    this.P.nearTorch = false;
     this.P.relics = [];
     this.P.dmgBoost = 1;
     this.P.siphonBoost = false;
+    this.P.cinematicPose = null;
+    this.P.invulnerable = false;
+    this.P._hitByAttacks = {};
+    this.P.animState = 'idle';
+    this.P.animTimer = 0;
+    this.P.walkCycle = 0;
+    this.P.breathCycle = 0;
+    this.P.fx = 1;
+    this.P.fy = 0;
 
-    // Reset 3 weapon slots to initial sword
+    // Reset 3 weapon slots: Slot 1 Sword, Slot 2 Hunter's Bow, Slot 3 Empty
     this.weaponSlots = [
-      { id: 'sword', name: '⚔️ Sword', damage: 2, dmg: 2, range: 1.4, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false },
-      null,
+      { id: 'sword', name: '⚔️ Sword', damage: 3.5, dmg: 3.5, range: 1.5, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false },
+      { id: 'bow', name: "🏹 Hunter's Bow", damage: 3.5, dmg: 3.5, range: 12.0, cooldown: 0.42, cd: 0.42, projectile: true, projSpd: 9.5, projDmg: 3.5, projRange: 14, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 5 },
       null
     ];
     this.activeWeaponSlot = 0;
     this.pendingWeaponDrop = null;
+    this.ACTIVE_WEAPON_REPLACE_MODAL = null;
     this.P.wep = 'sword';
     this.P.wepRarity = this.weaponSlots[0].rarity;
+    this.P._hitByAttacks = {};
+  },
+
+  // Authoritative run reset delegator
+  resetRunState(options = {}) {
+    if (typeof window !== 'undefined' && window.RunResetManager) {
+      return window.RunResetManager.resetRun(options);
+    }
+    import('../systems/RunResetManager.js').then(m => m.RunResetManager.resetRun(options));
   },
 
   // Clear level transient entities
@@ -207,6 +276,9 @@ export const GameState = {
     this.BOSS_PROJECTILES = [];
     this.BOSS_HAZARDS = [];
     this.ACTIVE_SPEECH_BUBBLES = [];
+    this.SHRINES = [];
+    this.GATE = null;
+    this.GATES = [];
     this.BOSS = null;
     this.ACTIVE_MINIBOSS = null;
     this.BOSS_DEAD = false;
@@ -219,10 +291,14 @@ export const GameState = {
     this.LEVEL_TIMER = 0;
     this.LEVEL_TIME_STR = '00:00';
     this.LEVEL_TOOK_DAMAGE = false;
+    if (this.P) {
+      this.P._hitByAttacks = {};
+    }
   }
 };
 
 // Global debug reference
 if (typeof window !== 'undefined') {
   window.DB_STATE = GameState;
+  window.GameState = GameState;
 }

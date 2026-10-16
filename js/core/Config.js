@@ -3,6 +3,8 @@
 //  Game speed, difficulty scaling curve, and runtime config
 // =====================================================================
 
+import { getBaseFloorDrain } from '../systems/SanitySystem.js';
+
 export const Config = {
   GAME_SPEED: 1.25,
   GAME_SPEED_MIN: 0.5,
@@ -18,11 +20,13 @@ export const Config = {
   },
 
   getDiff(lv) {
+    const floor = Math.max(1, lv || 1);
     return {
-      espd: Math.min(1.0 + lv * 0.15, 3.0),
-      sdrain: Math.min(0.4 + lv * 0.09, 1.4),
-      ec: Math.min(3 + Math.floor(lv * 1.4), 16),
-      traps: Math.min(lv, 8)
+      espd: Math.min(1.0 + floor * 0.15, 3.0),
+      // Progressive sanity drain: 0.25 on Floor 1 to 1.15 on Floor 10
+      sdrain: getBaseFloorDrain(floor),
+      ec: Math.min(12 + Math.floor(floor * 2.5), 32),
+      traps: Math.min(floor, 8)
     };
   }
 };

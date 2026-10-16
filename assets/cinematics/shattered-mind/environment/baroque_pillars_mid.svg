@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="pillarGradL" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#05070e"/>
+      <stop offset="30%" stop-color="#1e293b"/>
+      <stop offset="65%" stop-color="#334155"/>
+      <stop offset="85%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#03050a"/>
+    </linearGradient>
+    <linearGradient id="pillarGradR" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#03050a"/>
+      <stop offset="15%" stop-color="#1e293b"/>
+      <stop offset="35%" stop-color="#334155"/>
+      <stop offset="70%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#05070e"/>
+    </linearGradient>
+    <linearGradient id="goldFiligree" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="50%" stop-color="#78350f"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <radialGradient id="bracketFlame" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="35%" stop-color="#f97316"/>
+      <stop offset="70%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Left Inner Pillar -->
+  <g>
+    <!-- Base Plinth -->
+    <rect x="420" y="740" width="160" height="40" fill="#090d16" stroke="#020306" stroke-width="3"/>
+    <rect x="435" y="710" width="130" height="30" fill="#0f172a" stroke="#020306" stroke-width="2"/>
+    <!-- Shaft -->
+    <rect x="450" y="0" width="100" height="710" fill="url(#pillarGradL)"/>
+    <!-- Fluting Flutes -->
+    <line x1="465" y1="0" x2="465" y2="710" stroke="#090d16" stroke-width="4"/>
+    <line x1="485" y1="0" x2="485" y2="710" stroke="#090d16" stroke-width="4"/>
+    <line x1="505" y1="0" x2="505" y2="710" stroke="#475569" stroke-width="3"/>
+    <line x1="525" y1="0" x2="525" y2="710" stroke="#090d16" stroke-width="4"/>
+    <!-- Capital at top -->
+    <polygon points="410,0 590,0 560,60 440,60" fill="#0f172a" stroke="#020306" stroke-width="2"/>
+
+    <!-- Iron Torch Sconce with Stylized Flame -->
+    <path d="M 550 420 L 590 400 L 590 440 Z" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
+    <ellipse cx="595" cy="405" rx="14" ry="24" fill="url(#bracketFlame)"/>
+    <ellipse cx="595" cy="408" rx="6" ry="12" fill="#fffbeb"/>
+  </g>
+
+  <!-- Right Inner Pillar -->
+  <g>
+    <!-- Base Plinth -->
+    <rect x="1340" y="740" width="160" height="40" fill="#090d16" stroke="#020306" stroke-width="3"/>
+    <rect x="1355" y="710" width="130" height="30" fill="#0f172a" stroke="#020306" stroke-width="2"/>
+    <!-- Shaft -->
+    <rect x="1370" y="0" width="100" height="710" fill="url(#pillarGradR)"/>
+    <!-- Fluting Flutes -->
+    <line x1="1395" y1="0" x2="1395" y2="710" stroke="#090d16" stroke-width="4"/>
+    <line x1="1415" y1="0" x2="1415" y2="710" stroke="#475569" stroke-width="3"/>
+    <line x1="1435" y1="0" x2="1435" y2="710" stroke="#090d16" stroke-width="4"/>
+    <line x1="1455" y1="0" x2="1455" y2="710" stroke="#090d16" stroke-width="4"/>
+    <!-- Capital at top -->
+    <polygon points="1330,0 1510,0 1480,60 1360,60" fill="#0f172a" stroke="#020306" stroke-width="2"/>
+
+    <!-- Iron Torch Sconce with Stylized Flame -->
+    <path d="M 1370 420 L 1330 400 L 1330 440 Z" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
+    <ellipse cx="1325" cy="405" rx="14" ry="24" fill="url(#bracketFlame)"/>
+    <ellipse cx="1325" cy="408" rx="6" ry="12" fill="#fffbeb"/>
+  </g>
+</svg>

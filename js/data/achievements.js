@@ -22,7 +22,8 @@ export const ACHIEVEMENTS = {
   void_conqueror:{ name: 'Void Conqueror', desc: 'Vanquish Malakor the Void Reaver (Floor 6)', icon: '🌌', unlocked: false },
   soul_ascendant:{ name: 'Soul Ascendant', desc: 'Collect 100 total Abyss Souls', icon: '🔮', unlocked: false },
   maxed_talent:  { name: 'True Ascension', desc: 'Max out any talent rank in the Sanctum', icon: '⚡', unlocked: false },
-  lore_master:   { name: 'Keeper of Lore', desc: 'Uncover all ancient lore scrolls in the dungeon', icon: '📜', unlocked: false }
+  lore_master:   { name: 'Keeper of Lore', desc: 'Uncover all ancient lore scrolls in the dungeon', icon: '📜', unlocked: false },
+  last_witness:  { name: 'The Last Witness', desc: 'You have seen every fate.', icon: '👁️', isUltimate: true, unlocked: false }
 };
 
 export const ACHIEVEMENT_KEYS = Object.keys(ACHIEVEMENTS);

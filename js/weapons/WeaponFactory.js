@@ -20,19 +20,36 @@ export const WeaponFactory = {
       if (rolled.suffix) weaponAffixes.push(rolled.suffix);
     }
 
+    let displayName = base.name;
+    const prefix = weaponAffixes.find(a => a && a.id && ['infernal', 'glacial', 'vampiric', 'thunderous', 'cursed'].includes(a.id));
+    const suffix = weaponAffixes.find(a => a && a.id && ['swiftness', 'force', 'insight'].includes(a.id));
+    if (prefix && prefix.name) displayName = `${prefix.name} ${displayName}`;
+    if (suffix && suffix.name) displayName = `${displayName} ${suffix.name}`;
+
+    const calculatedDmg = Math.max(1, Math.round(base.damage * dmgMul * (1 + (level - 1) * 0.08)));
+    const calculatedCd = base.cooldown * (suffix && suffix.id === 'swiftness' ? 0.75 : 1.0);
+
     return {
       id: base.id,
-      name: base.name,
+      name: displayName,
+      baseName: base.name,
       type: base.type,
-      damage: Math.round(base.damage * dmgMul * (1 + (level - 1) * 0.08)),
+      damage: calculatedDmg,
+      dmg: calculatedDmg,
       range: base.range,
-      cooldown: base.cooldown,
+      cooldown: calculatedCd,
+      cd: calculatedCd,
+      arc: base.arc || 1.1,
+      shk: base.shk || 4,
       rarity: rar,
       affixes: weaponAffixes,
+      prefix: prefix || null,
+      suffix: suffix || null,
       level: level,
       icon: base.icon,
       col: base.col,
-      trailCol: base.trailCol
+      trailCol: base.trailCol,
+      projectile: base.type === 'ranged' || base.id === 'bow'
     };
   }
 };

@@ -16,20 +16,19 @@ html, body {
 }
 
 body {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: fixed;
   inset: 0;
+  background: #000;
 }
 
 #c {
   display: block;
   cursor: pointer;
   image-rendering: auto;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  position: absolute;
   touch-action: none;
 }
 

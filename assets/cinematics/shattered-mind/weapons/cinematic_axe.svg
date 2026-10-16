@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 600" width="300" height="600">
+  <defs>
+    <linearGradient id="axeBlade" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="35%" stop-color="#94a3b8"/>
+      <stop offset="80%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <!-- Wooden Haft -->
+  <rect x="142" y="20" width="16" height="540" rx="5" fill="#451a03" stroke="#1f0a02" stroke-width="2"/>
+  <!-- Heavy Crescent Axe Head -->
+  <path d="M 158 80 Q 260 40 280 180 Q 220 220 158 190 Z" fill="url(#axeBlade)" stroke="#0f172a" stroke-width="3"/>
+  <!-- Beveled Cutting Edge -->
+  <path d="M 280 180 Q 260 40 158 80" stroke="#ffffff" stroke-width="3" fill="none"/>
+  <!-- Back Spike -->
+  <polygon points="142,110 80,135 142,160" fill="#334155"/>
+</svg>

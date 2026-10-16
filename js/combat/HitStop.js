@@ -8,6 +8,7 @@ import { GameState } from '../core/GameState.js';
 export let HIT_STOP_TIMER = 0;
 
 export function triggerHitStop(dur = 0.06) {
+  if (GameState.REDUCED_MOTION) return;
   HIT_STOP_TIMER = Math.max(HIT_STOP_TIMER, dur);
   GameState.FREEZE_TIME = HIT_STOP_TIMER;
 }

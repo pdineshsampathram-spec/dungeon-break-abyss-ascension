@@ -13,16 +13,21 @@ export const WeaponEffects = {
 
   addSwingTrail(x, y, angle, weapon) {
     const params = this.getWeaponVisualParams(weapon.id);
+    const life = GameState.REDUCED_MOTION ? 0.08 : (params.trailLen || 0.22);
     GameState.SLASH_TRAILS.push({
-      x,
-      y,
-      ang: angle,
+      wx: x,
+      wy: y,
+      angle: angle,
+      life: life,
+      ml: life,
       arc: params.arc || 1.1,
-      r: params.range || 1.4,
+      range: params.range || 1.4,
       col: weapon.trailCol || params.trailCol || '#fde68a',
-      t: 0,
-      maxT: params.trailLen || 0.23,
-      slashW: params.slashW || 3
+      slashW: params.slashW || 3,
+      slashGlow: GameState.REDUCED_MOTION ? 0 : (params.slashGlow || 10),
+      weaponId: weapon.id,
+      isSpear: weapon.id === 'spear',
+      isRing: false
     });
   }
 };

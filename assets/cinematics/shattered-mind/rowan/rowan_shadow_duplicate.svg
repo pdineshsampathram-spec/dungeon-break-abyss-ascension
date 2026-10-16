@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 700" width="500" height="700">
+  <defs>
+    <!-- Steel Cuirass Shading -->
+    <linearGradient id="steelPlate" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f1f5f9"/>
+      <stop offset="25%" stop-color="#94a3b8"/>
+      <stop offset="60%" stop-color="#475569"/>
+      <stop offset="85%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <!-- Flowing Crimson Cloak Shading -->
+    <linearGradient id="crimsonCloak" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#b91c1c"/>
+      <stop offset="35%" stop-color="#7f1d1d"/>
+      <stop offset="70%" stop-color="#450a0a"/>
+      <stop offset="100%" stop-color="#1c0305"/>
+    </linearGradient>
+
+    <!-- Pauldron Warm Gold Accents -->
+    <linearGradient id="warmGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#f59e0b"/>
+      <stop offset="80%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+
+    <!-- Shadow Duplicate Gradient Palettes -->
+    <linearGradient id="shadowArmor" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#581c87"/>
+      <stop offset="35%" stop-color="#2e1065"/>
+      <stop offset="80%" stop-color="#0f051d"/>
+      <stop offset="100%" stop-color="#020005"/>
+    </linearGradient>
+    <linearGradient id="shadowCloak" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3b0764"/>
+      <stop offset="60%" stop-color="#1e0338"/>
+      <stop offset="100%" stop-color="#020005"/>
+    </linearGradient>
+    <linearGradient id="shadowGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="70%" stop-color="#581c87"/>
+      <stop offset="100%" stop-color="#1e053a"/>
+    </linearGradient>
+
+    <!-- Ground Contact Shadow -->
+    <radialGradient id="contactShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.85"/>
+      <stop offset="65%" stop-color="#000000" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 1. Ground Contact Shadow (Rowan is firmly planted on floor) -->
+  <ellipse cx="250" cy="640" rx="110" ry="24" fill="url(#contactShadow)"/>
+
+  
+  <!-- STANDING / ALERT / DEFENSIVE POSES -->
+  <g transform="translate(250, 310)">
+    <!-- Flowing Cloak -->
+    <path d="M -80 -20 Q -140 180 -120 310 L 120 310 Q 140 180 80 -20 Z" fill="url(#shadowCloak)"/>
+
+    <!-- Armored Legs & Sabatons -->
+    <rect x="-52" y="130" width="36" height="160" rx="8" fill="url(#shadowArmor)"/>
+    <rect x="-60" y="280" width="48" height="30" rx="5" fill="#0f172a"/>
+    <rect x="16" y="130" width="36" height="160" rx="8" fill="url(#shadowArmor)"/>
+    <rect x="12" y="280" width="48" height="30" rx="5" fill="#0f172a"/>
+
+    <!-- Torso with tilt -->
+    <g transform="rotate(-2)">
+      <!-- Chainmail Faulds & Leather Belt -->
+      <rect x="-60" y="85" width="120" height="50" fill="#1e293b"/>
+      <rect x="-55" y="75" width="110" height="16" fill="#451a03"/>
+      <rect x="-12" y="73" width="24" height="20" fill="url(#shadowGold)"/>
+
+      <!-- Sculpted Steel Breastplate -->
+      <path d="M -65 -45 L 65 -45 L 50 85 L -50 85 Z" fill="url(#shadowArmor)" stroke="#0f172a" stroke-width="4"/>
+      <!-- Golden Cross Emblem on Chest -->
+      <polygon points="0,-25 28,10 0,45 -28,10" fill="url(#shadowGold)"/>
+
+      <!-- Tiered Shoulder Pauldrons -->
+      <g>
+        <ellipse cx="-75" cy="-45" rx="34" ry="26" fill="url(#shadowGold)"/>
+        <ellipse cx="-78" cy="-30" rx="28" ry="20" fill="url(#shadowArmor)"/>
+        <ellipse cx="75" cy="-45" rx="34" ry="26" fill="url(#shadowGold)"/>
+        <ellipse cx="78" cy="-30" rx="28" ry="20" fill="url(#shadowArmor)"/>
+      </g>
+
+      <!-- Arms & Gauntlets -->
+      <g transform="translate(-65, -30) rotate(12)">
+        <rect x="-12" y="0" width="24" height="95" rx="6" fill="url(#shadowArmor)"/>
+        <circle cx="0" cy="105" r="15" fill="#334155"/>
+      </g>
+      <g transform="translate(65, -30) rotate(-12)">
+        <rect x="-12" y="0" width="24" height="95" rx="6" fill="url(#shadowArmor)"/>
+        <circle cx="0" cy="105" r="15" fill="#334155"/>
+      </g>
+
+      <!-- Helmet & Visor -->
+      <g transform="translate(0, -95) rotate(-5)">
+        <!-- Helmet Sphere -->
+        <circle cx="0" cy="0" r="44" fill="url(#shadowArmor)"/>
+        <!-- Ridge Line -->
+        <path d="M 0 -50 L 0 -12" stroke="#f8fafc" stroke-width="4"/>
+        <!-- Golden Brow Guard -->
+        <path d="M -38 -8 Q 0 -16 38 -8" stroke="url(#shadowGold)" stroke-width="6" fill="none"/>
+        <!-- Visor Aperture -->
+        <rect x="-30" y="0" width="60" height="12" rx="3" fill="#020617"/>
+        <rect x="-26" y="2" width="52" height="8" rx="2" fill="#c084fc"/>
+      </g>
+    </g>
+  </g>
+  
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <radialGradient id="corridorLight" cx="960" cy="540" r="600">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.15"/>
+      <stop offset="60%" stop-color="#0f172a" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#020408" stop-opacity="1"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#corridorLight)"/>
+  <!-- Endless Receding Arches -->
+  <g stroke="#0f172a" stroke-width="16" fill="none">
+    <path d="M 100 1080 L 100 300 Q 960 -100 1820 300 L 1820 1080"/>
+    <path d="M 300 950 L 300 400 Q 960 80 1620 400 L 1620 950"/>
+    <path d="M 500 820 L 500 480 Q 960 220 1420 480 L 1420 820"/>
+    <path d="M 700 700 L 700 520 Q 960 360 1220 520 L 1220 700"/>
+  </g>
+  <!-- Fallen Weapons & Bones along corridor -->
+  <line x1="620" y1="840" x2="690" y2="800" stroke="#334155" stroke-width="4"/>
+  <line x1="1260" y1="880" x2="1340" y2="820" stroke="#334155" stroke-width="4"/>
+  <text x="960" y="960" fill="#94a3b8" font-family="Cinzel, serif" font-size="28" text-anchor="middle" letter-spacing="8">NO ESCAPE FROM THE DEPTHS</text>
+</svg>

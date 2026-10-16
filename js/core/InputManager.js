@@ -5,6 +5,7 @@
 
 import { EventBus } from './EventBus.js';
 import { GameState, GameStates } from './GameState.js';
+import { LW, LH } from './Constants.js';
 
 export const INPUT_KEYS = {};
 export const TOUCH_DIR = { x: 0, y: 0 };
@@ -24,9 +25,10 @@ export function getCanvasScale() {
 export function cssToGame(clientX, clientY, canvas = _canvasElement) {
   if (!canvas) return { mx: clientX, my: clientY };
   const r = canvas.getBoundingClientRect();
+  if (!r.width || !r.height) return { mx: clientX, my: clientY };
   return {
-    mx: (clientX - r.left) / (_canvasScale || 1),
-    my: (clientY - r.top) / (_canvasScale || 1)
+    mx: (clientX - r.left) * (LW / r.width),
+    my: (clientY - r.top) * (LH / r.height)
   };
 }
 
@@ -38,11 +40,11 @@ export function getMovementVector() {
   let dx = 0;
   let dy = 0;
 
-  // Keyboard controls
-  if (INPUT_KEYS['w'] || INPUT_KEYS['W'] || INPUT_KEYS['ArrowUp']) dy -= 1;
-  if (INPUT_KEYS['s'] || INPUT_KEYS['S'] || INPUT_KEYS['ArrowDown']) dy += 1;
-  if (INPUT_KEYS['a'] || INPUT_KEYS['A'] || INPUT_KEYS['ArrowLeft']) dx -= 1;
-  if (INPUT_KEYS['d'] || INPUT_KEYS['D'] || INPUT_KEYS['ArrowRight']) dx += 1;
+  // Keyboard controls (supporting keys, arrows, and code identifiers)
+  if (INPUT_KEYS['w'] || INPUT_KEYS['W'] || INPUT_KEYS['ArrowUp'] || INPUT_KEYS['KeyW']) dy -= 1;
+  if (INPUT_KEYS['s'] || INPUT_KEYS['S'] || INPUT_KEYS['ArrowDown'] || INPUT_KEYS['KeyS']) dy += 1;
+  if (INPUT_KEYS['a'] || INPUT_KEYS['A'] || INPUT_KEYS['ArrowLeft'] || INPUT_KEYS['KeyA']) dx -= 1;
+  if (INPUT_KEYS['d'] || INPUT_KEYS['D'] || INPUT_KEYS['ArrowRight'] || INPUT_KEYS['KeyD']) dx += 1;
 
   // Touch joystick integration
   if (Math.abs(TOUCH_DIR.x) > 0.05 || Math.abs(TOUCH_DIR.y) > 0.05) {
@@ -133,4 +135,8 @@ export const InputManager = {
   INPUT_KEYS,
   MOUSE_STATE
 };
+
+if (typeof window !== 'undefined') {
+  window.InputManager = InputManager;
+}
 

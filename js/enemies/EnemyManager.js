@@ -5,6 +5,7 @@
 
 import { GameState } from '../core/GameState.js';
 import { EnemyAI } from './EnemyAI.js';
+import { AbyssDissolution } from '../systems/AbyssDissolution.js';
 
 export const EnemyManager = {
   tick(dt) {
@@ -15,9 +16,22 @@ export const EnemyManager = {
       const e = ENE[i];
       EnemyAI.tickEnemy(e, i, dt);
 
-      // Clean decayed corpses
-      if (!e.alive && e.dAnim <= 0) {
-        ENE.splice(i, 1);
+      // Dead enemy dissolution lifecycle
+      if (!e.alive) {
+        // Start dissolution effect (one-shot)
+        if (!e._dissolveStarted) {
+          AbyssDissolution.startDissolution(e, {
+            type: e.type,
+            isElite: e.isElite,
+            isMiniBoss: e.isMiniBoss,
+            isCinematic: false
+          });
+        }
+
+        // Remove actor only after dissolution is fully complete
+        if (AbyssDissolution.isDissolutionComplete(e)) {
+          ENE.splice(i, 1);
+        }
       }
     }
   }

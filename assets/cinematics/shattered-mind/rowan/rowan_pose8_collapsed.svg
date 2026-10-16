@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 700" width="500" height="700">
+  <defs>
+    <!-- Steel Cuirass Shading -->
+    <linearGradient id="steelPlate" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f1f5f9"/>
+      <stop offset="25%" stop-color="#94a3b8"/>
+      <stop offset="60%" stop-color="#475569"/>
+      <stop offset="85%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+
+    <!-- Flowing Crimson Cloak Shading -->
+    <linearGradient id="crimsonCloak" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#b91c1c"/>
+      <stop offset="35%" stop-color="#7f1d1d"/>
+      <stop offset="70%" stop-color="#450a0a"/>
+      <stop offset="100%" stop-color="#1c0305"/>
+    </linearGradient>
+
+    <!-- Pauldron Warm Gold Accents -->
+    <linearGradient id="warmGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#f59e0b"/>
+      <stop offset="80%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+
+    <!-- Shadow Duplicate Gradient Palettes -->
+    <linearGradient id="shadowArmor" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#581c87"/>
+      <stop offset="35%" stop-color="#2e1065"/>
+      <stop offset="80%" stop-color="#0f051d"/>
+      <stop offset="100%" stop-color="#020005"/>
+    </linearGradient>
+    <linearGradient id="shadowCloak" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3b0764"/>
+      <stop offset="60%" stop-color="#1e0338"/>
+      <stop offset="100%" stop-color="#020005"/>
+    </linearGradient>
+    <linearGradient id="shadowGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="70%" stop-color="#581c87"/>
+      <stop offset="100%" stop-color="#1e053a"/>
+    </linearGradient>
+
+    <!-- Ground Contact Shadow -->
+    <radialGradient id="contactShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0.85"/>
+      <stop offset="65%" stop-color="#000000" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- 1. Ground Contact Shadow (Rowan is firmly planted on floor) -->
+  <ellipse cx="250" cy="560" rx="180" ry="24" fill="url(#contactShadow)"/>
+
+  
+  <!-- COLLAPSED / PRONE POSE -->
+  <g transform="translate(250, 480)">
+    <!-- Spread Cloak on Flagstones -->
+    <path d="M -160 50 Q -60 -20 80 40 Q 140 60 180 50 Q 80 90 -160 50 Z" fill="url(#crimsonCloak)"/>
+    <!-- Prone Legs -->
+    <rect x="-120" y="30" width="90" height="26" rx="6" fill="url(#steelPlate)"/>
+    <rect x="-140" y="36" width="30" height="20" rx="4" fill="#0f172a"/>
+    <rect x="-80" y="44" width="80" height="24" rx="6" fill="url(#steelPlate)"/>
+    <!-- Prone Cuirass -->
+    <rect x="-30" y="10" width="80" height="48" rx="8" fill="url(#steelPlate)"/>
+    <rect x="0" y="14" width="40" height="38" fill="url(#warmGold)"/>
+    <!-- Helmet on Ground -->
+    <circle cx="65" cy="22" r="32" fill="url(#steelPlate)"/>
+    <line x1="40" y1="12" x2="90" y2="12" stroke="#f8fafc" stroke-width="3"/>
+    <!-- Visor Faint/Dying Glow -->
+    <rect x="50" y="24" width="34" height="6" rx="2" fill="#38bdf8" opacity="0.6"/>
+    <!-- Limp Arms -->
+    <rect x="-10" y="40" width="45" height="18" rx="4" fill="url(#steelPlate)"/>
+    <circle cx="40" cy="50" r="10" fill="#334155"/>
+  </g>
+  
+</svg>

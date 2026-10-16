@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#010204"/>
+  <!-- Archway Frame -->
+  <path d="M 400 1080 L 400 300 Q 960 50 1520 300 L 1520 1080 Z" fill="#060a12" stroke="#000000" stroke-width="20"/>
+  <!-- Colossal Iron Portcullis Bars with Spikes -->
+  <g stroke="#1e293b" stroke-width="26" stroke-linecap="round">
+    <line x1="500" y1="200" x2="500" y2="1080"/>
+    <line x1="620" y1="150" x2="620" y2="1080"/>
+    <line x1="740" y1="110" x2="740" y2="1080"/>
+    <line x1="860" y1="90" x2="860" y2="1080"/>
+    <line x1="960" y1="85" x2="960" y2="1080"/>
+    <line x1="1060" y1="90" x2="1060" y2="1080"/>
+    <line x1="1180" y1="110" x2="1180" y2="1080"/>
+    <line x1="1300" y1="150" x2="1300" y2="1080"/>
+    <line x1="1420" y1="200" x2="1420" y2="1080"/>
+    <!-- Horizontal Crossbars -->
+    <line x1="400" y1="420" x2="1520" y2="420" stroke-width="32"/>
+    <line x1="400" y1="720" x2="1520" y2="720" stroke-width="32"/>
+  </g>
+  <!-- Blood Splatter across Iron Grid -->
+  <circle cx="880" cy="540" r="45" fill="#7f1d1d" opacity="0.75"/>
+  <path d="M 880 540 Q 860 680 870 780" stroke="#991b1b" stroke-width="8" fill="none" opacity="0.8"/>
+  <text x="960" y="980" fill="#94a3b8" font-family="Cinzel, serif" font-size="28" text-anchor="middle" letter-spacing="6">THE GATE CLOSED FOREVER</text>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <radialGradient id="throneGlow" cx="960" cy="460" r="480">
+      <stop offset="0%" stop-color="#7e22ce" stop-opacity="0.32"/>
+      <stop offset="60%" stop-color="#2e1065" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#010204" stop-opacity="1"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#throneGlow)"/>
+  <!-- Spiked Obsidian Throne Silhouette -->
+  <g transform="translate(960, 520)" fill="#06020c">
+    <!-- Throne Back Spikes -->
+    <polygon points="-120,100 -180,-280 -110,-180"/>
+    <polygon points="-80,100 -90,-380 -30,-220"/>
+    <polygon points="0,100 0,-440 40,-240"/>
+    <polygon points="80,100 90,-380 30,-220"/>
+    <polygon points="120,100 180,-280 110,-180"/>
+    <!-- Throne Seat Block -->
+    <rect x="-160" y="80" width="320" height="160" stroke="#110522" stroke-width="4"/>
+    <!-- Colossal Horned Warden Silhouette Seated -->
+    <path d="M -90 60 Q -140 -80 -70 -160 Q 0 -220 70 -160 Q 140 -80 90 60 Z"/>
+    <!-- Curved Horns -->
+    <path d="M -50 -180 Q -150 -260 -190 -180 Q -120 -180 -30 -160 Z"/>
+    <path d="M 50 -180 Q 150 -260 190 -180 Q 120 -180 30 -160 Z"/>
+    <!-- Glowing Malevolent Eyes -->
+    <ellipse cx="-26" cy="-140" rx="8" ry="4" fill="#ef4444"/>
+    <ellipse cx="26" cy="-140" rx="8" ry="4" fill="#ef4444"/>
+  </g>
+  <text x="960" y="980" fill="#c084fc" font-family="Cinzel, serif" font-size="28" text-anchor="middle" letter-spacing="8">THE ABYSS WATCHES</text>
+</svg>

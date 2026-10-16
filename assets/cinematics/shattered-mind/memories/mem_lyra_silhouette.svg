@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <radialGradient id="lyraAura" cx="960" cy="540" r="500">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.18"/>
+      <stop offset="50%" stop-color="#1e1b4b" stop-opacity="0.45"/>
+      <stop offset="100%" stop-color="#010204" stop-opacity="1"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#lyraAura)"/>
+  <!-- Lyra Cloaked Silhouette -->
+  <g transform="translate(960, 480)" fill="#030712">
+    <!-- Flowing Cloak -->
+    <path d="M -60 -120 Q -180 180 -140 380 L 140 380 Q 180 180 60 -120 Z"/>
+    <!-- Hood and Turned Profile -->
+    <circle cx="0" cy="-160" r="55"/>
+    <path d="M -50 -180 Q 0 -240 50 -180 Q 70 -120 0 -100 Q -70 -120 -50 -180 Z"/>
+    <!-- Outstretched Desperate Arm Reaching to Rowan -->
+    <path d="M 40 -80 Q 160 -100 240 -120 L 250 -95 Q 160 -80 40 -50 Z"/>
+    <circle cx="255" cy="-105" r="14" fill="#38bdf8" opacity="0.7"/>
+  </g>
+  <text x="960" y="960" fill="#7dd3fc" font-family="Cinzel, serif" font-size="26" text-anchor="middle" letter-spacing="8">“DO NOT LOOK BACK, ROWAN.”</text>
+</svg>

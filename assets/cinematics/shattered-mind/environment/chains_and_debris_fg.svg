@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="chainLink" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#020408"/>
+      <stop offset="40%" stop-color="#1e293b"/>
+      <stop offset="70%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#020408"/>
+    </linearGradient>
+    <linearGradient id="stoneCorner" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#03050a"/>
+      <stop offset="60%" stop-color="#0b0f19"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Left Foreground Heavy Chain -->
+  <g transform="translate(180, -20)">
+    <ellipse cx="0" cy="40" rx="14" ry="28" fill="none" stroke="url(#chainLink)" stroke-width="12"/>
+    <ellipse cx="0" cy="85" rx="26" ry="13" fill="none" stroke="url(#chainLink)" stroke-width="12"/>
+    <ellipse cx="0" cy="130" rx="14" ry="28" fill="none" stroke="url(#chainLink)" stroke-width="12"/>
+    <ellipse cx="0" cy="175" rx="26" ry="13" fill="none" stroke="url(#chainLink)" stroke-width="12"/>
+    <ellipse cx="0" cy="220" rx="14" ry="28" fill="none" stroke="url(#chainLink)" stroke-width="12"/>
+    <ellipse cx="0" cy="265" rx="26" ry="13" fill="none" stroke="url(#chainLink)" stroke-width="12"/>
+    <ellipse cx="0" cy="310" rx="14" ry="28" fill="none" stroke="url(#chainLink)" stroke-width="12"/>
+    <ellipse cx="0" cy="355" rx="26" ry="13" fill="none" stroke="url(#chainLink)" stroke-width="12"/>
+    <ellipse cx="0" cy="400" rx="14" ry="28" fill="none" stroke="url(#chainLink)" stroke-width="12"/>
+  </g>
+
+  <!-- Right Foreground Heavy Chain -->
+  <g transform="translate(1760, -40)">
+    <ellipse cx="0" cy="40" rx="15" ry="30" fill="none" stroke="url(#chainLink)" stroke-width="13"/>
+    <ellipse cx="0" cy="88" rx="28" ry="14" fill="none" stroke="url(#chainLink)" stroke-width="13"/>
+    <ellipse cx="0" cy="136" rx="15" ry="30" fill="none" stroke="url(#chainLink)" stroke-width="13"/>
+    <ellipse cx="0" cy="184" rx="28" ry="14" fill="none" stroke="url(#chainLink)" stroke-width="13"/>
+    <ellipse cx="0" cy="232" rx="15" ry="30" fill="none" stroke="url(#chainLink)" stroke-width="13"/>
+    <ellipse cx="0" cy="280" rx="28" ry="14" fill="none" stroke="url(#chainLink)" stroke-width="13"/>
+    <ellipse cx="0" cy="328" rx="15" ry="30" fill="none" stroke="url(#chainLink)" stroke-width="13"/>
+  </g>
+
+  <!-- Bottom Left Fractured Rubble Corner -->
+  <polygon points="-50,1100 240,1100 180,940 90,960 40,890 -50,910" fill="url(#stoneCorner)" stroke="#000000" stroke-width="4"/>
+
+  <!-- Bottom Right Fractured Rubble Corner -->
+  <polygon points="1970,1100 1680,1100 1740,920 1820,950 1890,880 1970,900" fill="url(#stoneCorner)" stroke="#000000" stroke-width="4"/>
+</svg>
