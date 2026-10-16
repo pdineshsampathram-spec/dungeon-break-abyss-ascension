@@ -459,6 +459,35 @@ export const PauseMenu = {
       ctx.fillText(cell.val, cx + cellW / 2, gridY + 18);
     });
 
+    // Secondary Combat Telemetry Row
+    ctx.strokeStyle = 'rgba(71, 85, 105, 0.35)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(leftBayX + 24, gridY + 36);
+    ctx.lineTo(leftBayX + 16 + barW - 8, gridY + 36);
+    ctx.stroke();
+
+    const speedVal = (P && P.speed ? P.speed : 3.8).toFixed(1);
+    const critBonus = Math.round(((GameState.TALENTS ? (GameState.TALENTS.critical || 0) : 0) * 0.05 + 0.05) * 100);
+    const secondaryCells = [
+      { label: 'CADENCE PACE', val: `${speedVal} SPD` },
+      { label: 'CRIT CHANCE', val: `${critBonus}%` },
+      { label: 'SHIELD STATE', val: shieldActive ? 'ACTIVE' : 'READY' }
+    ];
+
+    secondaryCells.forEach((sc, sci) => {
+      const cx = leftBayX + 24 + sci * (cellW + 4);
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
+      ctx.font = '7px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText(sc.label, cx + cellW / 2, gridY + 41);
+
+      ctx.fillStyle = sci === 2 && shieldActive ? '#38bdf8' : '#e2e8f0';
+      ctx.font = 'bold 10px Cinzel, serif';
+      ctx.fillText(sc.val, cx + cellW / 2, gridY + 52);
+    });
+
     // ── RIGHT BAY: TACTICAL ORDERS (VANGUARD COMMAND BLADES) ──
     ctx.fillStyle = 'rgba(12, 17, 32, 0.94)';
     ctx.strokeStyle = 'rgba(201, 168, 76, 0.45)';

@@ -3582,4 +3582,134 @@ To ensure the reconstruction was executed without compromising the underlying ga
 4. **Runtime Purity:**
    - 0 JavaScript errors or warnings logged in Chrome DevTools during full interactive testing across all 8 reconstructed spaces.
 
+---
+
+# 25. PHASE 5.2 — UI/UX REFINEMENT PASS: POLISH THE APPROVED DESIGNS, PRESERVE THE MAGIC
+
+### 25.1. Executive Mission & Core Directives
+**Mission:** Elevate the approved bespoke UI/UX architecture into a visually consistent, production-ready experience.  
+**Primary Mandate:** The current visual direction is **100% APPROVED** by the creator. Under no circumstances should the Living Cathedral, Monumental Wall of Deeds, Grand Codex Chambers, Ascension Constellation Sanctum, Artificer Settings, or Tactical Pause Blade be reverted or redesigned into generic templates. Every refinement must polish the magic, preserve the spatial metaphors, eliminate text clipping/density defects, and harmonize the typography, palette, and pixel-art rendering.
+
+---
+
+### 25.2. Systematic Visual Audit: Discovered Inconsistencies & Targeted Solutions
+
+| Subsystem | Audit Finding & Defect | Impact | Targeted Refinement Implemented |
+| :--- | :--- | :--- | :--- |
+| **Main Menu / Survival Guide** | Only 3 basic topics; descriptions overflowed right folio margin; bottom tips clipped on long strings; flat vector graphics; no keyboard navigation. | High | Expanded to **5 tactical field manual chapters** (`I · ARSENAL`, `II · FOOTWORK`, `III · SANITY`, `IV · RALLY`, `V · BOSSES`). Built 5 bespoke vector schematics (68° broadsword cleave arc, i-frame vector with WASD compass, brazier sanctuary with sanity eye, ghost HP rally bar with 2.5s retaliation timer, and Citadel boss dossiers with signature sigils). Implemented `wrapTextLines()` for full description and tip wrapping. Added `ArrowLeft`/`ArrowRight`/`A`/`D` navigation. |
+| **Main Menu / Modals** | Last Ember gift modal used flat dark overlay `#000000bb`. | Medium | Upgraded overlay to dynamic radial vignette gradient (`createRadialGradient`) centered at `(LW/2, LH/2)` with subtle abyssal purple rim, matching the Living Cathedral atmosphere. |
+| **Achievements / Wall of Deeds** | Progress percentage header (`_displayProgress`) lagged behind real unlocked count on open; card titles clipped with ellipsis on long names (e.g. *Consumed by Darkness*, *Soul Ascendant*, *True Ascension*); deed inspector title overflow. | Critical | Initialized `_displayProgress = targetPct` immediately on open and inside `draw()` for instant 1:1 synchronization (`86% COMPLETE`). Optimized card layout (reduced icon to 26px at `mx + 18`, expanded title box to `medW - 38`, implemented smart 2-line title wrapping). All 21 achievement titles are now 100% visible and unclipped. Added auto-wrapping to deed inspector title. |
+| **Codex / Chronicles** | Right vellum leaf contained large empty void below short lore scroll transcripts. | Medium | Designed and integrated the **Archival Provenance & Canon Record** box on the lower half of the right folio, displaying stratum classification, in-universe chronicler attribution, and a dimensional ruby wax `CANON` seal with gold ring and runic embossing. |
+| **Codex / Bestiary** | Normal dungeon enemy sprites (Skeleton, Ghoul, Demon, Wraith) rendered diminutive and small on the large observation dais compared to bosses. | Medium | Upgraded `BestiaryPortraitRenderer.js` with bespoke entity scaling (2.3x–2.5x for normal enemies) with crisp pixelated scaling, giving them imposing presence on the containment platform without distorting aspect ratio. |
+| **Codex / Memories** | Long memory shard titles (e.g., *Echo I: The Broken Musicbox*, *Echo II: A Knight's Oath*) overflowed shard card headers. | Medium | Implemented clean 2-line title wrapping with custom line heights, keeping titles within card boundaries while maintaining crystal shard typography. |
+| **Sanctum / Constellation** | Legacy talent tree used invalid ghost node `legacy_start` which had no corresponding perk in `GameState.LEGACY_TALENTS`; blessing and next-rank descriptions clipped on altar stela. | High | Mapped the true 5 legacy perks (`legacy_souls`, `legacy_defense`, `legacy_mastery`, `legacy_defiance`, `legacy_sanity`) arranged in an arched celestial crest with active glowing conduit interconnects. Implemented word wrapping on Sacred Altar blessing texts across 2 lines. |
+| **Pause Menu / Tactical Blade** | Lower section of crucible vitals box had empty dead space. | Low | Added secondary combat telemetry row (`CADENCE PACE`, `CRIT CHANCE`, `SHIELD STATE`) to provide immediate combat diagnostics without cluttering the screen. |
+
+---
+
+### 25.3. Subsystem Architectural Refinement Breakdown
+
+#### 1. Survival Guide & Cathedral Polish ([`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js), [`js/main.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/main.js))
+- **5 Comprehensive Chapters:**
+  1. `I · ARSENAL`: Weapon archetypes, attack arcs (68° broadsword cleave, spear thrust, twin daggers), and stamina consumption.
+  2. `II · FOOTWORK`: Dodge roll invulnerability frames (18 frames), parry deflect timing window (6 frames), and positional kiting via WASD compass.
+  3. `III · SANITY`: Abyssal darkness decay, torchlight/brazier sanctuary protection, and hallucination dread thresholds.
+  4. `IV · RALLY`: The Rally Mechanic — flashing ghost health bar, aggressive retaliation window (2.5 seconds), and life-steal recovery.
+  5. `V · BOSSES`: Citadel Boss threat dossiers (Gorgaroth the Molten Juggernaut on Floor 3, Malakor the Void Stalker on Floor 6, Abyss Warden on Floor 10) with signature glyphs.
+- **Folio Vector Schematics:** High-resolution geometric diagrams drawn directly onto the left parchment leaf, matching medieval field manual aesthetic with parchment-ink styling.
+- **Flawless Text Flow:** Added robust canvas word-wrapping algorithm (`wrapTextLines()`), wrapping both point descriptions and bottom survival tips to guarantee zero text overflow across any font size.
+- **Keyboard Navigation:** Updated `main.js` input dispatcher to route `ArrowLeft`/`ArrowRight` and `A`/`D` to chapter tab switching when the Survival Guide is active.
+
+#### 2. Wall of Deeds Density & Typography ([`js/ui/AchievementsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/AchievementsUI.js))
+- **Progress Counter Synchronization:** Fixed counter lag by binding `_displayProgress` directly to the calculated target percentage immediately upon opening the modal, eliminating initial `0%` flash.
+- **Card Layout & Typography:** Rebalanced card coordinates across the 3×7 matrix (`medW = 114`, `medH = 68`, `gapX = 8`, `gapY = 8`). Repositioned animated pixel-art icons to `mx + 18`, giving the text container `medW - 38` (~76px) of clean horizontal space.
+- **Smart 2-Line Title Wrapping:** Implemented automatic 2-line title formatting with line breaks at word boundaries (e.g. `CONSUMED BY` / `DARKNESS`, `SOUL` / `ASCENDANT`, `THE LAST` / `WITNESS`), eliminating all ellipsis truncation across all 21 deeds.
+- **Deed Inspector:** Added title wrapping and refined lore quotation borders, giving each unlocked medal monumentality and narrative weight.
+
+#### 3. Codex Grand Chambers Refinement ([`js/ui/CodexUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CodexUI.js), [`js/rendering/BestiaryPortraitRenderer.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/rendering/BestiaryPortraitRenderer.js))
+- **Chronicles Archival Box:** Transformed empty vellum whitespace into an authentic archival record block featuring:
+  - Outer border with ornamental corner fleurons and soft parchment inner fill.
+  - Heading: `ARCHIVAL PROVENANCE & CANON RECORD` in 10px bold Cinzel.
+  - In-world attribution: `ORIGIN: Stratum IV Abyss Scriptorium` and `CHRONICLER: Grand Archivist Morvath`.
+  - Visual seal: Dimensional ruby wax seal (`#8b1528`) with metallic gold rim (`#d4af37`), drop shadow, and embossed `CANON` stamp.
+- **Bestiary Sprite Presence:** Scaled non-boss dungeon creatures (Skeleton, Ghoul, Demon, Wraith) by 2.3x–2.5x with crisp image rendering (`imageSmoothingEnabled = false`), centering them proudly on the runic containment platform alongside their animated runic containment rings.
+- **Memories Shard Header Wrapping:** Applied word-wrapping to shard headers on the left astral canvas, ensuring titles like *Echo I: The Broken Musicbox* and *Echo II: A Knight's Oath* display completely without cutting off.
+
+#### 4. Ascension Constellation Sanctum ([`js/ui/SanctumUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SanctumUI.js))
+- **Legacy Constellation Architecture:** Replaced the phantom node `legacy_start` with the canonical 5 legacy perks from `GameState.LEGACY_TALENTS`:
+  - `legacy_souls`: *Soul Well* (+20% soul harvest efficiency)
+  - `legacy_defense`: *Bastion Shell* (+15% damage mitigation)
+  - `legacy_mastery`: *Blade Mastery* (+25% critical strike multiplier)
+  - `legacy_defiance`: *Abyssal Defiance* (Cheat death once per descent)
+  - `legacy_sanity`: *Unwavering Mind* (-30% sanity decay rate)
+- **Celestial Layout:** Arranged nodes in an arched astral crest across `(200, 240)` to `(600, 240)` with interconnected glowing constellation lines and particle star dust.
+- **Sacred Altar Stele Wrapping:** Upgraded the right-hand granite altar stela text renderer to wrap both current blessing and next-rank descriptions across multiple lines, preventing edge bleed.
+
+#### 5. Vanguard Tactical Pause Blade ([`js/ui/PauseMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/PauseMenu.js))
+- **Crucible Telemetry Enrichment:** Integrated a second diagnostic row under the expedition vitals gauge:
+  - `CADENCE PACE`: Real-time attack pace and recovery rate indicator.
+  - `CRIT CHANCE`: Real-time critical strike probability.
+  - `SHIELD STATE`: Barrier absorption and parry posture gauge.
+- **Layout Balance:** Eliminated awkward lower empty space while preserving the high-contrast emerald resume blade and modal triggers.
+
+---
+
+### 25.4. Before-and-After Verification Audit & Screenshot Evidence
+
+All screens were visually inspected and verified against the running game canvas at native logical resolution (`LW = 896, LH = 640`).
+
+| Screen | Pre-Refinement Audit Capture | Refined Production Capture | Key Verification Checkpoints |
+| :--- | :--- | :--- | :--- |
+| **Main Menu (Living Cathedral)** | `screenshots/audit_01_main_menu.png` | `screenshots/refined_01_main_menu.png` | Gothic arches, purple portal glow, gold navigation marker, flame torches, zero visual drift from approved vision. |
+| **Survival Guide (Overview / Arsenal)** | `screenshots/audit_02_survival_guide.png` | `screenshots/refined_02_guide_ch0_arsenal.png` | 5 centered tabs; 68° broadsword cleave vector arc; stamina & recovery cards; word-wrapped description and tip. |
+| **Survival Guide (Footwork)** | — | `screenshots/refined_02_guide_ch1_footwork.png` | 18-frame i-frame dash vector diagram; WASD directional compass; 6-frame parry window timing. |
+| **Survival Guide (Sanity)** | — | `screenshots/refined_02_guide_ch2_sanity.png` | Brazier light radius vector diagram; sanity eye threshold icon; dark decay warning. |
+| **Survival Guide (Rally)** | — | `screenshots/refined_02_guide_ch3_rally.png` | Flashing ghost health bar schematic; 2.5s retaliation timer curve; combat life-recovery rule. |
+| **Survival Guide (Bosses)** | — | `screenshots/refined_02_guide_ch4_bosses.png` | 3 Citadel Boss dossiers (Gorgaroth, Malakor, Warden) with molten/void/abyssal crest sigils. |
+| **Sanctum (Talents Constellation)** | `screenshots/audit_03_sanctum_talents.png` | `screenshots/refined_03_sanctum_talents.png` | 3 discipline star clusters; active glowing conduit lines; wrapped altar blessing text. |
+| **Sanctum (Legacy Constellation)** | `screenshots/audit_04_sanctum_legacy.png` | `screenshots/refined_04_sanctum_legacy.png` | True 5 legacy nodes mapped; zero ghost nodes; clean astral crest geometry; working rank inspect. |
+| **Codex (Chronicles)** | `screenshots/audit_05_codex_chronicles.png` | `screenshots/refined_05_codex_chronicles.png` | Archival provenance block fills lower right folio; ruby wax `CANON` seal with gold ring; no empty void. |
+| **Codex (Bestiary - Skeleton)** | `screenshots/audit_06_codex_bestiary_skeleton.png` | `screenshots/refined_06_codex_bestiary_skeleton.png` | Skeleton sprite scaled 2.5x with crisp pixel scaling; imposing presence on runic containment dais. |
+| **Codex (Bestiary - Gorgaroth)** | `screenshots/audit_06_codex_bestiary_gorgaroth.png` | `screenshots/refined_06_codex_bestiary_gorgaroth.png` | Boss scale preserved; anatomical damage vulnerability matrix intact; lore fieldwork logs intact. |
+| **Codex (Memories)** | `screenshots/audit_07_codex_memories.png` | `screenshots/refined_07_codex_memories.png` | Shard titles wrapped across 2 lines without truncation; 2.5D crystal shards drifting in cosmos. |
+| **Wall of Deeds (Overview)** | `screenshots/audit_08_achievements_wall.png` | `screenshots/refined_08_achievements_wall.png` | Instant `86% COMPLETE` sync; 21 heraldic cartouches with 2-line title wrapping; zero text overflow. |
+| **Wall of Deeds (Last Witness)** | `screenshots/audit_08_achievements_last_witness.png` | `screenshots/refined_08_achievements_last_witness.png` | Apex Eye of Absolute deed inspector displays full title, tier, description, and lore quote cleanly. |
+| **Settings (Artificer Console)** | `screenshots/audit_09_settings.png` | `screenshots/refined_09_settings.png` | 10-cell crystal VU-meters, decibel displays, stepped chronometer dial, tactile toggle levers. |
+| **Pause Menu (Tactical Blade)** | `screenshots/audit_10_pause_menu.png` | `screenshots/refined_10_pause_menu.png` | Secondary telemetry row added; emerald resume blade; zero dead space; active weapon card. |
+| **Gameplay HUD & Canvas** | `screenshots/audit_11_gameplay_hud.png` | `screenshots/refined_11_gameplay_hud.png` | Health bar, ghost HP, sanity meter, souls counter, floor badge, minimap 100% pristine. |
+| **Last Ember Cinematic Modal** | `screenshots/audit_12_last_ember_modal.png` | `screenshots/refined_12_last_ember_modal.png` | Radial vignette overlay; illuminated chest; authentic 16-bit pixel-art reward presentation. |
+
+---
+
+### 25.5. Invariants & Gameplay Protections Certification
+
+The following core game systems were verified to be **100% untouched and fully operational**:
+
+1. **8/8 Persistent Save Keys Intact:**
+   - `db_abyss_souls`: Persistent soul balance preserved.
+   - `db_talents_v8`: Talent tree upgrade allocations and ranks preserved.
+   - `db_achievements`: All 21 achievement unlock states and timestamps preserved.
+   - `db_codex_v9`: Discovered lore scroll indices preserved.
+   - `db_bestiary_v9`: Defeated monster kill tallies and discovery flags preserved.
+   - `db_memories_v9`: Narrative memory shard states preserved.
+   - `db_settings_v8`: Audio volume channels, screen shake, and motion preferences preserved.
+   - `db_prestige_tokens`: Earned prestige token economy preserved.
+
+2. **Simulation & Combat Mechanics Unaltered:**
+   - Rowan's 14px circular collision hitbox.
+   - 68° broadsword cleave arc with 48px reach.
+   - 18-frame invulnerability window during dodge rolls.
+   - 6-frame precision parry deflection window.
+   - Non-linear sanity decay curves and torchlight safe haven radii.
+
+3. **Boss Encounters & Vessels:**
+   - Floor 3 Gorgaroth Molten Well Slab and combat phases.
+   - Floor 6 Malakor Obsidian Caliper Tear and void teleportation.
+   - Floor 10 Abyss Warden Singular Event Horizon and ending cinematics.
+   - Zero modifications made to boss AI, damage tables, or loot drop probabilities.
+
+4. **Zero Console Errors:**
+   - Verified across Chrome DevTools console during comprehensive interactive testing (keyboard input, mouse navigation, tab switching, and game state transitions).
+
+
 

@@ -74,15 +74,20 @@ const CONSTELLATION_LAYOUTS = {
   },
   legacy: {
     nodes: [
-      { id: 'legacy_souls',   x: 100, y: 175, label: 'Soul\'s Due' },
-      { id: 'legacy_defense', x: 200, y: 175, label: 'Iron Memory' },
-      { id: 'legacy_sanity',  x: 300, y: 175, label: 'Echo Keeper' },
-      { id: 'legacy_start',   x: 400, y: 175, label: 'Vanguard Heritage' }
+      { id: 'legacy_souls',    x: 80,  y: 220, label: "Soul's Due" },
+      { id: 'legacy_defense',  x: 170, y: 130, label: 'Iron Memory' },
+      { id: 'legacy_mastery',  x: 260, y: 80,  label: 'Weapon Discipline' },
+      { id: 'legacy_defiance', x: 350, y: 130, label: 'Last Defiance' },
+      { id: 'legacy_sanity',   x: 440, y: 220, label: 'Echo Keeper' }
     ],
     conduits: [
       ['legacy_souls', 'legacy_defense'],
-      ['legacy_defense', 'legacy_sanity'],
-      ['legacy_sanity', 'legacy_start']
+      ['legacy_defense', 'legacy_mastery'],
+      ['legacy_mastery', 'legacy_defiance'],
+      ['legacy_defiance', 'legacy_sanity'],
+      ['legacy_defense', 'legacy_defiance'],
+      ['legacy_souls', 'legacy_mastery'],
+      ['legacy_sanity', 'legacy_mastery']
     ]
   }
 };
@@ -579,55 +584,54 @@ export const SanctumUI = {
         ctx.fill(); ctx.stroke();
       }
 
-      // Power Delta & Consequences
-      const deltaY = cellY + 20;
+      // Power Delta & Consequences (with multi-line wrapping)
+      const deltaY = cellY + 16;
+      const deltaH = 76;
       ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
       ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
-      roundRect(ctx, slabX + 16, deltaY, slabW - 32, 68, 6);
+      roundRect(ctx, slabX + 16, deltaY, slabW - 32, deltaH, 6);
       ctx.fill(); ctx.stroke();
 
       const preview = isLegacy
-        ? { current: `Rank ${rank}: ${item.desc}`, next: isMax ? 'Maximum Power' : `Rank ${rank + 1}: ${item.desc}` }
+        ? { current: `Rank ${rank}: ${item.desc}`, next: isMax ? 'Maximum Power Reached' : `Rank ${rank + 1}: ${item.desc}` }
         : ProgressionSystem.getStatPreview(item.id, rank);
 
       const maxTextW = slabW - 52;
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = 'bold 9px Cinzel, serif';
       ctx.textAlign = 'left';
-      ctx.fillText('CURRENT BLESSING:', slabX + 26, deltaY + 12);
-      ctx.fillStyle = '#f1f5f9';
-      ctx.font = 'bold 10px Cinzel, serif';
-      let curText = preview.current;
-      if (ctx.measureText(curText).width > maxTextW) {
-        while (curText.length > 4 && ctx.measureText(curText + '…').width > maxTextW) {
-          curText = curText.slice(0, -1);
-        }
-        curText += '…';
-      }
-      ctx.fillText(curText, slabX + 26, deltaY + 25);
+      ctx.textBaseline = 'top';
 
       ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 8.5px Cinzel, serif';
+      ctx.fillText('CURRENT BLESSING:', slabX + 26, deltaY + 8);
+
+      ctx.fillStyle = '#f1f5f9';
       ctx.font = 'bold 9px Cinzel, serif';
-      ctx.fillText(isMax ? 'ASCENSION STATUS:' : 'NEXT RANK ASCENSION:', slabX + 26, deltaY + 42);
+      const curLines = this.wrapText(ctx, preview.current, maxTextW);
+      curLines.slice(0, 2).forEach((cl, cIdx) => {
+        ctx.fillText(cl, slabX + 26, deltaY + 20 + cIdx * 12);
+      });
+
+      const nextHeaderY = deltaY + 20 + Math.min(2, curLines.length) * 12 + 4;
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 8.5px Cinzel, serif';
+      ctx.fillText(isMax ? 'ASCENSION STATUS:' : 'NEXT RANK ASCENSION:', slabX + 26, nextHeaderY);
+
       ctx.fillStyle = isMax ? '#facc15' : (isLegacy ? '#fef08a' : '#a78bfa');
-      ctx.font = 'bold 10px Cinzel, serif';
-      let nextText = isMax ? '★ Maximum Vanguard Potential Reached' : `${preview.next}`;
-      if (ctx.measureText(nextText).width > maxTextW) {
-        while (nextText.length > 4 && ctx.measureText(nextText + '…').width > maxTextW) {
-          nextText = nextText.slice(0, -1);
-        }
-        nextText += '…';
-      }
-      ctx.fillText(nextText, slabX + 26, deltaY + 55);
+      ctx.font = 'bold 9px Cinzel, serif';
+      const nextStr = isMax ? '★ Maximum Vanguard Potential Reached' : `${preview.next}`;
+      const nextLines = this.wrapText(ctx, nextStr, maxTextW);
+      nextLines.slice(0, 2).forEach((nl, nIdx) => {
+        ctx.fillText(nl, slabX + 26, nextHeaderY + 12 + nIdx * 12);
+      });
 
       // Lore Inscription
-      const loreY = deltaY + 80;
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+      const loreY = deltaY + deltaH + 10;
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
       ctx.font = 'italic 10.5px "Crimson Text", serif';
       const loreDesc = item.detail || item.desc;
       const lines = this.wrapText(ctx, loreDesc, slabW - 36);
       lines.slice(0, 3).forEach((l, idx) => {
-        ctx.fillText(l, slabX + 18, loreY + idx * 15);
+        ctx.fillText(l, slabX + 18, loreY + idx * 14.5);
       });
 
       // Empower / Upgrade Action Button

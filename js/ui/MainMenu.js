@@ -45,8 +45,27 @@ let _nextIdleTimer = 10.0;
 let _TITLE_ANIM_T = 0;
 let _revealTimer = 0;
 let _howToPlayActive = false;
-let _fieldGuideChapter = 0; // 0: Arsenal, 1: Footwork, 2: Vitality, 3: Bosses
+let _fieldGuideChapter = 0; // 0: Arsenal, 1: Footwork, 2: Sanity, 3: Rally, 4: Bosses
 let _returnGoldenWash = 0;
+
+function wrapTextLines(ctx, text, maxWidth) {
+  if (!text) return [];
+  const words = text.split(' ');
+  const lines = [];
+  let current = '';
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const testLine = current ? current + ' ' + word : word;
+    if (ctx.measureText(testLine).width <= maxWidth) {
+      current = testLine;
+    } else {
+      if (current) lines.push(current);
+      current = word;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
 
 // Persistent atmospheric particles
 let _sparkParticles = [];
@@ -339,7 +358,7 @@ export const MainMenu = {
   navigateFocus(delta) {
     if (_giftModalOpen) return;
     if (_howToPlayActive) {
-      _fieldGuideChapter = (_fieldGuideChapter + delta + 4) % 4;
+      _fieldGuideChapter = (_fieldGuideChapter + delta + 5) % 5;
       SoundManager.snd('menu_hover');
       return;
     }
@@ -1479,15 +1498,16 @@ export const MainMenu = {
       ctx.font = 'italic 11px "Crimson Text", serif';
       ctx.fillText('ARCHIVAL COMBAT DOCTRINE & SURVIVAL PROTOCOLS OF THE ABYSS', LW / 2, my + 34);
 
-      // Four Chapter Folio Tabs
+      // Five Chapter Folio Tabs
       const chapterTabs = [
-        { id: 0, label: 'I · THE ARSENAL' },
-        { id: 1, label: 'II · FOOTWORK & LIGHT' },
-        { id: 2, label: 'III · VITALITY & RALLY' },
-        { id: 3, label: 'IV · CITADEL BOSSES' }
+        { id: 0, label: 'I · ARSENAL' },
+        { id: 1, label: 'II · FOOTWORK' },
+        { id: 2, label: 'III · SANITY' },
+        { id: 3, label: 'IV · RALLY' },
+        { id: 4, label: 'V · BOSSES' }
       ];
 
-      const tabW = 188, tabH = 26;
+      const tabW = 148, tabH = 26;
       const tabStartX = mx + Math.round((mw - (chapterTabs.length * tabW + (chapterTabs.length - 1) * 6)) / 2);
       const tabY = my + 52;
 
@@ -1503,14 +1523,14 @@ export const MainMenu = {
         ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = isSel ? '#fde68a' : (isHover ? '#ffffff' : '#94a3b8');
-        ctx.font = 'bold 10px Cinzel, serif';
+        ctx.font = 'bold 9.5px Cinzel, serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(tab.label, tx + tabW / 2, tabY + tabH / 2);
 
         if (isSel) {
           ctx.fillStyle = '#f59e0b';
-          ctx.fillRect(tx + 16, tabY + tabH - 2, tabW - 32, 2);
+          ctx.fillRect(tx + 14, tabY + tabH - 2, tabW - 28, 2);
         }
       });
 
@@ -1633,23 +1653,101 @@ export const MainMenu = {
         ctx.fillText('--- [ HOLD SHIFT ] PIERCING ARROW TRAJECTORY --->', cx, spreadY + 332);
 
       } else if (_fieldGuideChapter === 1) {
-        // CHAPTER 1: FOOTWORK & ILLUMINATION
-        const cx = leftX + leftW / 2, cy = spreadY + 140;
+        // CHAPTER 1: FOOTWORK & DODGE CADENCE
+        const cx = leftX + leftW / 2, cy = spreadY + 120;
+
+        // Dodge roll vector schematic
+        const dy = spreadY + 140;
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(cx - 120, dy); ctx.lineTo(cx + 110, dy);
+        ctx.stroke();
+
+        // Arrow head on vector
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.moveTo(cx + 120, dy);
+        ctx.lineTo(cx + 105, dy - 6);
+        ctx.lineTo(cx + 105, dy + 6);
+        ctx.closePath();
+        ctx.fill();
+
+        // 4 after-images showing evasion phase
+        for (let g = 0; g < 4; g++) {
+          const gx = cx - 100 + g * 65;
+          ctx.fillStyle = `rgba(56, 189, 248, ${0.12 + g * 0.22})`;
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.2;
+          roundRect(ctx, gx - 14, dy - 26, 28, 28, 5);
+          ctx.fill(); ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 8.5px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`F${g * 6}`, gx, dy - 12);
+        }
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 10.5px Cinzel, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText('[ 18-FRAME ABSOLUTE INVULNERABILITY WINDOW ]', cx, dy + 24);
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
+        ctx.font = 'italic 9.5px "Crimson Text", serif';
+        ctx.fillText('Rowan phases through monster physical sweeps, cleaves & projectile rings', cx, dy + 40);
+
+        // Directional WASD compass at bottom
+        const compassY = spreadY + 235;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
+        roundRect(ctx, cx - 130, compassY, 260, 94, 6);
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = '#fde68a';
+        ctx.font = 'bold 9.5px Cinzel, serif';
+        ctx.fillText('DIRECTIONAL EVASION CADENCE', cx, compassY + 12);
+
+        const keys = [
+          { label: 'W', x: cx, y: compassY + 34 },
+          { label: 'A', x: cx - 36, y: compassY + 62 },
+          { label: 'S', x: cx, y: compassY + 62 },
+          { label: 'D', x: cx + 36, y: compassY + 62 }
+        ];
+        keys.forEach(k => {
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 1;
+          roundRect(ctx, k.x - 14, k.y - 12, 28, 24, 3);
+          ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#f1f5f9';
+          ctx.font = 'bold 9.5px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(k.label, k.x, k.y);
+        });
+
+      } else if (_fieldGuideChapter === 2) {
+        // CHAPTER 2: ILLUMINATION & SANITY
+        const cx = leftX + leftW / 2, cy = spreadY + 125;
 
         // Torchlight sanctuary circle
-        const rad = 72;
+        const rad = 68;
         const lightGrad = ctx.createRadialGradient(cx, cy, 8, cx, cy, rad);
-        lightGrad.addColorStop(0, 'rgba(253, 230, 138, 0.4)');
-        lightGrad.addColorStop(0.7, 'rgba(217, 119, 6, 0.15)');
+        lightGrad.addColorStop(0, 'rgba(253, 230, 138, 0.45)');
+        lightGrad.addColorStop(0.7, 'rgba(217, 119, 6, 0.18)');
         lightGrad.addColorStop(1, 'rgba(2, 6, 23, 0)');
         ctx.fillStyle = lightGrad;
         ctx.beginPath();
         ctx.arc(cx, cy, rad, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)';
         ctx.lineWidth = 1.2;
         ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.arc(cx, cy, rad, 0, Math.PI * 2);
         ctx.stroke();
         ctx.setLineDash([]);
 
@@ -1664,47 +1762,54 @@ export const MainMenu = {
         ctx.fillStyle = '#fde68a';
         ctx.font = 'bold 9.5px Cinzel, serif';
         ctx.textAlign = 'center';
-        ctx.fillText('SANCTUARY RADIUS · SANITY PRESERVED', cx, cy + rad + 14);
+        ctx.textBaseline = 'top';
+        ctx.fillText('SANCTUARY RADIUS · SANITY DRAIN HALTED', cx, cy + rad + 10);
 
-        // Dodge roll vector schematic
-        const dy = spreadY + 260;
-        ctx.strokeStyle = '#38bdf8';
+        // Sanity Eye Gauge at bottom
+        const ey = spreadY + 230;
+        ctx.fillStyle = '#c084fc';
+        ctx.font = 'bold 10px Cinzel, serif';
+        ctx.fillText('COGNITIVE EQUILIBRIUM · THE EYE OF MADNESS', cx, ey);
+
+        // Eye illustration
+        ctx.strokeStyle = '#a855f7';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(cx - 110, dy); ctx.lineTo(cx + 90, dy);
+        ctx.ellipse(cx, ey + 32, 42, 20, 0, 0, Math.PI * 2);
         ctx.stroke();
 
-        // 3 after-images
-        for (let g = 0; g < 3; g++) {
-          const gx = cx - 80 + g * 60;
-          ctx.fillStyle = `rgba(56, 189, 248, ${0.15 + g * 0.25})`;
-          ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 1;
-          roundRect(ctx, gx - 12, dy - 22, 24, 24, 4);
-          ctx.fill(); ctx.stroke();
-        }
+        ctx.fillStyle = '#7e22ce';
+        ctx.beginPath(); ctx.arc(cx, ey + 32, 11, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(cx - 3, ey + 29, 3.5, 0, Math.PI * 2); ctx.fill();
 
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 9.5px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('[ 18-FRAME INVULNERABILITY ROLL WINDOW ]', cx, dy + 22);
-        ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
-        ctx.font = 'italic 9px "Crimson Text", serif';
-        ctx.fillText('Phases through all enemy strikes and projectile rings', cx, dy + 36);
+        const sanityStages = [
+          { label: '>70% VIGILANT', col: '#4ade80', x: cx - 105 },
+          { label: '<30% DISTORTED', col: '#facc15', x: cx },
+          { label: '0% SHATTERED', col: '#ef4444', x: cx + 105 }
+        ];
+        sanityStages.forEach(st => {
+          ctx.fillStyle = st.col;
+          ctx.font = 'bold 8.5px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(st.label, st.x, ey + 68);
+        });
 
-      } else if (_fieldGuideChapter === 2) {
-        // CHAPTER 2: VITALITY & RALLY SYSTEM
+      } else if (_fieldGuideChapter === 3) {
+        // CHAPTER 3: GHOST HEALTH & RALLY SYSTEM
         const cx = leftX + leftW / 2;
 
         // Health Bar with Ghost Health
-        const hby = spreadY + 70;
+        const hby = spreadY + 65;
         ctx.fillStyle = '#94a3b8';
         ctx.font = 'bold 10px Cinzel, serif';
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
         ctx.fillText('ROWAN VITALITY & GHOST HEALTH RALLY', cx, hby);
 
-        const barW = 280, barH = 24;
-        const bx = cx - barW / 2, by = hby + 12;
+        const barW = 280, barH = 26;
+        const bx = cx - barW / 2, by = hby + 16;
 
         ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
         ctx.strokeStyle = 'rgba(71, 85, 105, 0.6)';
@@ -1724,53 +1829,51 @@ export const MainMenu = {
 
         // Siphon arrow
         ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 1.8;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(bx + barW * 0.78, by + 36);
-        ctx.quadraticCurveTo(bx + barW * 0.64, by + 46, bx + barW * 0.52, by + barH + 2);
+        ctx.moveTo(bx + barW * 0.78, by + 38);
+        ctx.quadraticCurveTo(bx + barW * 0.64, by + 50, bx + barW * 0.52, by + barH + 2);
         ctx.stroke();
 
         ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 9px Cinzel, serif';
+        ctx.font = 'bold 9.5px Cinzel, serif';
         ctx.textAlign = 'center';
-        ctx.fillText('COUNTER-ATTACK TO SIPHON GHOST HP BACK', cx, by + 48);
+        ctx.fillText('COUNTER-ATTACK TO SIPHON GHOST HP BACK', cx, by + 52);
 
-        // Sanity Eye Gauge
-        const ey = spreadY + 230;
-        ctx.fillStyle = '#c084fc';
-        ctx.font = 'bold 10px Cinzel, serif';
-        ctx.fillText('PSYCHIC EQUILIBRIUM · THE EYE OF MADNESS', cx, ey);
+        // Emergency window timer bar
+        const ty = spreadY + 220;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+        ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
+        roundRect(ctx, cx - 130, ty, 260, 94, 6);
+        ctx.fill(); ctx.stroke();
 
-        // Eye illustration
-        ctx.strokeStyle = '#a855f7';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.ellipse(cx, ey + 36, 44, 22, 0, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.fillStyle = '#fde68a';
+        ctx.font = 'bold 9.5px Cinzel, serif';
+        ctx.fillText('2.5-SECOND EMERGENCY RETALIATION WINDOW', cx, ty + 12);
 
-        ctx.fillStyle = '#7e22ce';
-        ctx.beginPath(); ctx.arc(cx, ey + 36, 12, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath(); ctx.arc(cx - 3, ey + 33, 4, 0, Math.PI * 2); ctx.fill();
+        // Timer track
+        ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+        roundRect(ctx, cx - 100, ty + 34, 200, 14, 3);
+        ctx.fill();
 
-        const sanityStages = [
-          { label: '>70% VIGILANT', col: '#4ade80', x: cx - 100 },
-          { label: '<30% DISTORTED', col: '#facc15', x: cx },
-          { label: '0% SHATTERED', col: '#ef4444', x: cx + 100 }
-        ];
-        sanityStages.forEach(st => {
-          ctx.fillStyle = st.col;
-          ctx.font = 'bold 8.5px monospace';
-          ctx.fillText(st.label, st.x, ey + 78);
-        });
+        const timerPulse = (F * 0.05) % 1.0;
+        ctx.fillStyle = '#38bdf8';
+        roundRect(ctx, cx - 100, ty + 34, 200 * (1 - timerPulse), 14, 3);
+        ctx.fill();
 
-      } else if (_fieldGuideChapter === 3) {
-        // CHAPTER 3: CITADEL BOSSES
-        const cx = leftX + leftW / 2;
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = 'bold 8.5px monospace';
+        ctx.fillText('STRIKE WITHIN WINDOW TO PREVENT LOSS', cx, ty + 62);
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
+        ctx.font = 'italic 9px "Crimson Text", serif';
+        ctx.fillText('Ghost health decays completely if no counter-strike lands', cx, ty + 78);
+
+      } else if (_fieldGuideChapter === 4) {
+        // CHAPTER 4: CITADEL BOSSES
         const bosses = [
-          { name: 'GORGAROTH THE DEFILER', floor: 'FLOOR 3', title: 'THE MOLTEN FORGE', col: '#f97316' },
-          { name: 'MALAKOR THE DREADLORD', floor: 'FLOOR 6', title: 'THE VOID RIFT', col: '#a855f7' },
-          { name: 'THE ABYSS WARDEN', floor: 'FLOOR 10', title: 'THE SUNKEN THRONE', col: '#ef4444' }
+          { name: 'GORGAROTH THE DEFILER', floor: 'FLOOR 3', title: 'THE MOLTEN FORGE', col: '#f97316', sigil: '⚔' },
+          { name: 'MALAKOR THE DREADLORD', floor: 'FLOOR 6', title: 'THE VOID RIFT', col: '#a855f7', sigil: '✦' },
+          { name: 'THE ABYSS WARDEN', floor: 'FLOOR 10', title: 'THE SUNKEN THRONE', col: '#ef4444', sigil: '♛' }
         ];
 
         bosses.forEach((b, i) => {
@@ -1784,15 +1887,16 @@ export const MainMenu = {
           ctx.fillStyle = b.col;
           ctx.font = 'bold 9px monospace';
           ctx.textAlign = 'left';
-          ctx.fillText(b.floor, leftX + 28, by + 18);
+          ctx.textBaseline = 'top';
+          ctx.fillText(b.floor, leftX + 28, by + 16);
 
           ctx.fillStyle = '#fde68a';
           ctx.font = 'bold 11px Cinzel, serif';
-          ctx.fillText(b.name, leftX + 28, by + 36);
+          ctx.fillText(b.name, leftX + 28, by + 34);
 
           ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
           ctx.font = 'italic 9.5px "Crimson Text", serif';
-          ctx.fillText(`Locus: ${b.title} · Conquering unlocks permanent threshold`, leftX + 28, by + 54);
+          ctx.fillText(`Locus: ${b.title} · Unlocks forged threshold`, leftX + 28, by + 52);
 
           // Boss Runic Sigil Box on right
           ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
@@ -1803,7 +1907,7 @@ export const MainMenu = {
           ctx.font = '16px Cinzel, serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(i === 0 ? '⚔' : (i === 1 ? '✦' : '♛'), leftX + leftW - 49, by + 41);
+          ctx.fillText(b.sigil, leftX + leftW - 49, by + 41);
         });
       }
 
@@ -1818,38 +1922,49 @@ export const MainMenu = {
         {
           num: 'CHAPTER I',
           title: 'THE VANGUARD ARSENAL',
-          subtitle: 'Armed Engagement & Rapid Tactical Switching',
+          subtitle: 'Armed Engagement, Stagger Poise & Rapid Switching',
           points: [
             { tag: '[ SPACE / LMB ]', desc: 'Execute primary weapon cleave. Deals heavy physical poise damage and staggers frontliners.' },
-            { tag: '[ HOLD SHIFT ]', desc: 'Draw the Longbow for piercing projectile shots. Quiver replenishes in combat.' },
-            { tag: '[ KEYS 1 - 3 ]', desc: 'Instant hotkey weapon switching. Swap to secondary blade or defensive shield mid-combo.' }
+            { tag: '[ HOLD SHIFT ]', desc: 'Draw the Longbow for piercing projectile shots. Quiver replenishes in active combat.' },
+            { tag: '[ KEYS 1 - 3 ]', desc: 'Instant hotkey weapon switching. Swap between heavy blade, swift daggers, and shield mid-combo.' }
           ],
           tip: 'Tip: Strike immediately following an enemy whiff to capitalize on recovery vulnerability frames.'
         },
         {
           num: 'CHAPTER II',
-          title: 'FOOTWORK & ILLUMINATION',
-          subtitle: 'Evasion Cadence & Braziers of Light',
+          title: 'FOOTWORK & DODGE CADENCE',
+          subtitle: 'Invulnerability Frames & Directional Repositioning',
           points: [
-            { tag: '[ WASD / ARROWS ]', desc: 'Directional footwork. Rowan accelerates swiftly to reposition away from crushing sweeps.' },
-            { tag: '[ EVASION ROLL ]', desc: 'Dodge rolling grants 18 frames of absolute invulnerability through monster attacks.' },
-            { tag: '[ LIT BRAZIERS ]', desc: 'Wall torches push back deep dungeon darkness. Lingering near light halts sanity erosion.' }
+            { tag: '[ WASD / ARROWS ]', desc: 'Directional footwork. Rowan accelerates swiftly to maintain safe spacing and kite swarms.' },
+            { tag: '[ EVASION ROLL ]', desc: 'Dodge rolling grants 18 frames of absolute invulnerability through all enemy swings and hazards.' },
+            { tag: '[ STAMINA PACING ]', desc: 'Avoid exhausting your evasive cadence; reserve roll charges for telegraphed boss attacks.' }
           ],
-          tip: 'Tip: Never get backed into pitch-black dead ends where sanity drain accelerates violently.'
+          tip: 'Tip: Never roll directly into walls or corners where recovery frames can be punished.'
         },
         {
           num: 'CHAPTER III',
-          title: 'VITALITY & PSYCHIC STABILITY',
-          subtitle: 'The Rally Siphon & Cognitive Sanity Decay',
+          title: 'ILLUMINATION & SANITY',
+          subtitle: 'Braziers of Light & Mind Equilibrium Protocols',
           points: [
-            { tag: '[ GHOST HEALTH ]', desc: 'Inflicted wounds temporarily register as grey ghost health for 2.5 seconds.' },
-            { tag: '[ RALLY SIPHON ]', desc: 'Striking hostile abominations immediately siphons and restores lost life force.' },
-            { tag: '[ SANITY COLLAPSE ]', desc: 'Zero sanity plunges Rowan into the harrowing trial of Shattered Mind.' }
+            { tag: '[ LIT BRAZIERS ]', desc: 'Wall torches push back deep dungeon darkness. Lingering near illumination halts sanity decay.' },
+            { tag: '[ SHADOW DRAIN ]', desc: 'Pitch-black corridors rapidly erode cognitive stability, causing visual phantom mirages.' },
+            { tag: '[ SHATTERED MIND ]', desc: 'Dropping to zero sanity triggers the harrowing trial of Shattered Mind where reality collapses.' }
           ],
-          tip: 'Tip: Slaying foes releases psychic essence, partially soothing mental decay.'
+          tip: 'Tip: Slaying shadow abominations releases psychic essence, partially soothing mental decay.'
         },
         {
           num: 'CHAPTER IV',
+          title: 'GHOST HEALTH & RALLY',
+          subtitle: 'The Siphon Window & Aggressive Retaliation',
+          points: [
+            { tag: '[ GHOST HEALTH ]', desc: 'Inflicted wounds temporarily register as grey ghost health for an emergency 2.5-second window.' },
+            { tag: '[ RALLY SIPHON ]', desc: 'Striking hostile abominations immediately siphons and restores lost life force before it fades.' },
+            { tag: '[ RISK & REWARD ]', desc: 'Aggressive calculated counter-attacks can fully nullify received damage without using potions.' }
+          ],
+          tip: 'Tip: Heavy weapons with wide cleaves restore larger chunks of ghost health per swing.'
+        },
+        {
+          num: 'CHAPTER V',
           title: 'CITADEL TITANS & BOSS PROTOCOLS',
           subtitle: 'Ancient Lords of the Subterranean Citadel',
           points: [
@@ -1861,7 +1976,7 @@ export const MainMenu = {
         }
       ];
 
-      const doc = doctrines[_fieldGuideChapter];
+      const doc = doctrines[_fieldGuideChapter] || doctrines[0];
 
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
@@ -1871,7 +1986,7 @@ export const MainMenu = {
       ctx.fillText(`◈ ${doc.num} · TACTICAL DOCTRINE`, rightX + 20, spreadY + 16);
 
       ctx.fillStyle = '#fde68a';
-      ctx.font = 'bold 15px Cinzel, serif';
+      ctx.font = 'bold 14.5px Cinzel, serif';
       ctx.fillText(doc.title, rightX + 20, spreadY + 34);
 
       ctx.fillStyle = 'rgba(148, 163, 184, 0.8)';
@@ -1885,41 +2000,50 @@ export const MainMenu = {
       ctx.lineTo(rightX + rightW - 20, spreadY + 74);
       ctx.stroke();
 
-      // Points list
+      // Points list with strict word wrapping within right folio bounds
+      const maxDescW = rightW - 40;
       doc.points.forEach((pt, idx) => {
-        const py = spreadY + 86 + idx * 72;
+        const py = spreadY + 84 + idx * 72;
 
+        // Tag pill
         ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
         ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
         ctx.lineWidth = 1;
-        roundRect(ctx, rightX + 20, py, 150, 22, 4);
+        roundRect(ctx, rightX + 20, py, 140, 20, 4);
         ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = '#fde68a';
-        ctx.font = 'bold 9.5px monospace';
+        ctx.font = 'bold 9px monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(pt.tag, rightX + 95, py + 11);
+        ctx.fillText(pt.tag, rightX + 90, py + 10);
 
+        // Word-wrapped description lines
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
         ctx.fillStyle = '#cbd5e1';
         ctx.font = '11px "Crimson Text", serif';
-        ctx.fillText(pt.desc, rightX + 20, py + 28);
+        const lines = wrapTextLines(ctx, pt.desc, maxDescW);
+        lines.forEach((line, lineIdx) => {
+          ctx.fillText(line, rightX + 20, py + 24 + lineIdx * 14.5);
+        });
       });
 
-      // Bottom advisory tip box
+      // Bottom advisory tip box with word wrapping
       const tipY = spreadY + spreadH - 52;
       ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
       ctx.strokeStyle = 'rgba(147, 51, 234, 0.4)';
-      roundRect(ctx, rightX + 20, tipY, rightW - 40, 38, 4);
+      roundRect(ctx, rightX + 20, tipY, rightW - 40, 40, 4);
       ctx.fill(); ctx.stroke();
 
       ctx.fillStyle = '#c084fc';
       ctx.font = 'italic 10.5px "Crimson Text", serif';
       ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(doc.tip, rightX + 32, tipY + 19);
+      ctx.textBaseline = 'top';
+      const tipLines = wrapTextLines(ctx, doc.tip, rightW - 60);
+      tipLines.forEach((tLine, tIdx) => {
+        ctx.fillText(tLine, rightX + 30, tipY + 8 + tIdx * 14);
+      });
 
       // ── Bottom Controls Bar ──
       const bBarY = my + mh - 44;
@@ -1986,7 +2110,10 @@ export const MainMenu = {
 
     if (_giftModalOpen) {
       ctx.save();
-      ctx.fillStyle = 'rgba(2, 6, 14, 0.78)';
+      const modalVignette = ctx.createRadialGradient(LW / 2, LH / 2, 80, LW / 2, LH / 2, LW * 0.65);
+      modalVignette.addColorStop(0, 'rgba(4, 7, 16, 0.90)');
+      modalVignette.addColorStop(1, 'rgba(2, 3, 8, 0.97)');
+      ctx.fillStyle = modalVignette;
       ctx.fillRect(0, 0, LW, LH);
 
       const mw = 520, mh = 260;
@@ -2168,11 +2295,11 @@ export const MainMenu = {
       const mw = 830, mh = 506;
       const mxX = Math.round((LW - mw) / 2), myY = Math.round((LH - mh) / 2);
 
-      // Chapter tabs click detection
-      const tabW = 188, tabH = 26;
-      const tabStartX = mxX + Math.round((mw - (4 * tabW + 3 * 6)) / 2);
+      // Chapter tabs click detection (5 tabs)
+      const tabW = 148, tabH = 26;
+      const tabStartX = mxX + Math.round((mw - (5 * tabW + 4 * 6)) / 2);
       const tabY = myY + 52;
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 5; i++) {
         const tx = tabStartX + i * (tabW + 6);
         if (mx >= tx && mx <= tx + tabW && my >= tabY && my <= tabY + tabH) {
           _fieldGuideChapter = i;
@@ -2185,7 +2312,7 @@ export const MainMenu = {
       const leftX = mxX + 20;
       const bBarY = myY + mh - 44;
       if (mx >= leftX && mx <= leftX + 130 && my >= bBarY && my <= bBarY + 30) {
-        _fieldGuideChapter = (_fieldGuideChapter - 1 + 4) % 4;
+        _fieldGuideChapter = (_fieldGuideChapter - 1 + 5) % 5;
         SoundManager.snd('menu_hover');
         return true;
       }
@@ -2193,7 +2320,7 @@ export const MainMenu = {
       // Next Doctrine button
       const nextX = leftX + 140;
       if (mx >= nextX && mx <= nextX + 130 && my >= bBarY && my <= bBarY + 30) {
-        _fieldGuideChapter = (_fieldGuideChapter + 1) % 4;
+        _fieldGuideChapter = (_fieldGuideChapter + 1) % 5;
         SoundManager.snd('menu_hover');
         return true;
       }

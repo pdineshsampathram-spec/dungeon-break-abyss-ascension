@@ -121,12 +121,12 @@ function bootstrap() {
 
     // 0. Title keyboard navigation (Up / Down / Enter / Space)
     if (GameState.STATE === GameStates.TITLE) {
-      if (k === 'ArrowUp' || k === 'w' || k === 'W') {
+      if (k === 'ArrowUp' || k === 'w' || k === 'W' || k === 'ArrowLeft' || k === 'a' || k === 'A') {
         e.preventDefault();
         MainMenu.navigateFocus(-1);
         return;
       }
-      if (k === 'ArrowDown' || k === 's' || k === 'S') {
+      if (k === 'ArrowDown' || k === 's' || k === 'S' || k === 'ArrowRight' || k === 'd' || k === 'D') {
         e.preventDefault();
         MainMenu.navigateFocus(1);
         return;

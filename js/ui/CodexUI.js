@@ -479,7 +479,7 @@ export const CodexUI = {
 
     // Decorative Drop-Cap Box (Left: 38x38 px)
     const capX = rightX + 28;
-    const capY = ry + 96;
+    const capY = ry + 94;
     const capSize = 38;
 
     ctx.fillStyle = 'rgba(185, 28, 28, 0.3)';
@@ -497,7 +497,7 @@ export const CodexUI = {
 
     // Text Wrap beside and below Drop-Cap
     ctx.fillStyle = '#f1f5f9';
-    ctx.font = 'italic 12px Crimson Text, serif';
+    ctx.font = 'italic 12.5px "Crimson Text", serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
 
@@ -527,7 +527,7 @@ export const CodexUI = {
     if (!line1) line1 = cur;
     else if (!line2) line2 = cur;
 
-    ctx.fillText(line1, textNextX, capY + 4);
+    ctx.fillText(line1, textNextX, capY + 3);
     if (line2) ctx.fillText(line2, textNextX, capY + 22);
 
     // Full width remaining lines below Drop-Cap
@@ -546,23 +546,62 @@ export const CodexUI = {
     if (fullCur) belowLines.push(fullCur);
 
     const startBelowY = capY + capSize + 10;
-    belowLines.slice(0, 7).forEach((bl, idx) => {
-      ctx.fillText(bl, rightX + 28, startBelowY + idx * 18);
+    const lineSpacing = 19.5;
+    belowLines.slice(0, 8).forEach((bl, idx) => {
+      ctx.fillText(bl, rightX + 28, startBelowY + idx * lineSpacing);
     });
 
+    // Archival Provenance & In-World Seal Block (Eliminates empty void with authentic historical metadata)
+    const textEndY = startBelowY + Math.min(8, belowLines.length) * lineSpacing;
+    const provY = Math.max(textEndY + 14, ry + rh - 98);
+    const provH = (ry + rh - 44) - provY;
+    if (provH >= 42) {
+      ctx.fillStyle = 'rgba(15, 20, 32, 0.65)';
+      ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, rightX + 28, provY, rightFolioW - 56, provH, 5);
+      ctx.fill(); ctx.stroke();
+
+      ctx.fillStyle = '#fde68a';
+      ctx.font = 'bold 8.5px Cinzel, serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('◈ ARCHIVAL PROVENANCE & CANON RECORD', rightX + 38, provY + 8);
+
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
+      ctx.font = 'italic 10px "Crimson Text", serif';
+      const authorText = selectedItem.author ? `Attribution: ${selectedItem.author}` : `Recovered: Depths of Stratum Floor ${selectedItem.floor}`;
+      ctx.fillText(authorText, rightX + 38, provY + 22);
+
+      // Authenticated Seal emblem on right side of provenance box
+      ctx.fillStyle = '#b91c1c';
+      ctx.beginPath();
+      ctx.arc(rightX + rightFolioW - 54, provY + provH / 2, 13, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fca5a5';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 7.5px Cinzel, serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('CANON', rightX + rightFolioW - 54, provY + provH / 2);
+    }
+
     // Floor Revelation Wax Stamp (Bottom)
-    const stampY = ry + rh - 40;
+    const stampY = ry + rh - 36;
     ctx.fillStyle = 'rgba(201, 168, 76, 0.12)';
     ctx.strokeStyle = 'rgba(201, 168, 76, 0.5)';
     ctx.lineWidth = 1;
-    roundRect(ctx, rightX + 28, stampY, rightFolioW - 56, 26, 4);
+    roundRect(ctx, rightX + 28, stampY, rightFolioW - 56, 24, 4);
     ctx.fill(); ctx.stroke();
 
     ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 9px Cinzel, serif';
+    ctx.font = 'bold 8.5px Cinzel, serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`ARCHIVAL DEED PRESERVED · FLOOR ${selectedItem.floor} VANGUARD CANON`, rightX + rightFolioW / 2, stampY + 13);
+    ctx.fillText(`ARCHIVAL DEED PRESERVED · FLOOR ${selectedItem.floor} VANGUARD CANON`, rightX + rightFolioW / 2, stampY + 12);
   },
 
   drawParchmentGlyphs(ctx, x, y, w, timer, baseAlpha = 0.5) {
@@ -961,20 +1000,37 @@ export const CodexUI = {
 
       // Title & Tag
       ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
       ctx.fillStyle = isUnlocked ? themeCol : '#64748b';
-      ctx.font = 'bold 8px Cinzel, serif';
+      ctx.font = 'bold 7.5px Cinzel, serif';
       const typeLabel = isEnding ? 'ENDING DESTINY' : (isLegacy ? 'LEGACY ECHO' : `FLOOR ${mem.floor || '?'}`);
-      ctx.fillText(isUnlocked ? typeLabel : 'DORMANT SHARD', sx + 32, sy + 13);
+      ctx.fillText(isUnlocked ? typeLabel : 'DORMANT SHARD', sx + 32, sy + 8);
 
       ctx.fillStyle = isUnlocked ? (isSel ? '#ffffff' : '#f1f5f9') : '#475569';
-      ctx.font = isSel ? 'bold 9.5px Cinzel, serif' : '9px Cinzel, serif';
-      let tTitle = isUnlocked ? mem.title : 'Sealed Remembrance';
-      const maxTW = shardW - 40;
-      while (ctx.measureText(tTitle + '…').width > maxTW && tTitle.length > 4) {
-        tTitle = tTitle.slice(0, -1);
+      ctx.font = isSel ? 'bold 8.5px Cinzel, serif' : '8px Cinzel, serif';
+      const memTitle = isUnlocked ? mem.title : 'Sealed Remembrance';
+      const maxTW = shardW - 38;
+
+      if (ctx.measureText(memTitle).width <= maxTW) {
+        ctx.fillText(memTitle, sx + 32, sy + 22);
+      } else {
+        // Wrap cleanly across 2 lines without truncation
+        const words = memTitle.split(' ');
+        let l1 = '';
+        let l2 = '';
+        for (let wi = 0; wi < words.length; wi++) {
+          const test = l1 ? l1 + ' ' + words[wi] : words[wi];
+          if (ctx.measureText(test).width <= maxTW) {
+            l1 = test;
+          } else {
+            l2 = words.slice(wi).join(' ');
+            break;
+          }
+        }
+        if (!l1) { l1 = words[0]; l2 = words.slice(1).join(' '); }
+        ctx.fillText(l1, sx + 32, sy + 19);
+        ctx.fillText(l2, sx + 32, sy + 30);
       }
-      if (tTitle !== mem.title && isUnlocked) tTitle += '…';
-      ctx.fillText(tTitle, sx + 32, sy + 28);
 
       _zones.push({
         id: `memory_shard_${idx}`,

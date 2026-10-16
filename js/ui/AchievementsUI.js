@@ -208,7 +208,9 @@ const _zones = [];
 export function openAchievements(fromState = null) {
   _slideAnim = 0;
   _ambientTimer = 0;
-  _displayProgress = 0;
+  const totalCount = ORDERED_ACHIEVEMENT_KEYS.length;
+  const unlockedCount = ORDERED_ACHIEVEMENT_KEYS.filter(k => ACHIEVEMENTS[k] && ACHIEVEMENTS[k].unlocked).length;
+  _displayProgress = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
   _activeCategory = 'all';
   _selectedKey = 'first_blood';
   _returnState = (fromState === GameStates.PAUSED || GameState.STATE === GameStates.PAUSED)
@@ -312,7 +314,7 @@ export const AchievementsUI = {
     const totalCount = ORDERED_ACHIEVEMENT_KEYS.length;
     const unlockedCount = ORDERED_ACHIEVEMENT_KEYS.filter(k => ACHIEVEMENTS[k] && ACHIEVEMENTS[k].unlocked).length;
     const targetPct = totalCount > 0 ? Math.round((unlockedCount / totalCount) * 100) : 0;
-    _displayProgress += (targetPct - _displayProgress) * Math.min(1, dt * 6.0);
+    _displayProgress = targetPct;
 
     // ─────────────────────────────────────────────────────────────
     // 1. APEX SHRINE: EYE OF THE ABSOLUTE & THE EIGHT FATES MONOLITH
@@ -540,33 +542,55 @@ export const AchievementsUI = {
       roundRect(ctx, mx, my, medW, medH, 5);
       ctx.fill(); ctx.stroke();
 
-      // Living Icon Renderer in Center (32 × 32 px)
-      const iconCx = mx + 24;
+      // Living Icon Renderer on Left (26 × 26 px)
+      const iconCx = mx + 18;
       const iconCy = my + medH / 2;
-      const iconSize = 32;
+      const iconSize = 26;
 
       drawAchievementIcon(ctx, k, iconCx, iconCy, iconSize, isUnlocked, isHover, _ambientTimer, isReducedMotion);
 
-      // Deed Title & Status
-      const textX = mx + 46;
-      const maxTW = medW - 50;
+      // Deed Title & Status (Available Width & Smart 2-Line Wrap)
+      const textX = mx + 34;
+      const maxTW = medW - 38;
 
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillStyle = isUnlocked ? (isSel ? '#ffffff' : '#fde68a') : '#64748b';
-      ctx.font = isSel ? 'bold 8.5px Cinzel, serif' : '8px Cinzel, serif';
+      ctx.font = isSel ? 'bold 7.5px Cinzel, serif' : '7px Cinzel, serif';
 
-      let dTitle = a.name || k;
-      while (ctx.measureText(dTitle + '…').width > maxTW && dTitle.length > 3) {
-        dTitle = dTitle.slice(0, -1);
+      const fullName = (a.name || k).toUpperCase();
+      if (ctx.measureText(fullName).width <= maxTW) {
+        // Fits cleanly on a single line
+        ctx.fillText(fullName, textX, my + 13);
+        ctx.fillStyle = isUnlocked ? '#86efac' : '#475569';
+        ctx.font = 'bold 7px monospace';
+        ctx.fillText(isUnlocked ? '✔ CONQUERED' : '◇ SEALED', textX, my + 29);
+      } else {
+        // Wrap cleanly across 2 lines without truncation
+        const words = fullName.split(' ');
+        let line1 = '';
+        let line2 = '';
+        for (let wIdx = 0; wIdx < words.length; wIdx++) {
+          const test1 = line1 ? line1 + ' ' + words[wIdx] : words[wIdx];
+          if (ctx.measureText(test1).width <= maxTW) {
+            line1 = test1;
+          } else {
+            line2 = words.slice(wIdx).join(' ');
+            break;
+          }
+        }
+        if (!line1) {
+          line1 = words[0];
+          line2 = words.slice(1).join(' ');
+        }
+        ctx.fillText(line1, textX, my + 8);
+        ctx.fillText(line2, textX, my + 19);
+
+        // Status pip below 2-line title
+        ctx.fillStyle = isUnlocked ? '#86efac' : '#475569';
+        ctx.font = 'bold 7px monospace';
+        ctx.fillText(isUnlocked ? '✔ CONQUERED' : '◇ SEALED', textX, my + 32);
       }
-      if (dTitle !== a.name) dTitle += '…';
-      ctx.fillText(dTitle, textX, my + 14);
-
-      // Status pip below title
-      ctx.fillStyle = isUnlocked ? '#86efac' : '#475569';
-      ctx.font = 'bold 7.5px monospace';
-      ctx.fillText(isUnlocked ? '✔ CONQUERED' : '◇ SEALED', textX, my + 30);
 
       // Roman Numeral Tag (Top Right)
       ctx.fillStyle = isUnlocked ? 'rgba(201, 168, 76, 0.8)' : 'rgba(71, 85, 105, 0.5)';
