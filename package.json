@@ -7,9 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "build": "mkdir -p dist && cp index.html dist/index.html",
-    "android:init": "npm run build && npx cap add android",
-    "android:sync": "npm run build && npx cap sync android",
+    "android:build": "mkdir -p dist && cp -r index.html css js assets 'Background themes' dist/",
+    "android:init": "npm run android:build && npx cap add android",
+    "android:sync": "npm run android:build && npx cap sync android",
     "android:open": "npx cap open android"
   },
   "keywords": [
@@ -18,7 +18,7 @@
     "action",
     "canvas-game"
   ],
-  "author": "",
+  "author": "Dinesh Polimera",
   "license": "MIT",
   "devDependencies": {
     "@capacitor/cli": "^6.0.0",

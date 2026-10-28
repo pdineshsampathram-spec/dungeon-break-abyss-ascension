@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <a href="https://dungeon-break-abyss-ascension.vercel.app/"><strong>▶ PLAY ONLINE (Vercel)</strong></a> •
   <a href="https://pdineshsampathram-spec.github.io/dungeon-break-abyss-ascension/"><strong>▶ PLAY ONLINE (GitHub Pages)</strong></a> •
   <a href="#gameplay-features">Features</a> •
   <a href="#screenshots-gallery">Showcase</a> •
