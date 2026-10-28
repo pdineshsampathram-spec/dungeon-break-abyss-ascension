@@ -24,6 +24,7 @@ import { BossArenaGenerator } from '../world/BossArenaGenerator.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { PortalTransition, PORTAL_CONTEXTS } from './PortalTransition.js';
+import { CinematicSafety } from './CinematicSafety.js';
 
 // ─────────────────────────────────────────────────────────────
 // Cinematic Timeline Phases (Total ~14.5s)
@@ -121,29 +122,44 @@ export const WardenDefeatCinematic = {
 
   canSkip() {
     const cine = _activeCinematic;
-    return !!cine && cine.timer >= 1.5;
+    return !!cine && CinematicSafety.canSkip();
   },
 
   // ─────────────────────────────────────────────────────────────
   // 1. START — Confirmed Warden Death
   // ─────────────────────────────────────────────────────────────
-  start(boss, hitInfo = {}, isDebug = false) {
-    if (isDebug) {
+  start(boss, hitInfo = {}, isDebug = false, options = {}) {
+    const isReplay = (typeof options === 'boolean') ? options : !!(options.isReplay || hitInfo.isReplay || isDebug);
+    CinematicSafety.startCinematic('boss_defeat_warden', typeof options === 'object' ? options : { isReplay });
+
+    if (!isReplay && SaveSystem && SaveSystem.recordCinematicUnlock) {
+      SaveSystem.recordCinematicUnlock('boss_defeat_warden');
+    }
+
+    if (isDebug || isReplay) {
       this.reset();
     } else {
       if (this.isActive()) return;
       if (_wardenDefeatStarted) return;
     }
     _wardenDefeatStarted = true;
-    AchievementSystem.unlock('boss_slayer');
-    if (GameState.BESTIARY_KILLS) {
-      GameState.BESTIARY_KILLS.warden = (GameState.BESTIARY_KILLS.warden || 0) + 1;
-      SaveSystem.saveBestiary();
+
+    if (!isReplay) {
+      AchievementSystem.unlock('boss_slayer');
+      if (GameState.BESTIARY_KILLS) {
+        GameState.BESTIARY_KILLS.warden = (GameState.BESTIARY_KILLS.warden || 0) + 1;
+        SaveSystem.saveBestiary();
+      }
     }
 
     const { P } = GameState;
     const bossRef = boss || GameState.BOSS;
-    if (!bossRef) return;
+    if (!bossRef) {
+      if (isReplay) {
+        CinematicSafety.finishReplay();
+      }
+      return;
+    }
 
     // Halt gameplay controls, boss AI, and normal combat immediately
     GameState.BOSS_INTRO_ACTIVE = false;
@@ -636,6 +652,14 @@ export const WardenDefeatCinematic = {
 
   completeToEnding(branch) {
     const targetBranch = branch || calculateEndingBranch();
+    if (CinematicSafety.isReplay()) {
+      _activeCinematic = null;
+      LETTERBOX.amount = 0;
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
+
     _activeCinematic = null;
     LETTERBOX.amount = 0;
 
@@ -653,6 +677,13 @@ export const WardenDefeatCinematic = {
   // ─────────────────────────────────────────────────────────────
   skip() {
     if (!this.isActive() || !this.canSkip()) return;
+    if (CinematicSafety.isReplay()) {
+      _activeCinematic = null;
+      LETTERBOX.amount = 0;
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
     const cine = _activeCinematic;
     const branch = cine.branch || calculateEndingBranch();
 
@@ -950,8 +981,8 @@ export const WardenDefeatCinematic = {
       this._drawCinematicSubtitle(ctx, sub, '#fed7aa', barH);
     }
 
-    // 5. Subtle Skip Prompt
-    if (this.canSkip()) {
+    // 5. Subtle Skip Prompt (Shown only after 3.0s unskippable window)
+    if (this.canSkip() && CinematicSafety.shouldShowSkipHint()) {
       const skipAlpha = Math.min(0.55, (t - 1.5) / 0.8);
       ctx.fillStyle = `rgba(201, 168, 76, ${skipAlpha})`;
       ctx.font = 'bold 9px "Cinzel", Georgia, serif';

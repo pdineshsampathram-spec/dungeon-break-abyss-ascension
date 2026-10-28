@@ -50,6 +50,20 @@ export const Portal = {
       AchievementSystem.unlock('speed_runner');
     }
 
+    // Phase 6: Floor-Specific Speedrun Unlocks
+    const activeFloorSec = GameState.FLOOR_ACTIVE_TIME || 0;
+    if (!isBossFloor(LV)) {
+      if (activeFloorSec <= 60) {
+        AchievementSystem.unlock(`speed_floor_${LV}`);
+      }
+    } else {
+      if (LV === 3 && activeFloorSec <= 90) {
+        AchievementSystem.unlock('speed_floor_3');
+      } else if (LV === 6 && activeFloorSec <= 120) {
+        AchievementSystem.unlock('speed_floor_6');
+      }
+    }
+
     SaveSystem.saveRun();
     EventBus.emit('PORTAL_ENTERED', { fromFloor: LV });
 
@@ -61,6 +75,7 @@ export const checkExit = () => Portal.checkExit();
 
 if (typeof window !== 'undefined') {
   window.checkExit = checkExit;
+  window.Portal = Portal;
   Object.defineProperty(window, 'levelTransitionActive', {
     get: () => GameState.levelTransitionActive,
     set: (v) => { GameState.levelTransitionActive = v; },

@@ -8,6 +8,7 @@ import { dealDamage } from '../combat/DamageSystem.js';
 import { SoundManager } from '../audio/AudioManager.js';
 import { ParticleRenderer } from '../rendering/ParticleRenderer.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 import { EventBus } from '../core/EventBus.js';
 import { SanitySystem, SANITY_REWARDS } from '../systems/SanitySystem.js';
 import { isInOpeningSafeZone } from './DungeonGenerator.js';
@@ -158,9 +159,26 @@ export const Interactables = {
         ParticleRenderer.spawnP(a.x, a.y, 20, { col: '#fef08a', spd: 1.8, r: 3.5 });
         ParticleRenderer.showFloatingText(`RESCUED! +${rescueSan} SANITY`, a.x, a.y - 0.7, '#4ade80', 14, true);
 
-        if (P.saved >= 5) {
-          AchievementSystem.unlock('savior');
+        // Phase 6 & 9: Authoritative single-run and lifetime survivor tracking
+        if (!GameState.CURRENT_RUN_SURVIVORS) {
+          GameState.CURRENT_RUN_SURVIVORS = { eligible: [], rescued: [] };
         }
+        if (a.id && !GameState.CURRENT_RUN_SURVIVORS.rescued.includes(a.id)) {
+          GameState.CURRENT_RUN_SURVIVORS.rescued.push(a.id);
+        }
+
+        // Authoritative lifetime rescue increment & sequential tier unlocks
+        const totalSaved = SaveSystem.recordSurvivorRescue(1);
+
+        // Sequential active tier progress feedback (only the currently active tier shows progress)
+        if (!AchievementSystem.isUnlocked('savior')) {
+          AchievementSystem.showProgress('savior', totalSaved, 5, 'Savior');
+        } else if (!AchievementSystem.isUnlocked('savior_2')) {
+          AchievementSystem.showProgress('savior_2', totalSaved, 10, 'Savior II');
+        } else if (!AchievementSystem.isUnlocked('savior_3')) {
+          AchievementSystem.showProgress('savior_3', totalSaved, 15, 'Savior III');
+        }
+
         EventBus.emit('survivor:rescued', a);
       }
     });

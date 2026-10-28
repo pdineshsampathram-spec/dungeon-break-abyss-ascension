@@ -42,13 +42,14 @@ export const WeaponInventory = {
     EventBus.emit('weapon:switched', { slot: idx, weapon: w });
   },
 
-  openReplaceModal(itemRef) {
+  openReplaceModal(itemRef, mode = 'prompt') {
     if (!itemRef || itemRef.taken) return;
     const wId = itemRef.sub || 'sword';
     const rName = (itemRef.rarity && itemRef.rarity.name) ? itemRef.rarity.name : 'Common';
     const weaponObj = WeaponFactory.create(wId, rName, itemRef.affixes || [], GameState.LV || 1);
 
     ACTIVE_WEAPON_REPLACE_MODAL = {
+      mode: mode, // 'prompt' for Arsenal Full equipment cache, 'selector' for 3-slot replacement
       newWeapon: weaponObj,
       itemRef: itemRef
     };
@@ -56,6 +57,13 @@ export const WeaponInventory = {
     GameState.ACTIVE_WEAPON_REPLACE_MODAL = ACTIVE_WEAPON_REPLACE_MODAL;
     SoundManager.snd('talent_unlock');
     EventBus.emit('weapon:replace_modal_opened', ACTIVE_WEAPON_REPLACE_MODAL);
+  },
+
+  switchToSelector() {
+    if (ACTIVE_WEAPON_REPLACE_MODAL) {
+      ACTIVE_WEAPON_REPLACE_MODAL.mode = 'selector';
+      SoundManager.snd('panel_open');
+    }
   },
 
   pickupWeapon(droppedWep, itemRef) {
@@ -76,8 +84,8 @@ export const WeaponInventory = {
       SoundManager.snd('item_pickup');
       EventBus.emit('weapon:equipped', { slot: emptyIdx, weapon: weaponObj });
     } else {
-      // Inventory full: open interactive weapon replacement modal
-      this.openReplaceModal(itemRef || { sub: weaponObj.id, rarity: weaponObj.rarity, affixes: weaponObj.affixes });
+      // Inventory full: open interactive weapon replacement modal in prompt mode
+      this.openReplaceModal(itemRef || { sub: weaponObj.id, rarity: weaponObj.rarity, affixes: weaponObj.affixes }, 'prompt');
     }
   },
 
@@ -135,11 +143,13 @@ export const WeaponInventory = {
     const modal = ACTIVE_WEAPON_REPLACE_MODAL || GameState.pendingWeaponDrop;
     if (modal && modal.itemRef) {
       modal.itemRef.taken = false;
-      modal.itemRef.discardCooldown = 2.0;
+      modal.itemRef.ignoredUntilStepAway = true;
+      modal.itemRef.discardCooldown = 1.0;
     }
     ACTIVE_WEAPON_REPLACE_MODAL = null;
     GameState.pendingWeaponDrop = null;
     GameState.ACTIVE_WEAPON_REPLACE_MODAL = null;
+    SoundManager.snd('panel_close');
     EventBus.emit('weapon:discarded');
   },
 
@@ -183,7 +193,8 @@ export const WeaponInventory = {
 export const getActiveWeapon = () => WeaponInventory.getActiveWeapon();
 export const switchWeaponSlot = (idx) => WeaponInventory.switchWeaponSlot(idx);
 export const pickupWeapon = (w, ref) => WeaponInventory.pickupWeapon(w, ref);
-export const openReplaceModal = (ref) => WeaponInventory.openReplaceModal(ref);
+export const openReplaceModal = (ref, mode = 'prompt') => WeaponInventory.openReplaceModal(ref, mode);
+export const switchToSelector = () => WeaponInventory.switchToSelector();
 export const replaceWeaponSlot = (idx, w) => WeaponInventory.replaceWeaponSlot(idx, w);
 export const discardReplacementWeapon = () => WeaponInventory.discardReplacementWeapon();
 export const swapActiveSlotWithGround = (item) => WeaponInventory.swapActiveSlotWithGround(item);
@@ -193,6 +204,7 @@ if (typeof window !== 'undefined') {
   window.switchWeaponSlot = switchWeaponSlot;
   window.pickupWeapon = pickupWeapon;
   window.openReplaceModal = openReplaceModal;
+  window.switchToSelector = switchToSelector;
   window.replaceWeaponSlot = replaceWeaponSlot;
   window.discardReplacementWeapon = discardReplacementWeapon;
   window.swapActiveSlotWithGround = swapActiveSlotWithGround;

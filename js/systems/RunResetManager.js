@@ -24,6 +24,7 @@ import { HallucinationSystem } from './HallucinationSystem.js';
 import { AbyssDissolution } from './AbyssDissolution.js';
 import { FLOATING_TEXTS } from '../rendering/ParticleRenderer.js';
 import { isInOpeningSafeZone } from '../world/DungeonGenerator.js';
+import { FLOOR_CONFIG, isBossFloor } from '../data/floors.js';
 
 export const RunResetManager = {
   /**
@@ -33,10 +34,12 @@ export const RunResetManager = {
    *
    * @param {Object} options
    * @param {boolean} options.playIntro Whether to trigger the opening cinematic
+   * @param {number} options.floor Target starting floor (1 to 10)
+   * @param {boolean} options.isDeveloperExpedition Whether launched from Developer Sanctum
    * @param {Function} options.onComplete Optional callback on finish
    */
-  resetRun({ playIntro = false, onComplete = null } = {}) {
-    console.log(`[RunResetManager] Executing authoritative run reset (playIntro=${playIntro})`);
+  resetRun({ playIntro = false, floor = 1, isDeveloperExpedition = false, onComplete = null } = {}) {
+    console.log(`[RunResetManager] Executing authoritative run reset (floor=${floor}, isDev=${isDeveloperExpedition}, playIntro=${playIntro})`);
 
     // 1. Clear active localStorage run save so no stale run persists
     SaveSystem.clearRun();
@@ -45,6 +48,17 @@ export const RunResetManager = {
     GameState.RUN_ID = (GameState.RUN_ID || 0) + 1;
     GameState.RUN_PRESTIGE_AWARDED = false;
     GameState.IS_DEBUG_ENDING = false;
+    const isAuthorizedDev = !!isDeveloperExpedition && (SaveSystem.isSanctumPermanentUnlocked() || !!GameState.SANCTUM_TEMP_AUTHORIZED);
+    GameState.IS_DEVELOPER_EXPEDITION = isAuthorizedDev;
+    if (!isAuthorizedDev) {
+      GameState.CUSTOM_STARTING_WEAPON = null;
+      GameState.CUSTOM_STARTING_MAX_HP = null;
+    }
+    GameState.RUN_ACTIVE_TIME = 0;
+    GameState.FLOOR_ACTIVE_TIME = 0;
+    GameState.RUN_ACTIVE_TIME_STR = isAuthorizedDev ? '--:--' : '00:00';
+    GameState.FLOOR_ACTIVE_TIME_STR = isAuthorizedDev ? '--:--' : '00:00';
+    GameState.CURRENT_RUN_SURVIVORS = { eligible: [], rescued: [] };
     GameState.LEVEL_TIMER = 0;
     GameState.LEVEL_TIME_STR = '00:00';
     GameState.LEVEL_TOOK_DAMAGE = false;
@@ -112,12 +126,13 @@ export const RunResetManager = {
     // 8. Reset player attributes and weapons to default run start
     GameState.resetPlayer();
 
-    // 9. Rebuild Floor 1 through authoritative floor pipeline
-    GameState.LV = 1;
-    FloorManager.loadLevel(1);
+    // 9. Rebuild Target Floor through authoritative floor pipeline
+    const targetFloor = Math.max(1, Math.min(10, floor || 1));
+    GameState.LV = targetFloor;
+    FloorManager.loadLevel(targetFloor);
 
     // Authoritative safety guarantee: opening safe zone must have zero traps
-    GameState.TRAPS = (GameState.TRAPS || []).filter(t => !isInOpeningSafeZone(t.x, t.y, 1));
+    GameState.TRAPS = (GameState.TRAPS || []).filter(t => !isInOpeningSafeZone(t.x, t.y, targetFloor));
 
     // 10. Reset camera cleanly to player spawn coordinates
     Camera.reset();
@@ -131,11 +146,11 @@ export const RunResetManager = {
     }
 
     // 11. Handle gate state & next mode
-    if (playIntro) {
+    if (playIntro && targetFloor === 1 && !isDeveloperExpedition) {
       // Opening cinematic handles opening gate, running deserters, and slamming shut
       CinematicDirector.startIntro();
     } else {
-      // Direct gameplay (e.g. Retry): entrance gate must be firmly closed and solid
+      // Direct gameplay (e.g. Retry or Developer Deployment): entrance gate must be firmly closed and solid
       if (GameState.GATE) {
         GameState.GATE.state = 'closed';
         GameState.GATE.dropProgress = 1.0;
@@ -143,9 +158,21 @@ export const RunResetManager = {
         GameState.GATE.solid = true;
       }
       GameState.setState(GameStates.PLAYING);
-      MusicManager.crossfade('exploration', 1.0, 0.65);
+      if (isBossFloor(targetFloor)) {
+        if (targetFloor === 3) MusicManager.crossfade('boss_gorgaroth', 1.0, 0.75);
+        else if (targetFloor === 6) MusicManager.crossfade('boss_malakor', 1.0, 0.75);
+        else if (targetFloor === 10) MusicManager.crossfade('boss_warden', 1.0, 0.75);
+      } else {
+        MusicManager.crossfade('exploration', 1.0, 0.65);
+      }
       SoundManager.snd('portal_enter');
-      triggerCinematicBanner('FLOOR 1 — THE SUNKEN CRYPTS', 'You awaken in the dark abyss. Walk.');
+
+      const fc = FLOOR_CONFIG[targetFloor];
+      const floorTitle = `FLOOR ${targetFloor} — ${(fc && fc.name ? fc.name.toUpperCase() : 'ABYSS')}`;
+      const floorSub = isDeveloperExpedition
+        ? 'DEVELOPER EXPEDITION — OFFICIAL SPEEDRUN RECORDS DISABLED'
+        : (fc && fc.desc ? fc.desc : 'You awaken in the dark abyss. Walk.');
+      triggerCinematicBanner(floorTitle, floorSub, isDeveloperExpedition ? '#ef4444' : '#38bdf8', 3.0);
     }
 
     if (onComplete) {

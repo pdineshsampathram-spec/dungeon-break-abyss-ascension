@@ -246,7 +246,37 @@ export function damageBoss(amount, isCrit = false, damageType = 'melee', source 
   const { BOSS } = GameState;
   if (!BOSS || !BOSS.alive || BOSS.defeatPending) return;
 
-  BOSS.hp = Math.max(0, BOSS.hp - amount);
+  // Invulnerability during active phase transition animations
+  if (BOSS.phaseTransitioning) return;
+
+  // Single-hit damage cap to prevent one-shot or burst trivialization (max 12% of boss max HP)
+  const maxSingleHit = Math.max(15, Math.round((BOSS.maxHp || 100) * 0.12));
+  const effectiveDamage = Math.min(amount, maxSingleHit);
+
+  const prevHp = BOSS.hp;
+  let newHp = Math.max(0, prevHp - effectiveDamage);
+
+  // Phase boundary clamp: Attacks cannot drop HP below a phase boundary until the phase transition occurs
+  if (BOSS.phase === 1) {
+    const p1Floor = BOSS.id === 'abyss_warden' ? 0.70 : 0.50;
+    const p1Threshold = Math.floor(BOSS.maxHp * p1Floor);
+    if (newHp < p1Threshold) {
+      newHp = p1Threshold;
+    }
+  } else if (BOSS.phase === 2) {
+    const p2Floor = BOSS.id === 'abyss_warden' ? 0.35 : (BOSS.id === 'malakor' ? 0.25 : 0.0);
+    if (p2Floor > 0) {
+      const p2Threshold = Math.floor(BOSS.maxHp * p2Floor);
+      if (newHp < p2Threshold) {
+        newHp = p2Threshold;
+      }
+    }
+  }
+
+  const actualDmg = prevHp - newHp;
+  if (actualDmg <= 0 && prevHp > 0) return;
+
+  BOSS.hp = newHp;
 
   if (isCrit) {
     BOSS.hitFlash = 0.35;
@@ -254,7 +284,7 @@ export function damageBoss(amount, isCrit = false, damageType = 'melee', source 
     GameState.CAM.shk = Math.max(GameState.CAM.shk, 14);
     ParticleRenderer.spawnP(BOSS.x, BOSS.y, 22, { col: '#facc15', spd: 2.2, r: 4, star: true });
     ParticleRenderer.spawnRing(BOSS.x, BOSS.y, '#fef08a');
-    ParticleRenderer.showFloatingText('CRIT! ' + amount, BOSS.x, BOSS.y, '#facc15', 18, true);
+    ParticleRenderer.showFloatingText('CRIT! ' + actualDmg, BOSS.x, BOSS.y, '#facc15', 18, true);
     SoundManager.snd('talent_unlock');
   } else if (damageType === 'heavy') {
     BOSS.hitFlash = 0.30;
@@ -262,7 +292,7 @@ export function damageBoss(amount, isCrit = false, damageType = 'melee', source 
     GameState.CAM.shk = Math.max(GameState.CAM.shk, 16);
     ParticleRenderer.spawnP(BOSS.x, BOSS.y, 18, { col: '#fb923c', spd: 1.8, r: 3.5 });
     ParticleRenderer.spawnRing(BOSS.x, BOSS.y, '#fb923c');
-    ParticleRenderer.showFloatingText(String(amount), BOSS.x, BOSS.y, '#f97316', 15, false);
+    ParticleRenderer.showFloatingText(String(actualDmg), BOSS.x, BOSS.y, '#f97316', 15, false);
     SoundManager.snd('melee_hit');
     SoundManager.snd('shockwave');
   } else {
@@ -270,11 +300,11 @@ export function damageBoss(amount, isCrit = false, damageType = 'melee', source 
     triggerHitStop(0.05);
     GameState.CAM.shk = Math.max(GameState.CAM.shk, 7);
     ParticleRenderer.spawnP(BOSS.x, BOSS.y, 8, { col: '#fde68a', spd: 1.0, r: 2.5 });
-    ParticleRenderer.showFloatingText(String(amount), BOSS.x, BOSS.y, '#f1f5f9', 13, false);
+    ParticleRenderer.showFloatingText(String(actualDmg), BOSS.x, BOSS.y, '#f1f5f9', 13, false);
     SoundManager.snd('melee_hit');
   }
 
-  EventBus.emit('combat:boss_damaged', { boss: BOSS, amount, hp: BOSS.hp, isCrit, damageType });
+  EventBus.emit('combat:boss_damaged', { boss: BOSS, amount: actualDmg, hp: BOSS.hp, isCrit, damageType });
 
   if (BOSS.hp <= 0) {
     if (!BOSS._soulsAwarded) {

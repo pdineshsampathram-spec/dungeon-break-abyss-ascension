@@ -26,34 +26,60 @@ let _masterVolume = 0.8;
 let _sfxVolume = 0.8;
 let _isMuted = false;
 
+function resumeAudioCtx() {
+  if (!ready || !ctx) {
+    SoundManager.init();
+  }
+  if (ctx && ctx.state === 'suspended') {
+    ctx.resume().catch(() => {});
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('pointerdown', resumeAudioCtx, { passive: true });
+  window.addEventListener('keydown', resumeAudioCtx, { passive: true });
+  window.addEventListener('click', resumeAudioCtx, { passive: true });
+  window.addEventListener('touchstart', resumeAudioCtx, { passive: true });
+}
+
 export const SoundManager = {
   init() {
-    if (ready) return;
+    if (ready && ctx && ctx.state !== 'suspended') return;
     try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      ctx = new AudioCtx();
+      if (!ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        ctx = new AudioCtx();
+      }
       if (!ctx) return;
+      this.ctx = ctx;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
 
-      masterGain = ctx.createGain();
-      this.updateMasterGain();
-      masterGain.connect(ctx.destination);
+      if (!masterGain) {
+        masterGain = ctx.createGain();
+        this.updateMasterGain();
+        masterGain.connect(ctx.destination);
+      }
 
-      try {
-        const delay = ctx.createDelay(0.5);
-        const feedback = ctx.createGain();
-        const filter = ctx.createBiquadFilter();
-        delay.delayTime.value = 0.22;
-        feedback.gain.value = 0.28;
-        filter.type = 'lowpass';
-        filter.frequency.value = 800;
-        delay.connect(filter);
-        filter.connect(feedback);
-        feedback.connect(delay);
-        delay.connect(masterGain);
-        reverbNode = delay;
-      } catch (e) {
-        reverbNode = null;
+      if (!reverbNode) {
+        try {
+          const delay = ctx.createDelay(0.5);
+          const feedback = ctx.createGain();
+          const filter = ctx.createBiquadFilter();
+          delay.delayTime.value = 0.22;
+          feedback.gain.value = 0.28;
+          filter.type = 'lowpass';
+          filter.frequency.value = 800;
+          delay.connect(filter);
+          filter.connect(feedback);
+          feedback.connect(delay);
+          delay.connect(masterGain);
+          reverbNode = delay;
+        } catch (e) {
+          reverbNode = null;
+        }
       }
 
       ready = true;
@@ -135,7 +161,11 @@ export const SoundManager = {
   },
 
   snd(name) {
-    if (!ready || !ctx) return;
+    if (!ready || !ctx) this.init();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
     const now = ctx.currentTime;
     const cd = SND_CD[name] || 0.08;
     if (SND_LAST[name] !== undefined && now - SND_LAST[name] < cd) return;

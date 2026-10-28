@@ -5,7 +5,8 @@
 
 import { GameState, GameStates } from '../core/GameState.js';
 import { InputManager } from '../core/InputManager.js';
-import { AudioManager } from '../audio/AudioManager.js';
+import { AudioManager, SoundManager } from '../audio/AudioManager.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 import { CombatSystem } from '../combat/CombatSystem.js';
 import { WeaponInventory } from '../weapons/WeaponInventory.js';
 import { HUD } from './HUD.js';
@@ -25,6 +26,9 @@ import { DeathCinematics, ACTIVE_DEATH_CINEMATIC } from '../cinematics/DeathCine
 import { BossIntros } from '../cinematics/BossIntros.js';
 import { CinematicDirector } from '../cinematics/CinematicDirector.js';
 import { UITransitionManager } from './UITransitionManager.js';
+import { AchievementSystem } from '../systems/AchievementSystem.js';
+import { CinematicArchiveUI } from './CinematicArchiveUI.js';
+import { DeveloperSanctumUI } from './DeveloperSanctumUI.js';
 
 export const UIManager = {
   init(canvas) {
@@ -51,10 +55,10 @@ export const UIManager = {
 
     // Global pointer/click fallback for margins & letterboxing
     window.addEventListener('pointerdown', (e) => {
-      if (e.target && e.target.closest && e.target.closest('#rampage-cutscene-trigger-bar')) return;
       if (e.target !== canvas && (
         GameState.STATE === GameStates.TITLE ||
         GameState.STATE === GameStates.CINEMATIC ||
+        GameState.STATE === GameStates.CINEMATIC_ARCHIVE ||
         GameState.STATE === GameStates.DYING ||
         GameState.STATE === GameStates.DEATH_NORMAL ||
         GameState.STATE === GameStates.DEATH_SANITY ||
@@ -69,10 +73,10 @@ export const UIManager = {
       }
     });
     window.addEventListener('click', (e) => {
-      if (e.target && e.target.closest && e.target.closest('#rampage-cutscene-trigger-bar')) return;
       if (e.target !== canvas && (
         GameState.STATE === GameStates.TITLE ||
         GameState.STATE === GameStates.CINEMATIC ||
+        GameState.STATE === GameStates.CINEMATIC_ARCHIVE ||
         GameState.STATE === GameStates.DYING ||
         GameState.STATE === GameStates.DEATH_NORMAL ||
         GameState.STATE === GameStates.DEATH_SANITY ||
@@ -145,6 +149,14 @@ export const UIManager = {
         CodexUI.draw(ctx, dt);
         break;
 
+      case GameStates.CINEMATIC_ARCHIVE:
+        CinematicArchiveUI.draw(ctx, dt);
+        break;
+
+      case GameStates.DEVELOPER_SANCTUM:
+        DeveloperSanctumUI.draw(ctx, dt);
+        break;
+
       case GameStates.PLAYING:
         HUD.draw(ctx);
         break;
@@ -155,11 +167,18 @@ export const UIManager = {
 
     // 3. Cinematic Screen Transitions (fades / crossfades)
     UITransitionManager.draw(ctx);
+
+    // 4. Phase 6 Non-Blocking Live Achievement Toasts
+    AchievementSystem.tick(dt);
+    AchievementSystem.drawToasts(ctx);
   },
 
   handlePointerDown(clientX, clientY) {
     const { mx, my } = InputManager.cssToGame(clientX, clientY);
+    this.handleClick(mx, my);
+  },
 
+  handleClick(mx, my) {
     // 1. Weapon Replace Modal
     if (GameState.ACTIVE_WEAPON_REPLACE_MODAL) {
       if (InventoryUI.handleWeaponReplaceClick(mx, my)) return;
@@ -176,16 +195,10 @@ export const UIManager = {
       return;
     }
 
-    // 3.5. Cinematic Advance / Skip
+    // 3.5. Boss Defeat Cinematic Lock
+    // Accidental gameplay clicks during the final blow must NEVER abort or skip defeat cinematics.
+    // Intentional skipping is handled by deliberate keyboard action (Space / Enter) in main.js.
     if (GameState.STATE === GameStates.BOSS_DEFEAT_CINEMATIC || GameState.STATE === 'boss_defeat_cinematic') {
-      if (WardenDefeatCinematic.canSkip && WardenDefeatCinematic.canSkip()) {
-        WardenDefeatCinematic.skip();
-        return;
-      }
-      if (GorgarothCinematics.canSkip && GorgarothCinematics.canSkip()) {
-        GorgarothCinematics.skip();
-        return;
-      }
       return;
     }
     // 4. Title State
@@ -202,8 +215,7 @@ export const UIManager = {
 
     // 5. Pause State
     if (GameState.STATE === GameStates.PAUSED) {
-      if (PauseMenu.handleClick(mx, my)) return;
-      resumeGame();
+      PauseMenu.handleClick(mx, my);
       return;
     }
 
@@ -228,6 +240,18 @@ export const UIManager = {
     // 9. Codex State
     if (GameState.STATE === GameStates.CODEX) {
       CodexUI.handleClick(mx, my);
+      return;
+    }
+
+    // 9.5. Cinematic Archive State
+    if (GameState.STATE === GameStates.CINEMATIC_ARCHIVE) {
+      CinematicArchiveUI.handleClick(mx, my);
+      return;
+    }
+
+    // 9.6. Developer Sanctum State
+    if (GameState.STATE === GameStates.DEVELOPER_SANCTUM) {
+      DeveloperSanctumUI.handleClick(mx, my);
       return;
     }
 
@@ -265,21 +289,94 @@ export const UIManager = {
 
     // 11. Playing State
     if (GameState.STATE === GameStates.PLAYING) {
-      // Check HUD weapon slots (1, 2, 3)
-      const hudSlotStartX = 200;
-      const hudSlotY = LH - 44;
-      const hudSlotW = 38;
-      const hudSlotGap = 6;
+      // Check Expanded Map Click: closes map and intercepts attack
+      if (GameState.MAP_EXPANDED) {
+        HUD.handleExpandedMapClick(mx, my);
+        return;
+      }
+
+      const rightPad = MobileControls.isMobile() ? 116 : 14;
+      const boxW = 155;
+      const boxX = LW - boxW - rightPad;
+      const selectorW = 200;
+      const selectorH = 34;
+      const selectorX = boxX - selectorW - 8;
+      const selectorY = 31;
+
+      // Handle Live Speed Selector when open
+      if (GameState.SPEED_SELECTOR_OPEN) {
+        // Check if clicked inside selector
+        if (mx >= selectorX && mx <= selectorX + selectorW && my >= selectorY && my <= selectorY + selectorH) {
+          const btnW = 45;
+          const btnGap = 4;
+          const startX = selectorX + 4;
+          const btnY = selectorY + 4;
+          const presets = [0.5, 1.0, 1.5, 2.0];
+
+          for (let i = 0; i < presets.length; i++) {
+            const bx = startX + i * (btnW + btnGap);
+            if (mx >= bx && mx <= bx + btnW && my >= btnY && my <= btnY + 26) {
+              GameState.GAME_SPEED = presets[i];
+              const s = SaveSystem.getSettings();
+              s.gameSpeed = presets[i];
+              SaveSystem.saveSettings(s);
+              SoundManager.snd('menu_press');
+              GameState.SPEED_SELECTOR_OPEN = false;
+              return; // Intercept attack!
+            }
+          }
+          // Inside selector frame
+          return; // Intercept attack!
+        }
+
+        // Check if clicked on speed badge itself (toggle close)
+        if (mx >= boxX && mx <= boxX + boxW && my >= 34 && my <= 62) {
+          GameState.SPEED_SELECTOR_OPEN = false;
+          SoundManager.snd('panel_close');
+          return; // Intercept attack!
+        }
+
+        // Dismiss outside cleanly without attacking
+        GameState.SPEED_SELECTOR_OPEN = false;
+        SoundManager.snd('panel_close');
+        return; // Intercept attack!
+      }
+
+      // Check if clicked speed badge to open live speed selector
+      if (mx >= boxX && mx <= boxX + boxW && my >= 34 && my <= 62) {
+        GameState.SPEED_SELECTOR_OPEN = true;
+        SoundManager.snd('panel_open');
+        return; // Intercept attack!
+      }
+
+      // Check HUD weapon slots (1, 2, 3) & Special Ability slot (Q)
+      const dockW = 286;
+      const dockX = Math.max(226, Math.round((LW - dockW) / 2));
+      const dockY = LH - 76;
+      const slotW = 56;
+      const slotH = 46;
+      const slotY = dockY + 17;
+      const slotGap = 6;
+
       for (let i = 0; i < 3; i++) {
-        const sx = hudSlotStartX + i * (hudSlotW + hudSlotGap);
-        if (mx >= sx && mx <= sx + hudSlotW && my >= hudSlotY && my <= hudSlotY + 36) {
+        const sx = dockX + 10 + i * (slotW + slotGap);
+        if (mx >= sx - 4 && mx <= sx + slotW + 4 && my >= slotY - 4 && my <= slotY + slotH + 6) {
           WeaponInventory.switchWeaponSlot(i);
           return;
         }
       }
 
-      // Minimap toggle touch
-      if (mx >= LW - 134 && mx <= LW - 14 && my >= 70 && my <= 154) {
+      // Check Canvas HUD Special Ability slot (Q)
+      const qx = dockX + 10 + 3 * (slotW + slotGap);
+      const qw = 68;
+      if (mx >= qx - 2 && mx <= qx + qw + 4 && my >= slotY - 4 && my <= slotY + slotH + 6) {
+        CombatSystem.triggerWeaponAbility();
+        return;
+      }
+
+      // Minimap toggle touch (desktop and mobile responsive)
+      const mmX = LW - 138 - rightPad;
+      if (mx >= mmX - 4 && mx <= mmX + 142 && my >= 66 && my <= 170) {
         HUD.toggleMinimap();
         return;
       }

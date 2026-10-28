@@ -16,9 +16,12 @@ export const MUSIC_TRACKS = {
   combat: './Background themes/Ostinato di Ombra.mp3',
   highThreat: './Background themes/The Shadow\'s Toll.mp3',
   gorgaroth: './Background themes/Iron Chains of the Dark.mp3',
+  boss_gorgaroth: './Background themes/Iron Chains of the Dark.mp3',
   malakor: './Background themes/Void Motif.mp3',
+  boss_malakor: './Background themes/Void Motif.mp3',
   warden: './Background themes/The Ruler\'s Burden.mp3',
-  credits: './Background themes/Untitled.mp3',
+  boss_warden: './Background themes/The Ruler\'s Burden.mp3',
+  credits: './Background themes/Void Motif.mp3',
   shatteredMind: './Background themes/Void Motif.mp3',
   heroEnding: './Background themes/wizard-2bfe5a8ff3d34ffab6cd0f6158393611-00-TRACK_01-audio_base64-82e2453909674687.wav',
   hero: './Background themes/wizard-2bfe5a8ff3d34ffab6cd0f6158393611-00-TRACK_01-audio_base64-82e2453909674687.wav',
@@ -55,11 +58,18 @@ function createAudioBus() {
 }
 
 function unlockAudio() {
-  if (_unlocked) return;
   _unlocked = true;
   if (_pendingTrack) {
-    MusicManager.play(_pendingTrack.key, _pendingTrack.opts);
+    const t = _pendingTrack;
     _pendingTrack = null;
+    MusicManager.play(t.key, t.opts);
+  } else if (_currentTrackKey) {
+    const active = _activeBus === 'primary' ? _primaryAudio : _secondaryAudio;
+    if (active && active.paused) {
+      active.play().catch(() => {});
+    }
+  } else if (typeof GameState !== 'undefined' && GameState.STATE === GameStates.TITLE) {
+    MusicManager.fadeIn('menu', 1.2, 0.70);
   }
 }
 
@@ -67,6 +77,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('pointerdown', unlockAudio, { passive: true });
   window.addEventListener('keydown', unlockAudio, { passive: true });
   window.addEventListener('click', unlockAudio, { passive: true });
+  window.addEventListener('touchstart', unlockAudio, { passive: true });
 }
 
 export const MusicManager = {
@@ -108,6 +119,10 @@ export const MusicManager = {
 
   isMuted() {
     return _isMuted;
+  },
+
+  isUnlocked() {
+    return _unlocked;
   },
 
   getCurrentTrack() {
@@ -230,9 +245,11 @@ export const MusicManager = {
     const state = GameState.STATE;
 
     if (state === GameStates.TITLE) {
-      if (_currentTrackKey !== 'menu') {
+      const active = _activeBus === 'primary' ? _primaryAudio : _secondaryAudio;
+      const isPaused = !active || active.paused;
+      if (_currentTrackKey !== 'menu' || (_unlocked && isPaused && !_isFading)) {
         const outgoingBus = _activeBus === 'primary' ? _primaryAudio : _secondaryAudio;
-        if (outgoingBus) {
+        if (outgoingBus && _currentTrackKey !== 'menu') {
           try {
             outgoingBus.pause();
             outgoingBus.currentTime = 0;
@@ -322,6 +339,18 @@ export const MusicManager = {
         }
       }
     }
+  },
+
+  getBuses() {
+    return {
+      activeBus: _activeBus,
+      primary: _primaryAudio ? { src: _primaryAudio.src, paused: _primaryAudio.paused, volume: _primaryAudio.volume, currentTime: _primaryAudio.currentTime, readyState: _primaryAudio.readyState, error: _primaryAudio.error } : null,
+      secondary: _secondaryAudio ? { src: _secondaryAudio.src, paused: _secondaryAudio.paused, volume: _secondaryAudio.volume, currentTime: _secondaryAudio.currentTime, readyState: _secondaryAudio.readyState, error: _secondaryAudio.error } : null,
+      isFading: _isFading,
+      targetVolume: _targetVolume,
+      unlocked: _unlocked,
+      currentTrackKey: _currentTrackKey
+    };
   }
 };
 

@@ -8,9 +8,56 @@ import { T, ROWS, COLS, LW, LH, roundRect } from '../core/Constants.js';
 import { getTheme, isBossFloor } from '../data/floors.js';
 import { WD, RARITIES } from '../data/weapons.js';
 import { isInOpeningSafeZone } from '../world/DungeonGenerator.js';
-import { PortalTransition } from '../cinematics/PortalTransition.js';
+import { PortalTransition, PORTAL_CONTEXTS } from '../cinematics/PortalTransition.js';
 
 export let MINIMAP_VISIBLE = true;
+
+/**
+ * Subtle Temporal Storytelling: Ancient Broken Temporal Glyphs (Floors 4–10)
+ * Integrated seamlessly into stone flagstone masonry. Rare, weathered, and deliberate.
+ */
+function _drawTemporalStoneGlyph(ctx, x, y, lv, seed) {
+  const cx = x + T / 2;
+  const cy = y + T / 2;
+  const r = 8.5;
+
+  ctx.save();
+  // Inlaid fractured circular clock / sundial arc
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, -0.4, 3.8); // broken circular groove
+  ctx.stroke();
+
+  // Faint ancient astronomical violet/amber hue
+  const depthFactor = Math.min(1.0, ((lv || 4) - 4) / 6);
+  const glow = 0.08 + depthFactor * 0.08;
+  ctx.strokeStyle = `rgba(168, 85, 247, ${glow})`;
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, -0.3, 3.7);
+  ctx.stroke();
+
+  // Fractured dial ticks (hour notches at ~10 and 2 o'clock)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+  ctx.fillRect(Math.round(cx - 1), Math.round(cy - r - 2), 2, 4);
+  ctx.fillRect(Math.round(cx + r * 0.7 - 1), Math.round(cy - r * 0.7 - 1), 3, 2);
+
+  // Central pivot point (faded runic pit)
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  ctx.fillRect(Math.round(cx) - 1.5, Math.round(cy) - 1.5, 3, 3);
+  ctx.fillStyle = `rgba(216, 180, 254, ${glow * 1.3})`;
+  ctx.fillRect(Math.round(cx) - 0.5, Math.round(cy) - 0.5, 1, 1);
+
+  // Deeper floors (7–10): barely perceptible ambient pulse
+  if (lv >= 7) {
+    const pulse = 0.025 + Math.sin(GameState.F * 0.025 + seed) * 0.025;
+    ctx.fillStyle = `rgba(245, 158, 11, ${pulse})`;
+    ctx.fillRect(Math.round(cx) - 1, Math.round(cy - r + 2), 2, 2);
+  }
+
+  ctx.restore();
+}
 
 export const WorldRenderer = {
   drawVoidArenaEffects(ctx) {
@@ -94,13 +141,13 @@ export const WorldRenderer = {
       ctx.restore();
     }
 
-    // 4. Inlaid Sanctuary Ward: Architecturally Integrated Safe Area
-    const safe = room.voidSafeArea;
-    if (safe) {
+    // 4. Inlaid Sanctuary Wards: Architecturally Integrated Safe Areas
+    const safeAreas = room.voidSafeAreas || (room.voidSafeArea ? [room.voidSafeArea] : []);
+    safeAreas.forEach(safe => {
       const sx = (safe.x + 0.5) * T;
       const sy = (safe.y + 0.5) * T;
       const sr = safe.r * T;
-      const inSafe = !!(P && P.inVoidSafeArea);
+      const inSafe = !!(P && Math.hypot(P.x - safe.x, P.y - safe.y) <= safe.r);
 
       ctx.save();
 
@@ -128,8 +175,8 @@ export const WorldRenderer = {
 
       // Restrained Moonlight-Silver Stillness Fill (Does not obscure characters or projectiles)
       const calm = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr);
-      calm.addColorStop(0, inSafe ? 'rgba(224, 231, 255, 0.14)' : 'rgba(224, 231, 255, 0.05)');
-      calm.addColorStop(0.75, inSafe ? 'rgba(147, 197, 253, 0.08)' : 'rgba(147, 197, 253, 0.02)');
+      calm.addColorStop(0, inSafe ? 'rgba(224, 231, 255, 0.16)' : 'rgba(224, 231, 255, 0.06)');
+      calm.addColorStop(0.75, inSafe ? 'rgba(147, 197, 253, 0.09)' : 'rgba(147, 197, 253, 0.03)');
       calm.addColorStop(1, 'rgba(147, 197, 253, 0)');
       ctx.fillStyle = calm;
       ctx.beginPath();
@@ -164,7 +211,7 @@ export const WorldRenderer = {
       }
 
       ctx.restore();
-    }
+    });
 
     // 5. Void Pressure Zone (Telegraphed Dangerous Spatial Rifts)
     const zone = boss && boss.voidPressureZone;
@@ -364,6 +411,13 @@ export const WorldRenderer = {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
             ctx.fillRect(x + 10, y + 14, 12, 4);
           }
+
+          // Subtle Temporal Storytelling: Ancient Broken Temporal Glyphs (Floors 4–10)
+          // Rare, weathered, integrated into stone masonry (roughly 1 in 85 floor tiles)
+          const temporalSeed = (r * 37 + c * 59 + (GameState.LV || 1) * 23);
+          if (GameState.LV >= 4 && temporalSeed % 89 === 0) {
+            _drawTemporalStoneGlyph(ctx, x, y, GameState.LV, temporalSeed);
+          }
         }
         // 2. COSMIC EXIT PORTAL
         else if (tile === 2) {
@@ -399,7 +453,11 @@ export const WorldRenderer = {
           }
 
           if (PortalTransition && PortalTransition.drawWorldPortal) {
-            PortalTransition.drawWorldPortal(ctx, x, y, T);
+            let portalContext = (PORTAL_CONTEXTS && PORTAL_CONTEXTS.STANDARD_FLOOR_EXIT) || 'STANDARD_FLOOR_EXIT';
+            if (GameState.LV === 3) portalContext = PORTAL_CONTEXTS.GORGAROTH_DEATH_PORTAL;
+            else if (GameState.LV === 6) portalContext = PORTAL_CONTEXTS.MALAKOR_VOID_PORTAL;
+            else if (GameState.LV === 10) portalContext = PORTAL_CONTEXTS.ABYSS_WARDEN_ENDING_PORTAL;
+            PortalTransition.drawWorldPortal(ctx, x, y, T, portalContext);
           } else {
             ctx.fillStyle = '#050714';
             ctx.fillRect(x, y, T, T);
@@ -898,7 +956,9 @@ export const WorldRenderer = {
       ctx.save();
 
       // 1. Dynamic Floor Firelight Pool (Warm Radial Illumination)
-      const lightRadius = isGrand ? 38 : 26;
+      // Subtle repeating rhythm in environmental effects on deeper floors (1.0 Hz clock tick)
+      const deepRhythm = (GameState.LV >= 6) ? Math.sin((GameState.F / 60) * Math.PI * 2) * 1.4 : 0;
+      const lightRadius = (isGrand ? 38 : 26) + deepRhythm;
       const lightGrad = ctx.createRadialGradient(px, py + 4, 2, px, py + 4, lightRadius);
       if (isVoid) {
         lightGrad.addColorStop(0, 'rgba(192, 132, 252, 0.28)');
@@ -1475,6 +1535,17 @@ export const WorldRenderer = {
         ctx.beginPath();
         ctx.arc(ox, oy, 2.2, 0, 6.28);
         ctx.fill();
+
+        // Subtle temporal echo: faint past-moment resonance around ancient magical relics
+        if (Math.sin(GameState.F * 0.035 + (s.ph || 0)) > 0.93) {
+          const lagAng = orbAng - 0.75;
+          const lagOx = sx + Math.cos(lagAng) * 14;
+          const lagOy = relicY + Math.sin(lagAng) * 6;
+          ctx.fillStyle = 'rgba(192, 132, 252, 0.35)';
+          ctx.beginPath();
+          ctx.arc(lagOx, lagOy, 1.6, 0, 6.28);
+          ctx.fill();
+        }
 
         // Shrine Label Tag
         ctx.fillStyle = s.col;

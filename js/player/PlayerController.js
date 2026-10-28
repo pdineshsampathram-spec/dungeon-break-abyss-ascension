@@ -67,12 +67,13 @@ export const PlayerController = {
       }
     }
 
-    // Level timer
-    GameState.LEVEL_TIMER += dt;
+    // Level timer: strictly synchronized to official unscaled wall-clock active time
+    GameState.LEVEL_TIMER = GameState.FLOOR_ACTIVE_TIME || 0;
     const secs = Math.floor(GameState.LEVEL_TIMER);
-    GameState.LEVEL_TIME_STR =
+    GameState.LEVEL_TIME_STR = GameState.FLOOR_ACTIVE_TIME_STR || (
       String(Math.floor(secs / 60)).padStart(2, '0') + ':' +
-      String(secs % 60).padStart(2, '0');
+      String(secs % 60).padStart(2, '0')
+    );
 
     // Heartbeat for low sanity
     SoundManager.tickHeartbeat(dt);

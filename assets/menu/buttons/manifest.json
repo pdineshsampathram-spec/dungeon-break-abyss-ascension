@@ -1,0 +1,21 @@
+{
+  "tileWidth": 96,
+  "tileHeight": 32,
+  "nineSlice": {
+    "left": 12,
+    "right": 12,
+    "top": 8,
+    "bottom": 8
+  },
+  "states": {
+    "normal": "button_normal.png",
+    "hover": "button_hover.png",
+    "pressed": "button_pressed.png",
+    "disabled": "button_disabled.png",
+    "primary_normal": "button_primary_normal.png",
+    "primary_hover": "button_primary_hover.png",
+    "primary_pressed": "button_primary_pressed.png",
+    "gift_normal": "button_gift_normal.png",
+    "gift_hover": "button_gift_hover.png"
+  }
+}

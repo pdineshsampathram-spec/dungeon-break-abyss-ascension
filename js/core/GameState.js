@@ -4,6 +4,7 @@
 // =====================================================================
 
 import { EventBus } from './EventBus.js';
+import { WeaponFactory } from '../weapons/WeaponFactory.js';
 
 export const GameStates = {
   TITLE: 'title',
@@ -26,7 +27,9 @@ export const GameStates = {
   MEMORY: 'memory',
   CREDITS: 'credits',
   BOSS_DEFEAT_CINEMATIC: 'boss_defeat_cinematic',
-  LAST_EMBER: 'last_ember'
+  LAST_EMBER: 'last_ember',
+  CINEMATIC_ARCHIVE: 'cinematic_archive',
+  DEVELOPER_SANCTUM: 'developer_sanctum'
 };
 
 export const GameState = {
@@ -54,6 +57,12 @@ export const GameState = {
   GAME_SPEED: 1.0,
   SCREEN_SHAKE_ENABLED: true,
   REDUCED_MOTION: false,
+
+  // Developer Sanctum & Expeditions (Temporary session in-memory only)
+  IS_DEVELOPER_EXPEDITION: false,
+  SANCTUM_TEMP_AUTHORIZED: false,
+  CUSTOM_STARTING_WEAPON: null,
+  CUSTOM_STARTING_MAX_HP: null,
 
   // Camera
   CAM: {
@@ -167,6 +176,8 @@ export const GameState = {
   CURRENT_MUTATION: null,
   ACTIVE_LORE_MODAL: null,
   ACTIVE_MEMORY_ECHO: null,
+  MINIMAP_VISIBLE: true,
+  MAP_EXPANDED: false,
 
   // Meta Progression (Persisted)
   ABYSS_SOULS: 0,
@@ -257,6 +268,33 @@ export const GameState = {
     this.P.wep = 'sword';
     this.P.wepRarity = this.weaponSlots[0].rarity;
     this.P._hitByAttacks = {};
+
+    // Apply developer starting maximum health and weapon overrides strictly on Developer Expeditions
+    if (this.IS_DEVELOPER_EXPEDITION) {
+      if (typeof this.CUSTOM_STARTING_MAX_HP === 'number' && !isNaN(this.CUSTOM_STARTING_MAX_HP) && isFinite(this.CUSTOM_STARTING_MAX_HP)) {
+        const validatedHp = Math.max(1, Math.min(50, Math.round(this.CUSTOM_STARTING_MAX_HP)));
+        this.P.maxHp = validatedHp;
+        this.P.hp = validatedHp;
+        this.P.displayHp = validatedHp;
+        this.P.ghostHp = validatedHp;
+      }
+
+      if (this.CUSTOM_STARTING_WEAPON && this.CUSTOM_STARTING_WEAPON.id) {
+        try {
+          const customWep = WeaponFactory.create(this.CUSTOM_STARTING_WEAPON.id, this.CUSTOM_STARTING_WEAPON.rarity || 'Common');
+          if (customWep) {
+            this.weaponSlots[0] = customWep;
+            this.P.wep = customWep.id;
+            this.P.wepRarity = customWep.rarity;
+          }
+        } catch (err) {
+          console.warn('[GameState] Failed to apply custom starting weapon:', err);
+        }
+      }
+    } else {
+      this.CUSTOM_STARTING_WEAPON = null;
+      this.CUSTOM_STARTING_MAX_HP = null;
+    }
   },
 
   // Authoritative run reset delegator
@@ -288,6 +326,7 @@ export const GameState = {
     this.levelTransitionActive = false;
     this.PORTAL_USED = false;
     this.PORTAL_DISCOVERED = false;
+    this.MAP_EXPANDED = false;
     this.LEVEL_TIMER = 0;
     this.LEVEL_TIME_STR = '00:00';
     this.LEVEL_TOOK_DAMAGE = false;

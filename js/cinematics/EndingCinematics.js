@@ -21,6 +21,7 @@ import { quitToMainMenu } from '../ui/PauseMenu.js';
 import { RampageCinematic } from './RampageCinematic.js';
 import { HeroCinematic } from './HeroCinematic.js';
 import { BetrayalCinematic } from './BetrayalCinematic.js';
+import { EpilogueCinematic } from './EpilogueCinematic.js';
 
 export let ACTIVE_ENDING = null;
 
@@ -115,6 +116,7 @@ export const EndingDispatcher = {
     if (HeroCinematic && HeroCinematic.reset) HeroCinematic.reset();
     if (BetrayalCinematic && BetrayalCinematic.reset) BetrayalCinematic.reset();
     if (RampageCinematic && RampageCinematic.reset) RampageCinematic.reset();
+    if (EpilogueCinematic && EpilogueCinematic.reset) EpilogueCinematic.reset();
     if (Credits && Credits.reset) Credits.reset();
   }
 };
@@ -132,7 +134,12 @@ export const EndingCinematics = {
            (HeroCinematic && HeroCinematic.isActive()) ||
            (BetrayalCinematic && BetrayalCinematic.isActive()) ||
            (RampageCinematic && RampageCinematic.isActive()) ||
+           (EpilogueCinematic && EpilogueCinematic.isActive()) ||
            !!ACTIVE_ENDING;
+  },
+
+  isEpilogueActive() {
+    return EpilogueCinematic && EpilogueCinematic.isActive();
   },
 
   startWardenDefeat(boss) {
@@ -225,6 +232,10 @@ export const EndingCinematics = {
 
   // TICK — drives the authoritative active ending cinematic
   tick(dt) {
+    if (EpilogueCinematic && EpilogueCinematic.isActive()) {
+      EpilogueCinematic.tick(dt);
+      return;
+    }
     if (HeroCinematic && HeroCinematic.isActive()) {
       HeroCinematic.tick(dt);
       return;
@@ -241,6 +252,10 @@ export const EndingCinematics = {
 
   // DRAW — delegates to the active canonical ending cinematic
   draw(ctx) {
+    if (EpilogueCinematic && EpilogueCinematic.isActive()) {
+      EpilogueCinematic.draw(ctx);
+      return;
+    }
     if (HeroCinematic && HeroCinematic.isActive()) {
       HeroCinematic.draw(ctx);
       return;
@@ -257,6 +272,9 @@ export const EndingCinematics = {
 
   // Draw cinematic entities into the world-space rendering pass
   drawWorldEntities(ctx) {
+    if (EpilogueCinematic && EpilogueCinematic.isActive()) {
+      return; // Epilogue suppresses world entities in favor of ancient vault
+    }
     if (HeroCinematic && HeroCinematic.isActive()) {
       HeroCinematic.drawWorldEntities(ctx);
       return;
@@ -276,18 +294,25 @@ export const EndingCinematics = {
     return EndingDispatcher.isDispatched() ||
            (RampageCinematic && RampageCinematic.isActive()) ||
            (HeroCinematic && HeroCinematic.isActive()) ||
-           (BetrayalCinematic && BetrayalCinematic.isActive());
+           (BetrayalCinematic && BetrayalCinematic.isActive()) ||
+           (EpilogueCinematic && EpilogueCinematic.isActive());
   },
 
   proceedToCredits(endType = 'hero') {
     const branch = endType || EndingDispatcher.getActiveEnding() || 'hero';
-    GameState.CINEMATIC_ACTIVE = false;
-    UITransitionManager.transitionTo(() => {
-      Credits.start(branch);
-    }, 0.5);
+    EpilogueCinematic.start(branch, () => {
+      GameState.CINEMATIC_ACTIVE = false;
+      UITransitionManager.transitionTo(() => {
+        Credits.start(branch);
+      }, 0.5);
+    });
   },
 
   handleClick(mx, my) {
+    if (EpilogueCinematic && EpilogueCinematic.isActive()) {
+      if (EpilogueCinematic.handleClick(mx, my)) return true;
+      return false;
+    }
     if (HeroCinematic && HeroCinematic.isActive()) {
       if (HeroCinematic.handleClick(mx, my)) return true;
       return false;

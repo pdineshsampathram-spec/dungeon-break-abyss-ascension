@@ -1,11 +1,14 @@
 // =====================================================================
 //  DUNGEON BREAK — js/ui/SettingsUI.js
-//  Phase 5.3: Arcane Artificer's Calibration Console
-//  - Bespoke chamfered obsidian chassis with antique brass rivets & runes
-//  - 3 Distinct Acoustic Resonance Tracks (Master Amber, Music Violet, SFX Cyan)
-//  - Semicircular Stepped Chronometric Regulator with Dial Needle & 1.00x Reset
-//  - Tactile Inset Brass Toggle Levers for Screen Shake & Reduced Motion
-//  - Preserved Mobile Controls Calibration & Restore Defaults
+//  Authoritative Settings Chamber & Chronometric Regulator
+//  - Deep indigo & violet carved stone with blackened steel & bronze chassis
+//  - Balanced two-column composition with zero empty black voids
+//  - Left: Audio Chamber with 3 responsive harmonic wave sliders
+//  - Percentage-only readouts with no engineering / decibel clutter
+//  - Right: Calibrated Chronometer with jitter-free needle easing
+//  - Tactile brass toggles for Screen Shake & Reduced Motion with clear ON/OFF states
+//  - Mobile touch control calibration & layout reset with custom stone buttons
+//  - Dynamic Return navigation with preserved player state and immediate persistence
 // =====================================================================
 
 import { GameState, GameStates } from '../core/GameState.js';
@@ -15,21 +18,37 @@ import { SoundManager } from '../audio/AudioManager.js';
 import { MusicManager } from '../audio/MusicManager.js';
 import { InputManager } from '../core/InputManager.js';
 import { MobileControls } from './MobileControls.js';
+import {
+  ButtonArtManager,
+  drawStoneButton,
+  drawStonePanel,
+  drawStoneCard,
+  drawStoneSlider,
+  drawStoneDivider,
+  drawChamferedPanel,
+  drawCornerBrackets,
+  getStonePattern
+} from './ButtonArtManager.js';
 
 let _settingsSlide = 0;
 let _returnState = GameStates.TITLE;
 let _ambientTimer = 0;
 let _activeDraggingChannel = null;
+let _displayedSpeed = 1.0;
 
 // Layout zones populated each frame for 100% pixel-accurate hit testing
 const _zones = [];
 
+export function getReturnState() {
+  return _returnState;
+}
+
 export function openSettings(fromState = null) {
   _settingsSlide = 0;
   _activeDraggingChannel = null;
-  _returnState = (fromState === GameStates.PAUSED || GameState.PREV_STATE === GameStates.PAUSED || GameState.STATE === GameStates.PAUSED)
-    ? GameStates.PAUSED
-    : GameStates.TITLE;
+  _returnState = fromState ? fromState : (GameState.STATE === GameStates.PAUSED ? GameStates.PAUSED : GameStates.TITLE);
+  const s = SaveSystem.getSettings();
+  _displayedSpeed = typeof s.gameSpeed === 'number' ? s.gameSpeed : 1.0;
   GameState.setState(GameStates.SETTINGS);
   SoundManager.snd('panel_open');
 }
@@ -37,61 +56,9 @@ export function openSettings(fromState = null) {
 export function closeSettings() {
   _activeDraggingChannel = null;
   SoundManager.snd('panel_close');
-  const target = (GameState.PREV_STATE === GameStates.PAUSED || _returnState === GameStates.PAUSED)
-    ? GameStates.PAUSED
-    : GameStates.TITLE;
+  const target = (_returnState === GameStates.PAUSED) ? GameStates.PAUSED : GameStates.TITLE;
+  _returnState = GameStates.TITLE;
   GameState.setState(target);
-}
-
-/** Helper to draw custom chamfered fantasy console plate */
-function drawChamferedPanel(ctx, x, y, w, h, chamfer, fillStyle, strokeStyle, lineWidth = 1) {
-  ctx.beginPath();
-  ctx.moveTo(x + chamfer, y);
-  ctx.lineTo(x + w - chamfer, y);
-  ctx.lineTo(x + w, y + chamfer);
-  ctx.lineTo(x + w, y + h - chamfer);
-  ctx.lineTo(x + w - chamfer, y + h);
-  ctx.lineTo(x + chamfer, y + h);
-  ctx.lineTo(x, y + h - chamfer);
-  ctx.lineTo(x, y + chamfer);
-  ctx.closePath();
-  if (fillStyle) {
-    ctx.fillStyle = fillStyle;
-    ctx.fill();
-  }
-  if (strokeStyle) {
-    ctx.strokeStyle = strokeStyle;
-    ctx.lineWidth = lineWidth;
-    ctx.stroke();
-  }
-}
-
-/** Helper to draw ornamental brass corner brackets and rivets */
-function drawCornerBrackets(ctx, x, y, w, h, len = 14, col = 'rgba(217, 119, 6, 0.75)') {
-  ctx.save();
-  ctx.strokeStyle = col;
-  ctx.lineWidth = 1.5;
-  // Top-left
-  ctx.beginPath(); ctx.moveTo(x, y + len); ctx.lineTo(x, y); ctx.lineTo(x + len, y); ctx.stroke();
-  // Top-right
-  ctx.beginPath(); ctx.moveTo(x + w - len, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + len); ctx.stroke();
-  // Bottom-left
-  ctx.beginPath(); ctx.moveTo(x, y + h - len); ctx.lineTo(x, y + h); ctx.lineTo(x + len, y + h); ctx.stroke();
-  // Bottom-right
-  ctx.beginPath(); ctx.moveTo(x + w - len, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - len); ctx.stroke();
-
-  // Fine brass rivets
-  ctx.fillStyle = '#fde68a';
-  const rivets = [
-    [x + 4, y + 4], [x + w - 4, y + 4],
-    [x + 4, y + h - 4], [x + w - 4, y + h - 4]
-  ];
-  rivets.forEach(([rx, ry]) => {
-    ctx.beginPath();
-    ctx.arc(rx, ry, 1.8, 0, Math.PI * 2);
-    ctx.fill();
-  });
-  ctx.restore();
 }
 
 export const SettingsUI = {
@@ -103,80 +70,75 @@ export const SettingsUI = {
     // Full screen darkened vignette
     ctx.save();
     ctx.globalAlpha = eased;
-    ctx.fillStyle = 'rgba(2, 4, 10, 0.92)';
+    ctx.fillStyle = 'rgba(2, 4, 10, 0.94)';
     ctx.fillRect(0, 0, LW, LH);
 
-    const panW = 890;
-    const panH = 530;
+    const panW = Math.min(880, LW - 24);
+    const panH = Math.min(540, LH - 24);
     const panX = Math.round((LW - panW) / 2);
-    const panY = Math.round((LH - panH) / 2 - (1 - eased) * 35);
+    const panY = Math.round((LH - panH) / 2 - (1 - eased) * 25);
 
-    // Radial furnace glow behind console
+    // Warm amber furnace & cosmic violet backglow
     const pulse = 0.5 + 0.5 * Math.sin(_ambientTimer * 2.0);
     const grad = ctx.createRadialGradient(panX + panW / 2, panY + 180, 20, panX + panW / 2, panY + 240, 480);
-    grad.addColorStop(0, `rgba(217, 119, 6, ${0.16 + pulse * 0.04})`);
-    grad.addColorStop(0.5, 'rgba(147, 51, 234, 0.06)');
+    grad.addColorStop(0, `rgba(217, 119, 6, ${0.12 + pulse * 0.04})`);
+    grad.addColorStop(0.5, 'rgba(126, 34, 206, 0.06)');
     grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = grad;
     ctx.fillRect(panX - 40, panY - 40, panW + 80, panH + 80);
 
     // ─────────────────────────────────────────────────────────────
-    // 1. BESPOKE OUTER CHASSIS (LAYERED OBSIDIAN & BRASS BEZEL)
+    // 1. BESPOKE MASTER OUTER CHASSIS (OBSIDIAN & ANTIQUE BRASS)
     // ─────────────────────────────────────────────────────────────
-    // Stepped outer iron rim with chamfered silhouette
-    drawChamferedPanel(ctx, panX, panY, panW, panH, 16, 'rgba(6, 10, 20, 0.98)', 'rgba(217, 119, 6, 0.75)', 1.8);
-
-    // Inner etched brass channel
-    drawChamferedPanel(ctx, panX + 6, panY + 6, panW - 12, panH - 12, 12, 'rgba(10, 15, 28, 0.96)', 'rgba(201, 168, 76, 0.35)', 1);
-
-    // Corner filigree brackets
-    drawCornerBrackets(ctx, panX + 8, panY + 8, panW - 16, panH - 16, 20, 'rgba(217, 119, 6, 0.85)');
+    drawStonePanel(ctx, panX, panY, panW, panH, {
+      chamfer: 14,
+      outerBorderColor: 'rgba(217, 119, 6, 0.85)',
+      hasCornerBrackets: true,
+      bracketLen: 20
+    });
 
     _zones.length = 0;
     const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
     const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
     const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
     const settings = SaveSystem.getSettings();
-
-    // ─────────────────────────────────────────────────────────────
-    // 2. DOMINANT TITLE AREA & MASTER ACOUSTIC POWER LEVER
-    // ─────────────────────────────────────────────────────────────
-    const topY = panY + 16;
     const isReducedMotion = !!settings.reducedMotion;
 
-    // Engraved header plaque
+    // ─────────────────────────────────────────────────────────────
+    // 2. HEADER: TITLE & MASTER AUDIO POWER SWITCH
+    // ─────────────────────────────────────────────────────────────
+    const topY = panY + 14;
+
+    // Inscribed Header
     ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.font = 'bold 13.5px Cinzel, serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.shadowColor = '#d97706';
-    ctx.shadowBlur = isReducedMotion ? 0 : 8;
-    ctx.fillText('◈ ARCANE ARTIFICER\'S CALIBRATION CONSOLE ◈', panX + 26, topY + 12);
+    ctx.shadowBlur = isReducedMotion ? 0 : 7;
+    ctx.fillText('◈ ARCANE ARTIFICER\'S CALIBRATION CONSOLE ◈', panX + 24, topY + 11);
     ctx.shadowBlur = 0;
 
     ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
-    ctx.font = 'italic 9.5px Crimson Text, serif';
-    ctx.fillText('Sensory Harmonics Matrix, Chronometric Pace & Abyssal Perception Tuning', panX + 28, topY + 27);
+    ctx.font = 'italic 9.5px "Crimson Text", serif';
+    ctx.fillText('Acoustic Resonance, Chronometric Pace & Sensory Mechanics', panX + 26, topY + 26);
 
-    // Master Power Toggle (Top Right)
+    // Master Power Toggle Button (Top Right)
     const isMuted = !!settings.muted;
-    const leverW = 206, leverH = 28;
-    const leverX = panX + panW - 24 - leverW;
+    const leverW = 194, leverH = 26;
+    const leverX = panX + panW - 22 - leverW;
     const isHoverMaster = mouseX >= leverX && mouseX <= leverX + leverW && mouseY >= topY && mouseY <= topY + leverH;
 
-    ctx.fillStyle = isMuted
-      ? 'rgba(239, 68, 68, 0.22)'
-      : (isHoverMaster ? 'rgba(34, 197, 94, 0.25)' : 'rgba(15, 23, 42, 0.85)');
-    ctx.strokeStyle = isMuted
-      ? '#ef4444'
-      : (isHoverMaster ? '#4ade80' : 'rgba(201, 168, 76, 0.65)');
-    ctx.lineWidth = 1.3;
-    drawChamferedPanel(ctx, leverX, topY, leverW, leverH, 4, null, ctx.strokeStyle, 1.2);
-    ctx.fill();
+    drawStoneButton(ctx, isMuted ? '  MASTER AUDIO: MUTED' : '  MASTER AUDIO: ACTIVE', leverX, topY, leverW, leverH, {
+      isHover: isHoverMaster,
+      isSelected: !isMuted,
+      variant: isMuted ? 'danger' : 'normal',
+      fontSize: 9.0
+    });
 
-    // Glowing jewel indicator
+    // Glowing status jewel on Master Power button
     ctx.beginPath();
-    ctx.arc(leverX + 16, topY + leverH / 2, 5, 0, Math.PI * 2);
+    ctx.arc(leverX + 15, topY + leverH / 2, 4.0, 0, Math.PI * 2);
     ctx.fillStyle = isMuted ? '#ef4444' : '#22c55e';
     if (!isReducedMotion) {
       ctx.shadowColor = isMuted ? '#ef4444' : '#22c55e';
@@ -184,11 +146,6 @@ export const SettingsUI = {
     }
     ctx.fill();
     ctx.shadowBlur = 0;
-
-    ctx.fillStyle = isMuted ? '#fca5a5' : '#ffffff';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(isMuted ? 'ACOUSTIC CONDUIT: MUTED' : 'ACOUSTIC CONDUIT: ACTIVE', leverX + leverW / 2 + 8, topY + leverH / 2);
 
     _zones.push({
       id: 'toggle_master_mute',
@@ -201,43 +158,48 @@ export const SettingsUI = {
     });
 
     // ─────────────────────────────────────────────────────────────
-    // 3. INSTRUMENT BAYS (BALANCED ASYMMETRIC TWIN CHAMBERS)
-    // Left: Acoustic Resonance Harmonizer (408px)
-    // Right: Chronometric Temporal Regulator & Sensory Switchboard (424px)
+    // 3. BALANCED TWO-COLUMN COMPOSITION
+    // Left: Audio Chamber
+    // Right: Chronometer & Sensory Controls
     // ─────────────────────────────────────────────────────────────
-    const bayY = topY + 38;
-    const bayH = panY + panH - bayY - 44;
-    const leftBayW = 410;
-    const rightBayW = panW - 48 - leftBayW - 14;
-    const leftBayX = panX + 20;
-    const rightBayX = leftBayX + leftBayW + 14;
+    const bayY = topY + 36;
+    const botBarH = 34;
+    const bayH = panY + panH - bayY - botBarH - 8;
+    const leftBayW = Math.round((panW - 44) * 0.49);
+    const rightBayW = panW - 36 - leftBayW;
+    const leftBayX = panX + 16;
+    const rightBayX = leftBayX + leftBayW + 10;
 
     // ═════════════════════════════════════════════════════════════
-    // LEFT ZONE: ACOUSTIC RESONANCE HARMONIZER
+    // LEFT ZONE: AUDIO CHAMBER
     // ═════════════════════════════════════════════════════════════
-    drawChamferedPanel(ctx, leftBayX, bayY, leftBayW, bayH, 8, 'rgba(10, 14, 26, 0.95)', 'rgba(201, 168, 76, 0.65)', 1.4);
-    drawCornerBrackets(ctx, leftBayX + 2, bayY + 2, leftBayW - 4, bayH - 4, 12, 'rgba(201, 168, 76, 0.45)');
+    drawStonePanel(ctx, leftBayX, bayY, leftBayW, bayH, {
+      chamfer: 8,
+      outerBorderColor: 'rgba(217, 119, 6, 0.70)',
+      hasCornerBrackets: true,
+      bracketLen: 12
+    });
 
     // Section Header
     ctx.fillStyle = '#fde68a';
     ctx.font = 'bold 11px Cinzel, serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('ᛟ ACOUSTIC RESONANCE & SPECTRAL FREQUENCIES', leftBayX + 16, bayY + 12);
+    ctx.fillText('ᛟ ACOUSTIC RESONANCE CHAMBER', leftBayX + 16, bayY + 12);
 
     ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(leftBayX + 16, bayY + 28);
-    ctx.lineTo(leftBayX + leftBayW - 16, bayY + 28);
+    ctx.moveTo(leftBayX + 16, bayY + 27);
+    ctx.lineTo(leftBayX + leftBayW - 16, bayY + 27);
     ctx.stroke();
 
-    // 3 Unique Acoustic Resonance Instruments
+    // 3 Audio Controls (Master, Music, SFX)
     const channels = [
       {
         id: 'masterVolume',
-        label: 'MASTER ACOUSTIC RESONANCE',
-        sub: 'Overall sonic conduit gain & dynamic range limit',
+        label: 'MASTER VOLUME',
+        sub: 'Overall acoustic balance and final gain',
         val: typeof settings.masterVolume === 'number' ? settings.masterVolume : 0.8,
         theme: '#f59e0b',
         glow: 'rgba(245, 158, 11, 0.55)',
@@ -246,8 +208,8 @@ export const SettingsUI = {
       },
       {
         id: 'musicVolume',
-        label: 'SANCTUM CHORALE (MUSIC)',
-        sub: 'Ethereal orchestrations & dark choral resonance',
+        label: 'MUSIC VOLUME',
+        sub: 'Soundtrack, cathedral choir & atmospheric score',
         val: typeof settings.musicVolume === 'number' ? settings.musicVolume : 0.7,
         theme: '#c084fc',
         glow: 'rgba(168, 85, 247, 0.55)',
@@ -256,26 +218,27 @@ export const SettingsUI = {
       },
       {
         id: 'sfxVolume',
-        label: 'CRUCIBLE IMPACT (SFX)',
-        sub: 'Blade cleaves, projectile pierces & trauma feedback',
+        label: 'SOUND EFFECTS',
+        sub: 'Blade strikes, projectile impacts & ability cues',
         val: typeof settings.sfxVolume === 'number' ? settings.sfxVolume : 0.85,
         theme: '#38bdf8',
         glow: 'rgba(56, 189, 248, 0.55)',
         icon: '⚡',
-        type: 'cyan'
+        type: 'azure'
       }
     ];
 
-    const channelY = bayY + 36;
-    const channelH = 96;
+    const channelY = bayY + 34;
+    const channelH = 92;
+    const channelGap = 8;
 
     // Handle mouse dragging across tracks
     if (isMouseDown) {
       channels.forEach((ch, idx) => {
-        const cy = channelY + idx * (channelH + 6);
-        const trackX = leftBayX + 22;
-        const trackW = leftBayW - 44;
-        const trackY = cy + 42;
+        const cy = channelY + idx * (channelH + channelGap);
+        const trackX = leftBayX + 20;
+        const trackW = leftBayW - 40;
+        const trackY = cy + 40;
         const trackH = 22;
 
         if (_activeDraggingChannel === ch.id || (mouseY >= trackY - 10 && mouseY <= trackY + trackH + 10 && mouseX >= trackX - 10 && mouseX <= trackX + trackW + 10)) {
@@ -293,54 +256,54 @@ export const SettingsUI = {
     }
 
     channels.forEach((ch, idx) => {
-      const cy = channelY + idx * (channelH + 6);
+      const cy = channelY + idx * (channelH + channelGap);
       const isDraggingThis = _activeDraggingChannel === ch.id;
 
-      // Inset Instrument Housing Plate
-      ctx.fillStyle = isDraggingThis ? 'rgba(20, 30, 52, 0.85)' : 'rgba(14, 20, 36, 0.75)';
-      ctx.strokeStyle = isDraggingThis ? ch.theme : 'rgba(51, 65, 85, 0.55)';
-      ctx.lineWidth = isDraggingThis ? 1.5 : 1;
-      drawChamferedPanel(ctx, leftBayX + 12, cy, leftBayW - 24, channelH, 6, null, ctx.strokeStyle, ctx.lineWidth);
-      ctx.fill();
+      // Inset Instrument Housing Card (Deep Violet Stone)
+      drawStoneCard(ctx, leftBayX + 10, cy, leftBayW - 20, channelH, {
+        isHover: isDraggingThis,
+        isSelected: isDraggingThis,
+        accentColor: ch.type === 'amber' ? 'gold' : (ch.type === 'violet' ? 'violet' : 'azure'),
+        chamfer: 5
+      });
 
       // Channel Icon & Title
       ctx.fillStyle = isMuted ? '#64748b' : '#f8fafc';
       ctx.font = 'bold 9.5px Cinzel, serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText(`${ch.icon} ${ch.label}`, leftBayX + 22, cy + 9);
+      ctx.fillText(`${ch.icon} ${ch.label}`, leftBayX + 20, cy + 9);
 
       ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
-      ctx.font = 'italic 8.5px Crimson Text, serif';
-      ctx.fillText(ch.sub, leftBayX + 22, cy + 23);
+      ctx.font = 'italic 8.5px "Crimson Text", serif';
+      ctx.fillText(ch.sub, leftBayX + 20, cy + 24);
 
-      // Percentage & Decibel Readout
+      // Percentage Only (No decibels or pseudo-engine diagnostics)
       const pct = isMuted ? 0 : Math.round(ch.val * 100);
-      const db = pct === 0 ? '-∞ dB' : (pct === 100 ? '0.0 dB' : `-${((100 - pct) * 0.28).toFixed(1)} dB`);
       ctx.fillStyle = isMuted ? '#ef4444' : ch.theme;
-      ctx.font = 'bold 10px monospace';
+      ctx.font = 'bold 11px Cinzel, serif';
       ctx.textAlign = 'right';
-      ctx.fillText(`${pct}%  •  ${db}`, leftBayX + leftBayW - 22, cy + 9);
+      ctx.fillText(`${pct}%`, leftBayX + leftBayW - 20, cy + 9);
 
-      // ── Engraved Acoustic Resonance Track ──
-      const trackX = leftBayX + 22;
-      const trackW = leftBayW - 44;
-      const trackY = cy + 42;
-      const trackH = 20;
+      // ── Custom Recessed Basalt Track ──
+      const trackX = leftBayX + 20;
+      const trackW = leftBayW - 40;
+      const trackY = cy + 40;
+      const trackH = 22;
 
       // Track milled recess bedding
-      ctx.fillStyle = '#050812';
+      ctx.fillStyle = '#060814';
       ctx.strokeStyle = 'rgba(71, 85, 105, 0.65)';
       ctx.lineWidth = 1;
-      roundRect(ctx, trackX, trackY, trackW, trackH, 4);
+      drawChamferedPanel(ctx, trackX, trackY, trackW, trackH, 3);
       ctx.fill(); ctx.stroke();
 
-      // Center guide slot with etched brass edge
+      // Center guide slot with etched dark edge
       ctx.fillStyle = '#020409';
-      roundRect(ctx, trackX + 4, trackY + trackH / 2 - 2, trackW - 8, 4, 2);
+      drawChamferedPanel(ctx, trackX + 4, trackY + trackH / 2 - 2, trackW - 8, 4, 2);
       ctx.fill();
 
-      // Energy Fill according to channel theme
+      // Energy Fill Bar
       const effectiveVal = isMuted ? 0 : ch.val;
       const fillW = Math.max(0, Math.min(trackW - 8, (trackW - 8) * effectiveVal));
       if (fillW > 0) {
@@ -349,57 +312,47 @@ export const SettingsUI = {
           ctx.shadowColor = ch.glow;
           ctx.shadowBlur = 8;
         }
+
+        const fGrad = ctx.createLinearGradient(trackX + 4, trackY, trackX + 4 + fillW, trackY);
         if (ch.type === 'amber') {
-          const fGrad = ctx.createLinearGradient(trackX + 4, trackY, trackX + 4 + fillW, trackY);
           fGrad.addColorStop(0, '#78350f');
           fGrad.addColorStop(0.7, '#d97706');
           fGrad.addColorStop(1, '#fde68a');
-          ctx.fillStyle = fGrad;
         } else if (ch.type === 'violet') {
-          const fGrad = ctx.createLinearGradient(trackX + 4, trackY, trackX + 4 + fillW, trackY);
           fGrad.addColorStop(0, '#581c87');
           fGrad.addColorStop(0.7, '#9333ea');
           fGrad.addColorStop(1, '#e9d5ff');
-          ctx.fillStyle = fGrad;
         } else {
-          const fGrad = ctx.createLinearGradient(trackX + 4, trackY, trackX + 4 + fillW, trackY);
           fGrad.addColorStop(0, '#0369a1');
           fGrad.addColorStop(0.7, '#0284c7');
           fGrad.addColorStop(1, '#bae6fd');
-          ctx.fillStyle = fGrad;
         }
-        roundRect(ctx, trackX + 4, trackY + 3, fillW, trackH - 6, 3);
+        ctx.fillStyle = fGrad;
+        drawChamferedPanel(ctx, trackX + 4, trackY + 3, fillW, trackH - 6, 2);
         ctx.fill();
 
-        // Sinusoidal waveform ripples inside the music track (subtle, decorative)
-        if (ch.type === 'violet' && !isReducedMotion) {
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
-          ctx.lineWidth = 1;
+        // Subtle, elegant harmonic wave inside fill bar (restrained, non-distracting)
+        if (!isReducedMotion && effectiveVal > 0) {
+          drawChamferedPanel(ctx, trackX + 4, trackY + 3, fillW, trackH - 6, 2);
+          ctx.clip();
+
+          ctx.lineWidth = 1.3;
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.50)';
           ctx.beginPath();
-          for (let wx = 0; wx < fillW; wx += 4) {
-            const wy = trackY + trackH / 2 + Math.sin(_ambientTimer * 4.0 + wx * 0.15) * 3.5;
+          const waveCenterY = trackY + trackH / 2;
+          for (let wx = 0; wx <= fillW; wx += 4) {
+            const freq = ch.type === 'amber' ? 0.14 : (ch.type === 'violet' ? 0.17 : 0.19);
+            const speed = ch.type === 'amber' ? 3.0 : (ch.type === 'violet' ? 3.8 : 4.4);
+            const wy = waveCenterY + Math.sin(_ambientTimer * speed + wx * freq) * 2.8;
             if (wx === 0) ctx.moveTo(trackX + 4 + wx, wy);
             else ctx.lineTo(trackX + 4 + wx, wy);
           }
           ctx.stroke();
         }
-
-        // Electric arc impulses inside SFX track (subtle, decorative)
-        if (ch.type === 'cyan' && !isReducedMotion) {
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-          ctx.lineWidth = 1;
-          for (let ax = 14; ax < fillW - 8; ax += 32) {
-            ctx.beginPath();
-            ctx.moveTo(trackX + 4 + ax, trackY + 4);
-            ctx.lineTo(trackX + 4 + ax + 3, trackY + trackH / 2);
-            ctx.lineTo(trackX + 4 + ax - 2, trackY + trackH - 4);
-            ctx.stroke();
-          }
-        }
         ctx.restore();
       }
 
-      // Moving Metallic / Crystal Cursor Carriage
+      // Moving Metallic Carriage / Thumb
       const cursorX = trackX + 4 + (trackW - 8) * effectiveVal;
       const cursorY = trackY + trackH / 2;
       const curW = 16, curH = 24;
@@ -409,11 +362,10 @@ export const SettingsUI = {
         ctx.shadowColor = ch.glow;
         ctx.shadowBlur = 6;
       }
-      // Octagonal brass carriage with knurled sides
-      ctx.fillStyle = '#1e293b';
-      ctx.strokeStyle = ch.theme;
+      ctx.fillStyle = '#1e2436';
+      ctx.strokeStyle = isMuted ? '#64748b' : ch.theme;
       ctx.lineWidth = 1.6;
-      roundRect(ctx, cursorX - curW / 2, cursorY - curH / 2, curW, curH, 3);
+      drawChamferedPanel(ctx, cursorX - curW / 2, cursorY - curH / 2, curW, curH, 3);
       ctx.fill(); ctx.stroke();
 
       // Center crystal indicator bead
@@ -423,13 +375,13 @@ export const SettingsUI = {
       ctx.fill();
       ctx.restore();
 
-      // Etched tick graduation marks below track
+      // Etched graduation marks below track (Percentages only)
       const ticks = [
-        { pct: 0, label: '0% (-∞)' },
+        { pct: 0, label: '0%' },
         { pct: 0.25, label: '25%' },
         { pct: 0.50, label: '50%' },
         { pct: 0.75, label: '75%' },
-        { pct: 1.00, label: '100% (0dB)' }
+        { pct: 1.00, label: '100%' }
       ];
 
       ticks.forEach(t => {
@@ -448,12 +400,13 @@ export const SettingsUI = {
         ctx.fillText(t.label, tx, trackY + trackH + 6);
       });
 
-      // Hit zone for clicking track
+      // Interactive hit zone for clicking track
       _zones.push({
         id: `track_${ch.id}`,
         x: trackX - 6, y: cy + 34, w: trackW + 12, h: trackH + 24,
-        action: () => {
-          const frac = Math.max(0, Math.min(1, (mouseX - trackX) / trackW));
+        action: (clickMx) => {
+          const px = typeof clickMx === 'number' ? clickMx : (InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : mouseX);
+          const frac = Math.max(0, Math.min(1, (px - trackX) / trackW));
           settings[ch.id] = Math.round(frac * 100) / 100;
           SaveSystem.saveSettings(settings);
           SoundManager.snd('menu_press');
@@ -461,41 +414,67 @@ export const SettingsUI = {
       });
     });
 
-    // Sub-plate on Left Chamber: ACOUSTIC BUS CONDUIT & FILTERING (Balances vertical height!)
-    const busY = channelY + 3 * (channelH + 6) + 4;
-    const busH = bayY + bayH - busY - 10;
-    drawChamferedPanel(ctx, leftBayX + 12, busY, leftBayW - 24, busH, 5, 'rgba(12, 18, 32, 0.85)', 'rgba(201, 168, 76, 0.45)', 1);
+    // ── Balanced Audio Utility Plinth (Fills lower left bay) ──
+    const audioUtilY = channelY + 3 * (channelH + channelGap) + 4;
+    const audioBtnW = Math.floor((leftBayW - 28) / 2);
+    const audioBtnH = 26;
 
-    ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText('◈ ACOUSTIC BUS ROUTING & DYNAMIC MATRIX', leftBayX + 22, busY + 8);
-
-    const busItems = [
-      { label: 'CONDUIT:', val: isMuted ? 'STANDBY (MUTED)' : 'STEREO BIQUAD FILTERED', col: isMuted ? '#ef4444' : '#4ade80' },
-      { label: 'HEADROOM:', val: '0.0 dB PEAK LIMITER ACTIVE', col: '#38bdf8' },
-      { label: 'CHANNELS:', val: '3 BUSES PHASE-SYNCHRONIZED', col: '#c084fc' }
-    ];
-
-    busItems.forEach((bi, bIdx) => {
-      const by = busY + 24 + bIdx * 15;
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '8px monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText(bi.label, leftBayX + 22, by);
-
-      ctx.fillStyle = bi.col;
-      ctx.font = 'bold 8px monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText(bi.val, leftBayX + 90, by);
+    // Button 1: Quick Mute / Unmute
+    const isHoverMuteBtn = mouseX >= leftBayX + 10 && mouseX <= leftBayX + 10 + audioBtnW && mouseY >= audioUtilY && mouseY <= audioUtilY + audioBtnH;
+    drawStoneButton(ctx, isMuted ? 'UNMUTE ALL [ M ]' : 'MUTE ALL [ M ]', leftBayX + 10, audioUtilY, audioBtnW, audioBtnH, {
+      isHover: isHoverMuteBtn,
+      isSelected: isMuted,
+      variant: isMuted ? 'danger' : 'normal',
+      fontSize: 8.5
     });
 
+    _zones.push({
+      id: 'quick_mute_btn',
+      x: leftBayX + 10, y: audioUtilY, w: audioBtnW, h: audioBtnH,
+      action: () => {
+        settings.muted = !settings.muted;
+        SaveSystem.saveSettings(settings);
+        SoundManager.snd('menu_select');
+      }
+    });
+
+    // Button 2: Reset Audio Defaults
+    const rAudioX = leftBayX + 10 + audioBtnW + 8;
+    const isHoverResetAudio = mouseX >= rAudioX && mouseX <= rAudioX + audioBtnW && mouseY >= audioUtilY && mouseY <= audioUtilY + audioBtnH;
+    drawStoneButton(ctx, '↺ RESET AUDIO', rAudioX, audioUtilY, audioBtnW, audioBtnH, {
+      isHover: isHoverResetAudio,
+      fontSize: 8.5
+    });
+
+    _zones.push({
+      id: 'reset_audio_btn',
+      x: rAudioX, y: audioUtilY, w: audioBtnW, h: audioBtnH,
+      action: () => {
+        settings.masterVolume = 0.8;
+        settings.musicVolume = 0.7;
+        settings.sfxVolume = 0.85;
+        settings.muted = false;
+        SaveSystem.saveSettings(settings);
+        SoundManager.snd('menu_select');
+      }
+    });
+
+    // Clean audio chamber caption
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+    ctx.font = 'italic 8.5px "Crimson Text", serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Acoustic resonance adjusts in real time and persists across expeditions.', leftBayX + leftBayW / 2, audioUtilY + audioBtnH + 7);
+
     // ═════════════════════════════════════════════════════════════
-    // RIGHT ZONE: CHRONOMETER & SENSORY SWITCHBOARD
+    // RIGHT ZONE: CHRONOMETER & SENSORY CONTROLS
     // ═════════════════════════════════════════════════════════════
-    drawChamferedPanel(ctx, rightBayX, bayY, rightBayW, bayH, 8, 'rgba(10, 14, 26, 0.95)', 'rgba(217, 119, 6, 0.65)', 1.4);
-    drawCornerBrackets(ctx, rightBayX + 2, bayY + 2, rightBayW - 4, bayH - 4, 12, 'rgba(217, 119, 6, 0.45)');
+    drawStonePanel(ctx, rightBayX, bayY, rightBayW, bayH, {
+      chamfer: 8,
+      outerBorderColor: 'rgba(217, 119, 6, 0.70)',
+      hasCornerBrackets: true,
+      bracketLen: 12
+    });
 
     // 1. Chronometric Temporal Regulator Header
     ctx.fillStyle = '#fde68a';
@@ -507,101 +486,37 @@ export const SettingsUI = {
     ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(rightBayX + 16, bayY + 28);
-    ctx.lineTo(rightBayX + rightBayW - 16, bayY + 28);
+    ctx.moveTo(rightBayX + 16, bayY + 27);
+    ctx.lineTo(rightBayX + rightBayW - 16, bayY + 27);
     ctx.stroke();
 
-    const curSpeed = typeof settings.gameSpeed === 'number' ? settings.gameSpeed : 1.0;
+    const targetSpeed = typeof settings.gameSpeed === 'number' ? settings.gameSpeed : 1.0;
+    // Jitter-free continuous frame-rate-independent needle easing towards target speed
+    if (isReducedMotion) {
+      _displayedSpeed = targetSpeed;
+    } else {
+      _displayedSpeed += (targetSpeed - _displayedSpeed) * Math.min(1.0, dt * 10.0);
+    }
 
-    // Chronometer Instrument Box
-    const dialBoxY = bayY + 36;
-    const dialBoxH = 112;
-    drawChamferedPanel(ctx, rightBayX + 12, dialBoxY, rightBayW - 24, dialBoxH, 6, 'rgba(14, 20, 36, 0.85)', 'rgba(51, 65, 85, 0.55)', 1);
-
-    // Speed display & Chronometer dial arc
-    const dialCenterX = rightBayX + rightBayW / 2;
-    const dialCenterY = dialBoxY + 40;
-
-    // Engraved radial speedometer background arc
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.arc(dialCenterX, dialCenterY, 44, Math.PI * 0.8, Math.PI * 2.2);
-    ctx.stroke();
-
-    // Speed notches ticks around arc
-    const arcSpeeds = [0.5, 1.0, 1.5, 2.0];
-    arcSpeeds.forEach(sp => {
-      const spFrac = (sp - 0.5) / 1.5;
-      const angle = Math.PI * 0.8 + spFrac * (Math.PI * 1.4);
-      const innerX = dialCenterX + Math.cos(angle) * 36;
-      const innerY = dialCenterY + Math.sin(angle) * 36;
-      const outerX = dialCenterX + Math.cos(angle) * 44;
-      const outerY = dialCenterY + Math.sin(angle) * 44;
-      ctx.strokeStyle = Math.abs(curSpeed - sp) < 0.05 ? '#fde68a' : 'rgba(148, 163, 184, 0.6)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(innerX, innerY);
-      ctx.lineTo(outerX, outerY);
-      ctx.stroke();
+    // Chronometer Instrument Card (Height: 172px - fills regulator chamber richly)
+    const dialBoxY = bayY + 34;
+    const dialBoxH = 172;
+    drawStoneCard(ctx, rightBayX + 10, dialBoxY, rightBayW - 20, dialBoxH, {
+      isHover: false,
+      isSelected: false,
+      chamfer: 6
     });
 
-    // Active speed arc glow
-    const speedFrac = Math.max(0, Math.min(1, (curSpeed - 0.5) / 1.5));
-    const arcEnd = Math.PI * 0.8 + speedFrac * (Math.PI * 1.4);
-    ctx.strokeStyle = curSpeed === 1.0 ? '#fde68a' : (curSpeed > 1.0 ? '#fb923c' : '#38bdf8');
-    ctx.lineWidth = 5;
-    if (!isReducedMotion) {
-      ctx.shadowColor = ctx.strokeStyle;
-      ctx.shadowBlur = 8;
-    }
-    ctx.beginPath();
-    ctx.arc(dialCenterX, dialCenterY, 44, Math.PI * 0.8, arcEnd);
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // Chronometer needle pointer
-    ctx.save();
-    ctx.translate(dialCenterX, dialCenterY);
-    ctx.rotate(arcEnd);
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.moveTo(0, 0); ctx.lineTo(38, 0);
-    ctx.stroke();
-    ctx.fillStyle = '#fde68a';
-    ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, Math.PI * 2); ctx.fill();
-    ctx.restore();
-
-    // Prominent numerical velocity readout
-    ctx.fillStyle = curSpeed === 1.0 ? '#fde68a' : (curSpeed > 1.0 ? '#fb923c' : '#38bdf8');
-    ctx.font = 'bold 15px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${curSpeed.toFixed(2)}× VELOCITY`, dialCenterX, dialCenterY - 4);
-
-    const paceDesc = curSpeed === 1.0 ? 'EQUILIBRIUM · STANDARD CADENCE' : (curSpeed < 1.0 ? 'DILATED CHRONOMETRY (SLOWER)' : 'ACCELERATED SURGE (FASTER)');
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
-    ctx.font = 'italic 8.5px Crimson Text, serif';
-    ctx.fillText(paceDesc, dialCenterX, dialCenterY + 12);
-
-    // Reset 1.00x Button (Top-right of dial box)
-    const resetBtnW = 92, resetBtnH = 20;
+    // Reset 1.00x Button (Top-Right of dial card header)
+    const resetBtnW = 96, resetBtnH = 22;
     const resetBtnX = rightBayX + rightBayW - 22 - resetBtnW;
     const resetBtnY = dialBoxY + 8;
     const isHoverReset = mouseX >= resetBtnX && mouseX <= resetBtnX + resetBtnW && mouseY >= resetBtnY && mouseY <= resetBtnY + resetBtnH;
 
-    ctx.fillStyle = isHoverReset ? 'rgba(217, 119, 6, 0.35)' : 'rgba(30, 41, 59, 0.7)';
-    ctx.strokeStyle = isHoverReset ? '#fde68a' : 'rgba(71, 85, 105, 0.55)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, resetBtnX, resetBtnY, resetBtnW, resetBtnH, 4);
-    ctx.fill(); ctx.stroke();
-
-    ctx.fillStyle = isHoverReset ? '#ffffff' : '#cbd5e1';
-    ctx.font = 'bold 8px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('↺ RESET 1.00×', resetBtnX + resetBtnW / 2, resetBtnY + resetBtnH / 2);
+    drawStoneButton(ctx, '↺ RESET 1.00×', resetBtnX, resetBtnY, resetBtnW, resetBtnH, {
+      isHover: isHoverReset,
+      fontSize: 8.5
+    });
 
     _zones.push({
       id: 'speed_reset',
@@ -613,42 +528,119 @@ export const SettingsUI = {
       }
     });
 
-    // 4 Stepped Speed Notches
+    // Dial arc parameters
+    const dialCenterX = rightBayX + (rightBayW - 20) / 2 + 10;
+    const dialCenterY = dialBoxY + 66;
+    const dialRadius = 46;
+    const minSp = 0.5, maxSp = 2.0;
+    const arcStart = Math.PI * 0.8;
+    const arcSweep = Math.PI * 1.4;
+
+    // Outer decorative bronze bezel ring
+    ctx.strokeStyle = 'rgba(217, 119, 6, 0.40)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(dialCenterX, dialCenterY, dialRadius + 8, arcStart - 0.1, arcStart + arcSweep + 0.1);
+    ctx.stroke();
+
+    // Semicircular background track arc
+    ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.arc(dialCenterX, dialCenterY, dialRadius, arcStart, arcStart + arcSweep);
+    ctx.stroke();
+
+    // Speed notch ticks around arc
+    const arcSpeeds = [0.5, 1.0, 1.5, 2.0];
+    arcSpeeds.forEach(sp => {
+      const spFrac = (sp - minSp) / (maxSp - minSp);
+      const angle = arcStart + spFrac * arcSweep;
+      const innerX = dialCenterX + Math.cos(angle) * (dialRadius - 9);
+      const innerY = dialCenterY + Math.sin(angle) * (dialRadius - 9);
+      const outerX = dialCenterX + Math.cos(angle) * (dialRadius + 3);
+      const outerY = dialCenterY + Math.sin(angle) * (dialRadius + 3);
+      ctx.strokeStyle = Math.abs(targetSpeed - sp) < 0.05 ? '#fde68a' : 'rgba(148, 163, 184, 0.65)';
+      ctx.lineWidth = Math.abs(targetSpeed - sp) < 0.05 ? 2.0 : 1.4;
+      ctx.beginPath();
+      ctx.moveTo(innerX, innerY);
+      ctx.lineTo(outerX, outerY);
+      ctx.stroke();
+    });
+
+    // Active speed arc glow (smoothly eased)
+    const dispFrac = Math.max(0, Math.min(1, (_displayedSpeed - minSp) / (maxSp - minSp)));
+    const needleAngle = arcStart + dispFrac * arcSweep;
+    const speedCol = targetSpeed === 1.0 ? '#fde68a' : (targetSpeed > 1.0 ? '#fb923c' : '#38bdf8');
+
+    ctx.strokeStyle = speedCol;
+    ctx.lineWidth = 6;
+    if (!isReducedMotion) {
+      ctx.shadowColor = speedCol;
+      ctx.shadowBlur = 8;
+    }
+    ctx.beginPath();
+    ctx.arc(dialCenterX, dialCenterY, dialRadius, arcStart, needleAngle);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Chronometer needle pointer (smoothly eased without jumping)
+    ctx.save();
+    ctx.translate(dialCenterX, dialCenterY);
+    ctx.rotate(needleAngle);
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(-6, 0);
+    ctx.lineTo(dialRadius - 6, 0);
+    ctx.stroke();
+
+    ctx.fillStyle = '#fde68a';
+    ctx.beginPath();
+    ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Prominent numerical velocity readout
+    ctx.fillStyle = speedCol;
+    ctx.font = 'bold 14px Cinzel, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${targetSpeed.toFixed(2)}× VELOCITY`, dialCenterX, dialCenterY - 6);
+
+    const paceDesc = targetSpeed === 1.0
+      ? 'EQUILIBRIUM · STANDARD CADENCE'
+      : (targetSpeed < 1.0 ? 'DILATED CHRONOMETRY (SLOWER)' : 'ACCELERATED SURGE (FASTER)');
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
+    ctx.font = 'italic 8.5px "Crimson Text", serif';
+    ctx.fillText(paceDesc, dialCenterX, dialCenterY + 11);
+
+    // 4 Stepped Speed Notches (Visibly associated with dial - No magma cracks!)
     const notches = [
-      { val: 0.5,  label: '0.50× SLIGHT' },
-      { val: 1.0,  label: '1.00× NORMAL' },
-      { val: 1.5,  label: '1.50× SURGE' },
-      { val: 2.0,  label: '2.00× OVERCLOCK' }
+      { val: 0.5, label: '0.50×' },
+      { val: 1.0, label: '1.00×' },
+      { val: 1.5, label: '1.50×' },
+      { val: 2.0, label: '2.00×' }
     ];
 
-    const notchY = dialBoxY + dialBoxH - 32;
+    const notchY = dialBoxY + dialBoxH - 36;
     const notchGap = 6;
-    const notchW = Math.floor((rightBayW - 48 - (notches.length - 1) * notchGap) / notches.length);
+    const notchW = Math.floor((rightBayW - 40 - (notches.length - 1) * notchGap) / notches.length);
 
     notches.forEach((n, idx) => {
-      const nx = rightBayX + 22 + idx * (notchW + notchGap);
-      const isSel = Math.abs(curSpeed - n.val) < 0.05;
-      const isHover = mouseX >= nx && mouseX <= nx + notchW && mouseY >= notchY && mouseY <= notchY + 24;
+      const nx = rightBayX + 16 + idx * (notchW + notchGap);
+      const isSel = Math.abs(targetSpeed - n.val) < 0.05;
+      const isHover = mouseX >= nx && mouseX <= nx + notchW && mouseY >= notchY && mouseY <= notchY + 28;
 
-      ctx.fillStyle = isSel
-        ? 'rgba(217, 119, 6, 0.4)'
-        : (isHover ? 'rgba(30, 41, 59, 0.85)' : 'rgba(15, 23, 42, 0.75)');
-      ctx.strokeStyle = isSel
-        ? '#fde68a'
-        : (isHover ? '#cbd5e1' : 'rgba(71, 85, 105, 0.5)');
-      ctx.lineWidth = isSel ? 1.5 : 1;
-      roundRect(ctx, nx, notchY, notchW, 24, 4);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = isSel ? '#ffffff' : (isHover ? '#f1f5f9' : '#94a3b8');
-      ctx.font = 'bold 8.5px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(`${n.val.toFixed(2)}×`, nx + notchW / 2, notchY + 12);
+      drawStoneButton(ctx, n.label, nx, notchY, notchW, 28, {
+        isHover,
+        isSelected: isSel,
+        variant: 'normal',
+        fontSize: 9.5
+      });
 
       _zones.push({
         id: `speed_${n.val}`,
-        x: nx, y: notchY, w: notchW, h: 24,
+        x: nx, y: notchY, w: notchW, h: 28,
         action: () => {
           settings.gameSpeed = n.val;
           SaveSystem.saveSettings(settings);
@@ -657,14 +649,14 @@ export const SettingsUI = {
       });
     });
 
-    // 2. Sensory & Accessibility Mechanisms (Middle Section of Right Bay)
-    const leverBayY = dialBoxY + dialBoxH + 10;
+    // 2. Sensory & Accessibility Levers
+    const leverBayY = dialBoxY + dialBoxH + 12;
 
     ctx.fillStyle = '#fde68a';
     ctx.font = 'bold 11px Cinzel, serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('✦ SENSORY & TACTILE LEVERS', rightBayX + 16, leverBayY);
+    ctx.fillText('✦ SENSORY & ACCESSIBILITY CONTROLS', rightBayX + 16, leverBayY);
 
     ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
     ctx.lineWidth = 1;
@@ -676,8 +668,8 @@ export const SettingsUI = {
     const toggles = [
       {
         id: 'screenShake',
-        label: 'SCREEN TRAUMA VIBRATION',
-        desc: 'Tactile camera recoil on lethal strikes & detonation blasts',
+        label: 'SCREEN SHAKE',
+        desc: 'Tactile camera recoil on weapon strikes & detonation blasts',
         isOn: settings.screenShake !== false,
         activeTheme: '#22c55e',
         activeGlow: 'rgba(34, 197, 94, 0.55)',
@@ -685,59 +677,70 @@ export const SettingsUI = {
       },
       {
         id: 'reducedMotion',
-        label: 'ASTRAL FLUIDITY DAMPING',
-        desc: 'Mitigate camera sweeps, background motes & drift',
+        label: 'REDUCED MOTION',
+        desc: 'Mitigate camera sweeps, floating ambient motes & drift',
         isOn: !!settings.reducedMotion,
         activeTheme: '#38bdf8',
         activeGlow: 'rgba(56, 189, 248, 0.55)',
-        statusText: settings.reducedMotion ? 'DAMPENED' : 'FLUID'
+        statusText: settings.reducedMotion ? 'ACTIVE' : 'STANDARD'
       }
     ];
 
     const tRowY = leverBayY + 22;
-    const tRowH = 48;
+    const tRowH = 46;
 
     toggles.forEach((tog, tIdx) => {
       const ty = tRowY + tIdx * (tRowH + 6);
-      const isHoverTog = mouseX >= rightBayX + 12 && mouseX <= rightBayX + rightBayW - 12 && mouseY >= ty && mouseY <= ty + tRowH;
+      const isHoverTog = mouseX >= rightBayX + 10 && mouseX <= rightBayX + rightBayW - 10 && mouseY >= ty && mouseY <= ty + tRowH;
 
-      ctx.fillStyle = tog.isOn ? 'rgba(16, 26, 46, 0.9)' : 'rgba(14, 20, 36, 0.7)';
-      ctx.strokeStyle = tog.isOn ? tog.activeTheme : (isHoverTog ? 'rgba(148, 163, 184, 0.55)' : 'rgba(51, 65, 85, 0.45)');
-      ctx.lineWidth = 1.2;
-      drawChamferedPanel(ctx, rightBayX + 12, ty, rightBayW - 24, tRowH, 5, null, ctx.strokeStyle, ctx.lineWidth);
-      ctx.fill();
+      drawStoneCard(ctx, rightBayX + 10, ty, rightBayW - 20, tRowH, {
+        isHover: isHoverTog,
+        isSelected: tog.isOn,
+        accentColor: tog.id === 'screenShake' ? 'emerald' : 'azure',
+        chamfer: 5
+      });
 
       // Label & Description
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillStyle = tog.isOn ? '#ffffff' : '#94a3b8';
       ctx.font = 'bold 9.5px Cinzel, serif';
-      ctx.fillText(tog.label, rightBayX + 22, ty + 9);
+      ctx.fillText(tog.label, rightBayX + 20, ty + 9);
 
       ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
-      ctx.font = 'italic 8.5px Crimson Text, serif';
-      ctx.fillText(tog.desc, rightBayX + 22, ty + 26);
+      ctx.font = 'italic 8.5px "Crimson Text", serif';
+      ctx.fillText(tog.desc, rightBayX + 20, ty + 25);
+
+      // Status Badge (ENGAGED / DAMPENED / ACTIVE / STANDARD)
+      const badgeW = 74, badgeH = 18;
+      const badgeX = rightBayX + rightBayW - 30 - 64 - badgeW;
+      const badgeY = ty + (tRowH - badgeH) / 2;
+
+      ctx.fillStyle = tog.isOn ? 'rgba(34, 197, 94, 0.15)' : 'rgba(71, 85, 105, 0.25)';
+      ctx.strokeStyle = tog.isOn ? tog.activeTheme : 'rgba(71, 85, 105, 0.5)';
+      ctx.lineWidth = 1;
+      drawChamferedPanel(ctx, badgeX, badgeY, badgeW, badgeH, 3);
+      ctx.fill(); ctx.stroke();
+
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = 'bold 7.5px monospace';
+      ctx.fillStyle = tog.isOn ? tog.activeTheme : '#94a3b8';
+      ctx.fillText(tog.statusText, badgeX + badgeW / 2, badgeY + badgeH / 2);
 
       // Inset Mechanical Lever Well
-      const swW = 60, swH = 26;
-      const swX = rightBayX + rightBayW - 24 - swW;
+      const swW = 56, swH = 24;
+      const swX = rightBayX + rightBayW - 22 - swW;
       const swY = ty + (tRowH - swH) / 2;
 
       ctx.fillStyle = '#080c16';
       ctx.strokeStyle = tog.isOn ? tog.activeTheme : 'rgba(71, 85, 105, 0.65)';
       ctx.lineWidth = 1;
-      roundRect(ctx, swX, swY, swW, swH, 13);
+      drawChamferedPanel(ctx, swX, swY, swW, swH, 12);
       ctx.fill(); ctx.stroke();
 
-      // Indicator status pill
-      ctx.fillStyle = tog.isOn ? tog.activeTheme : '#475569';
-      ctx.beginPath();
-      const lampX = tog.isOn ? swX + 12 : swX + swW - 12;
-      ctx.arc(lampX, swY + swH / 2, 3, 0, Math.PI * 2);
-      ctx.fill();
-
       // Tactile Lever Knob (Knurled brass mechanism)
-      const knobX = tog.isOn ? (swX + swW - 15) : (swX + 15);
+      const knobX = tog.isOn ? (swX + swW - 14) : (swX + 14);
       const knobY = swY + swH / 2;
 
       ctx.save();
@@ -749,19 +752,19 @@ export const SettingsUI = {
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.arc(knobX, knobY, 9, 0, Math.PI * 2);
+      ctx.arc(knobX, knobY, 8.5, 0, Math.PI * 2);
       ctx.fill(); ctx.stroke();
 
-      // Mechanical core ring
+      // Core jewel
       ctx.fillStyle = tog.isOn ? tog.activeTheme : '#1e293b';
       ctx.beginPath();
-      ctx.arc(knobX, knobY, 4, 0, Math.PI * 2);
+      ctx.arc(knobX, knobY, 3.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 
       _zones.push({
         id: `toggle_${tog.id}`,
-        x: rightBayX + 12, y: ty, w: rightBayW - 24, h: tRowH,
+        x: rightBayX + 10, y: ty, w: rightBayW - 20, h: tRowH,
         action: () => {
           if (tog.id === 'screenShake') {
             settings.screenShake = !settings.screenShake;
@@ -774,26 +777,22 @@ export const SettingsUI = {
       });
     });
 
-    // Mobile / Touch Controls Calibration Plinth
-    const mobY = tRowY + 2 * (tRowH + 6) + 4;
+    // 3. Mobile / Touch Controls Calibration Plinth
+    const mobY = tRowY + 2 * (tRowH + 6) + 6;
     const isEditing = MobileControls.isEditMode();
-    const mobBtnW = Math.floor((rightBayW - 32) / 2);
-    const mobBtnH = 26;
+    const mobBtnW = Math.floor((rightBayW - 28) / 2);
+    const mobBtnH = 28;
 
     // Reposition button
-    const m1X = rightBayX + 12;
+    const m1X = rightBayX + 10;
     const isHoverM1 = mouseX >= m1X && mouseX <= m1X + mobBtnW && mouseY >= mobY && mouseY <= mobY + mobBtnH;
-    ctx.fillStyle = isEditing ? 'rgba(34, 197, 94, 0.3)' : (isHoverM1 ? 'rgba(201, 168, 76, 0.3)' : 'rgba(15, 23, 42, 0.75)');
-    ctx.strokeStyle = isEditing ? '#22c55e' : 'rgba(201, 168, 76, 0.55)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, m1X, mobY, mobBtnW, mobBtnH, 4);
-    ctx.fill(); ctx.stroke();
 
-    ctx.fillStyle = isEditing ? '#4ade80' : '#fde68a';
-    ctx.font = 'bold 8.5px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(isEditing ? '✔ DONE EDITING' : '◈ TOUCH CONTROLS', m1X + mobBtnW / 2, mobY + mobBtnH / 2);
+    drawStoneButton(ctx, isEditing ? '✔ DONE EDITING' : '◈ TOUCH CONTROLS', m1X, mobY, mobBtnW, mobBtnH, {
+      isHover: isHoverM1,
+      isSelected: isEditing,
+      variant: isEditing ? 'primary' : 'normal',
+      fontSize: 8.5
+    });
 
     _zones.push({
       id: 'mobile_edit',
@@ -808,19 +807,15 @@ export const SettingsUI = {
       }
     });
 
-    // Reset controls button
+    // Reset controls button (Crafted as authentic destructive stone button)
     const m2X = m1X + mobBtnW + 8;
     const isHoverM2 = mouseX >= m2X && mouseX <= m2X + mobBtnW && mouseY >= mobY && mouseY <= mobY + mobBtnH;
-    ctx.fillStyle = isHoverM2 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(15, 23, 42, 0.75)';
-    ctx.strokeStyle = 'rgba(239, 68, 68, 0.55)';
-    roundRect(ctx, m2X, mobY, mobBtnW, mobBtnH, 4);
-    ctx.fill(); ctx.stroke();
 
-    ctx.fillStyle = '#fca5a5';
-    ctx.font = 'bold 8.5px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('◈ RESET LAYOUT', m2X + mobBtnW / 2, mobY + mobBtnH / 2);
+    drawStoneButton(ctx, '◈ RESET LAYOUT', m2X, mobY, mobBtnW, mobBtnH, {
+      isHover: isHoverM2,
+      variant: 'danger',
+      fontSize: 8.5
+    });
 
     _zones.push({
       id: 'mobile_reset',
@@ -831,60 +826,40 @@ export const SettingsUI = {
       }
     });
 
-    // Sub-plate on Right Chamber: ABYSS ENGINE RUNTIME DIAGNOSTICS (Completely fills bottom dead space!)
-    const diagY = mobY + mobBtnH + 8;
-    const diagH = bayY + bayH - diagY - 10;
-    drawChamferedPanel(ctx, rightBayX + 12, diagY, rightBayW - 24, diagH, 5, 'rgba(12, 18, 32, 0.85)', 'rgba(217, 119, 6, 0.45)', 1);
-
-    ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.textAlign = 'left';
+    // Clean Right Chamber note
+    const rightNoteY = mobY + mobBtnH + 8;
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+    ctx.font = 'italic 8.5px "Crimson Text", serif';
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText('⚡ ABYSS ENGINE RUNTIME DIAGNOSTICS', rightBayX + 22, diagY + 8);
+    ctx.fillText('Settings are automatically saved and applied immediately.', rightBayX + rightBayW / 2, rightNoteY);
 
-    const diagItems = [
-      { label: 'SIMULATION TICK:', val: '60.0 HZ (FIXED TIMESTEP CHRONO-ANCHOR)', col: '#4ade80' },
-      { label: 'AUDIO SAMPLING:', val: '48.0 KHZ (32-BIT FLOAT WEBAUDIO)', col: '#fde68a' },
-      { label: 'TOUCH MATRIX:', val: 'ACTIVE (360° JOYSTICK + 3 ACTION ARCS)', col: '#38bdf8' }
-    ];
+    // ─────────────────────────────────────────────────────────────
+    // 4. BOTTOM BAR: KEYBOARD HINTS & RETURN BUTTON
+    // ─────────────────────────────────────────────────────────────
+    const botY = panY + panH - 34;
+    const retW = 214, retH = 26;
+    const retX = panX + panW - 20 - retW;
+    const isHoverRet = mouseX >= retX && mouseX <= retX + retW && mouseY >= botY && mouseY <= botY + retH;
+    const isPressRet = isHoverRet && isMouseDown;
 
-    diagItems.forEach((di, dIdx) => {
-      const dy = diagY + 24 + dIdx * 15;
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '8px monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText(di.label, rightBayX + 22, dy);
+    const retLabel = (_returnState === GameStates.PAUSED)
+      ? '◈ RETURN TO EXPEDITION [ ESC ]'
+      : '◈ RETURN TO TITLE [ ESC ]';
 
-      ctx.fillStyle = di.col;
-      ctx.font = 'bold 8px monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText(di.val, rightBayX + 115, dy);
+    drawStoneButton(ctx, retLabel, retX, botY, retW, retH, {
+      isHover: isHoverRet,
+      isPressed: isPressRet,
+      isSelected: false,
+      variant: 'primary',
+      fontSize: 9.0
     });
 
-    // ─────────────────────────────────────────────────────────────
-    // 4. BOTTOM BAR: KEYBOARD HINTS & CONSECRATE RETURN BUTTON
-    // ─────────────────────────────────────────────────────────────
-    const botY = panY + panH - 36;
-    const retW = 200, retH = 26;
-    const retX = panX + panW - 24 - retW;
-    const isHoverRet = mouseX >= retX && mouseX <= retX + retW && mouseY >= botY && mouseY <= botY + retH;
-
-    ctx.fillStyle = isHoverRet ? 'rgba(217, 119, 6, 0.35)' : 'rgba(30, 41, 59, 0.6)';
-    ctx.strokeStyle = isHoverRet ? '#fde68a' : 'rgba(201, 168, 76, 0.55)';
-    ctx.lineWidth = 1.2;
-    drawChamferedPanel(ctx, retX, botY, retW, retH, 4, null, ctx.strokeStyle, ctx.lineWidth);
-    ctx.fill();
-
-    ctx.fillStyle = isHoverRet ? '#ffffff' : '#fde68a';
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('◈ CONSECRATE & RETURN [ ESC ]', retX + retW / 2, botY + retH / 2);
-
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.70)';
     ctx.font = '9px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText('Click / Drag Resonance Tracks    Hotkeys: [ M ] Mute  [ O / P ] Velocity    Esc — Return', panX + 26, botY + 13);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Click / Drag Sliders    Hotkeys: [ M ] Mute    [ O / P ] Velocity    [ Esc ] Return', panX + 24, botY + retH / 2);
 
     _zones.push({
       id: 'close_btn',
@@ -899,14 +874,14 @@ export const SettingsUI = {
     for (const z of _zones) {
       if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) {
         if (z.action) {
-          z.action();
+          z.action(mx, my);
           return true;
         }
       }
     }
 
     // Click outside modal box returns
-    const panW = 890, panH = 530;
+    const panW = Math.min(880, LW - 24), panH = Math.min(540, LH - 24);
     const panX = (LW - panW) / 2, panY = (LH - panH) / 2;
     if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
       closeSettings();
@@ -943,6 +918,10 @@ export const SettingsUI = {
       return true;
     }
     return false;
+  },
+
+  getReturnState() {
+    return _returnState;
   }
 };
 

@@ -6,7 +6,7 @@
 import { GameState, GameStates } from '../core/GameState.js';
 import { Config } from '../core/Config.js';
 import { isBossFloor, getFloorBoss, FLOOR_CONFIG } from '../data/floors.js';
-import { WK, rollRarity } from '../data/weapons.js';
+import { WK, rollRarity, rollAffix } from '../data/weapons.js';
 import { DungeonGenerator, rndFloor, rndFloorOpen, rndTrapFloor, isInOpeningSafeZone } from './DungeonGenerator.js';
 import { BossArenaGenerator } from './BossArenaGenerator.js';
 import { BossManager } from '../bosses/BossManager.js';
@@ -122,6 +122,11 @@ export const FloorManager = {
     GameState.CINEMATIC_ACTIVE = false;
     GameState.ACTIVE_CINEMATIC_TYPE = null;
     GameState.PORTAL_USED = false;
+    GameState.FLOOR_ACTIVE_TIME = 0;
+    GameState.FLOOR_ACTIVE_TIME_STR = '00:00';
+    GameState.LEVEL_TIMER = 0;
+    GameState.LEVEL_TIME_STR = '00:00';
+    GameState.LEVEL_TOOK_DAMAGE = false;
     if (DeathCinematics && DeathCinematics.reset) DeathCinematics.reset();
     if (PortalTransition && PortalTransition.reset && !PortalTransition.isTransitionActive()) {
       PortalTransition.reset();
@@ -131,8 +136,10 @@ export const FloorManager = {
 
     if (isBossFloor(LV)) {
       BossArenaGenerator.build(LV);
+      GameState.EXPLORED_ROOMS = new Set(GameState.ROOMS ? GameState.ROOMS.map((_, i) => i) : [0]);
     } else {
       DungeonGenerator.build();
+      GameState.EXPLORED_ROOMS = new Set([0]);
     }
 
     // Safe spawn: Arena placed player at bottom (cx, 24); normal map uses Room 0 center
@@ -166,9 +173,9 @@ export const FloorManager = {
     // Populate Normal Floors with Structured Encounter Groups across expanded 34-42 room dungeon
     GameState.ENE = [];
     if (!isBossFloor(LV) && GameState.ROOMS && GameState.ROOMS.length > 1) {
-      // Calibrated enemy health baselines and progression curve
-      const BASE_HP = { skeleton: 18, ghoul: 28, demon: 52, wraith: 60 };
-      const FLOOR_HP_MULT = 1 + (LV - 1) * 0.22;
+      // Calibrated enemy health baselines and progression curve (Floor 1 Skeleton = 10 HP baseline)
+      const BASE_HP = { skeleton: 10, ghoul: 22, demon: 40, wraith: 50 };
+      const FLOOR_HP_MULT = 1 + (LV - 1) * 0.20;
 
       // Available non-start rooms (Room 0 is strictly safe start)
       const encounterRooms = GameState.ROOMS.slice(1);
@@ -468,9 +475,16 @@ export const FloorManager = {
     // Allies / Survivors (Normal floors only)
     GameState.ALLIES = [];
     if (!isBossFloor(LV)) {
+      if (!GameState.CURRENT_RUN_SURVIVORS) {
+        GameState.CURRENT_RUN_SURVIVORS = { eligible: [], rescued: [] };
+      }
       for (let i = 0; i < 2 + Math.floor(LV / 3); i++) {
         const p = rndFloor(7);
-        GameState.ALLIES.push({ x: p.x, y: p.y, rescued: false, rescueAnim: 0, ph: Math.random() * 6.28 });
+        const survivorId = `f${LV}_s${i}`;
+        GameState.ALLIES.push({ id: survivorId, x: p.x, y: p.y, rescued: false, rescueAnim: 0, ph: Math.random() * 6.28 });
+        if (!GameState.CURRENT_RUN_SURVIVORS.eligible.includes(survivorId)) {
+          GameState.CURRENT_RUN_SURVIVORS.eligible.push(survivorId);
+        }
       }
     }
 
@@ -505,18 +519,21 @@ export const FloorManager = {
     // Items, Weapons, & Consumables (Normal floors only)
     GameState.ITEMS = [];
     if (!isBossFloor(LV)) {
-      const p = rndFloor(4);
-      const sub = WK[(Math.random() * WK.length) | 0];
-      GameState.ITEMS.push({ x: p.x, y: p.y, taken: false, kind: 'weapon', sub, rarity: rollRarity() });
+      const createWeaponDrop = (pos) => {
+        const sub = WK[(Math.random() * WK.length) | 0];
+        const rarity = rollRarity();
+        const rolledAffix = rollAffix(rarity);
+        const affList = [];
+        if (rolledAffix.prefix) affList.push(rolledAffix.prefix);
+        if (rolledAffix.suffix) affList.push(rolledAffix.suffix);
+        return { x: pos.x, y: pos.y, taken: false, kind: 'weapon', sub, rarity, affixes: affList };
+      };
+      GameState.ITEMS.push(createWeaponDrop(rndFloor(4)));
       if (LV >= 2) {
-        const p2 = rndFloor(5);
-        const sub2 = WK[(Math.random() * WK.length) | 0];
-        GameState.ITEMS.push({ x: p2.x, y: p2.y, taken: false, kind: 'weapon', sub: sub2, rarity: rollRarity() });
+        GameState.ITEMS.push(createWeaponDrop(rndFloor(5)));
       }
       if (LV >= 4) {
-        const p3 = rndFloor(5);
-        const sub3 = WK[(Math.random() * WK.length) | 0];
-        GameState.ITEMS.push({ x: p3.x, y: p3.y, taken: false, kind: 'weapon', sub: sub3, rarity: rollRarity() });
+        GameState.ITEMS.push(createWeaponDrop(rndFloor(5)));
       }
       // Health and Sanity recoveries throughout expanded exploration
       for (let h = 0; h < (LV >= 4 ? 3 : 2); h++) {

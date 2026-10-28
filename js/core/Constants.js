@@ -3,8 +3,14 @@
 //  Universal constants, canvas dimensions, and mathematical helpers
 // =====================================================================
 
-export const LW = 896;
-export const LH = 640;
+export let LW = 896;
+export let LH = 640;
+
+export function setLogicalDimensions(w, h) {
+  LW = Math.round(w);
+  LH = Math.round(h);
+}
+
 export const COLS = 144;
 export const ROWS = 96;
 export const T = 32;

@@ -1,10 +1,10 @@
 // =====================================================================
 //  DUNGEON BREAK — js/ui/PauseMenu.js
-//  UI/UX Reconstruction: Vanguard Tactical Combat Blade
-//  - Lateral Tactical Command Freeze with Full Expedition Telemetry
-//  - Live Hero Vitals (HP, Ghost HP, Sanity, Weapon Armament, Souls)
-//  - Dominant Emerald Resume Jewel Blade & Tactical Modal Order Blades
-//  100% In-Game Canvas 2D Renderers, Zero Emojis, Zero Placeholders
+//  Phase 5.4: Master Dark-Fantasy Pause & Expedition Suspended Chamber
+//  - Living Cathedral & Forged Metal visual aesthetic
+//  - Authoritative live Hero Telemetry (HP, Sanity, Weapon, Souls)
+//  - Handcrafted Forged-Metal Buttons (Resume, Settings, Deeds, Save & Quit, Abandon)
+//  - Clean state transitions & caller preservation
 // =====================================================================
 
 import { GameState, GameStates } from '../core/GameState.js';
@@ -14,20 +14,45 @@ import { AudioManager, SoundManager } from '../audio/AudioManager.js';
 import { SettingsUI, openSettings as openSettingsModal } from './SettingsUI.js';
 import { AchievementsUI, openAchievements as openAchievementsModal } from './AchievementsUI.js';
 import { InputManager } from '../core/InputManager.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
+import { ButtonArtManager } from './ButtonArtManager.js?v=1.0';
+import { DeveloperSanctumUI } from './DeveloperSanctumUI.js';
 
 let _pauseSlide = 0;
 let _ambientTimer = 0;
 let _confirmQuitTimer = 0;
 let _abandonConfirmedOnce = false;
+let _focusedBtnIndex = 0;
 
 // Dynamic interactive hit zones populated each frame
 const _zones = [];
 
 export function pauseGame() {
+  if (typeof window !== 'undefined') {
+    if (window.CinematicSafety && (window.CinematicSafety.isReplay() || window.CinematicSafety.getActiveCinematicId())) {
+      return;
+    }
+    if (window.CinematicReplayContext && window.CinematicReplayContext.isReplaying()) {
+      return;
+    }
+    if (window.GorgarothCinematics && window.GorgarothCinematics.isActive && window.GorgarothCinematics.isActive()) {
+      return;
+    }
+    if (window.WardenDefeatCinematic && window.WardenDefeatCinematic.isActive && window.WardenDefeatCinematic.isActive()) {
+      return;
+    }
+  }
+  if (GameState.CINEMATIC_ACTIVE || GameState.BOSS_INTRO_ACTIVE || GameState.STATE === GameStates.CINEMATIC || GameState.STATE === GameStates.BOSS_INTRO || GameState.STATE === GameStates.BOSS_DEFEAT_CINEMATIC || GameState.STATE === 'boss_defeat_cinematic') {
+    return;
+  }
   if (GameState.STATE === GameStates.PLAYING) {
+    if (GameState.P && (GameState.P.dead || GameState.P.dying)) {
+      return;
+    }
     _pauseSlide = 0;
     _abandonConfirmedOnce = false;
     _confirmQuitTimer = 0;
+    _focusedBtnIndex = 0;
     GameState.setState(GameStates.PAUSED);
     const sp = document.getElementById('ingame-speed-panel');
     if (sp) sp.style.display = 'none';
@@ -37,6 +62,13 @@ export function pauseGame() {
 
 export function resumeGame() {
   if (GameState.STATE === GameStates.PAUSED) {
+    if (GameState.CINEMATIC_ACTIVE || (GameState.P && (GameState.P.dead || GameState.P.dying))) {
+      console.warn('[PauseMenu] Cannot resume during death or cinematic transition');
+      return;
+    }
+    if (typeof window !== 'undefined' && window.ShatteredMindCinematic && window.ShatteredMindCinematic.isActive && window.ShatteredMindCinematic.isActive()) {
+      return;
+    }
     _abandonConfirmedOnce = false;
     _confirmQuitTimer = 0;
     GameState.setState(GameStates.PLAYING);
@@ -51,6 +83,12 @@ export function resumeGame() {
 export function quitToMainMenu() {
   _abandonConfirmedOnce = false;
   _confirmQuitTimer = 0;
+
+  // If player is alive and in an active healthy run, save state before exiting
+  if (GameState.P && !GameState.P.dead && !GameState.P.dying && GameState.P.hp > 0 && GameState.P.san > 0) {
+    SaveSystem.saveRun();
+  }
+
   GameState.setState(GameStates.TITLE);
   if (typeof document !== 'undefined') {
     const sp = document.getElementById('ingame-speed-panel');
@@ -72,10 +110,93 @@ export function openAchievements() {
 
 export { SettingsUI, AchievementsUI };
 
+/** Helper to draw custom chamfered fantasy console plate */
+function drawChamferedPanel(ctx, x, y, w, h, chamfer, fillStyle, strokeStyle, lineWidth = 1) {
+  ctx.beginPath();
+  ctx.moveTo(x + chamfer, y);
+  ctx.lineTo(x + w - chamfer, y);
+  ctx.lineTo(x + w, y + chamfer);
+  ctx.lineTo(x + w, y + h - chamfer);
+  ctx.lineTo(x + w - chamfer, y + h);
+  ctx.lineTo(x + chamfer, y + h);
+  ctx.lineTo(x, y + h - chamfer);
+  ctx.lineTo(x, y + chamfer);
+  ctx.closePath();
+  if (fillStyle) {
+    ctx.fillStyle = fillStyle;
+    ctx.fill();
+  }
+  if (strokeStyle) {
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = lineWidth;
+    ctx.stroke();
+  }
+}
+
+/** Helper to draw ornamental brass corner brackets and rivets */
+function drawCornerBrackets(ctx, x, y, w, h, len = 14, col = 'rgba(217, 119, 6, 0.85)') {
+  ctx.save();
+  ctx.strokeStyle = col;
+  ctx.lineWidth = 1.6;
+  // Top-left
+  ctx.beginPath(); ctx.moveTo(x, y + len); ctx.lineTo(x, y); ctx.lineTo(x + len, y); ctx.stroke();
+  // Top-right
+  ctx.beginPath(); ctx.moveTo(x + w - len, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + len); ctx.stroke();
+  // Bottom-left
+  ctx.beginPath(); ctx.moveTo(x, y + h - len); ctx.lineTo(x, y + h); ctx.lineTo(x + len, y + h); ctx.stroke();
+  // Bottom-right
+  ctx.beginPath(); ctx.moveTo(x + w - len, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - len); ctx.stroke();
+
+  // Brass corner rivets
+  ctx.fillStyle = '#fde68a';
+  const rivets = [
+    [x + 4, y + 4], [x + w - 4, y + 4],
+    [x + 4, y + h - 4], [x + w - 4, y + h - 4]
+  ];
+  rivets.forEach(([rx, ry]) => {
+    ctx.beginPath();
+    ctx.arc(rx, ry, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+/** Helper to draw hanging chains */
+function drawHangingChains(ctx, x1, x2, startY, endY) {
+  ctx.save();
+  const linkH = 8;
+  const linkW = 5;
+  [x1, x2].forEach(cx => {
+    // Top anchor clevis
+    ctx.fillStyle = '#334155';
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, startY, 4, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+
+    // Alternating oval chain links
+    for (let y = startY + 4; y < endY; y += linkH) {
+      ctx.strokeStyle = (Math.floor(y / linkH) % 2 === 0) ? '#94a3b8' : '#475569';
+      ctx.lineWidth = 1.8;
+      ctx.strokeRect(cx - linkW / 2, y, linkW, linkH - 1);
+    }
+
+    // Lower mounting shackle
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#d97706';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(cx, endY, 4.5, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+  });
+  ctx.restore();
+}
+
 export const PauseMenu = {
   draw(ctx, dt = 0.016) {
     _ambientTimer += dt;
-    _pauseSlide = Math.min(1.0, _pauseSlide + dt * 5.0);
+    _pauseSlide = Math.min(1.0, _pauseSlide + dt * 6.0);
     const eased = 1 - Math.pow(1 - _pauseSlide, 3);
 
     if (_confirmQuitTimer > 0) {
@@ -86,614 +207,364 @@ export const PauseMenu = {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // FULL-SCREEN DARK OBSIDIAN TACTICAL VIGNETTE
+    // 1. ATMOSPHERIC DARKENING VIGNETTE (PRESERVES VISIBLE DUNGEON)
     // ─────────────────────────────────────────────────────────────
     ctx.save();
     ctx.globalAlpha = eased;
-    ctx.fillStyle = 'rgba(2, 4, 10, 0.88)';
+    ctx.fillStyle = 'rgba(2, 4, 10, 0.78)';
     ctx.fillRect(0, 0, LW, LH);
 
-    // Subtle tactical scanlines across canvas
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.012)';
+    // Subtle tactical scanlines across screen
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
     for (let sy = 0; sy < LH; sy += 4) {
       ctx.fillRect(0, sy, LW, 1);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // VANGUARD COMMAND MONOLITH CHASSIS
-    // ─────────────────────────────────────────────────────────────
-    const panW = 860;
-    const panH = 500;
+    // Modal chassis dimensions
+    const panW = Math.min(620, LW - 32);
+    const panH = Math.min(510, LH - 32);
     const panX = Math.round((LW - panW) / 2);
-    const panY = Math.round((LH - panH) / 2 - (1 - eased) * 28);
+    const panY = Math.round((LH - panH) / 2 - (1 - eased) * 25);
 
-    // Deep abyssal emerald & gold radial glow behind command chassis
+    // Radial amber/violet furnace glow behind chassis
     const pulse = 0.5 + 0.5 * Math.sin(_ambientTimer * 2.2);
-    const radGrad = ctx.createRadialGradient(panX + panW / 2, panY + 180, 40, panX + panW / 2, panY + 250, 480);
-    radGrad.addColorStop(0, `rgba(16, 185, 129, ${0.14 + pulse * 0.04})`);
-    radGrad.addColorStop(0.5, 'rgba(201, 168, 76, 0.06)');
-    radGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = radGrad;
+    const bgGlow = ctx.createRadialGradient(panX + panW / 2, panY + 140, 20, panX + panW / 2, panY + 220, 380);
+    bgGlow.addColorStop(0, `rgba(217, 119, 6, ${0.12 + pulse * 0.03})`);
+    bgGlow.addColorStop(0.5, 'rgba(147, 51, 234, 0.06)');
+    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = bgGlow;
     ctx.fillRect(panX - 40, panY - 40, panW + 80, panH + 80);
 
-    // Outer Heavy Vanguard Chassis
-    ctx.fillStyle = 'rgba(7, 10, 20, 0.98)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.65)';
-    ctx.lineWidth = 1.6;
-    roundRect(ctx, panX, panY, panW, panH, 12);
-    ctx.fill(); ctx.stroke();
+    // ─────────────────────────────────────────────────────────────
+    // 2. LAYERED OBSIDIAN & ANTIQUE BRONZE CHASSIS
+    // ─────────────────────────────────────────────────────────────
+    // Outer forged iron casing with chamfered profile
+    drawChamferedPanel(ctx, panX, panY, panW, panH, 14, 'rgba(7, 11, 24, 0.97)', 'rgba(217, 119, 6, 0.85)', 1.8);
 
-    // Inner embossed brass fillet
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, panX + 5, panY + 5, panW - 10, panH - 10, 9);
-    ctx.stroke();
+    // Inner etched bronze channel
+    drawChamferedPanel(ctx, panX + 6, panY + 6, panW - 12, panH - 12, 10, 'rgba(10, 15, 28, 0.94)', 'rgba(201, 168, 76, 0.35)', 1);
 
-    // Runic corner braces
-    const braceLen = 22;
-    ctx.strokeStyle = '#fde68a';
-    ctx.lineWidth = 2;
-    // Top-left
-    ctx.beginPath();
-    ctx.moveTo(panX + 6, panY + 6 + braceLen);
-    ctx.lineTo(panX + 6, panY + 6);
-    ctx.lineTo(panX + 6 + braceLen, panY + 6);
-    ctx.stroke();
-    // Top-right
-    ctx.beginPath();
-    ctx.moveTo(panX + panW - 6 - braceLen, panY + 6);
-    ctx.lineTo(panX + panW - 6, panY + 6);
-    ctx.lineTo(panX + panW - 6, panY + 6 + braceLen);
-    ctx.stroke();
-    // Bottom-left
-    ctx.beginPath();
-    ctx.moveTo(panX + 6, panY + panH - 6 - braceLen);
-    ctx.lineTo(panX + 6, panY + panH - 6);
-    ctx.lineTo(panX + 6 + braceLen, panY + panH - 6);
-    ctx.stroke();
-    // Bottom-right
-    ctx.beginPath();
-    ctx.moveTo(panX + panW - 6 - braceLen, panY + panH - 6);
-    ctx.lineTo(panX + panW - 6, panY + panH - 6);
-    ctx.lineTo(panX + panW - 6, panY + panH - 6 - braceLen);
-    ctx.stroke();
+    // Subtle Stone Texture Overlay (visibly violet masonry, restrained organic tone)
+    const pat = ButtonArtManager.getStonePattern(ctx);
+    if (pat) {
+      ctx.save();
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = pat;
+      drawChamferedPanel(ctx, panX + 6, panY + 6, panW - 12, panH - 12, 10);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Corner filigree brackets & rivets
+    drawCornerBrackets(ctx, panX + 8, panY + 8, panW - 16, panH - 16, 18, 'rgba(217, 119, 6, 0.9)');
 
     _zones.length = 0;
-    const mouseX = (InputManager.MOUSE_STATE && InputManager.MOUSE_STATE.mx !== undefined) ? InputManager.MOUSE_STATE.mx : -999;
-    const mouseY = (InputManager.MOUSE_STATE && InputManager.MOUSE_STATE.my !== undefined) ? InputManager.MOUSE_STATE.my : -999;
+    const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
+    const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
+    const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
 
     // ─────────────────────────────────────────────────────────────
-    // TOP APEX TELEMETRY BAR
+    // 3. SUSPENDED EXPEDITION TITLE PLAQUE
     // ─────────────────────────────────────────────────────────────
-    const topY = panY + 14;
-    ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 13.5px Cinzel, serif';
-    ctx.textAlign = 'left';
+    const plaqueW = Math.min(380, panW - 48);
+    const plaqueH = 54;
+    const plaqueX = Math.round(panX + (panW - plaqueW) / 2);
+    const plaqueY = panY + 16;
+
+    // Hanging chains from top chassis frame
+    drawHangingChains(ctx, plaqueX + 36, plaqueX + plaqueW - 36, panY + 6, plaqueY + 4);
+
+    // Plaque background plate
+    drawChamferedPanel(ctx, plaqueX, plaqueY, plaqueW, plaqueH, 8, 'rgba(12, 18, 36, 0.98)', 'rgba(217, 119, 6, 0.75)', 1.4);
+    drawCornerBrackets(ctx, plaqueX + 3, plaqueY + 3, plaqueW - 6, plaqueH - 6, 10, 'rgba(245, 158, 11, 0.6)');
+
+    // Chiseled 3D Metallic Title
+    ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+
+    // Drop shadow
+    ctx.fillStyle = '#02040a';
+    ctx.font = 'bold 16px Cinzel, serif';
+    ctx.fillText('◈ EXPEDITION SUSPENDED ◈', plaqueX + plaqueW / 2 + 1, plaqueY + 20);
+
+    // Face text
+    ctx.fillStyle = '#fde68a';
     ctx.shadowColor = '#d97706';
     ctx.shadowBlur = 8;
-    ctx.fillText('◈ VANGUARD TACTICAL COMBAT BLADE ◈', panX + 22, topY + 12);
+    ctx.fillText('◈ EXPEDITION SUSPENDED ◈', plaqueX + plaqueW / 2, plaqueY + 19);
     ctx.shadowBlur = 0;
 
-    // Status warning pill
-    const pillX = panX + 375, pillY = topY + 2, pillW = 160, pillH = 22;
-    ctx.fillStyle = 'rgba(217, 119, 6, 0.16)';
-    ctx.strokeStyle = '#d97706';
-    ctx.lineWidth = 1.1;
-    roundRect(ctx, pillX, pillY, pillW, pillH, 4);
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(pillX + 12, pillY + pillH / 2, 4, 0, Math.PI * 2);
-    ctx.fillStyle = '#f59e0b';
-    ctx.fill();
-    ctx.fillStyle = '#fef3c7';
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('CRUCIBLE SUSPENDED', pillX + pillW / 2 + 5, pillY + pillH / 2);
-
-    // Right-side Stratum / Run Telemetry
-    const curLv = GameState.LV || 1;
-    const floorCfg = FLOOR_CONFIG[curLv] || { name: 'Abyssal Chasm' };
-    const timeStr = GameState.LEVEL_TIME_STR || '00:00';
-    const runId = GameState.RUN_ID || 1;
-
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.9)';
-    ctx.font = '10px Cinzel, serif';
-    ctx.textAlign = 'right';
-    ctx.fillText(`STRATUM: FLOOR ${curLv} (${floorCfg.name.toUpperCase()})  ·  ${timeStr}  ·  RUN #${runId}`, panX + panW - 22, topY + 12);
-
-    // Separator line
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(panX + 20, topY + 30);
-    ctx.lineTo(panX + panW - 20, topY + 30);
-    ctx.stroke();
+    // Subtitle rubric
+    const lv = GameState.LV || 1;
+    const flCfg = FLOOR_CONFIG[lv] || { name: 'Cathedral of Deep Navy' };
+    ctx.fillStyle = 'rgba(192, 132, 252, 0.9)';
+    ctx.font = 'italic 10px "Crimson Text", serif';
+    ctx.fillText(`FLOOR ${lv}: ${flCfg.name.toUpperCase()}  •  DESCENT HALTED`, plaqueX + plaqueW / 2, plaqueY + 38);
 
     // ─────────────────────────────────────────────────────────────
-    // TWO BESPOKE ASYMMETRICAL INSTRUMENT COLUMNS
-    // Left: Expedition Vitals & Armament Dossier (390px)
-    // Right: Tactical Orders (416px)
+    // 4. AUTHORITATIVE LIVE TELEMETRY & STATUS PLINTH
     // ─────────────────────────────────────────────────────────────
-    const bayY = topY + 40;
-    const bayH = panY + panH - bayY - 42;
-    const leftBayW = 390;
-    const rightBayW = panW - 40 - leftBayW - 14;
-    const leftBayX = panX + 20;
-    const rightBayX = leftBayX + leftBayW + 14;
+    const telemY = plaqueY + plaqueH + 14;
+    const telemW = panW - 36;
+    const telemH = 92;
+    const telemX = panX + 18;
 
-    // ── LEFT BAY: EXPEDITION VITALS & ARMAMENT DOSSIER ──
-    ctx.fillStyle = 'rgba(12, 17, 32, 0.94)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.45)';
-    ctx.lineWidth = 1.3;
-    roundRect(ctx, leftBayX, bayY, leftBayW, bayH, 8);
-    ctx.fill(); ctx.stroke();
+    // Inset carved stone bay
+    drawChamferedPanel(ctx, telemX, telemY, telemW, telemH, 6, 'rgba(12, 17, 32, 0.90)', 'rgba(71, 85, 105, 0.5)', 1);
 
-    // Section header
-    ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 11px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('⚔ EXPEDITION VITALS & ARMAMENT', leftBayX + 16, bayY + 18);
-
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.2)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(leftBayX + 16, bayY + 28);
-    ctx.lineTo(leftBayX + leftBayW - 16, bayY + 28);
-    ctx.stroke();
-
-    // Rowan's Combat Vitals
-    const P = GameState.P || { hp: 10, maxHp: 10, san: 100, killed: 0, saved: 0 };
+    const P = GameState.P || { hp: 10, maxHp: 10, san: 100, maxSan: 100 };
     const curHp = Math.max(0, P.hp || 0);
     const maxHp = Math.max(1, P.maxHp || 10);
-    const ghostHp = Math.max(curHp, P.ghostHp || curHp);
     const curSan = Math.max(0, Math.min(100, P.san !== undefined ? P.san : 100));
+    const maxSan = P.maxSan || 100;
 
-    const vitalsY = bayY + 38;
-    const barW = leftBayW - 32;
-    const barH = 18;
+    // Col 1: Vitals (Health & Sanity Bars)
+    const col1X = telemX + 18;
+    const barW = Math.min(220, Math.round((telemW - 60) * 0.5));
+    const barH = 14;
 
-    // 1. Health Bar
-    ctx.fillStyle = '#94a3b8';
+    // HP Bar
+    ctx.fillStyle = '#fca5a5';
     ctx.font = 'bold 9.5px Cinzel, serif';
     ctx.textAlign = 'left';
-    ctx.fillText('PHYSICAL INTEGRITY (HP)', leftBayX + 16, vitalsY + 2);
-    ctx.textAlign = 'right';
-    ctx.fillStyle = curHp <= maxHp * 0.3 ? '#f87171' : '#4ade80';
-    ctx.fillText(`${curHp.toFixed(0)} / ${maxHp} (${Math.round((curHp / maxHp) * 100)}%)`, leftBayX + leftBayW - 16, vitalsY + 2);
+    ctx.textBaseline = 'top';
+    ctx.fillText(`HEALTH  •  ${Math.round(curHp)} / ${maxHp}`, col1X, telemY + 14);
 
-    // HP Bar Track
-    const hpTrackY = vitalsY + 8;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.6)';
+    const hpTrackY = telemY + 28;
+    ctx.fillStyle = '#1e1014';
+    ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
     ctx.lineWidth = 1;
-    roundRect(ctx, leftBayX + 16, hpTrackY, barW, barH, 4);
+    roundRect(ctx, col1X, hpTrackY, barW, barH, 3);
     ctx.fill(); ctx.stroke();
 
-    // Ghost HP bar (amber)
-    if (ghostHp > curHp) {
-      const ghostW = Math.min(barW, Math.round((ghostHp / maxHp) * barW));
-      ctx.fillStyle = 'rgba(245, 158, 11, 0.45)';
-      roundRect(ctx, leftBayX + 16, hpTrackY, ghostW, barH, 4);
+    const hpFrac = Math.max(0, Math.min(1, curHp / maxHp));
+    if (hpFrac > 0) {
+      const hpGrad = ctx.createLinearGradient(col1X, hpTrackY, col1X + barW * hpFrac, hpTrackY);
+      hpGrad.addColorStop(0, '#991b1b');
+      hpGrad.addColorStop(1, '#ef4444');
+      ctx.fillStyle = hpGrad;
+      roundRect(ctx, col1X + 1, hpTrackY + 1, (barW - 2) * hpFrac, barH - 2, 2);
       ctx.fill();
     }
 
-    // Active HP bar (emerald/crimson gradient)
-    const activeHpW = Math.min(barW, Math.max(3, Math.round((curHp / maxHp) * barW)));
-    const hpGrad = ctx.createLinearGradient(leftBayX + 16, hpTrackY, leftBayX + 16 + barW, hpTrackY);
-    if (curHp / maxHp > 0.4) {
-      hpGrad.addColorStop(0, '#15803d');
-      hpGrad.addColorStop(1, '#22c55e');
-    } else {
-      hpGrad.addColorStop(0, '#991b1b');
-      hpGrad.addColorStop(1, '#ef4444');
-    }
-    ctx.fillStyle = hpGrad;
-    roundRect(ctx, leftBayX + 16, hpTrackY, activeHpW, barH, 4);
-    ctx.fill();
-
-    // 2. Sanity Bar
-    const sanY = hpTrackY + barH + 14;
-    ctx.fillStyle = '#94a3b8';
+    // Sanity Bar
+    ctx.fillStyle = '#d8b4fe';
     ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('PSYCHIC STABILITY (SANITY)', leftBayX + 16, sanY + 2);
+    ctx.fillText(`SANITY  •  ${Math.round(curSan)}%`, col1X, telemY + 50);
 
-    let sanStatus = 'STABLE';
-    let sanCol = '#38bdf8';
-    if (curSan < 30) {
-      sanStatus = 'COLLAPSING';
-      sanCol = '#ef4444';
-    } else if (curSan < 60) {
-      sanStatus = 'FRAYING';
-      sanCol = '#fbbf24';
-    }
-
-    ctx.textAlign = 'right';
-    ctx.fillStyle = sanCol;
-    ctx.fillText(`${Math.round(curSan)}% [ ${sanStatus} ]`, leftBayX + leftBayW - 16, sanY + 2);
-
-    // Sanity Bar Track
-    const sanTrackY = sanY + 8;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.6)';
+    const sanTrackY = telemY + 64;
+    ctx.fillStyle = '#171024';
+    ctx.strokeStyle = 'rgba(168, 85, 247, 0.4)';
     ctx.lineWidth = 1;
-    roundRect(ctx, leftBayX + 16, sanTrackY, barW, barH, 4);
+    roundRect(ctx, col1X, sanTrackY, barW, barH, 3);
     ctx.fill(); ctx.stroke();
 
-    const activeSanW = Math.min(barW, Math.max(3, Math.round((curSan / 100) * barW)));
-    const sanGrad = ctx.createLinearGradient(leftBayX + 16, sanTrackY, leftBayX + 16 + barW, sanTrackY);
-    if (curSan >= 60) {
-      sanGrad.addColorStop(0, '#0284c7');
-      sanGrad.addColorStop(1, '#38bdf8');
-    } else if (curSan >= 30) {
-      sanGrad.addColorStop(0, '#d97706');
-      sanGrad.addColorStop(1, '#fbbf24');
-    } else {
-      sanGrad.addColorStop(0, '#7f1d1d');
-      sanGrad.addColorStop(1, '#ef4444');
+    const sanFrac = Math.max(0, Math.min(1, curSan / maxSan));
+    if (sanFrac > 0) {
+      const sanGrad = ctx.createLinearGradient(col1X, sanTrackY, col1X + barW * sanFrac, sanTrackY);
+      sanGrad.addColorStop(0, '#6b21a8');
+      sanGrad.addColorStop(1, '#a855f7');
+      ctx.fillStyle = sanGrad;
+      roundRect(ctx, col1X + 1, sanTrackY + 1, (barW - 2) * sanFrac, barH - 2, 2);
+      ctx.fill();
     }
-    ctx.fillStyle = sanGrad;
-    roundRect(ctx, leftBayX + 16, sanTrackY, activeSanW, barH, 4);
-    ctx.fill();
 
-    // 3. Harvested Souls Vessel Plaque
-    const soulsY = sanTrackY + barH + 16;
-    const soulsH = 46;
-    ctx.fillStyle = 'rgba(20, 26, 48, 0.88)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.4)';
-    ctx.lineWidth = 1.1;
-    roundRect(ctx, leftBayX + 16, soulsY, barW, soulsH, 6);
-    ctx.fill(); ctx.stroke();
+    // Col 2: Armament & Harvest
+    const col2X = col1X + barW + 28;
+    const col2W = telemW - (col2X - telemX) - 18;
 
-    // Large glowing soul emblem
-    const soulGlow = 0.6 + 0.4 * Math.sin(_ambientTimer * 3.0);
-    ctx.save();
-    ctx.shadowColor = '#38bdf8';
-    ctx.shadowBlur = 10 * soulGlow;
-    ctx.fillStyle = '#38bdf8';
-    ctx.font = 'bold 20px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('✦', leftBayX + 28, soulsY + soulsH / 2);
-    ctx.restore();
+    // Active Weapon
+    let activeWepName = 'Sword';
+    let activeWepDmg = '3.5';
+    let wepCol = '#94a3b8';
+    if (GameState.weaponSlots && GameState.weaponSlots[GameState.activeWeaponSlot]) {
+      const w = GameState.weaponSlots[GameState.activeWeaponSlot];
+      activeWepName = w.name || w.id || 'Blade';
+      activeWepDmg = (w.dmg || w.damage || 3.5).toFixed(1);
+      wepCol = (w.rarity && w.rarity.col) || '#94a3b8';
+    }
 
-    ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 16px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${GameState.ABYSS_SOULS || 0}`, leftBayX + 54, soulsY + soulsH / 2 - 4);
+    ctx.fillStyle = '#cbd5e1';
+    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.fillText('ACTIVE ARMAMENT', col2X, telemY + 14);
+
+    ctx.fillStyle = wepCol;
+    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.fillText(activeWepName, col2X, telemY + 28);
 
     ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
-    ctx.font = '8.5px Cinzel, serif';
-    ctx.fillText('HARVESTED ABYSS SOULS (RETAINED ON SURRENDER)', leftBayX + 54, soulsY + soulsH / 2 + 10);
+    ctx.font = '9px monospace';
+    ctx.fillText(`POWER: ${activeWepDmg} DMG  •  SLOT ${GameState.activeWeaponSlot + 1}`, col2X, telemY + 44);
 
-    // 4. Active Armament Card
-    const armY = soulsY + soulsH + 14;
-    const armH = 78;
-    ctx.fillStyle = 'rgba(18, 22, 38, 0.9)';
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.5)';
-    ctx.lineWidth = 1.1;
-    roundRect(ctx, leftBayX + 16, armY, barW, armH, 6);
-    ctx.fill(); ctx.stroke();
-
-    // Active weapon details
-    const activeSlot = GameState.activeWeaponSlot || 0;
-    const slots = GameState.weaponSlots || [];
-    const wep = slots[activeSlot] || { name: '⚔️ Iron Broadsword', damage: 3.5, cooldown: 0.32, range: 1.5, rarity: { name: 'Common', col: '#94a3b8' } };
-    const wepRarity = wep.rarity || { name: 'Common', col: '#94a3b8' };
-
-    // Header inside weapon card
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '8px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(`ACTIVE ARMAMENT [ SLOT ${activeSlot + 1} ]`, leftBayX + 26, armY + 10);
-
-    // Rarity Tier Badge (Top Right)
-    const rarityW = 75, rarityH = 16;
-    const rarityX = leftBayX + barW + 16 - 10 - rarityW;
-    const rarityY = armY + 8;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = wepRarity.col || '#94a3b8';
-    ctx.lineWidth = 1;
-    roundRect(ctx, rarityX, rarityY, rarityW, rarityH, 3);
-    ctx.fill(); ctx.stroke();
-    ctx.fillStyle = wepRarity.col || '#94a3b8';
-    ctx.font = 'bold 8px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText((wepRarity.name || 'COMMON').toUpperCase(), rarityX + rarityW / 2, rarityY + rarityH / 2);
-
-    // Weapon Name
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 13px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.fillText(wep.name || 'Broadsword', leftBayX + 26, armY + 26);
-
-    // Weapon Combat Parameters
-    const dmgVal = (wep.damage || wep.dmg || 3.5).toFixed(1);
-    const cdVal = (wep.cooldown || wep.cd || 0.32).toFixed(2);
-    const wepType = wep.projectile ? 'RANGED / PIERCING' : 'MELEE SWING ARC';
-    ctx.fillStyle = 'rgba(201, 168, 76, 0.9)';
-    ctx.font = '9.5px Cinzel, serif';
-    ctx.fillText(`BASE DMG: ${dmgVal}  ·  CADENCE: ${cdVal}s  ·  ${wepType}`, leftBayX + 26, armY + 46);
-
-    const affixStr = (wep.prefix || wep.suffix) ? `AFFIX: [ ${wep.prefix || ''} ${wep.suffix || ''} ]` : 'AFFIX: STANDARD UNENCHANTED FORGE';
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
-    ctx.font = '8px Cinzel, serif';
-    ctx.fillText(affixStr, leftBayX + 26, armY + 62);
-
-    // 5. Crucible Metrics Grid
-    const gridY = armY + armH + 12;
-    const gridH = bayY + bayH - gridY - 12;
-    ctx.fillStyle = 'rgba(15, 20, 36, 0.7)';
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.3)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, leftBayX + 16, gridY, barW, gridH, 6);
-    ctx.fill(); ctx.stroke();
-
-    const kills = P.killed || 0;
-    const saved = P.saved || 0;
-    const relicsCount = (P.relics && Array.isArray(P.relics)) ? P.relics.length : 0;
-    const shieldActive = P.shieldActive || P.mindShieldTimer > 0;
-
-    const cellW = (barW - 16) / 3;
-    const statCells = [
-      { label: 'SLAIN FOES', val: `${kills}` },
-      { label: 'ALLIES SAVED', val: `${saved}` },
-      { label: 'RELICS HELD', val: `${relicsCount}` }
-    ];
-
-    statCells.forEach((cell, ci) => {
-      const cx = leftBayX + 24 + ci * (cellW + 4);
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
-      ctx.font = '7.5px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText(cell.label, cx + cellW / 2, gridY + 6);
-
-      ctx.fillStyle = '#fde68a';
-      ctx.font = 'bold 12px Cinzel, serif';
-      ctx.fillText(cell.val, cx + cellW / 2, gridY + 18);
-    });
-
-    // Secondary Combat Telemetry Row
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.35)';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(leftBayX + 24, gridY + 36);
-    ctx.lineTo(leftBayX + 16 + barW - 8, gridY + 36);
-    ctx.stroke();
-
-    const speedVal = (P && P.speed ? P.speed : 3.8).toFixed(1);
-    const critBonus = Math.round(((GameState.TALENTS ? (GameState.TALENTS.critical || 0) : 0) * 0.05 + 0.05) * 100);
-    const secondaryCells = [
-      { label: 'CADENCE PACE', val: `${speedVal} SPD` },
-      { label: 'CRIT CHANCE', val: `${critBonus}%` },
-      { label: 'SHIELD STATE', val: shieldActive ? 'ACTIVE' : 'READY' }
-    ];
-
-    secondaryCells.forEach((sc, sci) => {
-      const cx = leftBayX + 24 + sci * (cellW + 4);
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
-      ctx.font = '7px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText(sc.label, cx + cellW / 2, gridY + 41);
-
-      ctx.fillStyle = sci === 2 && shieldActive ? '#38bdf8' : '#e2e8f0';
-      ctx.font = 'bold 10px Cinzel, serif';
-      ctx.fillText(sc.val, cx + cellW / 2, gridY + 52);
-    });
-
-    // ── RIGHT BAY: TACTICAL ORDERS (VANGUARD COMMAND BLADES) ──
-    ctx.fillStyle = 'rgba(12, 17, 32, 0.94)';
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.45)';
-    ctx.lineWidth = 1.3;
-    roundRect(ctx, rightBayX, bayY, rightBayW, bayH, 8);
-    ctx.fill(); ctx.stroke();
-
-    // Section header
+    // Abyss Souls
     ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 11px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('◈ VANGUARD COMMAND ORDERS', rightBayX + 16, bayY + 18);
-
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.2)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(rightBayX + 16, bayY + 28);
-    ctx.lineTo(rightBayX + rightBayW - 16, bayY + 28);
-    ctx.stroke();
-
-    // ── COMMAND BLADES DEFINITIONS ──
-    const btnW = rightBayW - 32;
-    const startOrderY = bayY + 40;
-
-    // 1. APEX DOMINANT RESUME BLADE (Emerald Monolith)
-    const resumeY = startOrderY;
-    const resumeH = 74;
-    const isHoverResume = mouseX >= rightBayX + 16 && mouseX <= rightBayX + 16 + btnW && mouseY >= resumeY && mouseY <= resumeY + resumeH;
-
-    const resumePulse = 0.5 + 0.5 * Math.sin(_ambientTimer * 3.5);
-    const resumeGrad = ctx.createLinearGradient(rightBayX + 16, resumeY, rightBayX + 16 + btnW, resumeY);
-    if (isHoverResume) {
-      resumeGrad.addColorStop(0, 'rgba(16, 185, 129, 0.35)');
-      resumeGrad.addColorStop(0.5, 'rgba(34, 197, 94, 0.45)');
-      resumeGrad.addColorStop(1, 'rgba(16, 185, 129, 0.35)');
-    } else {
-      resumeGrad.addColorStop(0, 'rgba(16, 185, 129, 0.18)');
-      resumeGrad.addColorStop(0.5, `rgba(34, 197, 94, ${0.24 + resumePulse * 0.08})`);
-      resumeGrad.addColorStop(1, 'rgba(16, 185, 129, 0.18)');
-    }
-
-    ctx.save();
-    ctx.shadowColor = isHoverResume ? '#4ade80' : 'rgba(34, 197, 94, 0.4)';
-    ctx.shadowBlur = isHoverResume ? 16 : 8;
-    ctx.fillStyle = resumeGrad;
-    ctx.strokeStyle = isHoverResume ? '#86efac' : '#22c55e';
-    ctx.lineWidth = isHoverResume ? 2.0 : 1.5;
-    roundRect(ctx, rightBayX + 16, resumeY, btnW, resumeH, 8);
-    ctx.fill(); ctx.stroke();
-    ctx.restore();
-
-    // Emerald blade runic accents
-    ctx.strokeStyle = isHoverResume ? '#86efac' : 'rgba(74, 222, 128, 0.6)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, rightBayX + 20, resumeY + 4, btnW - 8, resumeH - 8, 6);
-    ctx.stroke();
-
-    // Runic icon
-    ctx.fillStyle = isHoverResume ? '#ffffff' : '#86efac';
-    ctx.font = 'bold 22px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('▶', rightBayX + 34, resumeY + resumeH / 2 - 8);
-
-    // Title text
-    ctx.fillStyle = isHoverResume ? '#ffffff' : '#f0fdf4';
-    ctx.font = 'bold 15px Cinzel, serif';
-    ctx.fillText('RESUME EXPEDITION', rightBayX + 66, resumeY + resumeH / 2 - 10);
-
-    // Subtitle / Hotkey prompt
-    ctx.fillStyle = isHoverResume ? '#bbf7d0' : '#86efac';
     ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillText('UNFREEZE CRUCIBLE & RETURN TO COMBAT  ·  [ ESCAPE ]', rightBayX + 66, resumeY + resumeH / 2 + 12);
+    ctx.fillText('ABYSS HARVEST', col2X, telemY + 60);
 
-    _zones.push({
-      id: 'btn_resume',
-      x: rightBayX + 16, y: resumeY, w: btnW, h: resumeH,
-      action: resumeGame
-    });
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 11.5px Cinzel, serif';
+    ctx.fillText(`◈ ${GameState.ABYSS_SOULS || 0} SOULS HARVESTED`, col2X, telemY + 73);
 
-    // 2. SECONDARY TACTICAL MODAL BLADES (Settings, Achievements, Abandon)
-    const secondaryBlades = [
+    // ─────────────────────────────────────────────────────────────
+    // 5. HANDCRAFTED FORGED REGALIA COMMAND BUTTONS
+    // ─────────────────────────────────────────────────────────────
+    const btnStartY = telemY + telemH + 16;
+    const btnW = panW - 48;
+    const btnH = 34;
+    const btnGap = 8;
+
+    const buttonConfigs = [
       {
-        id: 'btn_settings',
-        title: 'ARTIFICER\'S CALIBRATION CONSOLE',
-        sub: 'Acoustic VU-meters, temporal regulator, screen vibration levers  ·  [ S ]',
-        icon: '⚙',
-        col: '#fde68a',
-        hoverCol: '#ffffff',
-        accentCol: '#d97706',
-        bg: 'rgba(217, 119, 6, 0.12)',
-        hoverBg: 'rgba(217, 119, 6, 0.26)',
-        border: 'rgba(217, 119, 6, 0.5)',
-        action: openSettings
+        id: 'resume',
+        label: 'RESUME EXPEDITION',
+        sub: 'Return to active combat  ·  [ ESC / ENTER ]',
+        primary: true,
+        isDanger: false,
+        action: () => resumeGame()
       },
       {
-        id: 'btn_achievements',
-        title: 'MONUMENTAL WALL OF DEEDS & FATES',
-        sub: '21 heraldic relic badges, 8 fates ring, apex eye shrine  ·  [ A ]',
-        icon: '◈',
-        col: '#93c5fd',
-        hoverCol: '#ffffff',
-        accentCol: '#3b82f6',
-        bg: 'rgba(59, 130, 246, 0.12)',
-        hoverBg: 'rgba(59, 130, 246, 0.26)',
-        border: 'rgba(59, 130, 246, 0.5)',
-        action: openAchievements
+        id: 'settings',
+        label: 'CALIBRATION & SETTINGS',
+        sub: 'Sound chambers, chronometric pace & visuals  ·  [ S ]',
+        primary: false,
+        isDanger: false,
+        action: () => openSettings()
       },
       {
-        id: 'btn_abandon',
-        title: _abandonConfirmedOnce ? '⚠️ CONFIRM FORFEIT? CLICK AGAIN' : 'ABANDON EXPEDITION (FORFEIT DESCENT)',
-        sub: _abandonConfirmedOnce ? 'WILL RETURN TO SANCTUARY THRESHOLD  ·  SOULS PRESERVED' : 'Surrender run and return to title screen  ·  [ Q ]',
-        icon: '☠',
-        col: _abandonConfirmedOnce ? '#fca5a5' : '#f87171',
-        hoverCol: '#ffffff',
-        accentCol: '#ef4444',
-        bg: _abandonConfirmedOnce ? 'rgba(239, 68, 68, 0.35)' : 'rgba(239, 68, 68, 0.12)',
-        hoverBg: 'rgba(239, 68, 68, 0.38)',
-        border: _abandonConfirmedOnce ? '#ef4444' : 'rgba(239, 68, 68, 0.45)',
+        id: 'achievements',
+        label: 'MONUMENTS & WALL OF DEEDS',
+        sub: 'Relic badges, apex eye & hero fates  ·  [ A ]',
+        primary: false,
+        isDanger: false,
+        action: () => openAchievements()
+      },
+      {
+        id: 'save_quit',
+        label: 'SAVE & RETURN TO TITLE',
+        sub: 'Safely suspend descent  ·  Resume from Sanctuary',
+        primary: false,
+        isDanger: false,
+        action: () => quitToMainMenu()
+      },
+      ...( (GameState.IS_DEVELOPER_EXPEDITION || DeveloperSanctumUI.isAuthorized()) ? [{
+        id: 'sanctum',
+        label: 'RETURN TO DEVELOPER SANCTUM',
+        sub: 'Reconfigure expedition parameters  ·  [ D ]',
+        primary: false,
+        isDanger: false,
+        action: () => {
+          DeveloperSanctumUI.openFromGameplay();
+        }
+      }] : [] ),
+      {
+        id: 'abandon',
+        label: _abandonConfirmedOnce ? '⚠️ CONFIRM FORFEIT? CLICK AGAIN' : 'ABANDON EXPEDITION (FORFEIT DESCENT)',
+        sub: _abandonConfirmedOnce ? 'WILL RETURN TO SANCTUARY  ·  DESCENT STATE CLEARED' : 'Surrender current descent  ·  [ Q ]',
+        primary: false,
+        isDanger: true,
         action: () => {
           if (!_abandonConfirmedOnce) {
             _abandonConfirmedOnce = true;
             _confirmQuitTimer = 4.0;
             SoundManager.snd('menu_hover');
           } else {
-            quitToMainMenu();
+            SaveSystem.clearRun();
+            _abandonConfirmedOnce = false;
+            _confirmQuitTimer = 0;
+            GameState.setState(GameStates.TITLE);
+            if (typeof document !== 'undefined') {
+              const sp = document.getElementById('ingame-speed-panel');
+              if (sp) sp.style.display = 'none';
+            }
+            AudioManager.updateMusicLayers(0);
+            SoundManager.snd('menu_select');
           }
         }
       }
     ];
 
-    const secStartY = resumeY + resumeH + 16;
-    const secH = 56;
-    const secGap = 12;
+    buttonConfigs.forEach((b, idx) => {
+      const by = btnStartY + idx * (btnH + btnGap);
+      const isHovered = (mouseX >= panX + 24 && mouseX <= panX + 24 + btnW && mouseY >= by && mouseY <= by + btnH);
+      const isPressed = isHovered && isMouseDown;
+      const isDanger = b.isDanger;
+      const isPrimary = b.primary;
 
-    secondaryBlades.forEach((b, bi) => {
-      const by = secStartY + bi * (secH + secGap);
-      const isHover = mouseX >= rightBayX + 16 && mouseX <= rightBayX + 16 + btnW && mouseY >= by && mouseY <= by + secH;
+      // 9-slice button rendering matching Living Cathedral
+      const stateKey = ButtonArtManager.getStateKey(isPrimary, false, false, false, isHovered, isPressed, isDanger);
+      const renderedFromImg = ButtonArtManager.drawButton(ctx, stateKey, panX + 24, by, btnW, btnH);
 
-      ctx.save();
-      if (isHover) {
-        ctx.shadowColor = b.accentCol;
-        ctx.shadowBlur = 10;
+      if (!renderedFromImg) {
+        // Procedural fallback matching Main Menu regalia buttons
+        const btnGrad = ctx.createLinearGradient(panX + 24, by, panX + 24, by + btnH);
+        if (isDanger) {
+          btnGrad.addColorStop(0, _abandonConfirmedOnce ? '#450a0a' : (isHovered ? '#2d0606' : '#1a0505'));
+          btnGrad.addColorStop(1, _abandonConfirmedOnce ? '#2a0505' : '#0d0202');
+        } else if (isPrimary) {
+          btnGrad.addColorStop(0, isHovered ? '#241406' : '#1a0e05');
+          btnGrad.addColorStop(1, isHovered ? '#120a02' : '#0a0502');
+        } else {
+          btnGrad.addColorStop(0, isHovered ? '#161b2b' : '#0d111d');
+          btnGrad.addColorStop(1, isHovered ? '#0a0d16' : '#06080e');
+        }
+        ctx.fillStyle = btnGrad;
+        drawChamferedPanel(ctx, panX + 24, by, btnW, btnH, 5, btnGrad, isHovered ? '#fde68a' : (isDanger ? '#ef4444' : 'rgba(217, 119, 6, 0.6)'), isHovered ? 1.5 : 1);
       }
-      ctx.fillStyle = isHover ? b.hoverBg : b.bg;
-      ctx.strokeStyle = isHover ? '#fde68a' : b.border;
-      ctx.lineWidth = isHover ? 1.6 : 1.2;
-      roundRect(ctx, rightBayX + 16, by, btnW, secH, 6);
-      ctx.fill(); ctx.stroke();
-      ctx.restore();
 
-      // Blade icon
-      ctx.fillStyle = isHover ? '#ffffff' : b.col;
-      ctx.font = 'bold 16px Cinzel, serif';
+      // If danger button is armed, pulse border
+      if (isDanger && _abandonConfirmedOnce) {
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 1.8;
+        drawChamferedPanel(ctx, panX + 24, by, btnW, btnH, 5, null, '#ef4444', 1.8);
+      }
+
+      // Button typography & layout
+      const textX = panX + 44;
+      const textY = by + btnH / 2 + (isPressed ? 1 : 0);
+
+      // Icon / Bullet
+      ctx.fillStyle = isDanger ? (_abandonConfirmedOnce ? '#f87171' : '#ef4444') : (isPrimary ? '#f59e0b' : '#d97706');
+      ctx.font = '11px Cinzel, serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(b.icon, rightBayX + 32, by + secH / 2 - 8);
+      const bullet = isDanger ? '☠' : (isPrimary ? '◈' : '✦');
+      ctx.fillText(bullet, panX + 34, textY);
 
-      // Blade title
-      ctx.fillStyle = isHover ? b.hoverCol : b.col;
-      ctx.font = 'bold 12px Cinzel, serif';
-      ctx.fillText(b.title, rightBayX + 58, by + secH / 2 - 8);
+      // Primary Action Label
+      ctx.fillStyle = isDanger ? (_abandonConfirmedOnce ? '#ffffff' : '#fca5a5') : (isHovered ? '#ffffff' : (isPrimary ? '#fde68a' : '#e2e8f0'));
+      ctx.font = isPrimary ? 'bold 11.5px Cinzel, serif' : 'bold 10px Cinzel, serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(b.label, panX + 48, textY);
 
-      // Blade subtitle
-      ctx.fillStyle = isHover ? '#e2e8f0' : 'rgba(148, 163, 184, 0.75)';
-      ctx.font = '8.5px Cinzel, serif';
-      ctx.fillText(b.sub, rightBayX + 58, by + secH / 2 + 10);
+      // Subtitle / Hotkey rubric
+      ctx.fillStyle = isDanger ? 'rgba(252, 165, 165, 0.75)' : (isHovered ? 'rgba(253, 230, 138, 0.85)' : 'rgba(148, 163, 184, 0.65)');
+      ctx.font = 'italic 9px "Crimson Text", serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(b.sub, panX + 24 + btnW - 14, textY);
 
       _zones.push({
         id: b.id,
-        x: rightBayX + 16, y: by, w: btnW, h: secH,
+        x: panX + 24,
+        y: by,
+        w: btnW,
+        h: btnH,
         action: b.action
       });
     });
 
-    // Tactical Tip Plaque (at bottom of right bay)
-    const tipY = secStartY + 3 * (secH + secGap) + 4;
-    const tipH = bayY + bayH - tipY - 12;
-    if (tipH > 20) {
-      ctx.fillStyle = 'rgba(15, 20, 36, 0.7)';
-      ctx.strokeStyle = 'rgba(71, 85, 105, 0.35)';
-      ctx.lineWidth = 1;
-      roundRect(ctx, rightBayX + 16, tipY, btnW, tipH, 6);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = 'rgba(201, 168, 76, 0.85)';
-      ctx.font = 'italic 9px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('“He who pauses in the dark must keep his blade sharp and his spirit steadfast.”', rightBayX + 16 + btnW / 2, tipY + tipH / 2);
-    }
-
     // ─────────────────────────────────────────────────────────────
-    // BOTTOM COMMAND RIBBON
+    // 6. BOTTOM NAVIGATION HINTS
     // ─────────────────────────────────────────────────────────────
-    const botY = panY + panH - 24;
+    const botY = panY + panH - 22;
     ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
-    ctx.font = '9px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText('Hotkeys: [ ESC ] Resume Expedition  ·  [ S ] Artificer Console  ·  [ A ] Monuments  ·  [ Q ] Abandon', panX + 24, botY);
-
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#fde68a';
-    ctx.fillText('Click anywhere outside to resume', panX + panW - 24, botY);
+    ctx.font = '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const isSanctumAvail = GameState.IS_DEVELOPER_EXPEDITION || DeveloperSanctumUI.isAuthorized();
+    const rubricText = isSanctumAvail
+      ? 'Hotkeys:  [ ESC / ENTER ] Resume   [ S ] Settings   [ A ] Deeds   [ D ] Sanctum   [ Q ] Forfeit'
+      : 'Hotkeys:  [ ESC / ENTER ] Resume   [ S ] Settings   [ A ] Deeds   [ Q ] Forfeit';
+    ctx.fillText(rubricText, panX + panW / 2, botY);
 
     ctx.restore();
   },
@@ -708,9 +579,11 @@ export const PauseMenu = {
       }
     }
 
-    // Click outside command chassis resumes descent
-    const panW = 860, panH = 500;
-    const panX = (LW - panW) / 2, panY = (LH - panH) / 2;
+    // Click outside modal chassis resumes descent
+    const panW = Math.min(620, LW - 32);
+    const panH = Math.min(510, LH - 32);
+    const panX = (LW - panW) / 2;
+    const panY = (LH - panH) / 2;
     if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
       resumeGame();
       return true;
@@ -726,7 +599,7 @@ export const PauseMenu = {
   },
 
   handleKeyDown(key) {
-    if (key === 'Escape') {
+    if (key === 'Escape' || key === 'Enter') {
       resumeGame();
       return true;
     }
@@ -738,12 +611,17 @@ export const PauseMenu = {
       openAchievements();
       return true;
     }
+    if ((key === 'd' || key === 'D') && (GameState.IS_DEVELOPER_EXPEDITION || DeveloperSanctumUI.isAuthorized())) {
+      DeveloperSanctumUI.openFromGameplay();
+      return true;
+    }
     if (key === 'q' || key === 'Q') {
       if (!_abandonConfirmedOnce) {
         _abandonConfirmedOnce = true;
         _confirmQuitTimer = 4.0;
         SoundManager.snd('menu_hover');
       } else {
+        SaveSystem.clearRun();
         quitToMainMenu();
       }
       return true;
@@ -759,6 +637,4 @@ if (typeof window !== 'undefined') {
   window.pauseGame = pauseGame;
   window.resumeGame = resumeGame;
   window.quitToMainMenu = quitToMainMenu;
-  window.openSettings = openSettings;
-  window.openAchievements = openAchievements;
 }

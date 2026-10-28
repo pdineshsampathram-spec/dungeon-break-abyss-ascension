@@ -40,6 +40,9 @@ import { EventBus } from '../core/EventBus.js';
 import { MusicManager } from '../audio/MusicManager.js';
 import { AbyssDissolution } from '../systems/AbyssDissolution.js';
 import { Credits } from './Credits.js';
+import { EpilogueCinematic } from './EpilogueCinematic.js';
+import { CinematicSafety } from './CinematicSafety.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 import { triggerHitStop } from '../combat/HitStop.js';
 
 let _activeBetrayalCinematic = null;
@@ -2445,6 +2448,13 @@ export const BetrayalCinematic = {
 
   start(opts = {}) {
     this.reset();
+    const isReplay = !!opts.isReplay;
+    CinematicSafety.startCinematic('ending_betrayal', typeof opts === 'object' ? opts : { isReplay });
+
+    if (!isReplay && SaveSystem && SaveSystem.recordCinematicUnlock) {
+      SaveSystem.recordCinematicUnlock('ending_betrayal');
+    }
+
     this.active = true;
     this.finished = false;
     this.timer = 0;
@@ -2465,9 +2475,6 @@ export const BetrayalCinematic = {
     GameState.setState(GameStates.CINEMATIC);
     GameState.CINEMATIC_ACTIVE = true;
     GameState.ACTIVE_CINEMATIC_TYPE = 'betrayal';
-
-    const devBar = document.getElementById('rampage-cutscene-trigger-bar');
-    if (devBar) devBar.style.display = 'none';
 
     const curRoom = (GameState.ROOMS && GameState.ROOMS[0]) || { cx: 24, cy: 16 };
     const roomCenterX = P ? P.x : curRoom.cx;
@@ -3388,11 +3395,11 @@ export const BetrayalCinematic = {
     }
 
     // 4. SUBTLE SKIP PROMPT
-    if (t > 1.5 && t < BETRAYAL_TIMELINE.ROWAN_COLLAPSES) {
+    if (this.canSkip() && CinematicSafety.shouldShowSkipHint() && t < BETRAYAL_TIMELINE.ROWAN_COLLAPSES) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
       ctx.font = '10px Cinzel, serif';
       ctx.textAlign = 'right';
-      ctx.fillText('[ Space / Enter / Click to Skip ]', LW - 20, LH - 16);
+      ctx.fillText(CinematicSafety.isReplay() ? '[ Esc / Click to Exit Archive ]' : '[ Space / Enter / Click to Skip ]', LW - 20, LH - 16);
     }
 
     ctx.restore();
@@ -3401,23 +3408,50 @@ export const BetrayalCinematic = {
   // ─────────────────────────────────────────────────────────────
   // 5. INPUT & SEEK HANDLERS
   // ─────────────────────────────────────────────────────────────
+  canSkip() {
+    return this.active && !this.finished && CinematicSafety.canSkip();
+  },
+
   handleClick(mx, my) {
     if (!this.active) return false;
-    this.skip();
+    if (CinematicSafety.isReplay()) {
+      if (CinematicSafety.isValidSkipClick()) {
+        this.reset();
+        CinematicSafety.finishReplay();
+      }
+      return true;
+    }
+    if (CinematicSafety.isValidSkipClick()) {
+      this.skip();
+    }
     return true;
   },
 
   handleKey(key) {
     if (!this.active) return false;
-    if (key === ' ' || key === 'Enter' || key === 'Escape') {
-      this.skip();
+    if (CinematicSafety.isReplay()) {
+      if (key === 'Escape' || key === ' ' || key === 'Enter') {
+        this.reset();
+        CinematicSafety.finishReplay();
+      }
       return true;
     }
-    return false;
+    if (key === ' ' || key === 'Enter' || key === 'Escape') {
+      if (CinematicSafety.isValidSkipKey(key)) {
+        this.skip();
+      }
+      return true;
+    }
+    return true; // Consume keys
   },
 
   skip() {
     if (!this.active || this.finished) return;
+    if (CinematicSafety.isReplay()) {
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
     _betrayalFastForwarding = true;
     this.proceedToCredits();
   },
@@ -3478,15 +3512,19 @@ export const BetrayalCinematic = {
 
     GameState.CINEMATIC_ACTIVE = false;
 
-    const devBar = document.getElementById('rampage-cutscene-trigger-bar');
-    if (devBar) devBar.style.display = 'flex';
-
-    const touchOv = document.getElementById('touch-overlay');
-    if (touchOv && typeof window !== 'undefined' && window.MobileControls && window.MobileControls.isMobile && window.MobileControls.isMobile()) {
-      touchOv.style.display = 'block';
+    if (CinematicSafety.isReplay()) {
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
     }
 
-    Credits.start('betrayal');
+    EpilogueCinematic.start('betrayal', () => {
+      const touchOv = document.getElementById('touch-overlay');
+      if (touchOv && typeof window !== 'undefined' && window.MobileControls && window.MobileControls.isMobile && window.MobileControls.isMobile()) {
+        touchOv.style.display = 'block';
+      }
+      Credits.start('betrayal');
+    });
   },
 
   reset() {
@@ -3502,14 +3540,6 @@ export const BetrayalCinematic = {
     }
     _activeBetrayalCinematic = null;
     _betrayalFastForwarding = false;
-
-    const devBar = document.getElementById('rampage-cutscene-trigger-bar');
-    if (devBar) devBar.style.display = 'flex';
-
-    const touchOv = document.getElementById('touch-overlay');
-    if (touchOv && typeof window !== 'undefined' && window.MobileControls && window.MobileControls.isMobile && window.MobileControls.isMobile()) {
-      touchOv.style.display = 'block';
-    }
   }
 };
 

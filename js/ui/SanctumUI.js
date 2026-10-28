@@ -10,6 +10,14 @@ import { TALENT_DEFS, TALENT_KEYS, TALENT_CATEGORIES, LEGACY_DEFS, LEGACY_KEYS }
 import { ProgressionSystem } from '../systems/ProgressionSystem.js';
 import { AudioManager } from '../audio/AudioManager.js';
 import { InputManager } from '../core/InputManager.js';
+import {
+  drawStoneButton,
+  drawStoneTab,
+  drawStonePanel,
+  drawStoneCard,
+  drawStoneBadge,
+  drawCornerBrackets
+} from './ButtonArtManager.js?v=2.0';
 
 let SANCTUM_SLIDE = 0;
 let _currentMode = 'talents'; // 'talents' | 'legacy'
@@ -178,8 +186,8 @@ export const SanctumUI = {
     _interactiveZones.length = 0;
 
     const eased = 1 - Math.pow(1 - SANCTUM_SLIDE, 3);
-    const panW = 890;
-    const panH = 520;
+    const panW = Math.min(880, LW - 24);
+    const panH = Math.min(520, LH - 24);
     const panX = Math.round((LW - panW) / 2);
     const panY = Math.round((LH - panH) / 2 - (1 - eased) * 35);
 
@@ -202,20 +210,9 @@ export const SanctumUI = {
     }
     grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.fillStyle = grad;
-    ctx.fillRect(panX - 40, panY - 40, panW + 80, panH + 80);
-
-    // Outer Altar Vault Slab
-    ctx.fillStyle = 'rgba(6, 9, 20, 0.98)';
-    ctx.strokeStyle = _currentMode === 'legacy' ? 'rgba(245, 158, 11, 0.7)' : 'rgba(168, 85, 247, 0.65)';
-    ctx.lineWidth = 1.8;
-    roundRect(ctx, panX, panY, panW, panH, 12);
-    ctx.fill(); ctx.stroke();
-
-    // Inner gold-embossed trim
-    ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, panX + 5, panY + 5, panW - 10, panH - 10, 9);
-    ctx.stroke();
+    ctx.fillRect(panX - 40, panY - 40, panW + 80, panH + 80);    // Outer Altar Vault Slab
+    drawStonePanel(ctx, panX, panY, panW, panH, { cornerSize: 8, elevation: 3 });
+    drawCornerBrackets(ctx, panX, panY, panW, panH, 14, _currentMode === 'legacy' ? '#d97706' : '#a855f7');
 
     const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
     const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
@@ -230,24 +227,10 @@ export const SanctumUI = {
     const badgeY = panY + 16;
 
     // Soul Crucible
-    ctx.fillStyle = 'rgba(88, 28, 135, 0.4)';
-    ctx.strokeStyle = 'rgba(192, 132, 252, 0.7)';
-    ctx.lineWidth = 1.2;
-    roundRect(ctx, panX + 18, badgeY, 132, 26, 6);
-    ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#fde047';
-    ctx.font = 'bold 10px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`◈ SOULS: ${souls.toLocaleString()}`, panX + 84, badgeY + 13);
+    drawStoneBadge(ctx, `◈ SOULS: ${souls.toLocaleString()}`, panX + 18, badgeY, 132, 26, { variant: 'purple', pulse: false });
 
     // Prestige Sunburst Token
-    ctx.fillStyle = 'rgba(180, 83, 9, 0.35)';
-    ctx.strokeStyle = 'rgba(245, 158, 11, 0.75)';
-    roundRect(ctx, panX + 158, badgeY, 132, 26, 6);
-    ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#fef08a';
-    ctx.fillText(`♛ PRESTIGE: ${tokens}`, panX + 224, badgeY + 13);
+    drawStoneBadge(ctx, `♛ PRESTIGE: ${tokens}`, panX + 158, badgeY, 132, 26, { variant: 'gold', pulse: false });
 
     // Altar Central Inscription (Top Center)
     ctx.fillStyle = _currentMode === 'legacy' ? '#fef08a' : '#f3e8ff';
@@ -271,21 +254,12 @@ export const SanctumUI = {
       const isSel = _currentMode === mt.id;
       const isHover = mouseX >= modeX && mouseX <= modeX + mt.w && mouseY >= badgeY && mouseY <= badgeY + 26;
 
-      ctx.fillStyle = isSel
-        ? (mt.id === 'legacy' ? 'rgba(217, 119, 6, 0.4)' : 'rgba(147, 51, 234, 0.4)')
-        : (isHover ? 'rgba(30, 41, 59, 0.8)' : 'rgba(15, 23, 42, 0.6)');
-      ctx.strokeStyle = isSel
-        ? (mt.id === 'legacy' ? '#fde047' : '#c084fc')
-        : (isHover ? '#cbd5e1' : 'rgba(71, 85, 105, 0.5)');
-      ctx.lineWidth = isSel ? 1.5 : 1;
-      roundRect(ctx, modeX, badgeY, mt.w, 26, 5);
-      ctx.fill(); ctx.stroke();
-
-      ctx.fillStyle = isSel ? '#ffffff' : (isHover ? '#f1f5f9' : '#94a3b8');
-      ctx.font = 'bold 9px Cinzel, serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(mt.label, modeX + mt.w / 2, badgeY + 13);
+      drawStoneTab(ctx, mt.label, modeX, badgeY, mt.w, 26, {
+        isHover,
+        isSelected: isSel,
+        fontSize: 9,
+        cornerSize: 4
+      });
 
       _interactiveZones.push({
         id: `mode_${mt.id}`,
@@ -322,22 +296,12 @@ export const SanctumUI = {
         const isSel = (_currentCategory === d.id);
         const isHover = mouseX >= curArcX && mouseX <= curArcX + d.w && mouseY >= arcY && mouseY <= arcY + arcH;
 
-        ctx.fillStyle = isSel ? 'rgba(147, 51, 234, 0.28)' : (isHover ? 'rgba(30, 41, 59, 0.7)' : 'rgba(15, 23, 42, 0.5)');
-        ctx.strokeStyle = isSel ? '#c084fc' : (isHover ? '#94a3b8' : 'rgba(71, 85, 105, 0.4)');
-        ctx.lineWidth = isSel ? 1.5 : 1;
-        roundRect(ctx, curArcX, arcY, d.w, arcH, 5);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = isSel ? '#fde68a' : (isHover ? '#ffffff' : '#94a3b8');
-        ctx.font = 'bold 9.5px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(d.label, curArcX + d.w / 2, arcY + arcH / 2);
-
-        if (isSel) {
-          ctx.fillStyle = '#c084fc';
-          ctx.fillRect(curArcX + 16, arcY + arcH - 2, d.w - 32, 2);
-        }
+        drawStoneTab(ctx, d.label, curArcX, arcY, d.w, arcH, {
+          isHover,
+          isSelected: isSel,
+          fontSize: 9.5,
+          cornerSize: 4
+        });
 
         _interactiveZones.push({
           id: `disc_${d.id}`,
@@ -360,11 +324,12 @@ export const SanctumUI = {
       // Legacy Mode Ribbon
       const legW = 380;
       const legX = panX + Math.round((panW - legW) / 2);
-      ctx.fillStyle = 'rgba(180, 83, 9, 0.25)';
-      ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)';
-      ctx.lineWidth = 1.2;
-      roundRect(ctx, legX, arcY, legW, arcH, 5);
-      ctx.fill(); ctx.stroke();
+      drawStoneCard(ctx, legX, arcY, legW, arcH, {
+        isHover: false,
+        isSelected: true,
+        cornerSize: 4,
+        glowColor: 'rgba(245, 158, 11, 0.45)'
+      });
       ctx.fillStyle = '#fef08a';
       ctx.font = 'bold 10px Cinzel, serif';
       ctx.textAlign = 'center';
@@ -383,16 +348,13 @@ export const SanctumUI = {
     const slabX = mapX + mapW + 12;
 
     // ── Left: Celestial Constellation Starfield Chamber ──
-    ctx.fillStyle = 'rgba(8, 12, 26, 0.9)';
-    ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, mapX, chamberY, mapW, chamberH, 8);
-    ctx.fill(); ctx.stroke();
+    drawStonePanel(ctx, mapX, chamberY, mapW, chamberH, { cornerSize: 6, inset: true });
+    drawCornerBrackets(ctx, mapX, chamberY, mapW, chamberH, 10, 'rgba(168, 85, 247, 0.4)');
 
     // Starfield Background motes
     ctx.save();
     ctx.beginPath();
-    roundRect(ctx, mapX + 2, chamberY + 2, mapW - 4, chamberH - 4, 7);
+    roundRect(ctx, mapX + 3, chamberY + 3, mapW - 6, chamberH - 6, 5);
     ctx.clip();
 
     // Procedural Stars
@@ -531,29 +493,29 @@ export const SanctumUI = {
       const balance = isLegacy ? tokens : souls;
       const canAfford = balance >= cost;
 
-      ctx.fillStyle = 'rgba(12, 16, 32, 0.9)';
-      ctx.strokeStyle = isLegacy ? 'rgba(245, 158, 11, 0.55)' : 'rgba(168, 85, 247, 0.55)';
-      ctx.lineWidth = 1.2;
-      roundRect(ctx, slabX, chamberY, slabW, chamberH, 8);
-      ctx.fill(); ctx.stroke();
+      drawStonePanel(ctx, slabX, chamberY, slabW, chamberH, { cornerSize: 6, elevation: 2 });
+      drawCornerBrackets(ctx, slabX, chamberY, slabW, chamberH, 10, isLegacy ? 'rgba(245, 158, 11, 0.5)' : 'rgba(168, 85, 247, 0.5)');
 
       // Top Slab Banner
-      ctx.fillStyle = isLegacy ? 'rgba(180, 83, 9, 0.3)' : 'rgba(88, 28, 135, 0.3)';
-      roundRect(ctx, slabX + 4, chamberY + 4, slabW - 8, 32, 6);
-      ctx.fill();
+      drawStoneCard(ctx, slabX + 6, chamberY + 6, slabW - 12, 30, {
+        cornerSize: 4,
+        isSelected: true,
+        glowColor: isLegacy ? 'rgba(245, 158, 11, 0.35)' : 'rgba(168, 85, 247, 0.35)'
+      });
 
       ctx.fillStyle = isLegacy ? '#fde047' : '#c084fc';
       ctx.font = 'bold 10px Cinzel, serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'middle';
-      ctx.fillText(isLegacy ? '♛ PRESTIGE ASCENSION STELE' : `◈ ${(_currentCategory || 'SURVIVAL').toUpperCase()} STELE`, slabX + 16, chamberY + 20);
+      ctx.fillText(isLegacy ? '♛ PRESTIGE ASCENSION STELE' : `◈ ${(_currentCategory || 'SURVIVAL').toUpperCase()} STELE`, slabX + 16, chamberY + 21);
 
       // Talent Name & Icon Box
-      const iconY = chamberY + 54;
-      ctx.fillStyle = isMax ? 'rgba(234, 179, 8, 0.15)' : 'rgba(147, 51, 234, 0.15)';
-      ctx.strokeStyle = isMax ? 'rgba(234, 179, 8, 0.5)' : 'rgba(168, 85, 247, 0.4)';
-      roundRect(ctx, slabX + 16, iconY, 44, 44, 6);
-      ctx.fill(); ctx.stroke();
+      const iconY = chamberY + 48;
+      drawStoneCard(ctx, slabX + 16, iconY, 44, 44, {
+        cornerSize: 4,
+        isSelected: isMax,
+        glowColor: isMax ? '#facc15' : '#c084fc'
+      });
 
       ctx.font = '22px serif';
       ctx.textAlign = 'center';
@@ -563,15 +525,15 @@ export const SanctumUI = {
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillStyle = isMax ? '#fef08a' : '#ffffff';
-      ctx.font = 'bold 14px Cinzel, serif';
+      ctx.font = 'bold 13px Cinzel, serif';
       ctx.fillText(item.name, slabX + 68, iconY + 6);
 
       ctx.fillStyle = isMax ? '#facc15' : 'rgba(203, 213, 225, 0.8)';
-      ctx.font = 'bold 10px monospace';
+      ctx.font = 'bold 9.5px monospace';
       ctx.fillText(`Rank ${rank} of ${item.max} · ${isMax ? 'Fully Ascended' : (isLegacy ? `${cost} ♛ Tokens` : `${cost} ◈ Souls`)}`, slabX + 68, iconY + 26);
 
       // Rank Progress Cell Bar
-      const cellY = iconY + 54;
+      const cellY = iconY + 52;
       const cellW = Math.round((slabW - 32 - (item.max - 1) * 6) / item.max);
       for (let c = 0; c < item.max; c++) {
         const cx = slabX + 16 + c * (cellW + 6);
@@ -587,10 +549,7 @@ export const SanctumUI = {
       // Power Delta & Consequences (with multi-line wrapping)
       const deltaY = cellY + 16;
       const deltaH = 76;
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
-      ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
-      roundRect(ctx, slabX + 16, deltaY, slabW - 32, deltaH, 6);
-      ctx.fill(); ctx.stroke();
+      drawStoneCard(ctx, slabX + 16, deltaY, slabW - 32, deltaH, { cornerSize: 4, inset: true });
 
       const preview = isLegacy
         ? { current: `Rank ${rank}: ${item.desc}`, next: isMax ? 'Maximum Power Reached' : `Rank ${rank + 1}: ${item.desc}` }
@@ -640,38 +599,28 @@ export const SanctumUI = {
       const btnX = slabX + 16;
       const btnY = chamberY + chamberH - btnH - 14;
       const isBtnHover = mouseX >= btnX && mouseX <= btnX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
+      const isBtnPressed = isBtnHover && (InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.isDown : false);
 
       if (isMax) {
-        ctx.fillStyle = 'rgba(234, 179, 8, 0.15)';
-        ctx.strokeStyle = 'rgba(234, 179, 8, 0.7)';
-        ctx.lineWidth = 1.2;
-        roundRect(ctx, btnX, btnY, btnW, btnH, 6);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#fef08a';
-        ctx.font = 'bold 11px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('★ ASCENDED TO MAXIMUM RANK', btnX + btnW / 2, btnY + btnH / 2);
+        drawStoneButton(ctx, '★ ASCENDED TO MAXIMUM RANK', btnX, btnY, btnW, btnH, {
+          isHover: false,
+          isPressed: false,
+          isSelected: true,
+          variant: 'primary',
+          fontSize: 11,
+          cornerSize: 4
+        });
       } else if (canAfford) {
-        ctx.fillStyle = isBtnHover
-          ? (isLegacy ? 'rgba(217, 119, 6, 0.6)' : 'rgba(147, 51, 234, 0.6)')
-          : (isLegacy ? 'rgba(180, 83, 9, 0.4)' : 'rgba(126, 34, 206, 0.4)');
-        ctx.strokeStyle = isBtnHover ? '#fde68a' : (isLegacy ? '#f59e0b' : '#c084fc');
-        ctx.lineWidth = isBtnHover ? 1.8 : 1.2;
-        roundRect(ctx, btnX, btnY, btnW, btnH, 6);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 11.5px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
         const actLabel = isLegacy ? `UPGRADE LEGACY · ${cost} ♛` : `EMPOWER TALENT · ${cost} ◈`;
-        ctx.fillText(actLabel, btnX + btnW / 2, btnY + btnH / 2 - 5);
-
-        ctx.fillStyle = isLegacy ? '#fef08a' : '#d8b4fe';
-        ctx.font = '9px Cinzel, serif';
-        ctx.fillText('CLICK TO CONSECRATE UPGRADE', btnX + btnW / 2, btnY + btnH / 2 + 8);
+        drawStoneButton(ctx, actLabel, btnX, btnY, btnW, btnH, {
+          isHover: isBtnHover,
+          isPressed: isBtnPressed,
+          isSelected: false,
+          variant: 'primary',
+          sublabel: 'CLICK TO CONSECRATE UPGRADE',
+          fontSize: 11,
+          cornerSize: 4
+        });
 
         _interactiveZones.push({
           id: `buy_${item.id}`,
@@ -679,21 +628,16 @@ export const SanctumUI = {
           action: () => this.attemptPurchase()
         });
       } else {
-        ctx.fillStyle = 'rgba(20, 24, 38, 0.6)';
-        ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
-        ctx.lineWidth = 1;
-        roundRect(ctx, btnX, btnY, btnW, btnH, 6);
-        ctx.fill(); ctx.stroke();
-
-        ctx.fillStyle = '#ef4444';
-        ctx.font = 'bold 10px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
         const currIcon = isLegacy ? '♛' : '◈';
-        ctx.fillText(`INSUFFICIENT ESSENCE · NEED ${cost} ${currIcon}`, btnX + btnW / 2, btnY + btnH / 2 - 5);
-        ctx.fillStyle = '#64748b';
-        ctx.font = '9px Cinzel, serif';
-        ctx.fillText(`(Deficit: ${cost - balance} ${currIcon})`, btnX + btnW / 2, btnY + btnH / 2 + 8);
+        drawStoneButton(ctx, `INSUFFICIENT ESSENCE · ${cost} ${currIcon}`, btnX, btnY, btnW, btnH, {
+          isHover: false,
+          isPressed: false,
+          isSelected: false,
+          variant: 'danger',
+          sublabel: `(Deficit: ${cost - balance} ${currIcon})`,
+          fontSize: 10,
+          cornerSize: 4
+        });
       }
     }
 
@@ -701,25 +645,24 @@ export const SanctumUI = {
     // 4. BOTTOM BAR: RETURN BUTTON & KEYBOARD HINTS
     // ─────────────────────────────────────────────────────────────
     const botY = panY + panH - 36;
-    const retW = 190, retH = 26;
+    const retW = 200, retH = 26;
     const retX = panX + panW - 20 - retW;
     const isHoverRet = mouseX >= retX && mouseX <= retX + retW && mouseY >= botY && mouseY <= botY + retH;
+    const isPressedRet = isHoverRet && (InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.isDown : false);
 
-    ctx.fillStyle = isHoverRet ? 'rgba(51, 65, 85, 0.7)' : 'rgba(30, 41, 59, 0.5)';
-    ctx.strokeStyle = isHoverRet ? '#ffffff' : 'rgba(148, 163, 184, 0.45)';
-    ctx.lineWidth = 1;
-    roundRect(ctx, retX, botY, retW, retH, 5);
-    ctx.fill(); ctx.stroke();
-
-    ctx.fillStyle = '#e2e8f0';
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('◈ RETURN TO TITLE ( Esc )', retX + retW / 2, botY + retH / 2);
+    drawStoneButton(ctx, '◈ RETURN TO TITLE ( Esc )', retX, botY, retW, retH, {
+      isHover: isHoverRet,
+      isPressed: isPressedRet,
+      isSelected: false,
+      variant: 'normal',
+      fontSize: 9.5,
+      cornerSize: 4
+    });
 
     ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
     ctx.font = '9px monospace';
     ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
     ctx.fillText('Arrows — Select Star Node    Space/Enter — Consecrate Upgrade    Esc — Return', panX + 24, botY + 13);
 
     _interactiveZones.push({
@@ -759,7 +702,7 @@ export const SanctumUI = {
     }
 
     // Click outside panel returns to Title
-    const panW = 890, panH = 520;
+    const panW = Math.min(880, LW - 24), panH = Math.min(520, LH - 24);
     const panX = (LW - panW) / 2, panY = (LH - panH) / 2;
     if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
       closeSanctum();

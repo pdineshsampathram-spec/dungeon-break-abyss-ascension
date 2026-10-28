@@ -14,6 +14,8 @@ import { quitToMainMenu } from '../ui/PauseMenu.js';
 import { CINEMATIC_W, CINEMATIC_H } from './CinematicRenderer.js';
 import { RunResetManager } from '../systems/RunResetManager.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
+import { AchievementSystem } from '../systems/AchievementSystem.js';
+import { CinematicSafety } from './CinematicSafety.js';
 
 // ─────────────────────────────────────────────────────────────
 // Cinematic Timeline Phases (Deliberate Pacing: Total ~57.5s)
@@ -943,6 +945,13 @@ export const ShatteredMindCinematic = {
   // ─────────────────────────────────────────────────────────────
   start(opts = {}) {
     if (this.active) return;
+    const isReplay = !!opts.isReplay;
+    CinematicSafety.startCinematic('shattered_mind', typeof opts === 'object' ? opts : { isReplay });
+
+    if (!isReplay && SaveSystem && SaveSystem.recordCinematicUnlock) {
+      SaveSystem.recordCinematicUnlock('shattered_mind');
+    }
+
     this.active = true;
     this.finished = false;
     this.timer = 0;
@@ -971,6 +980,11 @@ export const ShatteredMindCinematic = {
     GameState.setState(GameStates.DEATH_SANITY);
     GameState.CINEMATIC_ACTIVE = true;
     GameState.ACTIVE_CINEMATIC_TYPE = 'shattered_mind';
+
+    // Clear saved run immediately on genuine sanity collapse (never on archive replay)
+    if (!isReplay && SaveSystem && SaveSystem.clearRun) {
+      SaveSystem.clearRun();
+    }
 
     // Room center coordinates
     const curRoom = (GameState.ROOMS && GameState.ROOMS[0]) || { cx: 24, cy: 16 };
@@ -1054,14 +1068,24 @@ export const ShatteredMindCinematic = {
     return this.finished;
   },
 
+  seek(t, andPause = false) {
+    if (!this.active || !_activeCinematic) return;
+    _activeCinematic.timer = t;
+    this.timer = t;
+    if (andPause) _activeCinematic.paused = true;
+    this.tick(0);
+  },
+
   _onOutcomeCompleted() {
     const cine = _activeCinematic;
     if (!cine || cine.outcomeCompleted) return;
     cine.outcomeCompleted = true;
 
-    // Genuine outcome recording (protected against debug and repeat calls)
-    if (!cine.isDebug && !GameState.IS_DEBUG_ENDING) {
+    // Genuine outcome recording (protected against debug, replay, and repeat calls)
+    if (!cine.isDebug && !GameState.IS_DEBUG_ENDING && !CinematicSafety.isReplay()) {
       SaveSystem.unlockSecretBestiary('absolute');
+      SaveSystem.unlockMemory('memory_shattered_mind');
+      AchievementSystem.unlock('mind_break');
       SaveSystem.recordCompletionMilestone('death_shattered_mind', { source: 'shattered_mind' });
     }
   },
@@ -1847,12 +1871,12 @@ export const ShatteredMindCinematic = {
     // ───────────────────────────────────────────────────────────
     this._drawLetterbox(ctx);
 
-    if (this.canSkip()) {
+    if (this.canSkip() && CinematicSafety.shouldShowSkipHint()) {
       ctx.save();
       ctx.font = '11px Cinzel, serif';
       ctx.fillStyle = 'rgba(251, 191, 36, 0.45)';
       ctx.textAlign = 'right';
-      ctx.fillText('SPACE / CLICK TO SKIP', LW - 24, LH - 16);
+      ctx.fillText(CinematicSafety.isReplay() ? 'ESC / CLICK TO EXIT ARCHIVE' : 'SPACE / CLICK TO SKIP', LW - 24, LH - 16);
       ctx.restore();
     }
   },
@@ -1951,26 +1975,41 @@ export const ShatteredMindCinematic = {
     if (!this.isActive() && GameState.STATE !== GameStates.DEATH_SANITY && GameState.STATE !== GameStates.DEATH_RESULTS) return false;
     const cine = _activeCinematic;
 
-    // ESCAPE key: skip if running, or return to title if on end card
+    // ESCAPE key: if replay, immediately return to archive; if running, skip if permitted; or return to title if on end card
     if (key === 'Escape') {
+      if (CinematicSafety.isReplay()) {
+        this.reset();
+        CinematicSafety.finishReplay();
+        return true;
+      }
       if (this.isFinished() || GameState.STATE === GameStates.DEATH_RESULTS) {
         this.returnToMainMenu();
-      } else {
+      } else if (CinematicSafety.canSkip()) {
         this.skip();
       }
       return true;
     }
 
-    // During active cinematic: Space or Enter skips immediately
+    // During active cinematic: Space or Enter skips ONLY if allowed by CinematicSafety
     if (!this.isFinished() && GameState.STATE !== GameStates.DEATH_RESULTS) {
       if (key === 'Enter' || key === ' ' || key === 'Space') {
-        this.skip();
+        if (CinematicSafety.isValidSkipKey(key)) {
+          this.skip();
+        }
         return true;
       }
+      return true; // Consume any other key so gameplay buffers or shortcuts don't fire
     }
 
     // On final end card:
     if (this.isFinished() || GameState.STATE === GameStates.DEATH_RESULTS) {
+      if (CinematicSafety.isReplay()) {
+        if (key === 'Escape' || key === 'Enter' || key === ' ') {
+          this.reset();
+          CinematicSafety.finishReplay();
+          return true;
+        }
+      }
       if (key === 'ArrowUp' || key === 'KeyW' || key === 'w' || key === 'W') {
         if (cine) cine.selectedButtonIndex = 0;
         SoundManager.snd('menu_hover');
@@ -2001,9 +2040,17 @@ export const ShatteredMindCinematic = {
   handleClick(mx, my) {
     if (!this.isActive() && GameState.STATE !== GameStates.DEATH_SANITY && GameState.STATE !== GameStates.DEATH_RESULTS) return false;
 
-    // If cinematic is active and not yet finished: any click skips
+    // If cinematic is active and not yet finished:
     if (!this.isFinished() && GameState.STATE !== GameStates.DEATH_RESULTS) {
-      this.skip();
+      if (CinematicSafety.isValidSkipClick()) {
+        this.skip();
+      }
+      return true; // Always consume clicks during active cinematic
+    }
+
+    if (CinematicSafety.isReplay()) {
+      this.reset();
+      CinematicSafety.finishReplay();
       return true;
     }
 
@@ -2059,6 +2106,11 @@ export const ShatteredMindCinematic = {
   },
 
   restartRun() {
+    if (CinematicSafety.isReplay()) {
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
     if (MusicManager) {
       MusicManager.fadeOut(0.8);
     }
@@ -2067,6 +2119,11 @@ export const ShatteredMindCinematic = {
   },
 
   returnToMainMenu() {
+    if (CinematicSafety.isReplay()) {
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
     if (MusicManager) {
       MusicManager.crossfade('menu', 1.8, 0.70);
     }
@@ -2075,11 +2132,16 @@ export const ShatteredMindCinematic = {
   },
 
   canSkip() {
-    return this.active && !this.finished;
+    return this.active && !this.finished && CinematicSafety.canSkip();
   },
 
   skip() {
     if (!this.active || this.finished) return;
+    if (CinematicSafety.isReplay()) {
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
     const cine = _activeCinematic;
     if (!cine) return;
 

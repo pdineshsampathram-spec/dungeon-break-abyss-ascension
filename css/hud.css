@@ -1,13 +1,14 @@
-#ingame-pause-btn {
+#ingame-pause-btn,
+#ingame-map-btn {
   position: fixed;
-  top: 10px;
-  right: 10px;
+  top: max(10px, env(safe-area-inset-top, 10px));
   z-index: 80;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.65);
-  border: 1.5px solid rgba(201, 168, 76, 0.55);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #241938 0%, #150f24 100%);
+  border: 1.8px solid #ca8a04;
+  box-shadow: inset 0 1px 0 rgba(254, 240, 138, 0.35), inset 0 -1px 0 rgba(0, 0, 0, 0.8), 0 4px 10px rgba(0, 0, 0, 0.75);
   display: none;
   align-items: center;
   justify-content: center;
@@ -17,11 +18,31 @@
   color: #fde68a;
   touch-action: none;
   user-select: none;
-  transition: background 0.15s;
+  transition: transform 0.08s ease, filter 0.08s ease, border-color 0.15s ease;
 }
 
-#ingame-pause-btn:active {
-  background: rgba(201, 168, 76, 0.25);
+#ingame-pause-btn {
+  right: max(10px, env(safe-area-inset-right, 10px));
+}
+
+#ingame-map-btn {
+  right: max(60px, calc(10px + 44px + 6px + env(safe-area-inset-right, 0px)));
+}
+
+#ingame-map-btn .ingame-hud-icon {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+}
+
+#ingame-pause-btn:active,
+#ingame-map-btn:active {
+  transform: scale(0.92);
+  filter: brightness(1.25);
+  border-color: #fde68a;
+  background: linear-gradient(180deg, #362654 0%, #201736 100%);
 }
 
 #ingame-speed-panel {

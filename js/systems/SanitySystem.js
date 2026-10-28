@@ -61,15 +61,14 @@ export const SANITY_REWARDS = {
 // Floor 6 is deliberately a pressure encounter. These values are additional
 // to the normal floor drain and are applied only by the authoritative sanity
 // tick below, so an AI restart can never create a second drain loop.
+// Floor 6 is deliberately a spatial challenge. These values are calibrated
+// to create tense environmental pressure without causing an unavoidable sanity wipe.
 export const VOID_ARENA_SANITY = {
-  // Minimum total sanity loss per second in the encounter. These are applied
-  // by the one existing sanity tick, so nearby Void torches cannot accidentally
-  // reduce the boss trial to negligible pressure.
-  phaseOneDrain: 1.20,
-  phaseTwoDrain: 1.70,
-  phaseThreeDrain: 1.90,
-  zoneDrain: 2.40,
-  phaseThreeZoneDrain: 2.65,
+  phaseOneDrain: 0.75,
+  phaseTwoDrain: 1.05,
+  phaseThreeDrain: 1.30,
+  zoneDrain: 1.65,
+  phaseThreeZoneDrain: 1.95,
   safeAreaMultiplier: 0.0
 };
 
@@ -96,13 +95,13 @@ export const SanitySystem = {
     const inArena = x >= room.x && x <= room.x + room.w && y >= room.y && y <= room.y + room.h;
     if (!inArena) return { inArena: false, drain: 0, minimumTotalDrain: 0, inSafeArea: false, inPressureZone: false };
 
-    const safe = room.voidSafeArea;
-    const inSafeArea = !!safe && Math.hypot(x - safe.x, y - safe.y) <= safe.r;
+    const safeAreas = room.voidSafeAreas || (room.voidSafeArea ? [room.voidSafeArea] : []);
+    const inSafeArea = safeAreas.some(safe => Math.hypot(x - safe.x, y - safe.y) <= safe.r);
     const zone = boss.voidPressureZone;
     const inPressureZone = !inSafeArea && !!zone && zone.state === 'active' &&
       Math.hypot(x - zone.x, y - zone.y) <= zone.r;
 
-    const phaseDrain = boss.phase >= 2 ? VOID_ARENA_SANITY.phaseTwoDrain : VOID_ARENA_SANITY.phaseOneDrain;
+    const phaseDrain = boss.phase >= 3 ? VOID_ARENA_SANITY.phaseThreeDrain : (boss.phase === 2 ? VOID_ARENA_SANITY.phaseTwoDrain : VOID_ARENA_SANITY.phaseOneDrain);
     const minimumTotalDrain = inSafeArea ? 0 : (inPressureZone
       ? (boss.phase >= 3 ? VOID_ARENA_SANITY.phaseThreeZoneDrain : VOID_ARENA_SANITY.zoneDrain)
       : phaseDrain);

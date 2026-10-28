@@ -61,9 +61,17 @@ export const ProjectileSystem = {
       if (!pr.fromPlayer) {
         if (!P.dead && Math.hypot(pr.x - P.x, pr.y - P.y) < 0.65) {
           if (!pr.id) pr.id = ++_projId;
-          const atkId = 'enemy_proj_' + pr.id;
+          const atkId = pr.attackId ? ('boss_atk_' + pr.attackId) : ('enemy_proj_' + pr.id);
           const didDamage = dealDamage({ isEnemy: true, isBoss: !!pr.isBoss, attackId: atkId, x: pr.x, y: pr.y }, P, pr.damage || 1, 'ranged');
-          if (didDamage && pr.sanityDamage) SanitySystem.drain(pr.sanityDamage);
+          if (didDamage && pr.sanityDamage) {
+            const now = GameState.TIME || (Date.now() / 1000);
+            P._lastSanityDrainAtk = P._lastSanityDrainAtk || {};
+            const burstKey = pr.attackId ? ('burst_' + pr.attackId) : 'burst_recent';
+            if (!P._lastSanityDrainAtk[burstKey] || (now - P._lastSanityDrainAtk[burstKey] > 0.4)) {
+              P._lastSanityDrainAtk[burstKey] = now;
+              SanitySystem.drain(pr.sanityDamage);
+            }
+          }
           pr.hit = true;
           PROJECTILES.splice(i, 1);
           continue;
@@ -202,4 +210,5 @@ export const spawnProjectile = (wx, wy, vx, vy, dmg, isBoss, fromPlayer) =>
 
 if (typeof window !== 'undefined') {
   window.spawnProjectile = spawnProjectile;
+  window.ProjectileSystem = ProjectileSystem;
 }

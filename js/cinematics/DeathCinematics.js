@@ -25,6 +25,7 @@ import { RunResetManager } from '../systems/RunResetManager.js';
 import { GorgarothCinematics } from './GorgarothCinematics.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
+import { CinematicSafety } from './CinematicSafety.js';
 
 export let ACTIVE_DEATH_CINEMATIC = null;
 
@@ -58,6 +59,11 @@ export function requestDeath(reason = 'dungeon_normal', source = null) {
 
   console.log(`[DEATH] DEATH_REQUESTED: reason=${_deathReason}, source=${_deathSource}, floor=${_deathFloor}`);
 
+  // Clear active saved run immediately upon death so dead state is never saved or resumable
+  if (SaveSystem && SaveSystem.clearRun) {
+    SaveSystem.clearRun();
+  }
+
   // Authoritative Achievement Unlocks on Death
   const isWardenDeath = (_deathReason === 'warden' || _deathSource === 'warden' || _deathReason === 'boss_warden' || _deathReason === 'boss_abyss_warden' || (GameState.LV === 10 && GameState.BOSS && GameState.BOSS.id === 'abyss_warden'));
 
@@ -70,6 +76,7 @@ export function requestDeath(reason = 'dungeon_normal', source = null) {
 
   if (isSanity) {
     AchievementSystem.unlock('mind_break');
+    SaveSystem.unlockMemory('memory_shattered_mind');
   } else if (isWardenDeath) {
     AchievementSystem.unlock('executed');
   } else if (isTrapDeath || isVoidOrDarkness) {
@@ -144,6 +151,9 @@ export const DeathCinematics = {
       ACTIVE_DEATH_CINEMATIC.resultsTimer = instant ? 1.5 : 0;
     }
 
+    // Phase 6: Increment Lifetime Deaths & Check Death Progression Tiers
+    SaveSystem.incrementLifetimeDeaths();
+
     // Authoritative Milestone Tracking for Physical Deaths (Group A Milestones 1-4)
     const isSanity = (_deathReason === 'shattered_mind' || _deathReason === 'sanity' || _deathSource === 'sanity');
     if (!isSanity && !GameState.IS_DEBUG_ENDING) {
@@ -166,6 +176,7 @@ export const DeathCinematics = {
 
   skipCinematic() {
     if (GameState.STATE === GameStates.DEATH_RESULTS) return;
+    if (!CinematicSafety.canSkip()) return;
     if (GorgarothCinematics.isPlayerDeathActive()) {
       GorgarothCinematics.reset();
       this.enterResults(true);
@@ -179,6 +190,7 @@ export const DeathCinematics = {
   },
 
   startNormal(cause = 'dungeon_normal') {
+    CinematicSafety.startCinematic('death_normal');
     GameState.setState(GameStates.DEATH_NORMAL);
     CinematicRenderer.resetCamera();
 
@@ -1198,15 +1210,23 @@ export const DeathCinematics = {
       ctx.save();
       ctx.globalAlpha = statsAlpha;
 
+      const fSec = Math.floor(GameState.FLOOR_ACTIVE_TIME || 0);
+      const floorTimeStr = String(Math.floor(fSec / 60)).padStart(2, '0') + ':' + String(fSec % 60).padStart(2, '0');
+
+      const rSec = Math.floor(GameState.RUN_ACTIVE_TIME || 0);
+      const runTimeStr = String(Math.floor(rSec / 60)).padStart(2, '0') + ':' + String(rSec % 60).padStart(2, '0');
+
       const statGrid = [
         { label: 'FLOOR', val: String(lv).padStart(2, '0') },
+        { label: 'FLOOR TIME', val: floorTimeStr },
+        { label: 'DESCENT', val: runTimeStr },
         { label: 'SOULS', val: String(souls || 0) },
         { label: 'KILLS', val: String(p?.killed || 0) },
         { label: 'SURVIVORS', val: String(p?.saved || 0).padStart(2, '0') }
       ];
 
-      const colW = 120;
-      const colGap = 24;
+      const colW = 100;
+      const colGap = 16;
       const totalGridW = statGrid.length * colW + (statGrid.length - 1) * colGap;
       const gridStartX = (CINEMATIC_W - totalGridW) / 2;
       const gridY = 244;
@@ -1236,12 +1256,12 @@ export const DeathCinematics = {
         ctx.textBaseline = 'top';
         ctx.fillText(item.label, colX + colW / 2, gridY + 6);
 
-        // Large Readable Number
+        // Readable Number / Time string
         ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 30px Cinzel, serif';
+        ctx.font = 'bold 22px Cinzel, serif';
         ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
         ctx.shadowBlur = 6;
-        ctx.fillText(item.val, colX + colW / 2, gridY + 26);
+        ctx.fillText(item.val, colX + colW / 2, gridY + 28);
         ctx.shadowBlur = 0;
         ctx.restore();
       });
@@ -1366,10 +1386,12 @@ export const DeathCinematics = {
     const isCinematic = (GameState.STATE === GameStates.DEATH_NORMAL || GameState.STATE === GameStates.DEATH_SANITY || GameState.STATE === GameStates.DYING);
     if (isCinematic) {
       if (key === ' ' || key === 'Enter' || key === 'Escape') {
-        this.skipCinematic();
+        if (CinematicSafety.isValidSkipKey(key)) {
+          this.skipCinematic();
+        }
         return true;
       }
-      return false;
+      return true; // Consume keys during cinematic so gameplay buffers don't fire
     }
 
     // 2. Results Card Phase (Part 11: Only retry, sanctum, and title respond)
@@ -1475,10 +1497,12 @@ export const DeathCinematics = {
       }
     }
 
-    // 1. Cinematic Phase: click skips to results
+    // 1. Cinematic Phase: click skips to results only if permitted by CinematicSafety
     const isCinematic = (GameState.STATE === GameStates.DEATH_NORMAL || GameState.STATE === GameStates.DEATH_SANITY || GameState.STATE === GameStates.DYING);
     if (isCinematic) {
-      this.skipCinematic();
+      if (CinematicSafety.isValidSkipClick()) {
+        this.skipCinematic();
+      }
       return true;
     }
 

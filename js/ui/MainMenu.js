@@ -22,10 +22,31 @@ import { UITransitionManager } from './UITransitionManager.js';
 import { RunResetManager } from '../systems/RunResetManager.js';
 import { Credits } from '../cinematics/Credits.js';
 import { LastEmberCinematic } from '../cinematics/LastEmberCinematic.js';
+import { MainMenuScene } from '../cinematics/MainMenuScene.js?v=3.0';
+import { ButtonArtManager } from './ButtonArtManager.js?v=1.0';
+import { openSettings } from './SettingsUI.js';
+import { openAchievements } from './AchievementsUI.js';
+import { CinematicArchiveUI } from './CinematicArchiveUI.js';
+import { drawPixelEye } from '../cinematics/ShatteredMindCinematic.js';
+import { DeveloperSanctumUI } from './DeveloperSanctumUI.js';
+import { WEAPON_TYPES, WEAPON_KEYS } from '../weapons/WeaponRegistry.js';
+import { RARITIES } from '../data/weapons.js';
+import { WeaponFactory } from '../weapons/WeaponFactory.js';
 
 let _titleBtns = [];
 let _focusedIndex = 0;
 let _lastHoveredIndex = -1;
+let _lastMouseX = -999;
+let _lastMouseY = -999;
+let _lastInputMode = 'mouse';
+
+// Secret Developer Sanctum Relic Button
+let _relicBtnRect = { x: 0, y: 0, w: 44, h: 38 };
+
+// Standard Run Pre-Descent Loadout Modal State
+let _loadoutModalOpen = false;
+let _loadoutWeaponId = 'sword';
+let _loadoutRarity = 'Common';
 
 // Phase 3 — The Last Ember Gift Modal State
 let _giftModalOpen = false;
@@ -45,7 +66,7 @@ let _nextIdleTimer = 10.0;
 let _TITLE_ANIM_T = 0;
 let _revealTimer = 0;
 let _howToPlayActive = false;
-let _fieldGuideChapter = 0; // 0: Arsenal, 1: Footwork, 2: Sanity, 3: Rally, 4: Bosses
+let _fieldGuideChapter = 0; // 0: Arsenal, 1: Footwork, 2: Sanity, 3: Rally, 4: Bosses, 5: Time & Tempo
 let _fieldGuideInputMode = (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width:900px),(pointer:coarse)').matches) ? 'mobile' : 'pc';
 let _fieldGuideDemoRunning = false;
 let _fieldGuideDemoCompleted = false;
@@ -234,50 +255,51 @@ function drawTitleOrnament(ctx, x, y, width, alpha) {
   const half = width / 2;
   const cx = x + half;
   const cy = y;
+  const wingLen = Math.max(50, half - 22);
 
   ctx.strokeStyle = 'rgba(217, 119, 6, 0.75)';
   ctx.lineWidth = 1.2;
 
   // Left wing
   ctx.beginPath();
-  ctx.moveTo(cx - 18, cy);
-  ctx.bezierCurveTo(cx - 50, cy - 3, cx - 90, cy + 4, cx - 130, cy);
-  ctx.bezierCurveTo(cx - 145, cy - 2, cx - 155, cy - 8, cx - 165, cy - 4);
+  ctx.moveTo(cx - 16, cy);
+  ctx.bezierCurveTo(cx - wingLen * 0.35, cy - 3, cx - wingLen * 0.70, cy + 3, cx - wingLen, cy);
+  ctx.bezierCurveTo(cx - wingLen - 6, cy - 2, cx - wingLen - 12, cy - 6, cx - wingLen - 16, cy - 3);
   ctx.stroke();
 
   // Left spiral curl
   ctx.beginPath();
-  ctx.arc(cx - 165, cy - 2, 2.5, 0, Math.PI * 2);
+  ctx.arc(cx - wingLen - 16, cy - 2, 2.2, 0, Math.PI * 2);
   ctx.stroke();
 
   // Left diamond accent
   ctx.fillStyle = '#fde68a';
   ctx.beginPath();
-  ctx.moveTo(cx - 85, cy - 3);
-  ctx.lineTo(cx - 81, cy);
-  ctx.lineTo(cx - 85, cy + 3);
-  ctx.lineTo(cx - 89, cy);
+  ctx.moveTo(cx - wingLen * 0.55, cy - 3);
+  ctx.lineTo(cx - wingLen * 0.55 + 3, cy);
+  ctx.lineTo(cx - wingLen * 0.55, cy + 3);
+  ctx.lineTo(cx - wingLen * 0.55 - 3, cy);
   ctx.closePath();
   ctx.fill();
 
   // Right wing (symmetrical)
   ctx.beginPath();
-  ctx.moveTo(cx + 18, cy);
-  ctx.bezierCurveTo(cx + 50, cy - 3, cx + 90, cy + 4, cx + 130, cy);
-  ctx.bezierCurveTo(cx + 145, cy - 2, cx + 155, cy - 8, cx + 165, cy - 4);
+  ctx.moveTo(cx + 16, cy);
+  ctx.bezierCurveTo(cx + wingLen * 0.35, cy - 3, cx + wingLen * 0.70, cy + 3, cx + wingLen, cy);
+  ctx.bezierCurveTo(cx + wingLen + 6, cy - 2, cx + wingLen + 12, cy - 6, cx + wingLen + 16, cy - 3);
   ctx.stroke();
 
   // Right spiral curl
   ctx.beginPath();
-  ctx.arc(cx + 165, cy - 2, 2.5, 0, Math.PI * 2);
+  ctx.arc(cx + wingLen + 16, cy - 2, 2.2, 0, Math.PI * 2);
   ctx.stroke();
 
   // Right diamond accent
   ctx.beginPath();
-  ctx.moveTo(cx + 85, cy - 3);
-  ctx.lineTo(cx + 89, cy);
-  ctx.lineTo(cx + 85, cy + 3);
-  ctx.lineTo(cx + 81, cy);
+  ctx.moveTo(cx + wingLen * 0.55, cy - 3);
+  ctx.lineTo(cx + wingLen * 0.55 + 3, cy);
+  ctx.lineTo(cx + wingLen * 0.55, cy + 3);
+  ctx.lineTo(cx + wingLen * 0.55 - 3, cy);
   ctx.closePath();
   ctx.fill();
 
@@ -302,21 +324,1442 @@ function drawTitleOrnament(ctx, x, y, width, alpha) {
   ctx.beginPath();
   ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
   ctx.fill();
+  ctx.shadowBlur = 0;
 
   ctx.restore();
 }
 
 // ─────────────────────────────────────────────────────────────
-// Game Start & Run Resume Dispatches
+// THE ABYSSAL REGALIA — Bespoke Pixel-Art Button & Icon Engine
 // ─────────────────────────────────────────────────────────────
+
+function drawChamferedPanel(ctx, x, y, w, h, c = 4) {
+  ctx.beginPath();
+  ctx.moveTo(x + c, y);
+  ctx.lineTo(x + w - c, y);
+  ctx.lineTo(x + w, y + c);
+  ctx.lineTo(x + w, y + h - c);
+  ctx.lineTo(x + w - c, y + h);
+  ctx.lineTo(x + c, y + h);
+  ctx.lineTo(x, y + h - c);
+  ctx.lineTo(x, y + c);
+  ctx.closePath();
+}
+
+// ─────────────────────────────────────────────────────────────
+// BESPOKE TITLE PLAQUE & FORGE EMBER SYSTEMS
+// ─────────────────────────────────────────────────────────────
+
+let _titlePlaqueImg = null;
+let _subtitlePlaqueImg = null;
+let _titleWordmarkImg = null;
+let _titleDungeonImg = null;
+let _titleBreakImg = null;
+
+function getTitleDungeonImage() {
+  if (!_titleDungeonImg && typeof Image !== 'undefined') {
+    _titleDungeonImg = new Image();
+    _titleDungeonImg.src = 'assets/menu/title_dungeon.png?v=5.0';
+  }
+  return (_titleDungeonImg && _titleDungeonImg.complete && _titleDungeonImg.naturalWidth > 0) ? _titleDungeonImg : null;
+}
+
+function getTitleBreakImage() {
+  if (!_titleBreakImg && typeof Image !== 'undefined') {
+    _titleBreakImg = new Image();
+    _titleBreakImg.src = 'assets/menu/title_break.png?v=5.0';
+  }
+  return (_titleBreakImg && _titleBreakImg.complete && _titleBreakImg.naturalWidth > 0) ? _titleBreakImg : null;
+}
+
+function getTitlePlaqueImage() {
+  if (!_titlePlaqueImg && typeof Image !== 'undefined') {
+    _titlePlaqueImg = new Image();
+    _titlePlaqueImg.src = 'assets/menu/title_plaque_sculpted.png?v=5.0';
+  }
+  return (_titlePlaqueImg && _titlePlaqueImg.complete && _titlePlaqueImg.naturalWidth > 0) ? _titlePlaqueImg : null;
+}
+
+function getSubtitlePlaqueImage() {
+  if (!_subtitlePlaqueImg && typeof Image !== 'undefined') {
+    _subtitlePlaqueImg = new Image();
+    _subtitlePlaqueImg.src = 'assets/menu/subtitle_plaque_sculpted.png?v=5.0';
+  }
+  return (_subtitlePlaqueImg && _subtitlePlaqueImg.complete && _subtitlePlaqueImg.naturalWidth > 0) ? _subtitlePlaqueImg : null;
+}
+
+function getTitleWordmarkImage() {
+  if (!_titleWordmarkImg && typeof Image !== 'undefined') {
+    _titleWordmarkImg = new Image();
+    _titleWordmarkImg.src = 'assets/menu/title_wordmark_stacked.png?v=5.0';
+  }
+  return (_titleWordmarkImg && _titleWordmarkImg.complete && _titleWordmarkImg.naturalWidth > 0) ? _titleWordmarkImg : null;
+}
+
+function drawTitlePlaque(ctx, x, y, w, h, alpha, F) {
+  if (alpha <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  const isReducedMotion = (typeof GameState !== 'undefined' && GameState.REDUCED_MOTION);
+  const centerX = Math.round(x + w / 2);
+  const topY = Math.max(2, y - 4); // Anchor cleanly in upper chasm sky
+
+  // ─────────────────────────────────────────────────────────────
+  // 1. SHATTERED CHAINS OF THE SUNKEN CITADEL (DUNGEON BREAK)
+  // ─────────────────────────────────────────────────────────────
+  // Heavy forged-iron anchor chains descend from top canvas boundary (y=0),
+  // but snap into shattered broken links at the crest shoulders,
+  // symbolizing Rowan breaking free from the abyss.
+  const chainX1 = x + 34;
+  const chainX2 = x + w - 34;
+  const breakY = topY + 24;
+
+  for (const cx of [chainX1, chainX2]) {
+    // Upper hanging chain links
+    for (let cy = 0; cy < breakY - 7; cy += 8) {
+      const isVert = (Math.floor(cy / 8) % 2 === 0);
+      if (isVert) {
+        ctx.fillStyle = '#060810';
+        ctx.fillRect(cx - 3.5, cy - 4, 7, 9);
+        ctx.strokeStyle = '#1e2538';
+        ctx.lineWidth = 1.6;
+        ctx.strokeRect(cx - 3.5, cy - 4, 7, 9);
+        // Specular highlight
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(cx - 2.5, cy - 4, 1.8, 9);
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillRect(cx - 2.0, cy - 3, 1.2, 2.0);
+      } else {
+        ctx.fillStyle = '#0e1220';
+        ctx.fillRect(cx - 4.5, cy - 3, 9, 6);
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.0;
+        ctx.strokeRect(cx - 4.5, cy - 3, 9, 6);
+        ctx.fillStyle = '#64748b';
+        ctx.fillRect(cx - 4.5, cy - 3, 4.5, 6);
+      }
+    }
+
+    // THE SHATTERED SEVERED LINK
+    ctx.save();
+    ctx.fillStyle = '#05070e';
+    ctx.beginPath();
+    ctx.moveTo(cx - 4, breakY - 7);
+    ctx.lineTo(cx + 4, breakY - 7);
+    ctx.lineTo(cx + 3, breakY - 1);
+    ctx.lineTo(cx + 5, breakY + 3);
+    ctx.lineTo(cx + 1, breakY + 1);
+    ctx.lineTo(cx - 2, breakY + 4);
+    ctx.lineTo(cx - 4, breakY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+
+    // Hot forged severance glow on fractured tip
+    if (!isReducedMotion) {
+      const sparkPulse = 0.7 + Math.sin(F * 0.12 + (cx > centerX ? 1 : 0)) * 0.3;
+      ctx.fillStyle = `rgba(251, 146, 60, ${0.85 * sparkPulse})`;
+      ctx.shadowColor = '#ea580c';
+      ctx.shadowBlur = 6;
+      ctx.fillRect(cx - 1.5, breakY + 1, 3, 2.5);
+
+      // Stray micro-sparks floating away
+      const spY = breakY + 6 + ((F * 0.35 + (cx * 7)) % 16);
+      const spX = cx + Math.sin(F * 0.15 + cx) * 5;
+      ctx.fillStyle = '#fef08a';
+      ctx.shadowBlur = 4;
+      ctx.fillRect(spX, spY, 1.4, 1.4);
+    }
+    ctx.restore();
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 2. THE MONUMENTAL ABYSSAL HERALDIC CREST (OPEN SILHOUETTE)
+  // ─────────────────────────────────────────────────────────────
+  // 2.1 Crossed Antique Vanguard Greatswords behind the Crest
+  ctx.save();
+  const swordLen = 86;
+  const swordCenterY = topY + 68;
+
+  for (const dir of [-1, 1]) {
+    ctx.save();
+    ctx.translate(centerX, swordCenterY);
+    ctx.rotate(dir * 0.44); // ~25 deg slant
+
+    // Crossguard
+    ctx.fillStyle = '#78350f';
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 1.0;
+    ctx.fillRect(-14, -swordLen / 2 + 14, 28, 4);
+    ctx.strokeRect(-14, -swordLen / 2 + 14, 28, 4);
+
+    // Gold pommel
+    ctx.fillStyle = '#fde68a';
+    ctx.beginPath();
+    ctx.arc(0, -swordLen / 2 + 6, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Steel Blade with Fuller
+    const bladeGrad = ctx.createLinearGradient(-3, 0, 3, 0);
+    bladeGrad.addColorStop(0, '#334155');
+    bladeGrad.addColorStop(0.5, '#94a3b8');
+    bladeGrad.addColorStop(1, '#1e293b');
+    ctx.fillStyle = bladeGrad;
+    ctx.beginPath();
+    ctx.moveTo(-3, -swordLen / 2 + 18);
+    ctx.lineTo(3, -swordLen / 2 + 18);
+    ctx.lineTo(2, swordLen / 2);
+    ctx.lineTo(0, swordLen / 2 + 8); // Tip
+    ctx.lineTo(-2, swordLen / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // Runic blade fuller
+    ctx.strokeStyle = 'rgba(192, 132, 252, 0.45)';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(0, -swordLen / 2 + 20);
+    ctx.lineTo(0, swordLen / 2 - 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+
+  // 2.2 Celestial Arcane Runic Ring & Void Halo
+  const haloR = 54;
+  const haloY = topY + 66;
+  const pulseHalo = isReducedMotion ? 0.40 : (0.32 + Math.sin(F * 0.04) * 0.14);
+
+  // Soft Radial Void Nebula Glow behind wordmark
+  ctx.save();
+  const voidGlow = ctx.createRadialGradient(centerX, haloY, 6, centerX, haloY, haloR + 36);
+  voidGlow.addColorStop(0, `rgba(168, 85, 247, ${0.45 * pulseHalo})`);
+  voidGlow.addColorStop(0.45, `rgba(88, 28, 135, ${0.28 * pulseHalo})`);
+  voidGlow.addColorStop(0.85, `rgba(30, 20, 50, ${0.12 * pulseHalo})`);
+  voidGlow.addColorStop(1, 'rgba(5, 6, 18, 0)');
+  ctx.fillStyle = voidGlow;
+  ctx.beginPath();
+  ctx.arc(centerX, haloY, haloR + 36, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Outer concentric runic border ring
+  ctx.strokeStyle = `rgba(217, 119, 6, ${0.45 * pulseHalo})`;
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.arc(centerX, haloY, haloR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = `rgba(192, 132, 252, ${0.35 * pulseHalo})`;
+  ctx.setLineDash([3, 5]);
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.arc(centerX, haloY, haloR - 4, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Ancient Arcane Runes etched on the Halo Arc
+  const runes = ['ᚱ', 'ᛟ', 'ᚹ', 'ᚨ', 'ᚾ', 'ᛋ', 'ᚨ', 'ᚾ', 'ᚲ', 'ᛏ', 'ᚢ', 'ᛗ', 'ᛒ', 'ᛚ', 'ᛟ', 'ᛞ'];
+  ctx.font = '8.5px monospace';
+  ctx.fillStyle = `rgba(253, 230, 138, ${0.45 * pulseHalo})`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const runeCount = runes.length;
+  for (let ri = 0; ri < runeCount; ri++) {
+    const angle = (ri / runeCount) * Math.PI * 2 + (isReducedMotion ? 0 : F * 0.005);
+    const rx = centerX + Math.cos(angle) * (haloR - 2);
+    const ry = haloY + Math.sin(angle) * (haloR - 2);
+    ctx.fillText(runes[ri], rx, ry);
+  }
+  ctx.restore();
+
+  // 2.3 Floating Ethereal Amethyst Motes Rising into the Dark Sky
+  if (!isReducedMotion) {
+    ctx.save();
+    for (let mi = 0; mi < 7; mi++) {
+      const moteSeed = mi * 61.3;
+      const progress = ((F * 0.40 + moteSeed) % 90) / 90;
+      const mx = (centerX - 100) + ((mi * 34 + Math.sin(F * 0.04 + mi) * 16) % 200);
+      const my = (topY + 125) - progress * 130;
+      const mAlpha = Math.sin(progress * Math.PI) * 0.75;
+      ctx.fillStyle = `rgba(192, 132, 252, ${mAlpha})`;
+      ctx.shadowColor = '#c084fc';
+      ctx.shadowBlur = 5;
+      ctx.fillRect(mx, my, 1.5, 1.5);
+    }
+    ctx.restore();
+  }
+
+  // 2.4 Apex Heraldic Amethyst Keystone
+  const keystoneX = centerX;
+  const keystoneY = topY + 7;
+  ctx.save();
+
+  // Antique Gold Heraldic Mount with Stepped Corbels
+  ctx.fillStyle = '#78350f';
+  ctx.strokeStyle = '#ca8a04';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(keystoneX, keystoneY - 8);
+  ctx.lineTo(keystoneX + 11, keystoneY);
+  ctx.lineTo(keystoneX + 6, keystoneY + 8);
+  ctx.lineTo(keystoneX - 6, keystoneY + 8);
+  ctx.lineTo(keystoneX - 11, keystoneY);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Faceted Radiant Amethyst Soul Gem
+  const gemPulse = isReducedMotion ? 1.0 : (0.85 + Math.sin(F * 0.06) * 0.15);
+  ctx.shadowColor = `rgba(168, 85, 247, ${0.90 * gemPulse})`;
+  ctx.shadowBlur = 12;
+
+  const gemGrad = ctx.createRadialGradient(keystoneX - 1, keystoneY - 1, 1, keystoneX, keystoneY, 8);
+  gemGrad.addColorStop(0, '#f5d0fe');
+  gemGrad.addColorStop(0.3, '#c084fc');
+  gemGrad.addColorStop(0.7, '#9333ea');
+  gemGrad.addColorStop(1, '#581c87');
+  ctx.fillStyle = gemGrad;
+  ctx.beginPath();
+  ctx.moveTo(keystoneX, keystoneY - 5.5);
+  ctx.lineTo(keystoneX + 6.5, keystoneY);
+  ctx.lineTo(keystoneX, keystoneY + 5.5);
+  ctx.lineTo(keystoneX - 6.5, keystoneY);
+  ctx.closePath();
+  ctx.fill();
+
+  // Specular Diamond Glint
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(keystoneX - 1.2, keystoneY - 2.2, 2.4, 2.4);
+  ctx.restore();
+
+  // ─────────────────────────────────────────────────────────────
+  // 3. MONUMENTAL CARVED STONE WORDMARK ("DUNGEON BREAK")
+  // ─────────────────────────────────────────────────────────────
+  const imgDungeon = getTitleDungeonImage();
+  const imgBreak = getTitleBreakImage();
+
+  if (imgDungeon && imgBreak) {
+    // ── High-Fidelity Handcrafted Pixel-Art Stone Letterforms ──
+    const dW = 260;
+    const dH = Math.round(74 * (dW / 322)); // ~60px
+    const dX = Math.round(centerX - dW / 2);
+    const dY = topY + 12;
+
+    const bW = 216;
+    const bH = Math.round(74 * (bW / 218)); // ~73px
+    const bX = Math.round(centerX - bW / 2);
+    const bY = topY + 58;
+
+    // PASS 1: Volumetric Cast Drop Shadow
+    ctx.save();
+    ctx.shadowColor = 'rgba(1, 2, 6, 0.95)';
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetX = 2.5;
+    ctx.shadowOffsetY = 4.0;
+    ctx.drawImage(imgDungeon, dX, dY, dW, dH);
+    ctx.drawImage(imgBreak, bX, bY, bW, bH);
+    ctx.restore();
+
+    // PASS 2: Ethereal Void Glow Rim
+    if (!isReducedMotion) {
+      ctx.save();
+      const glowPulse = 0.85 + Math.sin(F * 0.045) * 0.15;
+      ctx.shadowColor = `rgba(168, 85, 247, ${0.55 * glowPulse})`;
+      ctx.shadowBlur = 10;
+      ctx.drawImage(imgDungeon, dX, dY, dW, dH);
+      ctx.drawImage(imgBreak, bX, bY, bW, bH);
+      ctx.restore();
+    }
+
+    // PASS 3: Crisp Primary Carved Stone Letter Rendering
+    ctx.drawImage(imgDungeon, dX, dY, dW, dH);
+    ctx.drawImage(imgBreak, bX, bY, bW, bH);
+  } else {
+    // ── Procedural Fallback Engine (Zero External Dependencies) ──
+    const line1Y = topY + 48;
+    const line2Y = topY + 96;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+
+    // Drop Shadow
+    ctx.fillStyle = '#010204';
+    ctx.font = '900 33px Cinzel, serif';
+    ctx.fillText('DUNGEON', centerX + 2.0, line1Y + 3.0);
+    ctx.font = '900 39px Cinzel, serif';
+    ctx.fillText('BREAK', centerX + 2.0, line2Y + 3.0);
+
+    // Bronze Under-Bevel
+    ctx.fillStyle = '#381504';
+    ctx.font = '900 33px Cinzel, serif';
+    ctx.fillText('DUNGEON', centerX + 0.8, line1Y + 1.4);
+    ctx.font = '900 39px Cinzel, serif';
+    ctx.fillText('BREAK', centerX + 0.8, line2Y + 1.4);
+
+    // Ivory-to-Gold Face
+    const grad1 = ctx.createLinearGradient(centerX, line1Y - 28, centerX, line1Y + 3);
+    grad1.addColorStop(0.00, '#fffef2');
+    grad1.addColorStop(0.25, '#fef3c7');
+    grad1.addColorStop(0.55, '#fde68a');
+    grad1.addColorStop(0.80, '#d97706');
+    grad1.addColorStop(1.00, '#78350f');
+    ctx.font = '900 33px Cinzel, serif';
+    ctx.fillStyle = grad1;
+    ctx.fillText('DUNGEON', centerX, line1Y);
+
+    const grad2 = ctx.createLinearGradient(centerX, line2Y - 34, centerX, line2Y + 3);
+    grad2.addColorStop(0.00, '#fffef5');
+    grad2.addColorStop(0.20, '#fef08a');
+    grad2.addColorStop(0.50, '#f59e0b');
+    grad2.addColorStop(0.80, '#d97706');
+    grad2.addColorStop(1.00, '#451a03');
+    ctx.font = '900 39px Cinzel, serif';
+    ctx.fillStyle = grad2;
+    ctx.fillText('BREAK', centerX, line2Y);
+
+    // Specular Highlight
+    ctx.font = '900 33px Cinzel, serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.70)';
+    ctx.fillText('DUNGEON', centerX - 0.5, line1Y - 0.8);
+    ctx.font = '900 39px Cinzel, serif';
+    ctx.fillText('BREAK', centerX - 0.5, line2Y - 0.8);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // 4. ATTACHED SECONDARY STELE PLAQUE ("ABYSS ASCENSION")
+  // ─────────────────────────────────────────────────────────────
+  const subW = 246;
+  const subH = 20;
+  const subX = Math.round(centerX - subW / 2);
+  const subY = topY + 130;
+
+  // 4.1 Drop Shadow
+  ctx.save();
+  ctx.fillStyle = 'rgba(1, 2, 6, 0.80)';
+  ctx.beginPath();
+  ctx.moveTo(subX + 10, subY + 2.5);
+  ctx.lineTo(subX + subW - 10, subY + 2.5);
+  ctx.lineTo(subX + subW, subY + subH / 2 + 2.5);
+  ctx.lineTo(subX + subW - 10, subY + subH + 2.5);
+  ctx.lineTo(subX + 10, subY + subH + 2.5);
+  ctx.lineTo(subX, subY + subH / 2 + 2.5);
+  ctx.closePath();
+  ctx.fill();
+
+  // 4.2 Hexagonal Plate Fill (Ancient Violet-Basalt)
+  const subGrad = ctx.createLinearGradient(subX, subY, subX + subW, subY + subH);
+  subGrad.addColorStop(0, '#241a3c');
+  subGrad.addColorStop(0.5, '#161028');
+  subGrad.addColorStop(1, '#0a0616');
+  ctx.fillStyle = subGrad;
+  ctx.beginPath();
+  ctx.moveTo(subX + 10, subY);
+  ctx.lineTo(subX + subW - 10, subY);
+  ctx.lineTo(subX + subW, subY + subH / 2);
+  ctx.lineTo(subX + subW - 10, subY + subH);
+  ctx.lineTo(subX + 10, subY + subH);
+  ctx.lineTo(subX, subY + subH / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // 4.3 Antique Bronze Beveled Rim
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.85)';
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
+
+  // 4.4 Flanking Faceted Amethyst Gemstones
+  for (const gx of [subX + 8, subX + subW - 8]) {
+    ctx.save();
+    ctx.fillStyle = '#c084fc';
+    ctx.shadowColor = '#a855f7';
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.arc(gx, subY + subH / 2, 3.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(gx - 0.8, subY + subH / 2 - 0.8, 1.6, 1.6);
+    ctx.restore();
+  }
+
+  // 4.5 Subtitle Typography ("✦ ABYSS ASCENSION ✦")
+  const subTextY = subY + subH / 2 + 0.5;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 9.5px Cinzel, serif';
+
+  // Crisp Shadow
+  ctx.fillStyle = '#010204';
+  ctx.fillText('✦  A B Y S S   A S C E N S I O N  ✦', centerX + 1, subTextY + 1.2);
+
+  // Radiant Warm Gold Face with Amber Glow
+  ctx.fillStyle = '#fde68a';
+  ctx.shadowColor = 'rgba(245, 158, 11, 0.50)';
+  ctx.shadowBlur = 5;
+  ctx.fillText('✦  A B Y S S   A S C E N S I O N  ✦', centerX, subTextY);
+  ctx.restore();
+
+  // ─────────────────────────────────────────────────────────────
+  // 5. ARCHITECTURAL RUBRIC DIVIDER TO VANGUARD RAIL
+  // ─────────────────────────────────────────────────────────────
+  const divY = subY + subH + 6;
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.60)';
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.moveTo(centerX - 65, divY);
+  ctx.lineTo(centerX - 8, divY);
+  ctx.moveTo(centerX + 8, divY);
+  ctx.lineTo(centerX + 65, divY);
+  ctx.stroke();
+
+  // Central Gold Accent Diamond
+  ctx.fillStyle = '#ca8a04';
+  ctx.beginPath();
+  ctx.moveTo(centerX, divY - 3);
+  ctx.lineTo(centerX + 4, divY);
+  ctx.lineTo(centerX, divY + 3);
+  ctx.lineTo(centerX - 4, divY);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#fde68a';
+  ctx.fillRect(centerX - 1, divY - 1, 2, 2);
+
+  ctx.restore();
+}
+
+function drawForgeEmberCracks(ctx, x, y, w, h, F, isReducedMotion) {
+  ctx.save();
+  const pulse = isReducedMotion ? 1.0 : (0.85 + Math.sin(F * 0.10) * 0.15);
+  ctx.globalAlpha = ctx.globalAlpha * pulse;
+
+  // Clip to inner button border area
+  ctx.beginPath();
+  drawChamferedPanel(ctx, x + 1, y + 1, w - 2, h - 2, 4);
+  ctx.clip();
+
+  // Subtle warm amber forge heat along inner top edge
+  const heatGrad = ctx.createLinearGradient(x, y, x, y + 8);
+  heatGrad.addColorStop(0, 'rgba(249, 115, 22, 0.28)');
+  heatGrad.addColorStop(1, 'rgba(249, 115, 22, 0)');
+  ctx.fillStyle = heatGrad;
+  ctx.fillRect(x + 12, y + 1, w - 24, 7);
+
+  // Delicate forge heat core line along top edge
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.moveTo(x + 24, y + 2.5);
+  ctx.lineTo(x + w - 24, y + 2.5);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#fef08a';
+  ctx.lineWidth = 0.6;
+  ctx.beginPath();
+  ctx.moveTo(x + 48, y + 2.5);
+  ctx.lineTo(x + w - 48, y + 2.5);
+  ctx.stroke();
+
+  // 2 subtle floating ember motes
+  if (!isReducedMotion) {
+    ctx.fillStyle = '#fef08a';
+    const m1X = x + 36 + ((F * 0.7) % (w - 72));
+    const m1Y = y + 5 + Math.sin(F * 0.1) * 2;
+    ctx.fillRect(m1X, m1Y, 1.2, 1.2);
+
+    const m2X = x + w - 36 - ((F * 0.5) % (w - 72));
+    const m2Y = y + h - 5 - Math.sin(F * 0.08) * 2;
+    ctx.fillStyle = '#f97316';
+    ctx.fillRect(m2X, m2Y, 1.2, 1.2);
+  }
+
+  ctx.restore();
+}
+
+function drawRegaliaIcon(ctx, id, cx, cy, size, isFocused, isHovered, isDisabled, isGift, F) {
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  if (isDisabled) {
+    ctx.globalAlpha = 0.45;
+  }
+
+  const pulse = Math.sin(F * 0.08) * 0.2 + 0.8;
+
+  switch (id) {
+    case 'play': {
+      // START JOURNEY: Slanted Forged Runic Broadsword & Ember Motes
+      if (isFocused) {
+        ctx.shadowColor = '#f59e0b';
+        ctx.shadowBlur = 8;
+      }
+      ctx.rotate(-Math.PI / 4.2);
+
+      // Gold Pommel
+      ctx.fillStyle = '#fde68a';
+      ctx.beginPath();
+      ctx.arc(0, -size * 0.45, 2.0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Dark Grip
+      ctx.fillStyle = '#1c1917';
+      ctx.fillRect(-1.0, -size * 0.38, 2.0, 3.5);
+
+      // Flared Bronze Crossguard
+      ctx.fillStyle = isFocused ? '#f59e0b' : '#d97706';
+      ctx.beginPath();
+      ctx.moveTo(-6.0, -size * 0.20);
+      ctx.lineTo(6.0, -size * 0.20);
+      ctx.lineTo(7.0, -size * 0.12);
+      ctx.lineTo(5.0, -size * 0.08);
+      ctx.lineTo(-5.0, -size * 0.08);
+      ctx.lineTo(-7.0, -size * 0.12);
+      ctx.closePath();
+      ctx.fill();
+
+      // Forged Steel Blade
+      const bladeGrad = ctx.createLinearGradient(-2, 0, 2, 0);
+      bladeGrad.addColorStop(0, '#ffffff');
+      bladeGrad.addColorStop(0.35, '#cbd5e1');
+      bladeGrad.addColorStop(0.65, '#94a3b8');
+      bladeGrad.addColorStop(1, '#475569');
+      ctx.fillStyle = bladeGrad;
+      ctx.beginPath();
+      ctx.moveTo(-2.4, -size * 0.08);
+      ctx.lineTo(2.4, -size * 0.08);
+      ctx.lineTo(1.8, size * 0.38);
+      ctx.lineTo(0, size * 0.52); // Sharpened tip
+      ctx.lineTo(-1.8, size * 0.38);
+      ctx.closePath();
+      ctx.fill();
+
+      // Central Fuller Channel (Fiery Ember or Cyan)
+      ctx.fillStyle = isFocused ? '#ffaa00' : '#38bdf8';
+      ctx.fillRect(-0.7, -size * 0.05, 1.4, size * 0.40);
+
+      // Flanking Spark Motes
+      if (isFocused) {
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(-6, Math.sin(F * 0.12) * 2, 1.2, 1.2);
+        ctx.fillRect(5, -Math.sin(F * 0.12) * 2, 1.2, 1.2);
+      }
+      break;
+    }
+
+    case 'continue': {
+      // CONTINUE: Carved Stone Descent Waypoint Stele
+      // Stele Base Megalith
+      ctx.fillStyle = isDisabled ? '#1e2430' : (isFocused ? '#242e42' : '#1c2230');
+      ctx.beginPath();
+      ctx.moveTo(-5.5, 6.5);
+      ctx.lineTo(5.5, 6.5);
+      ctx.lineTo(4.5, -6.5);
+      ctx.lineTo(-4.5, -6.5);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = isDisabled ? '#334155' : (isFocused ? '#60a5fa' : '#475569');
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Inscribed Waypoint Glyph (Downward Spiral Descent)
+      ctx.strokeStyle = isDisabled ? '#475569' : (isFocused ? '#38bdf8' : '#0284c7');
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(0, -4);
+      ctx.lineTo(0, 3.5);
+      ctx.moveTo(-2.5, 1.0);
+      ctx.lineTo(0, 3.5);
+      ctx.lineTo(2.5, 1.0);
+      ctx.stroke();
+
+      if (!isDisabled && isFocused) {
+        ctx.fillStyle = '#67e8f9';
+        ctx.beginPath();
+        ctx.arc(0, -2.5, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      break;
+    }
+
+    case 'guide': {
+      // SURVIVAL GUIDE: Sealed Field Manual Grimoire with Corner Clasps
+      ctx.fillStyle = isFocused ? '#1e2436' : '#121622';
+      ctx.fillRect(-6, -7, 12, 14);
+      ctx.strokeStyle = isFocused ? '#fde68a' : '#ca8a04';
+      ctx.lineWidth = 1.0;
+      ctx.strokeRect(-6, -7, 12, 14);
+
+      // Book Spine
+      ctx.fillStyle = isFocused ? '#ca8a04' : '#78350f';
+      ctx.fillRect(-6, -7, 2.5, 14);
+
+      // Bronze Corner Clasps
+      ctx.fillStyle = isFocused ? '#fde68a' : '#d97706';
+      ctx.fillRect(4, -7, 2, 2);
+      ctx.fillRect(4, 5, 2, 2);
+
+      // Embossed Compass / Cross Crest
+      ctx.fillStyle = isFocused ? '#ffffff' : '#fde68a';
+      ctx.beginPath();
+      ctx.moveTo(0, -4);
+      ctx.lineTo(2.5, 0);
+      ctx.lineTo(0, 4);
+      ctx.lineTo(-2.5, 0);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+
+    case 'sanctum': {
+      // ABYSS SANCTUM: Astral Soul Crystal (Octahedral Faceted Gem)
+      if (isFocused) {
+        ctx.shadowColor = '#c084fc';
+        ctx.shadowBlur = 8;
+      }
+      ctx.fillStyle = isFocused ? '#c084fc' : '#9333ea';
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.45);
+      ctx.lineTo(-size * 0.35, 0);
+      ctx.lineTo(0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = isFocused ? '#e9d5ff' : '#c084fc';
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.45);
+      ctx.lineTo(size * 0.35, 0);
+      ctx.lineTo(0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = isFocused ? '#0284c7' : '#0369a1';
+      ctx.beginPath();
+      ctx.moveTo(0, size * 0.45);
+      ctx.lineTo(-size * 0.35, 0);
+      ctx.lineTo(0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = isFocused ? '#38bdf8' : '#0ea5e9';
+      ctx.beginPath();
+      ctx.moveTo(0, size * 0.45);
+      ctx.lineTo(size * 0.35, 0);
+      ctx.lineTo(0, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-0.8, -0.8, 1.6, 1.6);
+      break;
+    }
+
+    case 'codex': {
+      // CODEX & BESTIARY: Bestiary Beast Skull Crest
+      ctx.fillStyle = isFocused ? '#f8fafc' : '#cbd5e1';
+      ctx.beginPath();
+      ctx.moveTo(-6, -4);
+      ctx.lineTo(-4, -6.5);
+      ctx.lineTo(0, -3.5);
+      ctx.lineTo(4, -6.5);
+      ctx.lineTo(6, -4);
+      ctx.lineTo(4, 1);
+      ctx.lineTo(2, 5.5);
+      ctx.lineTo(-2, 5.5);
+      ctx.lineTo(-4, 1);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = isFocused ? '#a855f7' : '#0f172a';
+      ctx.fillRect(-3, -1.5, 1.8, 2.2);
+      ctx.fillRect(1.2, -1.5, 1.8, 2.2);
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(-0.8, 2, 1.6, 2);
+      break;
+    }
+
+    case 'archive': {
+      // ARCHIVE OF MEMORIES: Archival Memory Crystal / Orb of Recollection
+      if (isFocused) {
+        ctx.shadowColor = '#c084fc';
+        ctx.shadowBlur = 8;
+      }
+      // Outer bronze crescent cradle
+      ctx.strokeStyle = isFocused ? '#fde68a' : '#ca8a04';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(0, 0, 6.2, Math.PI * 0.2, Math.PI * 1.8);
+      ctx.stroke();
+
+      // Deep violet memory orb core
+      ctx.fillStyle = isFocused ? '#9333ea' : '#6b21a8';
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Ethereal ocular pupil & inner starlight
+      ctx.fillStyle = isFocused ? '#e9d5ff' : '#c084fc';
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-0.8, -0.8, 1.6, 1.6);
+      ctx.shadowBlur = 0;
+      break;
+    }
+
+    case 'achievements': {
+      // ACHIEVEMENTS: Carved Heraldic Laurel Medallion
+      ctx.fillStyle = isFocused ? '#f59e0b' : '#b45309';
+      ctx.beginPath();
+      ctx.arc(0, 0, 6.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#060a18';
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = isFocused ? '#fef08a' : '#ca8a04';
+      ctx.beginPath();
+      ctx.moveTo(0, -4);
+      ctx.lineTo(1.2, -1.2);
+      ctx.lineTo(4, 0);
+      ctx.lineTo(1.2, 1.2);
+      ctx.lineTo(0, 4);
+      ctx.lineTo(-1.2, 1.2);
+      ctx.lineTo(-4, 0);
+      ctx.lineTo(-1.2, -1.2);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    }
+
+    case 'settings': {
+      // SETTINGS: Rune-Etched Mechanical Cogwheel
+      ctx.fillStyle = isFocused ? '#fde68a' : '#64748b';
+      for (let t = 0; t < 8; t++) {
+        const ang = (t / 8) * Math.PI * 2 + (isFocused ? F * 0.02 : 0);
+        const tx = Math.cos(ang) * 5.8;
+        const ty = Math.sin(ang) * 5.8;
+        ctx.fillRect(tx - 1.2, ty - 1.2, 2.4, 2.4);
+      }
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#0a0f1d';
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+
+    case 'credits': {
+      // VIEW CREDITS: Open Illuminated Archival Tome with Ribbon
+      ctx.fillStyle = isFocused ? '#2e2640' : '#1a1626';
+      // Left Page
+      ctx.beginPath();
+      ctx.moveTo(-6.5, -4.5);
+      ctx.lineTo(-1.0, -5.5);
+      ctx.lineTo(-1.0, 4.5);
+      ctx.lineTo(-6.5, 3.5);
+      ctx.closePath();
+      ctx.fill();
+      // Right Page
+      ctx.beginPath();
+      ctx.moveTo(6.5, -4.5);
+      ctx.lineTo(1.0, -5.5);
+      ctx.lineTo(1.0, 4.5);
+      ctx.lineTo(6.5, 3.5);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = isFocused ? '#fde68a' : '#94a3b8';
+      ctx.lineWidth = 1.0;
+      ctx.strokeRect(-6.5, -5.0, 13, 9.5);
+
+      // Golden Bookmark Ribbon
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(-0.6, -5.5, 1.2, 11);
+      break;
+    }
+
+    case 'the_last_ember': {
+      // THE LAST EMBER: Sacred Living Flame Teardrop in Filigree
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 8;
+      ctx.strokeStyle = '#fde68a';
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.arc(0, 0, 5.8, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 3.5 * pulse, 4.5 * pulse, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(0, -0.5, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawRegaliaButton(ctx, cfg, x, y, w, h, isFocused, isHovered, isDisabled, isGift, F, alpha) {
+  if (alpha <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  const isPrimary = cfg.primary;
+  const isSelected = isFocused && !isDisabled;
+  const isPressed = (isFocused || isHovered) && !isDisabled && InputManager.MOUSE_STATE && InputManager.MOUSE_STATE.isDown;
+  const stateKey = ButtonArtManager.getStateKey(isPrimary, isGift, isDisabled, isFocused, isHovered, isPressed);
+  const chamfer = isPrimary ? 5 : 4;
+  const pressDy = isPressed ? 1 : 0;
+  const isReducedMotion = (typeof GameState !== 'undefined' && GameState.REDUCED_MOTION);
+
+  // 1. Physical Drop Shadow
+  ctx.fillStyle = 'rgba(1, 2, 6, 0.75)';
+  drawChamferedPanel(ctx, x, y + 2, w, h, chamfer);
+  ctx.fill();
+
+  // 2. Render Handcrafted 9-Slice Pixel-Art Button Surface
+  const renderedFromImage = ButtonArtManager.drawButton(ctx, stateKey, x, y, w, h);
+
+  if (!renderedFromImage) {
+    // Procedural Fallback matching 16-bit forged metal craftsmanship
+    const baseGrad = ctx.createLinearGradient(x, y, x, y + h);
+    if (isDisabled) {
+      baseGrad.addColorStop(0, '#10141c');
+      baseGrad.addColorStop(1, '#080a0f');
+    } else if (isFocused) {
+      if (isPrimary) {
+        baseGrad.addColorStop(0, '#24140a');
+        baseGrad.addColorStop(0.5, '#150c07');
+        baseGrad.addColorStop(1, '#090510');
+      } else if (isGift) {
+        baseGrad.addColorStop(0, '#220e2a');
+        baseGrad.addColorStop(1, '#0a0514');
+      } else {
+        baseGrad.addColorStop(0, '#1a142c');
+        baseGrad.addColorStop(1, '#090a18');
+      }
+    } else if (isHovered) {
+      baseGrad.addColorStop(0, '#181e30');
+      baseGrad.addColorStop(1, '#0a0d18');
+    } else {
+      baseGrad.addColorStop(0, '#141726');
+      baseGrad.addColorStop(0.5, '#0c0f1a');
+      baseGrad.addColorStop(1, '#070914');
+    }
+    ctx.fillStyle = baseGrad;
+    drawChamferedPanel(ctx, x, y, w, h, chamfer);
+    ctx.fill();
+
+    // Outer Beveled Metal Frame
+    if (isFocused) {
+      ctx.shadowColor = isPrimary ? '#f59e0b' : (isGift ? '#c084fc' : '#f59e0b');
+      ctx.shadowBlur = isPrimary ? 10 : 7;
+      const frameGrad = ctx.createLinearGradient(x, y, x + w, y + h);
+      if (isPrimary) {
+        frameGrad.addColorStop(0, '#fef08a');
+        frameGrad.addColorStop(0.3, '#f59e0b');
+        frameGrad.addColorStop(0.7, '#d97706');
+        frameGrad.addColorStop(1, '#b45309');
+      } else if (isGift) {
+        frameGrad.addColorStop(0, '#fef08a');
+        frameGrad.addColorStop(0.4, '#c084fc');
+        frameGrad.addColorStop(1, '#7e22ce');
+      } else {
+        frameGrad.addColorStop(0, '#fef08a');
+        frameGrad.addColorStop(0.3, '#f59e0b');
+        frameGrad.addColorStop(0.7, '#b45309');
+        frameGrad.addColorStop(1, '#78350f');
+      }
+      ctx.strokeStyle = frameGrad;
+      ctx.lineWidth = isPrimary ? 1.6 : 1.3;
+      drawChamferedPanel(ctx, x, y, w, h, chamfer);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    } else if (isHovered && !isDisabled) {
+      ctx.strokeStyle = 'rgba(254, 240, 138, 0.85)';
+      ctx.lineWidth = 1.2;
+      drawChamferedPanel(ctx, x, y, w, h, chamfer);
+      ctx.stroke();
+    } else if (isDisabled) {
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.40)';
+      ctx.lineWidth = 1.0;
+      drawChamferedPanel(ctx, x, y, w, h, chamfer);
+      ctx.stroke();
+    } else {
+      ctx.strokeStyle = isPrimary ? 'rgba(217, 119, 6, 0.70)' : 'rgba(71, 85, 105, 0.55)';
+      ctx.lineWidth = isPrimary ? 1.4 : 1.0;
+      drawChamferedPanel(ctx, x, y, w, h, chamfer);
+      ctx.stroke();
+    }
+
+    // Stepped Corner Rivets (4 Corners)
+    const rivetOffset = chamfer + 2;
+    const rivets = [
+      [x + rivetOffset, y + 2.5],
+      [x + w - rivetOffset, y + 2.5],
+      [x + rivetOffset, y + h - 2.5],
+      [x + w - rivetOffset, y + h - 2.5]
+    ];
+    ctx.fillStyle = isFocused ? '#fde68a' : (isDisabled ? '#283142' : '#b45309');
+    for (const [rx, ry] of rivets) {
+      ctx.beginPath();
+      ctx.arc(rx, ry, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // 3. START JOURNEY — SIGNATURE MOLTEN FORGE CRACKS (ONLY WHEN SELECTED)
+  if (isPrimary && isSelected) {
+    drawForgeEmberCracks(ctx, x, y, w, h, F, isReducedMotion);
+  }
+
+  // 4. Subtle traveling specular glint across focused button top rim
+  if (isSelected && !isReducedMotion) {
+    const sweepProgress = ((F * 1.6) % (w + 100)) - 50;
+    const sweepX = x + sweepProgress;
+    const sweepGrad = ctx.createLinearGradient(sweepX - 25, y, sweepX + 25, y + h);
+    sweepGrad.addColorStop(0, 'rgba(254, 240, 138, 0)');
+    sweepGrad.addColorStop(0.5, isPrimary ? 'rgba(254, 240, 138, 0.22)' : 'rgba(254, 240, 138, 0.14)');
+    sweepGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
+    ctx.save();
+    ctx.beginPath();
+    drawChamferedPanel(ctx, x + 2, y + 2, w - 4, h - 4, chamfer - 1);
+    ctx.clip();
+    ctx.fillStyle = sweepGrad;
+    ctx.fillRect(x, y, w, h);
+    ctx.restore();
+  }
+
+  // 5. Left Heraldic Icon Chamber
+  const chamberSize = h - 6;
+  const chamberX = x + 5;
+  const chamberY = y + Math.round((h - chamberSize) / 2) + pressDy;
+  ctx.fillStyle = isDisabled ? 'rgba(4, 6, 10, 0.85)' : (isFocused ? 'rgba(14, 10, 22, 0.94)' : 'rgba(6, 8, 16, 0.85)');
+  drawChamferedPanel(ctx, chamberX, chamberY, chamberSize, chamberSize, 2);
+  ctx.fill();
+
+  ctx.strokeStyle = isFocused
+    ? (isPrimary ? 'rgba(245, 158, 11, 0.85)' : 'rgba(245, 158, 11, 0.65)')
+    : (isDisabled ? 'rgba(30, 41, 59, 0.45)' : 'rgba(71, 85, 105, 0.50)');
+  ctx.lineWidth = 0.8;
+  drawChamferedPanel(ctx, chamberX, chamberY, chamberSize, chamberSize, 2);
+  ctx.stroke();
+
+  // Draw Pixel Insignia inside Chamber
+  drawRegaliaIcon(
+    ctx,
+    cfg.id,
+    chamberX + chamberSize / 2,
+    chamberY + chamberSize / 2,
+    chamberSize * 0.74,
+    isFocused,
+    isHovered,
+    isDisabled,
+    isGift,
+    F
+  );
+
+  // 6. Main Text Label
+  const textX = chamberX + chamberSize + 11;
+  const textY = y + h / 2 + pressDy;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+
+  // Crisp Drop Shadow
+  ctx.fillStyle = '#010204';
+  ctx.font = isPrimary
+    ? 'bold 14.5px Cinzel, serif'
+    : (isFocused ? 'bold 13.5px Cinzel, serif' : '600 13px Cinzel, serif');
+  ctx.fillText(cfg.label, textX + 1.2, textY + 1.2);
+
+  // Foreground Label
+  if (isDisabled) {
+    ctx.fillStyle = '#475569';
+  } else if (isFocused) {
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = isPrimary ? '#f59e0b' : (isGift ? '#c084fc' : '#fef08a');
+    ctx.shadowBlur = isPrimary ? 10 : 8;
+  } else if (isHovered) {
+    ctx.fillStyle = '#f8fafc';
+    ctx.shadowColor = 'rgba(254, 240, 138, 0.45)';
+    ctx.shadowBlur = 4;
+  } else if (isPrimary) {
+    ctx.fillStyle = '#fef3c7'; // Dignified warm ivory-gold for primary
+  } else if (isGift) {
+    ctx.fillStyle = '#e9d5ff'; // Soft amethyst ivory for gift
+  } else {
+    ctx.fillStyle = '#ede8df'; // Readable warm ivory for standard unselected
+  }
+  ctx.fillText(cfg.label, textX, textY);
+  ctx.shadowBlur = 0;
+
+  // 7. Right Subtitle Badge or Action Hint
+  if (cfg.sub) {
+    const hasRightGlyph = isFocused;
+    const subX = hasRightGlyph ? (x + w - 24) : (x + w - 10);
+
+    ctx.textAlign = 'right';
+    ctx.font = 'italic 10.5px "Crimson Text", serif';
+    ctx.fillStyle = isFocused
+      ? '#fde68a'
+      : (isGift ? '#d8b4fe' : (isDisabled ? '#475569' : '#cbd5e1'));
+    ctx.fillText(cfg.sub, subX, textY + 0.5);
+  }
+
+  // 8. RIGHT DIRECTIONAL MARKER (▶) ONLY ON THE CURRENTLY SELECTED BUTTON
+  if (isFocused) {
+    const breathe = isReducedMotion ? 0 : Math.sin(F * 0.1) * 1.0;
+    const markerX = x + w - 12 + breathe;
+    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = isGift ? '#f59e0b' : '#fde68a';
+    ctx.shadowColor = '#f59e0b';
+    ctx.shadowBlur = 6;
+    ctx.fillText(isGift ? '✦' : '▶', markerX, textY);
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.restore();
+}
+
+function drawStatusPlaques(ctx, x, y, souls, prestige, F, alpha) {
+  if (alpha <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  const plaqueH = 26;
+  const plaque1W = 141;
+  const plaque2W = 141;
+  const gap = 10;
+
+  // ── 1. SOULS PLAQUE ──
+  const sX = x;
+  const sY = y;
+  ctx.fillStyle = 'rgba(1, 2, 6, 0.65)';
+  drawChamferedPanel(ctx, sX, sY + 2, plaque1W, plaqueH, 3);
+  ctx.fill();
+
+  const sGrad = ctx.createLinearGradient(sX, sY, sX, sY + plaqueH);
+  sGrad.addColorStop(0, '#1c142c');
+  sGrad.addColorStop(1, '#090614');
+  ctx.fillStyle = sGrad;
+  drawChamferedPanel(ctx, sX, sY, plaque1W, plaqueH, 3);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(168, 85, 247, 0.55)';
+  ctx.lineWidth = 1;
+  drawChamferedPanel(ctx, sX, sY, plaque1W, plaqueH, 3);
+  ctx.stroke();
+
+  // Soul Crystal Icon
+  ctx.fillStyle = '#c084fc';
+  ctx.beginPath();
+  ctx.moveTo(sX + 11, sY + 7);
+  ctx.lineTo(sX + 15, sY + 13);
+  ctx.lineTo(sX + 11, sY + 19);
+  ctx.lineTo(sX + 7, sY + 13);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(sX + 10.5, sY + 12.5, 1, 1);
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 9px Cinzel, serif';
+  ctx.fillStyle = '#c084fc';
+  ctx.fillText('SOULS', sX + 20, sY + plaqueH / 2);
+
+  // Recessed count box
+  ctx.fillStyle = 'rgba(4, 3, 8, 0.75)';
+  ctx.fillRect(sX + 70, sY + 3, plaque1W - 76, plaqueH - 6);
+  ctx.strokeStyle = 'rgba(126, 34, 206, 0.25)';
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(sX + 70, sY + 3, plaque1W - 76, plaqueH - 6);
+
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 11px Cinzel, serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(souls.toLocaleString(), sX + plaque1W - 10, sY + plaqueH / 2);
+
+  // ── 2. PRESTIGE PLAQUE ──
+  const pX = sX + plaque1W + gap;
+  const pY = y;
+  ctx.fillStyle = 'rgba(1, 2, 6, 0.65)';
+  drawChamferedPanel(ctx, pX, pY + 2, plaque2W, plaqueH, 3);
+  ctx.fill();
+
+  const pGrad = ctx.createLinearGradient(pX, pY, pX, pY + plaqueH);
+  pGrad.addColorStop(0, '#281a0e');
+  pGrad.addColorStop(1, '#0c0704');
+  ctx.fillStyle = pGrad;
+  drawChamferedPanel(ctx, pX, pY, plaque2W, plaqueH, 3);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.60)';
+  ctx.lineWidth = 1;
+  drawChamferedPanel(ctx, pX, pY, plaque2W, plaqueH, 3);
+  ctx.stroke();
+
+  // Prestige Crown Icon
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.moveTo(pX + 8, pY + 16);
+  ctx.lineTo(pX + 18, pY + 16);
+  ctx.lineTo(pX + 17, pY + 10);
+  ctx.lineTo(pX + 14.5, pY + 13);
+  ctx.lineTo(pX + 13, pY + 9);
+  ctx.lineTo(pX + 11.5, pY + 13);
+  ctx.lineTo(pX + 9, pY + 10);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 9px Cinzel, serif';
+  ctx.fillStyle = '#f59e0b';
+  ctx.fillText('PRESTIGE', pX + 21, pY + plaqueH / 2);
+
+  // Recessed count box
+  ctx.fillStyle = 'rgba(8, 5, 3, 0.75)';
+  ctx.fillRect(pX + 82, pY + 3, plaque2W - 88, plaqueH - 6);
+  ctx.strokeStyle = 'rgba(180, 83, 9, 0.25)';
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(pX + 84, pY + 3, plaque2W - 90, plaqueH - 6);
+
+  ctx.textAlign = 'right';
+  ctx.font = 'bold 11px Cinzel, serif';
+  ctx.fillStyle = '#fef08a';
+  ctx.fillText(prestige.toLocaleString(), pX + plaque2W - 10, pY + plaqueH / 2);
+
+  ctx.restore();
+}
+
+function drawPersonalRecords(ctx, alpha, F) {
+  if (alpha <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // Position in upper-right cavern sky, comfortably clear of portal & Rowan
+  const plaqueH = 34;
+  const p1W = 126; // BEST CLEAR
+  const p2W = 152; // DEATHS IN THE ABYSS
+  const gap = 8;
+  const totalW = p1W + p2W + gap;
+  const topY = 16;
+  const startX = LW - 24 - totalW;
+
+  // 1. Authoritative Data Retrieval
+  const bestSeconds = (typeof SaveSystem !== 'undefined' && SaveSystem.getBestRunTime)
+    ? SaveSystem.getBestRunTime()
+    : (GameState.BEST_RUN_TIME || null);
+
+  let bestClearText = 'NONE';
+  let hasBestClear = false;
+  if (typeof bestSeconds === 'number' && !isNaN(bestSeconds) && bestSeconds > 0) {
+    hasBestClear = true;
+    const mins = Math.floor(bestSeconds / 60);
+    const secs = Math.floor(bestSeconds % 60);
+    bestClearText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  const deaths = (typeof SaveSystem !== 'undefined' && SaveSystem.getLifetimeDeaths)
+    ? SaveSystem.getLifetimeDeaths()
+    : ((typeof GameState !== 'undefined' && typeof GameState.LIFETIME_DEATHS === 'number')
+      ? GameState.LIFETIME_DEATHS
+      : 0);
+  const deathsText = deaths.toLocaleString();
+
+  // ─────────────────────────────────────────────────────────────
+  // PLAQUE 1: BEST CLEAR
+  // ─────────────────────────────────────────────────────────────
+  const p1X = startX;
+  const p1Y = topY;
+
+  // Drop Shadow
+  ctx.fillStyle = 'rgba(1, 2, 6, 0.70)';
+  drawChamferedPanel(ctx, p1X, p1Y + 2, p1W, plaqueH, 3);
+  ctx.fill();
+
+  // Dark Obsidian/Violet Backing
+  const p1Grad = ctx.createLinearGradient(p1X, p1Y, p1X, p1Y + plaqueH);
+  p1Grad.addColorStop(0, '#1c1626');
+  p1Grad.addColorStop(0.5, '#120d1c');
+  p1Grad.addColorStop(1, '#08050e');
+  ctx.fillStyle = p1Grad;
+  drawChamferedPanel(ctx, p1X, p1Y, p1W, plaqueH, 3);
+  ctx.fill();
+
+  // Fine Antique-Gold Border
+  ctx.strokeStyle = hasBestClear ? 'rgba(217, 119, 6, 0.75)' : 'rgba(168, 85, 247, 0.45)';
+  ctx.lineWidth = 1.0;
+  drawChamferedPanel(ctx, p1X, p1Y, p1W, plaqueH, 3);
+  ctx.stroke();
+
+  // Corner Rivets
+  ctx.fillStyle = hasBestClear ? '#f59e0b' : '#78350f';
+  for (const [rx, ry] of [
+    [p1X + 4, p1Y + 4],
+    [p1X + p1W - 4, p1Y + 4],
+    [p1X + 4, p1Y + plaqueH - 4],
+    [p1X + p1W - 4, p1Y + plaqueH - 4]
+  ]) {
+    ctx.fillRect(rx - 0.7, ry - 0.7, 1.4, 1.4);
+  }
+
+  // Antique Chronometer / Hourglass Icon (Gold)
+  const cX = p1X + 17;
+  const cY = p1Y + plaqueH / 2;
+  ctx.save();
+  ctx.fillStyle = '#f59e0b';
+  ctx.beginPath();
+  ctx.arc(cX, cY, 6.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#0a0d18';
+  ctx.beginPath();
+  ctx.arc(cX, cY, 4.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Watch Winding Crown at top
+  ctx.fillStyle = '#fde68a';
+  ctx.fillRect(cX - 1.2, cY - 8.2, 2.4, 1.8);
+
+  // Hourglass / Clock hands
+  ctx.strokeStyle = '#fef08a';
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.moveTo(cX, cY);
+  ctx.lineTo(cX, cY - 3.2); // 12 o'clock minute hand
+  ctx.moveTo(cX, cY);
+  ctx.lineTo(cX + 2.4, cY); // 3 o'clock hour hand
+  ctx.stroke();
+
+  // Center jewel
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(cX - 0.6, cY - 0.6, 1.2, 1.2);
+  ctx.restore();
+
+  // Label: BEST CLEAR
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = 'bold 8px Cinzel, serif';
+  ctx.fillStyle = '#d97706';
+  ctx.fillText('BEST CLEAR', p1X + 30, p1Y + 13);
+
+  // Value: mm:ss or NONE
+  ctx.font = hasBestClear ? 'bold 13px Cinzel, serif' : 'bold 11.5px Cinzel, serif';
+  if (hasBestClear) {
+    ctx.fillStyle = '#fef08a';
+    ctx.shadowColor = 'rgba(245, 158, 11, 0.45)';
+    ctx.shadowBlur = 5;
+    ctx.fillText(bestClearText, p1X + 30, p1Y + 28);
+    ctx.shadowBlur = 0;
+  } else {
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText(bestClearText, p1X + 30, p1Y + 27.5);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // PLAQUE 2: DEATHS IN THE ABYSS
+  // ─────────────────────────────────────────────────────────────
+  const p2X = p1X + p1W + gap;
+  const p2Y = topY;
+
+  // Drop Shadow
+  ctx.fillStyle = 'rgba(1, 2, 6, 0.70)';
+  drawChamferedPanel(ctx, p2X, p2Y + 2, p2W, plaqueH, 3);
+  ctx.fill();
+
+  // Dark Obsidian/Muted Crimson Backing
+  const p2Grad = ctx.createLinearGradient(p2X, p2Y, p2X, p2Y + plaqueH);
+  p2Grad.addColorStop(0, '#221318');
+  p2Grad.addColorStop(0.5, '#160b10');
+  p2Grad.addColorStop(1, '#0a0508');
+  ctx.fillStyle = p2Grad;
+  drawChamferedPanel(ctx, p2X, p2Y, p2W, plaqueH, 3);
+  ctx.fill();
+
+  // Fine Restrained Crimson/Bronze Border
+  ctx.strokeStyle = 'rgba(185, 28, 28, 0.65)';
+  ctx.lineWidth = 1.0;
+  drawChamferedPanel(ctx, p2X, p2Y, p2W, plaqueH, 3);
+  ctx.stroke();
+
+  // Corner Rivets
+  ctx.fillStyle = '#991b1b';
+  for (const [rx, ry] of [
+    [p2X + 4, p2Y + 4],
+    [p2X + p2W - 4, p2Y + 4],
+    [p2X + 4, p2Y + plaqueH - 4],
+    [p2X + p2W - 4, p2Y + plaqueH - 4]
+  ]) {
+    ctx.fillRect(rx - 0.7, ry - 0.7, 1.4, 1.4);
+  }
+
+  // Abyssal Skull / Ossuary Icon (Crimson / Bone)
+  const sX = p2X + 17;
+  const sY = p2Y + plaqueH / 2;
+  ctx.save();
+  // Stylized Cranium
+  ctx.fillStyle = '#f87171';
+  ctx.beginPath();
+  ctx.arc(sX, sY - 1.5, 5.2, Math.PI, 0, false);
+  ctx.lineTo(sX + 4.0, sY + 2.5);
+  ctx.lineTo(sX + 2.5, sY + 5.0);
+  ctx.lineTo(sX - 2.5, sY + 5.0);
+  ctx.lineTo(sX - 4.0, sY + 2.5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Eye Sockets (Dark Abyssal Voids)
+  ctx.fillStyle = '#100508';
+  ctx.beginPath();
+  ctx.arc(sX - 2.0, sY, 1.3, 0, Math.PI * 2);
+  ctx.arc(sX + 2.0, sY, 1.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Nasal Cavity
+  ctx.fillRect(sX - 0.5, sY + 1.2, 1.0, 1.5);
+
+  // Tiny Teeth slits
+  ctx.strokeStyle = '#100508';
+  ctx.lineWidth = 0.7;
+  ctx.beginPath();
+  ctx.moveTo(sX - 1.2, sY + 3.8);
+  ctx.lineTo(sX - 1.2, sY + 4.8);
+  ctx.moveTo(sX + 1.2, sY + 3.8);
+  ctx.lineTo(sX + 1.2, sY + 4.8);
+  ctx.stroke();
+  ctx.restore();
+
+  // Label: DEATHS IN THE ABYSS
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = 'bold 8px Cinzel, serif';
+  ctx.fillStyle = '#f87171';
+  ctx.fillText('DEATHS IN THE ABYSS', p2X + 30, p2Y + 13);
+
+  // Value: Persisted count
+  ctx.font = 'bold 13px Cinzel, serif';
+  ctx.fillStyle = '#fca5a5';
+  ctx.shadowColor = 'rgba(239, 68, 68, 0.40)';
+  ctx.shadowBlur = 5;
+  ctx.fillText(deathsText, p2X + 30, p2Y + 28);
+  ctx.shadowBlur = 0;
+
+  ctx.restore();
+}
+
 export function startGame(playIntro = true) {
   AudioManager.init();
   MusicManager.fadeOut(1.2);
   SoundManager.snd('menu_select');
   _howToPlayActive = false;
+  _loadoutModalOpen = false;
 
   UITransitionManager.transitionTo(() => {
-    RunResetManager.resetRun({ playIntro });
+    RunResetManager.resetRun({ playIntro, isDeveloperExpedition: false });
   }, 0.45);
 }
 
@@ -327,6 +1770,12 @@ export function openTrainingDungeon() {
 }
 
 export function resumeSavedRun() {
+  if (!SaveSystem.hasResumableRun()) {
+    SaveSystem.clearRun();
+    SoundManager.snd('error_disabled');
+    return false;
+  }
+
   const sv = SaveSystem.loadRun();
   if (sv && sv.lv) {
     AudioManager.init();
@@ -338,35 +1787,306 @@ export function resumeSavedRun() {
       GameState.CINEMATIC_ACTIVE = false;
       GameState.resetPlayer();
       GameState.LV = sv.lv || 1;
-      if (sv.hp !== undefined) GameState.P.hp = sv.hp;
-      if (sv.maxHp !== undefined) GameState.P.maxHp = sv.maxHp;
-      if (sv.san !== undefined) GameState.P.san = sv.san;
-      if (sv.wep) GameState.P.wep = sv.wep;
-      if (sv.saved !== undefined) GameState.P.saved = sv.saved;
-      if (sv.killed !== undefined) GameState.P.killed = sv.killed;
-      if (sv.weaponSlots) GameState.weaponSlots = sv.weaponSlots;
-      if (sv.activeSlot !== undefined) GameState.activeWeaponSlot = sv.activeSlot;
-      if (sv.relics) GameState.P.relics = sv.relics;
+
+      // Authoritative reset of all death, dying, pose, and transient flags
+      const P = GameState.P;
+      if (P) {
+        P.dead = false;
+        P.dying = false;
+        P.cinematicPose = null;
+        P.deathCause = null;
+        P.deathTimer = 0;
+        P.invulnerable = false;
+        P.attacking = false;
+        P.dashing = false;
+        P.animState = 'idle';
+        P.weaponLowered = false;
+        P.vx = 0;
+        P.vy = 0;
+        P.acd = 0;
+        P.aanim = 0;
+        P.dcd = 0;
+
+        if (sv.hp !== undefined && sv.hp > 0) P.hp = sv.hp;
+        if (sv.maxHp !== undefined && sv.maxHp > 0) P.maxHp = sv.maxHp;
+        // Never restore a player with <= 0 sanity: clamp to positive or maxSan
+        if (sv.san !== undefined && sv.san > 0) {
+          P.san = Math.max(20, sv.san);
+        } else {
+          P.san = P.maxSan || 100;
+        }
+        if (sv.wep) P.wep = sv.wep;
+        if (sv.saved !== undefined) P.saved = sv.saved;
+        if (sv.killed !== undefined) P.killed = sv.killed;
+        if (sv.weaponSlots) GameState.weaponSlots = sv.weaponSlots;
+        if (sv.activeSlot !== undefined) GameState.activeWeaponSlot = sv.activeSlot;
+        if (sv.relics) P.relics = sv.relics;
+      }
+
       FloorManager.loadLevel(GameState.LV);
+      GameState.RUN_ACTIVE_TIME = sv.runActiveTime || 0;
+      GameState.FLOOR_ACTIVE_TIME = sv.floorActiveTime || 0;
+      GameState.CURRENT_RUN_SURVIVORS = sv.currentRunSurvivors || { eligible: [], rescued: [] };
+      GameState.IS_DEVELOPER_EXPEDITION = !!sv.isDeveloperExpedition;
       GameState.setState(GameStates.PLAYING);
       SoundManager.snd('portal_enter');
       triggerCinematicBanner(`FLOOR ${GameState.LV}`, 'Resuming your harrowing descent...');
     }, 0.45);
     return true;
   }
+  SaveSystem.clearRun();
   SoundManager.snd('error_disabled');
   return false;
+}
+
+function drawPreDescentLoadoutModal(ctx, dt, mouseX, mouseY) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(2, 4, 10, 0.88)';
+  ctx.fillRect(0, 0, LW, LH);
+
+  const mw = 560, mh = 340;
+  const mx = Math.round((LW - mw) / 2);
+  const my = Math.round((LH - mh) / 2);
+
+  // Obsidian & bronze chassis
+  ctx.fillStyle = 'rgba(7, 10, 22, 0.98)';
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.85)';
+  ctx.lineWidth = 1.6;
+  roundRect(ctx, mx, my, mw, mh, 8);
+  ctx.fill(); ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(253, 230, 138, 0.35)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, mx + 4, my + 4, mw - 8, mh - 8, 6);
+  ctx.stroke();
+
+  // Header
+  ctx.font = 'bold 15px Cinzel, serif';
+  ctx.fillStyle = '#fde68a';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.shadowColor = '#d97706';
+  ctx.shadowBlur = 8;
+  ctx.fillText('◈ PRE-DESCENT ARSENAL LOADOUT ◈', mx + mw / 2, my + 16);
+  ctx.shadowBlur = 0;
+
+  ctx.font = 'italic 11px "Crimson Text", Georgia, serif';
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText("Select Rowan's starting blade & rarity for this standard expedition.", mx + mw / 2, my + 34);
+
+  // 1. Weapon Selection Row
+  const wepY = my + 56;
+  const wepKeys = WEAPON_KEYS;
+  const cardW = Math.round((mw - 40 - (wepKeys.length - 1) * 8) / wepKeys.length);
+  const cardH = 54;
+
+  wepKeys.forEach((wid, idx) => {
+    const wx = mx + 20 + idx * (cardW + 8);
+    const wdata = WEAPON_TYPES[wid];
+    const isSelected = _loadoutWeaponId === wid;
+    const isHover = mouseX >= wx && mouseX <= wx + cardW && mouseY >= wepY && mouseY <= wepY + cardH;
+
+    ctx.fillStyle = isSelected ? 'rgba(217, 119, 6, 0.28)' : (isHover ? 'rgba(30, 41, 59, 0.7)' : 'rgba(15, 23, 42, 0.6)');
+    ctx.strokeStyle = isSelected ? '#fde68a' : (isHover ? '#94a3b8' : 'rgba(71, 85, 105, 0.45)');
+    ctx.lineWidth = isSelected ? 1.5 : 1;
+    roundRect(ctx, wx, wepY, cardW, cardH, 4);
+    ctx.fill(); ctx.stroke();
+
+    ctx.font = '18px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(wdata.icon || '⚔️', wx + cardW / 2, wepY + 6);
+
+    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.fillStyle = isSelected ? '#ffffff' : '#cbd5e1';
+    ctx.fillText(wdata.name.split(' ')[0], wx + cardW / 2, wepY + 32);
+  });
+
+  // 2. Rarity Selection Row
+  const rarY = wepY + cardH + 12;
+  const rarList = ['Common', 'Rare', 'Epic', 'Legendary'];
+  const rarW = Math.round((mw - 40 - (rarList.length - 1) * 8) / rarList.length);
+  const rarH = 28;
+
+  rarList.forEach((rname, idx) => {
+    const rx = mx + 20 + idx * (rarW + 8);
+    const isSelected = _loadoutRarity === rname;
+    const rObj = RARITIES.find(r => r.name === rname) || { col: '#94a3b8' };
+    const isHover = mouseX >= rx && mouseX <= rx + rarW && mouseY >= rarY && mouseY <= rarY + rarH;
+
+    ctx.fillStyle = isSelected ? 'rgba(217, 119, 6, 0.28)' : (isHover ? 'rgba(30, 41, 59, 0.7)' : 'rgba(15, 23, 42, 0.6)');
+    ctx.strokeStyle = isSelected ? rObj.col : (isHover ? '#94a3b8' : 'rgba(71, 85, 105, 0.45)');
+    ctx.lineWidth = isSelected ? 1.5 : 1;
+    roundRect(ctx, rx, rarY, rarW, rarH, 4);
+    ctx.fill(); ctx.stroke();
+
+    ctx.font = 'bold 10px Cinzel, serif';
+    ctx.fillStyle = isSelected ? '#ffffff' : rObj.col;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(rname.toUpperCase(), rx + rarW / 2, rarY + rarH / 2);
+  });
+
+  // 3. Live Weapon Preview Box
+  const prevY = rarY + rarH + 12;
+  const prevH = 68;
+  ctx.fillStyle = 'rgba(10, 15, 30, 0.75)';
+  ctx.strokeStyle = 'rgba(217, 119, 6, 0.4)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, mx + 20, prevY, mw - 40, prevH, 4);
+  ctx.fill(); ctx.stroke();
+
+  const previewWep = WeaponFactory.create(_loadoutWeaponId, _loadoutRarity);
+  if (previewWep) {
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.font = 'bold 13px Cinzel, serif';
+    ctx.fillStyle = previewWep.rarity.col || '#ffffff';
+    ctx.fillText(`${previewWep.icon} ${previewWep.name} [${previewWep.rarity.name}]`, mx + 34, prevY + 10);
+
+    ctx.font = '10.5px monospace';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`• DAMAGE: ${previewWep.damage.toFixed(1)} DMG   • COOLDOWN: ${(previewWep.cooldown * 1000).toFixed(0)} ms   • RANGE: ${previewWep.range} tiles`, mx + 34, prevY + 30);
+
+    ctx.fillStyle = '#4ade80';
+    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.fillText('STANDARD RUN — OFFICIAL SPEEDRUN RECORDS & ACHIEVEMENTS ENABLED', mx + 34, prevY + 48);
+  }
+
+  // 4. Action Buttons: BEGIN DESCENT [ENTER], DEFAULT, CANCEL [ESC]
+  const bBarY = my + mh - 44;
+  const btnW = 160, btnH = 30;
+  const startX = mx + mw - 20 - btnW;
+  const defX = startX - 10 - 130;
+  const canX = mx + 20;
+
+  // Begin Descent
+  const isHoverStart = mouseX >= startX && mouseX <= startX + btnW && mouseY >= bBarY && mouseY <= bBarY + btnH;
+  ctx.fillStyle = isHoverStart ? 'rgba(217, 119, 6, 0.45)' : 'rgba(217, 119, 6, 0.25)';
+  ctx.strokeStyle = isHoverStart ? '#ffffff' : '#fde68a';
+  ctx.lineWidth = 1.4;
+  roundRect(ctx, startX, bBarY, btnW, btnH, 4);
+  ctx.fill(); ctx.stroke();
+  ctx.font = 'bold 11px Cinzel, serif';
+  ctx.fillStyle = isHoverStart ? '#ffffff' : '#fde68a';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('BEGIN DESCENT [ENTER]', startX + btnW / 2, bBarY + btnH / 2);
+
+  // Default Loadout
+  const isHoverDef = mouseX >= defX && mouseX <= defX + 130 && mouseY >= bBarY && mouseY <= bBarY + btnH;
+  ctx.fillStyle = isHoverDef ? 'rgba(51, 65, 85, 0.5)' : 'rgba(15, 23, 42, 0.8)';
+  ctx.strokeStyle = isHoverDef ? '#94a3b8' : 'rgba(71, 85, 105, 0.5)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, defX, bBarY, 130, btnH, 4);
+  ctx.fill(); ctx.stroke();
+  ctx.font = 'bold 10px Cinzel, serif';
+  ctx.fillStyle = isHoverDef ? '#ffffff' : '#94a3b8';
+  ctx.fillText('DEFAULT BLADE', defX + 65, bBarY + btnH / 2);
+
+  // Cancel [ESC]
+  const isHoverCan = mouseX >= canX && mouseX <= canX + 100 && mouseY >= bBarY && mouseY <= bBarY + btnH;
+  ctx.fillStyle = isHoverCan ? 'rgba(51, 65, 85, 0.5)' : 'rgba(15, 23, 42, 0.8)';
+  ctx.strokeStyle = isHoverCan ? '#cbd5e1' : '#64748b';
+  ctx.lineWidth = 1;
+  roundRect(ctx, canX, bBarY, 100, btnH, 4);
+  ctx.fill(); ctx.stroke();
+  ctx.font = 'bold 10px Cinzel, serif';
+  ctx.fillStyle = isHoverCan ? '#ffffff' : '#94a3b8';
+  ctx.fillText('CANCEL [ESC]', canX + 50, bBarY + btnH / 2);
+
+  ctx.restore();
+}
+
+function handleLoadoutModalClick(mx, my) {
+  const mw = 560, mh = 340;
+  const mxX = Math.round((LW - mw) / 2);
+  const myY = Math.round((LH - mh) / 2);
+
+  // 1. Weapon Selection Clicks
+  const wepY = myY + 56;
+  const wepKeys = WEAPON_KEYS;
+  const cardW = Math.round((mw - 40 - (wepKeys.length - 1) * 8) / wepKeys.length);
+  const cardH = 54;
+
+  for (let i = 0; i < wepKeys.length; i++) {
+    const wx = mxX + 20 + i * (cardW + 8);
+    if (mx >= wx && mx <= wx + cardW && my >= wepY && my <= wepY + cardH) {
+      _loadoutWeaponId = wepKeys[i];
+      SoundManager.snd('menu_hover');
+      return true;
+    }
+  }
+
+  // 2. Rarity Selection Clicks
+  const rarY = wepY + cardH + 12;
+  const rarList = ['Common', 'Rare', 'Epic', 'Legendary'];
+  const rarW = Math.round((mw - 40 - (rarList.length - 1) * 8) / rarList.length);
+  const rarH = 28;
+
+  for (let i = 0; i < rarList.length; i++) {
+    const rx = mxX + 20 + i * (rarW + 8);
+    if (mx >= rx && mx <= rx + rarW && my >= rarY && my <= rarY + rarH) {
+      _loadoutRarity = rarList[i];
+      SoundManager.snd('menu_hover');
+      return true;
+    }
+  }
+
+  // 3. Action Buttons Clicks
+  const bBarY = myY + mh - 44;
+  const btnW = 160, btnH = 30;
+  const startX = mxX + mw - 20 - btnW;
+  const defX = startX - 10 - 130;
+  const canX = mxX + 20;
+
+  // Begin Descent
+  if (mx >= startX && mx <= startX + btnW && my >= bBarY && my <= bBarY + btnH) {
+    GameState.IS_DEVELOPER_EXPEDITION = false;
+    GameState.CUSTOM_STARTING_MAX_HP = null;
+    GameState.CUSTOM_STARTING_WEAPON = { id: _loadoutWeaponId, rarity: _loadoutRarity };
+    _loadoutModalOpen = false;
+    SoundManager.snd('menu_select');
+    startGame(true);
+    return true;
+  }
+
+  // Default Blade
+  if (mx >= defX && mx <= defX + 130 && my >= bBarY && my <= bBarY + btnH) {
+    _loadoutWeaponId = 'sword';
+    _loadoutRarity = 'Common';
+    SoundManager.snd('menu_select');
+    return true;
+  }
+
+  // Cancel
+  if (mx >= canX && mx <= canX + 100 && my >= bBarY && my <= bBarY + btnH) {
+    _loadoutModalOpen = false;
+    SoundManager.snd('panel_close');
+    return true;
+  }
+
+  // Click outside modal
+  if (mx < mxX || mx > mxX + mw || my < myY || my > myY + mh) {
+    _loadoutModalOpen = false;
+    SoundManager.snd('panel_close');
+    return true;
+  }
+
+  return true;
 }
 
 export const MainMenu = {
   navigateFocus(delta) {
     if (_giftModalOpen) return;
     if (_howToPlayActive) {
-      _fieldGuideChapter = (_fieldGuideChapter + delta + 5) % 5;
+      _fieldGuideChapter = (_fieldGuideChapter + delta + 6) % 6;
       SoundManager.snd('menu_hover');
       return;
     }
     if (_titleBtns.length === 0) return;
+    _lastInputMode = 'keyboard';
+    _lastHoveredIndex = -1;
     const oldIdx = _focusedIndex;
     _focusedIndex = (_focusedIndex + delta + _titleBtns.length) % _titleBtns.length;
     if (_focusedIndex !== oldIdx) {
@@ -375,6 +2095,10 @@ export const MainMenu = {
   },
 
   activateFocused() {
+    if (DeveloperSanctumUI.isGateOpen()) {
+      DeveloperSanctumUI.submitPassword();
+      return;
+    }
     if (_giftModalOpen) {
       _giftModalOpen = false;
       SaveSystem.dismissPhase3Invitation();
@@ -398,6 +2122,15 @@ export const MainMenu = {
   },
 
   handleEscape() {
+    if (DeveloperSanctumUI.isGateOpen()) {
+      DeveloperSanctumUI.closeGate();
+      return true;
+    }
+    if (_loadoutModalOpen) {
+      _loadoutModalOpen = false;
+      SoundManager.snd('panel_close');
+      return true;
+    }
     if (_giftModalOpen) {
       this.closeGiftModal();
       SoundManager.snd('panel_close');
@@ -464,784 +2197,46 @@ export const MainMenu = {
     const btnsAlpha = Math.min(1, Math.max(0, (_revealTimer - 2.5) / 0.7));
 
     // ─────────────────────────────────────────────────────────────
-    // 1. THE CATHEDRAL AT THE EDGE OF THE ABYSS (PARALLAX LAYER 1: 0.20X)
+    // ENSURE THE ABYSSAL THRESHOLD ENVIRONMENT IS RENDERED
     // ─────────────────────────────────────────────────────────────
-    ctx.save();
-    ctx.globalAlpha = envAlpha;
-
-    const pX1 = camDriftX * 0.20;
-    const pY1 = camDriftY * 0.20;
-
-    // Atmospheric Abyssal Deep Backdrop
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, LH);
-    bgGrad.addColorStop(0, '#020308');
-    bgGrad.addColorStop(0.3, '#050818');
-    bgGrad.addColorStop(0.65, '#080e28');
-    bgGrad.addColorStop(1, '#03050d');
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(-50, -50, LW + 100, LH + 100);
-
-    // Vanishing Point of the Subterranean Cathedral Nave
-    const vpX = 645 + pX1, vpY = 210 + pY1;
-
-    // Receding Nave Perspective Floor Rays & Transverse Masonry
-    ctx.save();
-    ctx.strokeStyle = 'rgba(20, 28, 55, 0.45)';
-    ctx.lineWidth = 1.0;
-    for (let angle = -0.9; angle <= 0.9; angle += 0.22) {
-      ctx.beginPath();
-      ctx.moveTo(vpX, vpY + 40);
-      ctx.lineTo(vpX + Math.tan(angle) * (LH - vpY), LH);
-      ctx.stroke();
-    }
-    // Horizontal stone floor joints in geometric perspective
-    for (let s = 1; s <= 7; s++) {
-      const frac = Math.pow(s / 7, 2.0);
-      const jy = vpY + 40 + frac * (LH - (vpY + 40));
-      const jw = frac * 520;
-      ctx.strokeStyle = `rgba(24, 34, 68, ${0.12 + frac * 0.35})`;
-      ctx.beginPath();
-      ctx.moveTo(vpX - jw, jy);
-      ctx.lineTo(vpX + jw, jy);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // Receding Gothic Vault Arch Ribs (Soaring Nave Ribs)
-    ctx.save();
-    for (let r = 6; r >= 1; r--) {
-      const archScale = r / 6;
-      const aw = 520 * archScale;
-      const ah = 400 * archScale;
-      const ay = vpY - ah * 0.48;
-      const ribAlpha = 0.05 + (1 - archScale) * 0.16;
-
-      // Outer rib shadow
-      ctx.strokeStyle = `rgba(15, 23, 42, ${ribAlpha * 1.5})`;
-      ctx.lineWidth = 3.0;
-      ctx.beginPath();
-      ctx.moveTo(vpX - aw, LH);
-      ctx.lineTo(vpX - aw, ay + ah * 0.4);
-      ctx.quadraticCurveTo(vpX - aw * 0.58, ay, vpX, ay);
-      ctx.quadraticCurveTo(vpX + aw * 0.58, ay, vpX + aw, ay + ah * 0.4);
-      ctx.lineTo(vpX + aw, LH);
-      ctx.stroke();
-
-      // Inner stone highlight rib
-      ctx.strokeStyle = `rgba(74, 96, 155, ${ribAlpha})`;
-      ctx.lineWidth = 1.4;
-      ctx.stroke();
-
-      // Ceiling vault spine ridge
-      ctx.beginPath();
-      ctx.moveTo(vpX, ay);
-      ctx.lineTo(vpX, vpY);
-      ctx.stroke();
-
-      // Triforium gothic gallery arches in background niches
-      if (r >= 3 && r <= 5) {
-        ctx.fillStyle = `rgba(10, 16, 35, ${0.15 + (6 - r) * 0.08})`;
-        ctx.strokeStyle = `rgba(40, 56, 100, ${0.12 + (6 - r) * 0.06})`;
-        ctx.lineWidth = 1.0;
-        const nw = aw * 0.22, nh = ah * 0.32;
-        [-1, 1].forEach(side => {
-          const nx = vpX + side * aw * 0.72 - nw / 2;
-          const ny = ay + ah * 0.28;
-          ctx.beginPath();
-          ctx.moveTo(nx, ny + nh);
-          ctx.lineTo(nx, ny + nh * 0.3);
-          ctx.quadraticCurveTo(nx + nw / 2, ny, nx + nw, ny + nh * 0.3);
-          ctx.lineTo(nx + nw, ny + nh);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        });
-      }
-    }
-    ctx.restore();
-
-    // ─────────────────────────────────────────────────────────────
-    // 2. THE COLOSSAL DISTANT ABYSSAL GATEWAY (PARALLAX LAYER 2: 0.40X)
-    // ─────────────────────────────────────────────────────────────
-    const pX2 = camDriftX * 0.40;
-    const pY2 = camDriftY * 0.40;
-    const portPulse = Math.sin(F * 0.035) * 0.12 + 0.88;
-    const portExtra = (_menuAmbientEvent === 'portal_pulse' && _menuAmbientEventTimer > 0)
-      ? Math.sin((_menuAmbientEventTimer / 2.8) * Math.PI) * 24
-      : 0;
-    const portR = (48 + portExtra) * portPulse;
-    const portX = 645 + pX2, portY = 210 + pY2;
-
-    ctx.save();
-    ctx.globalAlpha = portalAlpha;
-
-    // Distant cyclopean stone arch framing the gateway
-    ctx.save();
-    const archW = portR * 1.65;
-    const archH = portR * 2.2;
-    // Left & Right Megalithic Obsidian Pillars
-    [-1, 1].forEach(side => {
-      const px = portX + side * archW - (side > 0 ? 0 : 20);
-      const py = portY - archH * 0.48;
-      const pw = 20, ph = archH * 1.35;
-      const pilGrad = ctx.createLinearGradient(px, 0, px + pw, 0);
-      pilGrad.addColorStop(0, '#04060c');
-      pilGrad.addColorStop(0.5, '#0d1326');
-      pilGrad.addColorStop(1, '#050711');
-      ctx.fillStyle = pilGrad;
-      ctx.fillRect(px, py, pw, ph);
-
-      // Capital & plinth
-      ctx.fillStyle = '#161e36';
-      ctx.fillRect(px - 3, py - 4, pw + 6, 8);
-      ctx.fillRect(px - 3, py + ph - 8, pw + 6, 12);
-      ctx.strokeStyle = 'rgba(168, 85, 247, 0.35)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(px - 3, py - 4, pw + 6, 8);
-
-      // Inlaid abyssal runes down the monolith
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
-      ctx.lineWidth = 1.0;
-      for (let k = 0; k < 3; k++) {
-        const ry = py + 24 + k * 36;
-        ctx.beginPath();
-        ctx.moveTo(px + 4, ry); ctx.lineTo(px + pw - 4, ry + 6);
-        ctx.lineTo(px + 6, ry + 14);
-        ctx.stroke();
-      }
-    });
-
-    // Lintel stone arch connecting monoliths
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.95)';
-    ctx.lineWidth = 14;
-    ctx.beginPath();
-    ctx.arc(portX, portY - 8, archW + 6, Math.PI, 0, false);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(168, 85, 247, 0.3)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.restore();
-
-    // Radiant outer abyssal nebula glow
-    const portNebula = ctx.createRadialGradient(portX, portY, 4, portX, portY, portR * 3.0);
-    portNebula.addColorStop(0, 'rgba(56, 189, 248, 0.80)');
-    portNebula.addColorStop(0.22, 'rgba(168, 85, 247, 0.55)');
-    portNebula.addColorStop(0.6, 'rgba(15, 23, 65, 0.30)');
-    portNebula.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = portNebula;
-    ctx.beginPath();
-    ctx.arc(portX, portY, portR * 3.0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Downward ambient light reflection on floor beneath gateway
-    const floorRefl = ctx.createRadialGradient(portX, LH - 60, 10, portX, LH - 60, portR * 2.5);
-    floorRefl.addColorStop(0, 'rgba(168, 85, 247, 0.18)');
-    floorRefl.addColorStop(0.5, 'rgba(56, 189, 248, 0.08)');
-    floorRefl.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = floorRefl;
-    ctx.beginPath();
-    ctx.ellipse(portX, LH - 60, portR * 2.2, 35, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Swirling Inward Accretion Rings & Runic Glyphs
-    ctx.save();
-    ctx.translate(portX, portY);
-
-    // Outer runic accretion ring (Counter-clockwise)
-    ctx.save();
-    ctx.rotate(F * 0.022);
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.70)';
-    ctx.lineWidth = 2.4;
-    ctx.beginPath();
-    ctx.arc(0, 0, portR, 0, Math.PI * 1.65);
-    ctx.stroke();
-
-    // Runic tick marks along outer ring
-    for (let a = 0; a < 8; a++) {
-      const ang = (a / 8) * Math.PI * 2;
-      const cosA = Math.cos(ang), sinA = Math.sin(ang);
-      ctx.strokeStyle = (a % 2 === 0) ? '#fde68a' : '#7dd3fc';
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.moveTo(cosA * (portR - 4), sinA * (portR - 4));
-      ctx.lineTo(cosA * (portR + 4), sinA * (portR + 4));
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // Secondary counter-rotating purple glyph ring
-    ctx.save();
-    ctx.rotate(-F * 0.045);
-    ctx.strokeStyle = 'rgba(192, 132, 252, 0.75)';
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.arc(0, 0, portR * 0.72, 0, Math.PI * 1.45);
-    ctx.stroke();
-
-    // Inner diamond glyph nodes
-    for (let b = 0; b < 4; b++) {
-      const bang = (b / 4) * Math.PI * 2;
-      const bx = Math.cos(bang) * (portR * 0.72);
-      const by = Math.sin(bang) * (portR * 0.72);
-      ctx.fillStyle = '#fde68a';
-      ctx.beginPath();
-      ctx.arc(bx, by, 1.8, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-
-    // Inward Converging Accretion Particles
-    if (_gatewayParticles && _gatewayParticles.length > 0) {
-      _gatewayParticles.forEach(gp => {
-        gp.dist -= gp.speed;
-        gp.angle += 0.018;
-        if (gp.dist < 8) {
-          gp.dist = portR * 1.4 + Math.random() * 20;
-          gp.angle = Math.random() * Math.PI * 2;
-        }
-        const gpx = Math.cos(gp.angle) * gp.dist;
-        const gpy = Math.sin(gp.angle) * gp.dist;
-        const gpa = gp.alpha * Math.min(1, gp.dist / 14);
-        ctx.fillStyle = gp.col === '#38bdf8' ? `rgba(56, 189, 248, ${gpa})` : `rgba(192, 132, 252, ${gpa})`;
-        ctx.beginPath();
-        ctx.arc(gpx, gpy, gp.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
+    if (MainMenuScene.lastDrawFrame !== (GameState.F || 0)) {
+      MainMenuScene.draw(ctx);
     }
 
-    // Core black hole singularity event horizon
-    ctx.fillStyle = '#010206';
-    ctx.beginPath();
-    ctx.arc(0, 0, portR * 0.40, 0, Math.PI * 2);
-    ctx.fill();
+    // ─────────────────────────────────────────────────────────────
+    // 1. HANDCRAFTED FORGED TITLE PLAQUE & EDITION BADGE
+    // ─────────────────────────────────────────────────────────────
+    const leftX = Math.max(48, Math.min(68, Math.round((LW - 896) * 0.25 + 56)));
 
-    // Radiant inner singularity spark
-    const corePulse = Math.sin(F * 0.09) * 0.35 + 0.65;
-    ctx.fillStyle = `rgba(224, 242, 254, ${corePulse})`;
-    ctx.beginPath();
-    ctx.arc(0, 0, 4.8 * corePulse, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore(); // restore portal translation
-
-    // Distant Passing Shadow Creature
-    if (_menuAmbientEvent === 'shadow_pass' && _menuAmbientEventTimer > 0) {
-      const st = 1 - (_menuAmbientEventTimer / 2.8);
-      const sx = 520 + st * 280;
-      const sy = vpY + Math.sin(st * Math.PI) * -18 + 12;
-      ctx.save();
-      ctx.fillStyle = 'rgba(2, 3, 8, 0.75)';
-      ctx.beginPath();
-      ctx.ellipse(sx, sy, 18, 10, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(sx - 16, sy);
-      ctx.quadraticCurveTo(sx - 28, sy - 14, sx - 38, sy - 6);
-      ctx.quadraticCurveTo(sx - 22, sy + 6, sx - 12, sy + 4);
-      ctx.moveTo(sx + 16, sy);
-      ctx.quadraticCurveTo(sx + 28, sy - 14, sx + 38, sy - 6);
-      ctx.quadraticCurveTo(sx + 22, sy + 6, sx + 12, sy + 4);
-      ctx.fill();
-      ctx.restore();
-    }
-    ctx.restore(); // end portal layer
+    // Hanging Forged Metal Title Plaque with Chains & 3D Chiseled Metallic Lettering
+    drawTitlePlaque(ctx, leftX, 8, 292, 154, logoAlpha, F);
 
     // ─────────────────────────────────────────────────────────────
-    // 3. RECEDING MONOLITHIC PILLARS (PARALLAX LAYER 3: 0.65X)
-    // ─────────────────────────────────────────────────────────────
-    const pX3 = camDriftX * 0.65;
-    const pY3 = camDriftY * 0.65;
-
-    const pillars = [
-      { x: 375 + pX3, w: 40 },
-      { x: 495 + pX3, w: 46 },
-      { x: 790 + pX3, w: 48 },
-      { x: 905 + pX3, w: 58 }
-    ];
-
-    pillars.forEach((p, idx) => {
-      // Monumental Stone Pillar Base Shading
-      const pilGrad = ctx.createLinearGradient(p.x, 0, p.x + p.w, 0);
-      pilGrad.addColorStop(0, '#070a16');
-      pilGrad.addColorStop(0.18, '#141a2e');
-      pilGrad.addColorStop(0.5, '#1e2844');
-      pilGrad.addColorStop(0.82, '#13182b');
-      pilGrad.addColorStop(1, '#050711');
-      ctx.fillStyle = pilGrad;
-      ctx.fillRect(p.x, 0, p.w, LH);
-
-      // Horizontal masonry block seams (blocks stacked every 48px)
-      ctx.strokeStyle = 'rgba(5, 7, 15, 0.85)';
-      ctx.lineWidth = 1.0;
-      for (let by = 24; by < LH - 130; by += 48) {
-        ctx.beginPath();
-        ctx.moveTo(p.x, by);
-        ctx.lineTo(p.x + p.w, by);
-        ctx.stroke();
-      }
-
-      // Vertical Stone Fluting Lines
-      ctx.lineWidth = 1.0;
-      const flutes = 3;
-      for (let f = 1; f <= flutes; f++) {
-        const fx = p.x + (p.w / (flutes + 1)) * f;
-        ctx.strokeStyle = 'rgba(4, 6, 14, 0.9)';
-        ctx.beginPath(); ctx.moveTo(fx, 0); ctx.lineTo(fx, LH); ctx.stroke();
-        ctx.strokeStyle = 'rgba(100, 116, 155, 0.28)';
-        ctx.beginPath(); ctx.moveTo(fx + 1, 0); ctx.lineTo(fx + 1, LH); ctx.stroke();
-      }
-
-      // Stone Capital & Plinth Bands
-      ctx.fillStyle = '#0f1426';
-      ctx.fillRect(p.x - 4, 0, p.w + 8, 26);
-      ctx.fillRect(p.x - 5, LH - 130, p.w + 10, 22);
-
-      // Gold-embossed architectural trim
-      ctx.strokeStyle = 'rgba(217, 119, 6, 0.35)';
-      ctx.lineWidth = 1.2;
-      ctx.strokeRect(p.x - 4, 0, p.w + 8, 26);
-      ctx.strokeRect(p.x - 5, LH - 130, p.w + 10, 22);
-
-      // Chipped stone cracks & gold/cyan runic vein
-      ctx.strokeStyle = (_menuAmbientEvent === 'rune_flash' && _menuAmbientEventTimer > 0)
-        ? `rgba(56, 189, 248, ${Math.sin((_menuAmbientEventTimer / 2.8) * Math.PI) * 0.85})`
-        : 'rgba(201, 168, 76, 0.22)';
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.moveTo(p.x + 8, 115 + idx * 42);
-      ctx.lineTo(p.x + 18, 142 + idx * 42);
-      ctx.lineTo(p.x + 12, 172 + idx * 42);
-      ctx.stroke();
-    });
-
-    // ─────────────────────────────────────────────────────────────
-    // 4. ARTISANAL WALL BRAZIERS & DYNAMIC TORCHLIGHT
-    // ─────────────────────────────────────────────────────────────
-    ctx.save();
-    ctx.globalAlpha = torchAlpha;
-    const torches = [
-      { x: 394 + pX3, y: 275 + pY3, phase: 0 },
-      { x: 517 + pX3, y: 255 + pY3, phase: 1.6 },
-      { x: 813 + pX3, y: 265 + pY3, phase: 3.1 }
-    ];
-
-    torches.forEach(tc => {
-      const flare = (_menuAmbientEvent === 'torch_flare' && _menuAmbientEventTimer > 0)
-        ? Math.sin((_menuAmbientEventTimer / 2.8) * Math.PI) * 0.7
-        : 0;
-      const flicker = Math.sin(F * 0.18 + tc.phase) * 0.12 + Math.cos(F * 0.27 + tc.phase) * 0.08 + 0.85 + flare;
-
-      // Iron Bracket Mount with Riveted Straps
-      ctx.fillStyle = '#181512';
-      ctx.fillRect(tc.x - 4, tc.y + 4, 8, 18);
-      ctx.fillStyle = '#26221f';
-      ctx.beginPath();
-      ctx.moveTo(tc.x - 8, tc.y + 2);
-      ctx.lineTo(tc.x + 8, tc.y + 2);
-      ctx.lineTo(tc.x + 5, tc.y + 11);
-      ctx.lineTo(tc.x - 5, tc.y + 11);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#ca8a04';
-      ctx.fillRect(tc.x - 1, tc.y + 5, 2, 2); // Brass rivet
-
-      // Radial Torch Warm Light Cast
-      const lightR = 76 * flicker;
-      const tg = ctx.createRadialGradient(tc.x, tc.y - 4, 2, tc.x, tc.y - 4, lightR);
-      tg.addColorStop(0, 'rgba(254, 240, 138, 0.85)');
-      tg.addColorStop(0.28, 'rgba(249, 115, 22, 0.44)');
-      tg.addColorStop(0.68, 'rgba(180, 83, 9, 0.16)');
-      tg.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = tg;
-      ctx.beginPath();
-      ctx.arc(tc.x, tc.y - 4, lightR, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Multi-stage Torch Flame (Teardrop Layers)
-      ctx.fillStyle = '#ea580c';
-      ctx.beginPath();
-      ctx.ellipse(tc.x, tc.y - 6, 5.8 * flicker, 10.5 * flicker, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#f59e0b';
-      ctx.beginPath();
-      ctx.ellipse(tc.x, tc.y - 5, 4.2 * flicker, 8.0 * flicker, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#fef08a';
-      ctx.beginPath();
-      ctx.ellipse(tc.x, tc.y - 4, 2.8 * flicker, 5.5 * flicker, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.ellipse(tc.x, tc.y - 3, 1.4 * flicker, 3.0 * flicker, 0, 0, Math.PI * 2);
-      ctx.fill();
-    });
-    ctx.restore();
-
-    // ─────────────────────────────────────────────────────────────
-    // 5. STEPPED STONE DAIS & ROWAN (PARALLAX LAYER 5: 1.0X)
-    // ─────────────────────────────────────────────────────────────
-    const pX4 = camDriftX * 1.0;
-    const pY4 = camDriftY * 1.0;
-
-    const daisX = 340 + pX4, daisY = LH - 82 + pY4;
-    // Step 1: Base Tier
-    const step1Grad = ctx.createLinearGradient(daisX, daisY, daisX, LH);
-    step1Grad.addColorStop(0, '#101524');
-    step1Grad.addColorStop(1, '#070912');
-    ctx.fillStyle = step1Grad;
-    ctx.fillRect(daisX, daisY, LW - daisX, 82);
-    ctx.fillStyle = '#202944';
-    ctx.fillRect(daisX, daisY, LW - daisX, 3);
-
-    // Step 2: Elevated Dais Platform
-    const step2Grad = ctx.createLinearGradient(daisX + 85, daisY - 28, daisX + 85, daisY);
-    step2Grad.addColorStop(0, '#182036');
-    step2Grad.addColorStop(1, '#0c101d');
-    ctx.fillStyle = step2Grad;
-    ctx.fillRect(daisX + 85, daisY - 28, LW - (daisX + 85), 110);
-    ctx.fillStyle = '#334166';
-    ctx.fillRect(daisX + 85, daisY - 28, LW - (daisX + 85), 3);
-
-    // Weathered flagstone joints on dais
-    ctx.strokeStyle = 'rgba(7, 10, 20, 0.9)';
-    ctx.lineWidth = 1.6;
-    for (let s = daisX + 115; s < LW; s += 80) {
-      ctx.beginPath();
-      ctx.moveTo(s, daisY - 28);
-      ctx.lineTo(s + 14, LH);
-      ctx.stroke();
-    }
-
-    // FOREGROUND ROWAN (HEROIC GROUNDED PIXEL-ART CHARACTER — 1.70X)
-    ctx.save();
-    ctx.globalAlpha = rowanAlpha;
-
-    const rowanScale = 1.70;
-    const rBaseX = 665 + pX4;
-    const rBaseY = LH - 110 + pY4;
-
-    // Rowan idle breath & cloak sway
-    let rBreath = Math.sin(F * 0.04) * 2.2;
-    let rCloakSway = Math.sin(F * 0.032) * 3.8;
-    let headTilt = 0;
-    let swordFlare = 1.0;
-    let stanceOffset = 0;
-
-    // Apply Idle Event Modifiers
-    if (_rowanIdleTimer > 0) {
-      const itProgress = Math.sin((_rowanIdleTimer / 3.2) * Math.PI);
-      if (_rowanIdleEvent === 'portal_gaze') {
-        headTilt = 0.18 * itProgress; // Turns helm toward portal
-      } else if (_rowanIdleEvent === 'entrance_gaze') {
-        headTilt = -0.22 * itProgress; // Turns helm toward entrance
-      } else if (_rowanIdleEvent === 'wind_burst') {
-        rCloakSway += Math.sin(F * 0.1) * 8.0 * itProgress; // Cloak billows
-      } else if (_rowanIdleEvent === 'weapon_adjust') {
-        swordFlare = 1.0 + 1.2 * itProgress; // Fuller runes flare brightly
-      } else if (_rowanIdleEvent === 'stance_shift') {
-        stanceOffset = Math.sin((_rowanIdleTimer / 3.2) * Math.PI) * 2.0;
-      }
-    }
-
-    ctx.save();
-    ctx.translate(rBaseX + stanceOffset, rBaseY);
-    ctx.scale(rowanScale, rowanScale);
-
-    // Ancient Runic Ward Circle under Rowan's feet
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.28)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.ellipse(0, 22, 34, 11, 0, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(192, 132, 252, 0.22)';
-    ctx.beginPath();
-    ctx.ellipse(0, 22, 25, 8.0, 0, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Directional Ground Cast Shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.72)';
-    ctx.beginPath();
-    ctx.ellipse(8, 22, 28, 9.0, -0.12, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Flowing Crimson Cloak (Back Layer)
-    ctx.fillStyle = '#450a0a';
-    ctx.beginPath();
-    ctx.moveTo(-16, -20 + rBreath);
-    ctx.quadraticCurveTo(-30 + rCloakSway, 6, -24 + rCloakSway * 1.2, 24);
-    ctx.lineTo(20, 24);
-    ctx.quadraticCurveTo(24 - rCloakSway, 6, 16, -20 + rBreath);
-    ctx.closePath();
-    ctx.fill();
-
-    // Inner cloak shadow folds
-    ctx.fillStyle = '#260404';
-    ctx.beginPath();
-    ctx.moveTo(-10, -14 + rBreath);
-    ctx.quadraticCurveTo(-18 + rCloakSway, 8, -12 + rCloakSway, 24);
-    ctx.lineTo(12, 24);
-    ctx.quadraticCurveTo(14 - rCloakSway, 8, 10, -14 + rBreath);
-    ctx.closePath();
-    ctx.fill();
-
-    // Armored Greaves & Sabatons
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(-11, 4, 8, 18);
-    ctx.fillRect(3, 4, 8, 18);
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(-10, 5, 4, 16);
-    ctx.fillRect(4, 5, 4, 16);
-
-    // Armored Cuirass (Breastplate)
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(-14, -18 + rBreath, 28, 24);
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(-11, -16 + rBreath, 22, 11);
-    ctx.fillStyle = '#d97706';
-    ctx.fillRect(-14, 2 + rBreath, 28, 3);
-    ctx.fillStyle = '#fde68a';
-    ctx.fillRect(-3, -2 + rBreath, 6, 8);
-    ctx.fillRect(-6, 0 + rBreath, 12, 3);
-
-    // Layered Steel Pauldrons
-    [-1, 1].forEach(side => {
-      const px = side * 15;
-      const py = -16 + rBreath;
-      ctx.fillStyle = '#334155';
-      ctx.beginPath();
-      ctx.ellipse(px, py, 7.5, 9, side * 0.25, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#ca8a04';
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-      ctx.fillStyle = '#fde68a';
-      ctx.fillRect(px - 1.5, py - 4, 3, 2.5);
-      ctx.fillStyle = '#f59e0b';
-      ctx.beginPath();
-      ctx.arc(side * 10, -18 + rBreath, 3, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    // Visored Great Helm with Head-Tilt Rotation
-    ctx.save();
-    ctx.translate(0, -32 + rBreath);
-    ctx.rotate(headTilt);
-
-    ctx.fillStyle = '#0f172a';
-    ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#1e293b';
-    ctx.fillRect(-10, 1, 20, 7);
-    ctx.fillStyle = '#475569';
-    ctx.fillRect(-9, -4, 18, 4);
-
-    // Glowing Cyan Visor Slit
-    const visorGlow = Math.sin(F * 0.08) * 0.25 + 0.75;
-    ctx.save();
-    ctx.shadowColor = '#38bdf8';
-    ctx.shadowBlur = 12 * visorGlow;
-    ctx.fillStyle = '#7dd3fc';
-    ctx.fillRect(-7, 1, 14, 3);
-    ctx.restore();
-    ctx.restore(); // restore helm
-
-    // Planted Greatsword
-    const swX = 0, swY = -10 + rBreath;
-    ctx.save();
-    ctx.strokeStyle = '#94a3b8';
-    ctx.lineWidth = 4.0;
-    ctx.beginPath();
-    ctx.moveTo(swX, swY);
-    ctx.lineTo(swX, swY + 38);
-    ctx.stroke();
-
-    // Runic Fuller (Cyan Inscription down the center)
-    const swordPulse = (Math.sin(F * 0.07) * 0.3 + 0.7) * swordFlare;
-    ctx.strokeStyle = `rgba(56, 189, 248, ${Math.min(1, swordPulse)})`;
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(swX, swY + 4);
-    ctx.lineTo(swX, swY + 32);
-    ctx.stroke();
-
-    // Crossguard & Pommel
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath();
-    ctx.moveTo(swX - 14, swY - 4);
-    ctx.lineTo(swX + 14, swY - 4);
-    ctx.lineTo(swX + 16, swY + 2);
-    ctx.lineTo(swX - 16, swY + 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = '#ca8a04';
-    ctx.beginPath(); ctx.arc(swX - 14, swY - 2, 2.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(swX + 14, swY - 2, 2.5, 0, Math.PI * 2); ctx.fill();
-
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(swX - 2, swY - 14, 4, 11);
-    ctx.fillStyle = '#fde68a';
-    ctx.beginPath(); ctx.arc(swX, swY - 16, 4, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = '#38bdf8';
-    ctx.beginPath(); ctx.arc(swX, swY - 16, 1.8, 0, Math.PI * 2); ctx.fill();
-
-    // Gauntlets resting on the pommel
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(swX - 7, swY - 18, 14, 6);
-    ctx.fillStyle = '#ca8a04';
-    ctx.fillRect(swX - 7, swY - 15, 14, 1.8);
-    ctx.restore();
-
-    ctx.restore(); // restore Rowan scale
-    ctx.restore(); // restore rowan alpha
-
-    // ─────────────────────────────────────────────────────────────
-    // 6. FOREGROUND CHAINS, ROLLING FOG & ASH (PARALLAX LAYER 6: 1.35X)
-    // ─────────────────────────────────────────────────────────────
-    const pX5 = camDriftX * 1.35;
-
-    // Swaying Iron Chains from High Vaults
-    const chains = [
-      { x: 440 + pX5, len: 170, phase: 0 },
-      { x: 565 + pX5, len: 205, phase: 1.3 },
-      { x: 745 + pX5, len: 180, phase: 2.2 }
-    ];
-
-    chains.forEach(ch => {
-      const flareSway = (_menuAmbientEvent === 'chain_sway' && _menuAmbientEventTimer > 0)
-        ? Math.sin((_menuAmbientEventTimer / 2.8) * Math.PI * 4) * 5
-        : 0;
-      const sway = Math.sin(F * 0.024 + ch.phase) * 7 + flareSway;
-      ctx.strokeStyle = 'rgba(24, 30, 48, 0.9)';
-      ctx.lineWidth = 3.8;
-      ctx.beginPath();
-      ctx.moveTo(ch.x, 0);
-      ctx.quadraticCurveTo(ch.x + sway * 0.45, ch.len * 0.55, ch.x + sway, ch.len);
-      ctx.stroke();
-
-      ctx.strokeStyle = 'rgba(100, 116, 139, 0.38)';
-      ctx.lineWidth = 1.3;
-      ctx.beginPath();
-      ctx.moveTo(ch.x + 1, 0);
-      ctx.quadraticCurveTo(ch.x + sway * 0.45 + 1, ch.len * 0.55, ch.x + sway + 1, ch.len);
-      ctx.stroke();
-
-      // Heavy Iron Weight / Shackle
-      ctx.fillStyle = '#0f172a';
-      ctx.beginPath();
-      ctx.arc(ch.x + sway, ch.len + 6, 7.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(217, 119, 6, 0.35)';
-      ctx.stroke();
-    });
-
-    // Rolling Ground Fog
-    _fogBlobs.forEach(b => {
-      b.x += b.vx;
-      if (b.x > LW + b.r) b.x = -b.r;
-      const fgPulse = b.alpha * (Math.sin(F * 0.02 + b.phase) * 0.25 + 0.75);
-      const fgGrad = ctx.createRadialGradient(b.x, b.y, b.r * 0.1, b.x, b.y, b.r);
-      fgGrad.addColorStop(0, `rgba(15, 23, 42, ${fgPulse})`);
-      fgGrad.addColorStop(0.6, `rgba(10, 15, 30, ${fgPulse * 0.6})`);
-      fgGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = fgGrad;
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    // Atmospheric Ash & Embers
-    _sparkParticles.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      if (p.y < -10) { p.y = LH + 10; p.x = Math.random() * LW; }
-      if (p.x < -10) p.x = LW + 10;
-      if (p.x > LW + 10) p.x = -10;
-
-      const alphaPulse = p.alpha * (Math.sin(F * 0.06 + p.phase) * 0.35 + 0.65);
-      ctx.fillStyle = p.type === 'ember'
-        ? `rgba(253, 230, 138, ${alphaPulse})`
-        : `rgba(192, 132, 252, ${alphaPulse * 0.8})`;
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fill();
-    });
-
-    ctx.restore(); // restore environment alpha
-
-    // ─────────────────────────────────────────────────────────────
-    // 6. LEFT-ALIGNED ORIGINAL "DUNGEON BREAK" TITLE & ORNAMENTS
-    // ─────────────────────────────────────────────────────────────
-    const leftX = 72;
-
-    ctx.save();
-    ctx.globalAlpha = logoAlpha;
-
-    const titleGlow = Math.sin(F * 0.05) * 6 + 18;
-
-    // 1. Chiseled Drop Shadow
-    ctx.fillStyle = '#010206';
-    ctx.font = '900 48px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    ctx.fillText('DUNGEON', leftX + 2.5, 96 + 2.5);
-    ctx.fillText('BREAK', leftX + 2.5, 144 + 2.5);
-
-    // 2. Luminous Ambient Glow
-    ctx.shadowColor = '#f59e0b';
-    ctx.shadowBlur = titleGlow;
-
-    // 3. Metallic Gold Vertical Gradient Fill for DUNGEON
-    const goldGrad1 = ctx.createLinearGradient(leftX, 55, leftX, 98);
-    goldGrad1.addColorStop(0, '#fffdf0');
-    goldGrad1.addColorStop(0.25, '#fde68a');
-    goldGrad1.addColorStop(0.55, '#f59e0b');
-    goldGrad1.addColorStop(0.85, '#b45309');
-    goldGrad1.addColorStop(1, '#78350f');
-    ctx.fillStyle = goldGrad1;
-    ctx.fillText('DUNGEON', leftX, 96);
-
-    // Metallic Gold Vertical Gradient Fill for BREAK
-    const goldGrad2 = ctx.createLinearGradient(leftX, 105, leftX, 148);
-    goldGrad2.addColorStop(0, '#fffdf0');
-    goldGrad2.addColorStop(0.25, '#fde68a');
-    goldGrad2.addColorStop(0.55, '#f59e0b');
-    goldGrad2.addColorStop(0.85, '#b45309');
-    goldGrad2.addColorStop(1, '#78350f');
-    ctx.fillStyle = goldGrad2;
-    ctx.fillText('BREAK', leftX, 144);
-    ctx.shadowBlur = 0;
-
-    // Subtitle
-    ctx.fillStyle = '#c084fc';
-    ctx.font = 'bold 11px Cinzel, serif';
-    ctx.shadowColor = '#a855f7';
-    ctx.shadowBlur = 8;
-    ctx.fillText('✧  ABYSS ASCENSION EDITION  ✧', leftX + 2, 170);
-    ctx.shadowBlur = 0;
-    ctx.restore();
-
-    // Symmetrical Ornamental Line under Title
-    drawTitleOrnament(ctx, leftX - 10, 192, 280, ornamentAlpha);
-
-    // ─────────────────────────────────────────────────────────────
-    // 7. TEXT-FIRST DARK-FANTASY MENU SYSTEM (NO GIANT BOXES)
+    // 2. THE INSCRIBED VANGUARD RAIL (ARCHITECTURAL NAVIGATION)
     // ─────────────────────────────────────────────────────────────
     const sv = SaveSystem.loadRun();
-    const hasSave = !!(sv && sv.lv);
+    const hasSave = SaveSystem.hasResumableRun();
+    if (sv && !hasSave) {
+      SaveSystem.clearRun();
+    }
+    const hasGift = SaveSystem.isPhase3GiftEligible();
 
     const btnConfigs = [
       {
         id: 'play',
         label: 'START JOURNEY',
         primary: true,
-        action: () => startGame()
+        action: () => {
+          startGame(true);
+        }
       },
       {
         id: 'continue',
         label: 'CONTINUE',
-        sub: hasSave ? `Floor ${sv.lv} · [ R ]` : null,
+        sub: hasSave ? ('Floor ' + (sv ? sv.lv : 1) + ' · [ R ]') : '[No active descent]',
         primary: false,
         disabled: !hasSave,
-        action: () => { if (hasSave) resumeSavedRun(); }
+        action: () => { if (SaveSystem.hasResumableRun()) resumeSavedRun(); }
       },
       {
         id: 'guide',
@@ -1262,16 +2257,22 @@ export const MainMenu = {
         action: () => GameState.setState(GameStates.CODEX)
       },
       {
+        id: 'archive',
+        label: 'ARCHIVE OF MEMORIES',
+        primary: false,
+        action: () => CinematicArchiveUI.open(GameStates.TITLE)
+      },
+      {
         id: 'achievements',
         label: 'ACHIEVEMENTS',
         primary: false,
-        action: () => GameState.setState(GameStates.ACHIEVEMENTS)
+        action: () => openAchievements(GameStates.TITLE)
       },
       {
         id: 'settings',
         label: 'SETTINGS',
         primary: false,
-        action: () => GameState.setState(GameStates.SETTINGS)
+        action: () => openSettings(GameStates.TITLE)
       },
       {
         id: 'credits',
@@ -1281,7 +2282,7 @@ export const MainMenu = {
       }
     ];
 
-    if (SaveSystem.isPhase3GiftEligible()) {
+    if (hasGift) {
       btnConfigs.push({
         id: 'the_last_ember',
         label: 'THE LAST EMBER',
@@ -1294,159 +2295,212 @@ export const MainMenu = {
       });
     }
 
-    const hasGift = SaveSystem.isPhase3GiftEligible();
-    const btnW = 270;
-    const btnH = hasGift ? 26.5 : 29;
-    const btnStartY = hasGift ? 196 : 202;
-    const btnGap = hasGift ? 5.5 : 6.5;
+    const btnW = 292;
+    const count = btnConfigs.length;
+    const btnStartY = count >= 10 ? 168 : (count >= 9 ? 172 : 176);
+    const btnGap = count >= 10 ? 4.0 : (count >= 9 ? 4.5 : 5.0);
 
+    // Precalculate precise physical geometry per button
+    let currentY = btnStartY;
+    const buttonLayouts = btnConfigs.map((cfg, idx) => {
+      const bh = cfg.primary ? (count >= 10 ? 38 : (count >= 9 ? 40 : 42)) : (count >= 10 ? 30 : (count >= 9 ? 31 : 32));
+      const layout = {
+        cfg,
+        idx,
+        x: leftX,
+        y: currentY,
+        w: btnW,
+        h: bh
+      };
+      currentY += bh + btnGap;
+      return layout;
+    });
+
+    const totalMenuH = currentY - btnStartY - btnGap;
+
+    // Mouse coordinates and 1:1 Hitbox mapping
     const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
     const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
+    const mouseMoved = (Math.abs(mouseX - _lastMouseX) > 1 || Math.abs(mouseY - _lastMouseY) > 1) && mouseX > -900;
+    if (mouseMoved) {
+      _lastMouseX = mouseX;
+      _lastMouseY = mouseY;
+    }
 
     let hoveredIndex = -1;
 
-    btnConfigs.forEach((cfg, idx) => {
-      const by = btnStartY + idx * (btnH + btnGap);
+    buttonLayouts.forEach(({ cfg, idx, x, y, w, h }) => {
       _titleBtns.push({
         id: cfg.id,
-        x: leftX,
-        y: by,
-        w: btnW,
-        h: btnH,
+        idx: idx,
+        x: x,
+        y: y,
+        w: w,
+        h: h,
         disabled: cfg.disabled,
         action: cfg.action
       });
 
-      if (mouseX >= leftX && mouseX <= leftX + btnW && mouseY >= by && mouseY <= by + btnH) {
+      if (mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h) {
         hoveredIndex = idx;
       }
     });
 
-    if (hoveredIndex !== -1 && hoveredIndex !== _focusedIndex && !_howToPlayActive) {
-      _focusedIndex = hoveredIndex;
+    if (mouseMoved && hoveredIndex !== -1 && !_howToPlayActive) {
+      _lastInputMode = 'mouse';
+      if (hoveredIndex !== _focusedIndex) {
+        _focusedIndex = hoveredIndex;
+      }
       if (_lastHoveredIndex !== hoveredIndex) {
         SoundManager.snd('menu_hover');
         _lastHoveredIndex = hoveredIndex;
       }
-    } else if (hoveredIndex === -1) {
+    } else if (hoveredIndex === -1 && mouseMoved) {
       _lastHoveredIndex = -1;
     }
 
-    // Render Text-First Menu Items
-    btnConfigs.forEach((cfg, idx) => {
-      const by = btnStartY + idx * (btnH + btnGap);
+    // ─────────────────────────────────────────────────────────────
+    // RENDER BESPOKE ABYSSAL REGALIA BUTTON CONTROLS
+    // ─────────────────────────────────────────────────────────────
+    buttonLayouts.forEach(({ cfg, idx, x, y, w, h }) => {
       const isFocused = (_focusedIndex === idx) && !_howToPlayActive;
+      const isHovered = (_lastInputMode === 'mouse' && hoveredIndex === idx) && !_howToPlayActive;
       const isDisabled = !!cfg.disabled;
+      const isGift = !!cfg.isGift;
 
       // Staggered reveal timeline per option
-      const delay = 2.4 + idx * 0.08;
-      const progress = Math.max(0, Math.min(1, (_revealTimer - delay) / 0.32));
+      const delay = 1.0 + idx * 0.05;
+      const progress = Math.max(0, Math.min(1, (_revealTimer - delay) / 0.28));
       const eased = 1 - Math.pow(1 - progress, 3);
-      const slideX = leftX + (isFocused ? 6 : 0);
       const alpha = Math.max(0, eased) * btnsAlpha;
 
-      ctx.save();
-      ctx.globalAlpha = alpha;
-
-      // Focused Indicator: Subtle Backplate, Left Accent & Animated Diamond Glyph ◈
-      if (isFocused) {
-        // Soft dark-slate focus backplate
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.09)';
-        ctx.strokeStyle = 'rgba(245, 158, 11, 0.38)';
-        ctx.lineWidth = 1;
-        roundRect(ctx, slideX - 22, by - 2, btnW + 10, btnH + 4, 4);
-        ctx.fill();
-        ctx.stroke();
-
-        // Left antique gold accent bar
-        ctx.fillStyle = '#fde68a';
-        ctx.fillRect(slideX - 22, by + 2, 2.5, btnH - 4);
-
-        const glyphPulse = Math.sin(F * 0.1) * 2 + 10;
-        ctx.save();
-        ctx.fillStyle = '#fde68a';
-        ctx.shadowColor = '#f59e0b';
-        ctx.shadowBlur = glyphPulse;
-        ctx.font = '13px Cinzel, serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('◈', slideX - 11, by + btnH / 2);
-        ctx.restore();
-      }
-
-      // Main Text Label
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-
-      // Drop shadow for legibility over background
-      ctx.fillStyle = '#010205';
-      ctx.font = `bold ${isFocused ? 16 : 15}px Cinzel, serif`;
-      ctx.fillText(cfg.label, slideX + 1.5, by + btnH / 2 + 1.5);
-
-      if (isDisabled) {
-        ctx.fillStyle = '#475569';
-      } else if (isFocused) {
-        ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = cfg.isGift ? '#f59e0b' : '#fef08a';
-        ctx.shadowBlur = cfg.isGift ? 12 : 10;
-      } else if (cfg.isGift) {
-        ctx.fillStyle = '#fbbf24';
-      } else if (cfg.primary) {
-        ctx.fillStyle = '#fde68a';
-      } else {
-        ctx.fillStyle = '#cbd5e1';
-      }
-      ctx.fillText(cfg.label, slideX, by + btnH / 2);
-      ctx.shadowBlur = 0;
-
-      // Subtitle hint on right (measured accurately with Cinzel font)
-      if (cfg.sub) {
-        ctx.font = `bold ${isFocused ? 16 : 15}px Cinzel, serif`;
-        const labelW = ctx.measureText(cfg.label).width;
-        ctx.textAlign = 'left';
-        ctx.font = 'italic 11px "Crimson Text", serif';
-        ctx.fillStyle = isFocused ? '#fde68a' : (cfg.isGift ? '#fef3c7' : (isDisabled ? '#475569' : 'rgba(148, 163, 184, 0.55)'));
-        ctx.fillText(cfg.sub, slideX + labelW + 16, by + btnH / 2 + 1);
-      }
-
-      // Subtle Illuminated Underline for Focused Item
-      if (isFocused) {
-        const underY = by + btnH - 3;
-        const lineGrad = ctx.createLinearGradient(slideX - 20, underY, slideX + 220, underY);
-        lineGrad.addColorStop(0, 'rgba(253, 230, 138, 0.9)');
-        lineGrad.addColorStop(0.5, 'rgba(245, 158, 11, 0.6)');
-        lineGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
-        ctx.strokeStyle = lineGrad;
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(slideX - 20, underY);
-        ctx.lineTo(slideX + 200, underY);
-        ctx.stroke();
-      }
-
-      ctx.restore();
+      drawRegaliaButton(
+        ctx,
+        cfg,
+        x,
+        y,
+        w,
+        h,
+        isFocused,
+        isHovered,
+        isDisabled,
+        isGift,
+        F,
+        alpha
+      );
     });
 
     // ─────────────────────────────────────────────────────────────
-    // 8. FOOTER STATUS BAR & KEYBOARD CONTROLS LEGEND
+    // 3. COMPACT STATUS PLAQUES (TOTAL SOULS & PRESTIGE)
+    // ─────────────────────────────────────────────────────────────
+    const statusY = currentY + (hasGift ? 6 : 8);
+    drawStatusPlaques(
+      ctx,
+      leftX,
+      statusY,
+      GameState.ABYSS_SOULS || 0,
+      GameState.PRESTIGE_TOKENS || 0,
+      F,
+      btnsAlpha
+    );
+
+    // ─────────────────────────────────────────────────────────────
+    // 4. UPPER-RIGHT PLAYER RECORDS (BEST CLEAR & TOTAL DEATHS)
+    // ─────────────────────────────────────────────────────────────
+    drawPersonalRecords(ctx, btnsAlpha, F);
+
+    // ─────────────────────────────────────────────────────────────
+    // 4. KEYBOARD CONTROLS LEGEND & AUDIO STATUS
     // ─────────────────────────────────────────────────────────────
     ctx.save();
     ctx.globalAlpha = btnsAlpha;
+    const isAudioWaiting = (typeof MusicManager !== 'undefined' && !MusicManager.isUnlocked());
 
-    ctx.fillStyle = 'rgba(192, 132, 252, 0.95)';
-    ctx.font = 'bold 11px Cinzel, serif';
-    ctx.textAlign = 'left';
-    const soulsStr = '◈ TOTAL SOULS: ' + (GameState.ABYSS_SOULS || 0);
-    ctx.fillText(soulsStr, leftX + 4, LH - 38);
-    const soulsW = ctx.measureText(soulsStr).width;
-    drawSurvivalSigil(ctx, 'crown', leftX + 4 + soulsW + 20, LH - 42);
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.95)';
-    ctx.fillText('PRESTIGE: ' + (GameState.PRESTIGE_TOKENS || 0), leftX + 4 + soulsW + 34, LH - 38);
+    // Primary Control Hints (Exact Format matching Reference)
+    ctx.fillStyle = 'rgba(167, 139, 250, 0.80)';
+    const isMob = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width:900px),(pointer:coarse)').matches;
+    const navHint = isMob
+      ? '✦ TAP TO SELECT · EXPLORE THE DESCENT ✦'
+      : '↑ / ↓ — NAVIGATE   ENTER / SPACE — SELECT   WASD — MOVE IN-GAME   ESC — PAUSE';
+    ctx.fillText(navHint, leftX, LH - 18);
 
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.70)';
-    ctx.font = '10px Cinzel, serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('↑ / ↓ — Navigate    Enter / Space — Select    WASD — Move in-game    Esc — Pause', leftX + 4, LH - 18);
+    // Audio awaken hint on right side if audio is still locked
+    if (isAudioWaiting) {
+      const pulse = Math.sin(F * 0.08) * 0.25 + 0.75;
+      ctx.textAlign = 'right';
+      ctx.fillStyle = `rgba(253, 230, 138, ${pulse * 0.85})`;
+      ctx.font = 'bold 9px Cinzel, serif';
+      ctx.fillText('✦ CLICK TO AWAKEN AUDIO', LW - 24, LH - 18);
+    }
+    ctx.restore();
+
+    // ─────────────────────────────────────────────────────────────
+    // 5. SECRET DEVELOPER SANCTUM RELIC BUTTON (BOTTOM-RIGHT)
+    // ─────────────────────────────────────────────────────────────
+    const relicW = 44, relicH = 38;
+    const relicX = LW - relicW - 24;
+    const relicY = LH - relicH - 34;
+    _relicBtnRect = { x: relicX, y: relicY, w: relicW, h: relicH };
+
+    const isHoverRelic = mouseX >= relicX && mouseX <= relicX + relicW && mouseY >= relicY && mouseY <= relicY + relicH;
+
+    ctx.save();
+    ctx.globalAlpha = btnsAlpha;
+
+    // Outer obsidian and amethyst chamfered relic
+    ctx.fillStyle = isHoverRelic ? 'rgba(30, 16, 50, 0.95)' : 'rgba(12, 8, 24, 0.90)';
+    ctx.strokeStyle = isHoverRelic ? '#fde68a' : 'rgba(217, 119, 6, 0.65)';
+    ctx.lineWidth = isHoverRelic ? 1.5 : 1.0;
+    roundRect(ctx, relicX, relicY, relicW, relicH, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // Fine inner amethyst hairline
+    ctx.strokeStyle = isHoverRelic ? 'rgba(192, 132, 252, 0.7)' : 'rgba(147, 51, 234, 0.35)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, relicX + 3, relicY + 3, relicW - 6, relicH - 6, 3);
+    ctx.stroke();
+
+    // Subtle crimson glow on hover
+    if (isHoverRelic) {
+      ctx.save();
+      const rg = ctx.createRadialGradient(relicX + relicW / 2, relicY + relicH / 2, 4, relicX + relicW / 2, relicY + relicH / 2, 32);
+      rg.addColorStop(0, 'rgba(220, 38, 38, 0.25)');
+      rg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = rg;
+      ctx.fillRect(relicX - 10, relicY - 10, relicW + 20, relicH + 20);
+      ctx.restore();
+    }
+
+    // The Exact Approved Red Pixel-Art Eye (from Shattered Mind)
+    const isRedMotion = typeof window !== 'undefined' &&
+      ((window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || GameState.REDUCED_MOTION);
+    const eyeBlink = isRedMotion ? 0 : Math.max(0, Math.sin(F * 0.035) - 0.92) * 12.5;
+    drawPixelEye(ctx, relicX + relicW / 2, relicY + relicH / 2, 0.44, eyeBlink, F);
+
+    // Restrained Tooltip: SEALED SANCTUM
+    if (isHoverRelic) {
+      ctx.save();
+      ctx.font = 'bold 9px Cinzel, serif';
+      const tipText = 'SEALED SANCTUM';
+      const tw = ctx.measureText(tipText).width + 16;
+      const tx = relicX + relicW / 2 - tw / 2;
+      const ty = relicY - 22;
+
+      ctx.fillStyle = 'rgba(7, 10, 22, 0.96)';
+      ctx.strokeStyle = 'rgba(217, 119, 6, 0.8)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, tx, ty, tw, 18, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#fde68a';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tipText, tx + tw / 2, ty + 9);
+      ctx.restore();
+    }
+
     ctx.restore();
 
     // ─────────────────────────────────────────────────────────────
@@ -1457,7 +2511,7 @@ export const MainMenu = {
       ctx.fillStyle = 'rgba(2, 4, 10, 0.90)';
       ctx.fillRect(0, 0, LW, LH);
 
-      const mw = 830, mh = 506;
+      const mw = Math.min(830, LW - 24), mh = Math.min(506, LH - 24);
       const mx = Math.round((LW - mw) / 2), my = Math.round((LH - mh) / 2);
 
       // Deep grimoire folio slab
@@ -1535,16 +2589,17 @@ export const MainMenu = {
       ctx.fillStyle = isMobileMode ? '#ffffff' : '#94a3b8';
       ctx.fillText('📱 TOUCH / MOBILE', mobBtnX + mobBtnW / 2, swBtnY + swBtnH / 2);
 
-      // Five Chapter Folio Tabs
+      // Six Chapter Folio Tabs
       const chapterTabs = [
         { id: 0, label: 'I · ARSENAL' },
         { id: 1, label: 'II · FOOTWORK' },
         { id: 2, label: 'III · SANITY' },
         { id: 3, label: 'IV · RALLY' },
-        { id: 4, label: 'V · BOSSES' }
+        { id: 4, label: 'V · BOSSES' },
+        { id: 5, label: 'VI · TEMPO' }
       ];
 
-      const tabW = 148, tabH = 26;
+      const tabW = 120, tabH = 26;
       const tabStartX = mx + Math.round((mw - (chapterTabs.length * tabW + (chapterTabs.length - 1) * 6)) / 2);
       const tabY = my + 50;
 
@@ -2210,6 +3265,214 @@ export const MainMenu = {
           ctx.textBaseline = 'middle';
           ctx.fillText(b.sigil, leftX + leftW - 46, by + 42);
         });
+      } else if (_fieldGuideChapter === 5) {
+        // CHAPTER 5: TIME & TEMPO (SPEED PRESETS & SPEEDRUN INTEGRITY)
+        const cx = leftX + leftW / 2;
+
+        if (!isMobileMode) {
+          // KEYBOARD / PC PANEL: Hotkeys O & P and Tempo Presets
+          ctx.fillStyle = '#fde68a';
+          ctx.font = 'bold 11px Cinzel, serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText('KEYBOARD TEMPO REGULATION', cx, spreadY + 36);
+
+          // Keycap displays for [ O ] and [ P ]
+          const keyW = 84, keyH = 46;
+          const keyY = spreadY + 54;
+          const kx1 = cx - 90;
+          const kx2 = cx + 6;
+
+          // Key O
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+          roundRect(ctx, kx1, keyY, keyW, keyH, 6);
+          ctx.fill();
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 16px monospace';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('O', kx1 + keyW / 2, keyY + 18);
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = 'bold 8px Cinzel, serif';
+          ctx.fillText('-0.25× SLOW', kx1 + keyW / 2, keyY + 34);
+
+          // Key P
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+          roundRect(ctx, kx2, keyY, keyW, keyH, 6);
+          ctx.fill();
+          ctx.strokeStyle = '#f97316';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.fillStyle = '#f97316';
+          ctx.font = 'bold 16px monospace';
+          ctx.fillText('P', kx2 + keyW / 2, keyY + 18);
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = 'bold 8px Cinzel, serif';
+          ctx.fillText('+0.25× FAST', kx2 + keyW / 2, keyY + 34);
+
+          // 4 Preset Cards
+          const presetY = spreadY + 108;
+          const presets = [
+            { spd: '0.50×', name: 'TACTICAL SLOMO', desc: 'Telegraphed pattern study', col: '#38bdf8' },
+            { spd: '1.00×', name: 'STANDARD', desc: 'Canonical dungeon pacing', col: '#94a3b8' },
+            { spd: '1.50×', name: 'ACCELERATED', desc: 'Swift descent & room clear', col: '#fbbf24' },
+            { spd: '2.00×', name: 'HYPER-TEMPO', desc: 'Max reflexes mastery test', col: '#f97316' }
+          ];
+
+          presets.forEach((p, idx) => {
+            const py = presetY + idx * 34;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.82)';
+            roundRect(ctx, cx - 165, py, 330, 28, 4);
+            ctx.fill();
+            ctx.strokeStyle = p.col;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Preset speed badge
+            ctx.fillStyle = p.col;
+            ctx.font = 'bold 9.5px monospace';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(p.spd, cx - 154, py + 14);
+
+            // Name
+            ctx.fillStyle = '#fde68a';
+            ctx.font = 'bold 8.5px Cinzel, serif';
+            ctx.fillText(p.name, cx - 100, py + 14);
+
+            // Desc
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'italic 8px "Crimson Text", serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(p.desc, cx + 154, py + 14);
+          });
+
+          // Speedrun Integrity Notice
+          const infY = spreadY + 252;
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
+          roundRect(ctx, cx - 165, infY, 330, 96, 6);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(202, 138, 4, 0.6)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffd700';
+          ctx.font = 'bold 9.5px Cinzel, serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText('⏱ SPEEDRUNNING & ACTIVE TIMER INTEGRITY', cx, infY + 12);
+          ctx.fillStyle = '#e2e8f0';
+          ctx.font = '9px "Crimson Text", serif';
+          ctx.fillText('Official floor & run timers track true unscaled wall-clock seconds.', cx, infY + 34);
+          ctx.fillStyle = '#94a3b8';
+          ctx.font = 'italic 8.5px "Crimson Text", serif';
+          ctx.fillText('Speed adjustments alter combat pace, not official completion records.', cx, infY + 54);
+          ctx.fillText('Hall of Fame records, achievements, and speed splits remain pure.', cx, infY + 72);
+
+        } else {
+          // TOUCH / MOBILE PANEL: Demonstrating HUD Speed Badge & Selector
+          ctx.fillStyle = '#fde68a';
+          ctx.font = 'bold 11px Cinzel, serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText('TOUCH HUD SPEED REGULATOR', cx, spreadY + 36);
+
+          // Simulated HUD top bar showing the real badge
+          const hudMockY = spreadY + 54;
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+          roundRect(ctx, cx - 165, hudMockY, 330, 52, 6);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(51, 65, 85, 0.6)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+
+          // Render simulated HUD Speed Badge
+          const badgeW = 160, badgeH = 36;
+          const badgeX = cx - badgeW / 2, badgeY = hudMockY + 8;
+          ctx.fillStyle = 'rgba(9, 13, 22, 0.95)';
+          roundRect(ctx, badgeX, badgeY, badgeW, badgeH, 6);
+          ctx.fill();
+          ctx.strokeStyle = '#ffd700';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffd700';
+          ctx.font = 'bold 10.5px Cinzel, serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('◈ SPEED: 1.00x', cx, badgeY + 12);
+          ctx.fillStyle = '#67e8f9';
+          ctx.font = 'bold 8.5px Cinzel, serif';
+          ctx.fillText('[ TAP TO ADJUST ]', cx, badgeY + 25);
+
+          // Popout Speed Selector Demonstration below
+          const selDemoY = spreadY + 116;
+          ctx.fillStyle = 'rgba(14, 11, 24, 0.98)';
+          roundRect(ctx, cx - 140, selDemoY, 280, 44, 8);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(202, 138, 4, 0.9)';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          // Presets row inside selector
+          const pBtns = ['0.50×', '1.00×', '1.50×', '2.00×'];
+          pBtns.forEach((pText, i) => {
+            const bx = cx - 132 + i * 66;
+            const by = selDemoY + 6;
+            const isAct = (i === 1); // 1.00x active
+            ctx.fillStyle = isAct ? 'rgba(217, 119, 6, 0.4)' : 'rgba(26, 20, 39, 0.85)';
+            roundRect(ctx, bx, by, 60, 32, 5);
+            ctx.fill();
+            ctx.strokeStyle = isAct ? '#ffd700' : 'rgba(71, 85, 105, 0.6)';
+            ctx.lineWidth = isAct ? 1.5 : 1;
+            ctx.stroke();
+
+            ctx.fillStyle = isAct ? '#fde68a' : '#cbd5e1';
+            ctx.font = isAct ? 'bold 9.5px Cinzel, serif' : '9px Cinzel, serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(pText, bx + 30, by + 16);
+            if (isAct) {
+              ctx.fillStyle = '#f59e0b';
+              ctx.fillRect(bx + 18, by + 26, 24, 2);
+            }
+          });
+
+          // Tap guidance step callouts
+          const calloutY = spreadY + 172;
+          const steps = [
+            '1. Tap the [ SPEED: 1.00x ] badge in the top right during active combat.',
+            '2. The instant selector bar reveals all four simulation presets.',
+            '3. Tap any preset (0.50×, 1.00×, 1.50×, 2.00×) to apply immediately.',
+            '4. Tapping outside dismisses cleanly without triggering accidental attacks.'
+          ];
+
+          steps.forEach((step, sIdx) => {
+            const sy = calloutY + sIdx * 30;
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
+            roundRect(ctx, cx - 165, sy, 330, 24, 4);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.fillStyle = '#fde68a';
+            ctx.font = '8.5px "Crimson Text", serif';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(step, cx - 155, sy + 12);
+          });
+
+          // Speedrun footnote
+          ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
+          ctx.font = 'italic 8.5px "Crimson Text", serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText('Official speedrun records track true elapsed time; simulation speed changes never alter records.', cx, spreadY + 304);
+        }
       }
 
       // ── Right Folio: Tactical Doctrine & Directives (Platform Aware) ──
@@ -2282,6 +3545,21 @@ export const MainMenu = {
             { tag: '[ WARDEN · FL 10 ]', desc: 'The ancient monarch telekinetically controls soaring greatswords across 3 lethal phases.' }
           ],
           tip: 'Tip: Defeating citadel bosses unlocks forged thresholds leading into deeper dimensional chambers.'
+        },
+        {
+          num: 'CHAPTER VI',
+          title: 'TIME & TEMPO',
+          subtitle: 'Temporal Drift & Speedrunning Integrity',
+          points: isMobileMode ? [
+            { tag: '[ LIVE HUD SELECTOR ]', desc: 'Tap the speed indicator in the top-right HUD to summon the four-tier speed selector without opening pause or settings.' },
+            { tag: '[ 4 SIMULATION PRESETS ]', desc: 'Select 0.50× (Tactical Slomo), 1.00× (Standard), 1.50× (Accelerated), or 2.00× (Hyper-Tempo) on the fly.' },
+            { tag: '[ SPEEDRUN INTEGRITY ]', desc: 'Official descent records, split timers, and floor goals measure true elapsed wall-clock seconds. Simulation tempo changes never corrupt official times.' }
+          ] : [
+            { tag: '[ O / P HOTKEYS ]', desc: 'Press [ O ] to decrease simulation tempo by 0.25× and [ P ] to increase tempo by 0.25× during live combat.' },
+            { tag: '[ 4 SIMULATION PRESETS ]', desc: 'Select 0.50× (Tactical Slomo), 1.00× (Standard), 1.50× (Accelerated), or 2.00× (Hyper-Tempo) on the fly.' },
+            { tag: '[ SPEEDRUN INTEGRITY ]', desc: 'Official descent records, split timers, and floor goals measure true elapsed wall-clock seconds. Simulation tempo changes never corrupt official times.' }
+          ],
+          tip: 'Tip: Slow down to 0.50× to learn complex boss telegraphed patterns; speed up to 2.00× once mastered for intense fast-paced clearing.'
         }
       ];
 
@@ -2569,6 +3847,16 @@ export const MainMenu = {
       ctx.restore();
     }
 
+    // 10. PRE-DESCENT LOADOUT CALIBRATION MODAL (STANDARD RUNS)
+    if (_loadoutModalOpen) {
+      drawPreDescentLoadoutModal(ctx, dt, mouseX, mouseY);
+    }
+
+    // 11. DEVELOPER SANCTUM ACCESS GATE MODAL
+    if (DeveloperSanctumUI.isGateOpen()) {
+      DeveloperSanctumUI.draw(ctx, dt);
+    }
+
     if (_returnGoldenWash > 0) {
       ctx.save();
       ctx.fillStyle = `rgba(255, 248, 231, ${_returnGoldenWash})`;
@@ -2579,6 +3867,14 @@ export const MainMenu = {
 
   handleClick(mx, my) {
     AudioManager.init();
+
+    if (DeveloperSanctumUI.isGateOpen()) {
+      if (DeveloperSanctumUI.handleClick(mx, my)) return true;
+    }
+
+    if (_loadoutModalOpen) {
+      if (handleLoadoutModalClick(mx, my)) return true;
+    }
 
     if (_giftModalOpen) {
       for (const btn of _giftModalBtns) {
@@ -2626,11 +3922,11 @@ export const MainMenu = {
         return true;
       }
 
-      // Chapter tabs click detection (5 tabs)
-      const tabW = 148, tabH = 26;
-      const tabStartX = mxX + Math.round((mw - (5 * tabW + 4 * 6)) / 2);
+      // Chapter tabs click detection (6 tabs)
+      const tabW = 120, tabH = 26;
+      const tabStartX = mxX + Math.round((mw - (6 * tabW + 5 * 6)) / 2);
       const tabY = myY + 50;
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         const tx = tabStartX + i * (tabW + 6);
         if (mx >= tx && mx <= tx + tabW && my >= tabY && my <= tabY + tabH) {
           _fieldGuideChapter = i;
@@ -2665,7 +3961,7 @@ export const MainMenu = {
       const leftX = mxX + 20;
       const bBarY = myY + mh - 44;
       if (mx >= leftX && mx <= leftX + 130 && my >= bBarY && my <= bBarY + 30) {
-        _fieldGuideChapter = (_fieldGuideChapter - 1 + 5) % 5;
+        _fieldGuideChapter = (_fieldGuideChapter - 1 + 6) % 6;
         _fieldGuideDemoRunning = false;
         _fieldGuideDemoCompleted = false;
         _fieldGuideDemoTimer = 0;
@@ -2676,7 +3972,7 @@ export const MainMenu = {
       // Next Doctrine button
       const nextX = leftX + 140;
       if (mx >= nextX && mx <= nextX + 130 && my >= bBarY && my <= bBarY + 30) {
-        _fieldGuideChapter = (_fieldGuideChapter + 1) % 5;
+        _fieldGuideChapter = (_fieldGuideChapter + 1) % 6;
         _fieldGuideDemoRunning = false;
         _fieldGuideDemoCompleted = false;
         _fieldGuideDemoTimer = 0;
@@ -2722,7 +4018,10 @@ export const MainMenu = {
 
     // Check text-first buttons with comfortable hit box
     for (const b of _titleBtns) {
-      if (mx >= b.x - 20 && mx <= b.x + b.w + 10 && my >= b.y - 4 && my <= b.y + b.h + 4) {
+      if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+        if (typeof b.idx === 'number') {
+          _focusedIndex = b.idx;
+        }
         if (b.disabled) {
           SoundManager.snd('error_disabled');
           return true;
@@ -2733,8 +4032,10 @@ export const MainMenu = {
       }
     }
 
-    if (mx >= 50 && mx <= 320 && my >= 220 && my <= 280) {
-      startGame();
+    // Secret Relic Button (Developer Sanctum)
+    if (_relicBtnRect && mx >= _relicBtnRect.x && mx <= _relicBtnRect.x + _relicBtnRect.w &&
+        my >= _relicBtnRect.y && my <= _relicBtnRect.y + _relicBtnRect.h) {
+      DeveloperSanctumUI.openGate();
       return true;
     }
 
@@ -2766,6 +4067,32 @@ export const MainMenu = {
     _fieldGuideDemoRunning = false;
     _fieldGuideDemoCompleted = false;
     _fieldGuideDemoTimer = 0;
+  },
+  getFocusedIndex() {
+    return _focusedIndex;
+  },
+  getTitleButtons() {
+    return _titleBtns;
+  },
+  isHowToPlayActive() {
+    return _howToPlayActive;
+  },
+  setSurvivalGuideMode(mode) {
+    if (mode === 'pc' || mode === 'mobile') {
+      _fieldGuideInputMode = mode;
+      _fieldGuideDemoRunning = false;
+      _fieldGuideDemoTimer = 0;
+    }
+  },
+  setSurvivalGuideChapter(chap) {
+    _fieldGuideChapter = (chap % 6 + 6) % 6;
+  },
+  getSurvivalGuideState() {
+    return {
+      active: _howToPlayActive,
+      chapter: _fieldGuideChapter,
+      mode: _fieldGuideInputMode
+    };
   },
   handleSurvivalGuideClick(mx, my) {
     return this.handleClick(mx, my);

@@ -8,14 +8,16 @@ import { GameLoop } from './core/GameLoop.js';
 import { Renderer } from './rendering/Renderer.js';
 import { GameState, GameStates } from './core/GameState.js';
 import { InputManager } from './core/InputManager.js';
-import { LW, LH } from './core/Constants.js';
+import { LW, LH, setLogicalDimensions } from './core/Constants.js';
 import { CombatSystem } from './combat/CombatSystem.js';
 import { WeaponInventory } from './weapons/WeaponInventory.js';
+import { LootSystem } from './systems/LootSystem.js';
 import { HUD } from './ui/HUD.js';
 import { PauseMenu, pauseGame, resumeGame, quitToMainMenu, SettingsUI, AchievementsUI } from './ui/PauseMenu.js';
 import { CodexUI } from './ui/CodexUI.js';
 import { SanctumUI } from './ui/SanctumUI.js';
 import { MainMenu, startGame, resumeSavedRun } from './ui/MainMenu.js';
+import { MobileControls } from './ui/MobileControls.js';
 import { CinematicDirector } from './cinematics/CinematicDirector.js';
 import { DeathCinematics } from './cinematics/DeathCinematics.js';
 import { ShatteredMindCinematic } from './cinematics/ShatteredMindCinematic.js';
@@ -23,15 +25,21 @@ import { HeroCinematic } from './cinematics/HeroCinematic.js';
 import { BetrayalCinematic } from './cinematics/BetrayalCinematic.js';
 import { RampageCinematic } from './cinematics/RampageCinematic.js';
 import { EndingCinematics, EndingDispatcher, ACTIVE_ENDING } from './cinematics/EndingCinematics.js';
+import { EpilogueCinematic } from './cinematics/EpilogueCinematic.js';
 import { WardenDefeatCinematic } from './cinematics/WardenDefeatCinematic.js';
 import { GorgarothCinematics } from './cinematics/GorgarothCinematics.js';
 import { Credits } from './cinematics/Credits.js';
 import { LastEmberCinematic } from './cinematics/LastEmberCinematic.js';
 import { BossIntros } from './cinematics/BossIntros.js';
+import { CinematicSafety } from './cinematics/CinematicSafety.js';
+import { CinematicReplayContext } from './cinematics/CinematicReplayContext.js';
+import { CinematicArchiveUI } from './ui/CinematicArchiveUI.js';
+import { DeveloperSanctumUI } from './ui/DeveloperSanctumUI.js';
 import { FloorManager } from './world/FloorManager.js';
 import { Portal } from './world/Portal.js';
 import { Interactables } from './world/Interactables.js';
 import { EventBus } from './core/EventBus.js';
+import { SoundManager } from './audio/AudioManager.js';
 import { HallucinationSystem } from './systems/HallucinationSystem.js';
 import { SanitySystem, SANITY_KILL_DEPTH_MULT } from './systems/SanitySystem.js';
 
@@ -54,22 +62,38 @@ function bootstrap() {
   canvas.width = LW;
   canvas.height = LH;
 
-  // Responsive scaling
+  // Responsive edge-to-edge full viewport scaling without black gutters
   function resizeCanvas() {
     const sw = window.innerWidth;
     const sh = window.innerHeight;
-    const scale = Math.min(sw / LW, sh / LH);
-    const cw = Math.floor(LW * scale);
-    const ch = Math.floor(LH * scale);
-    const offX = Math.floor((sw - cw) / 2);
-    const offY = Math.floor((sh - ch) / 2);
+    const aspect = sw / sh;
 
-    canvas.style.width = cw + 'px';
-    canvas.style.height = ch + 'px';
-    canvas.style.left = offX + 'px';
-    canvas.style.top = offY + 'px';
+    let targetLW, targetLH;
+    if (aspect >= 1.4) {
+      // Landscape: keep logical height 640, expand width to fill screen edge-to-edge
+      targetLH = 640;
+      targetLW = Math.round(640 * aspect);
+    } else {
+      // Portrait / Narrow: keep logical width 896, expand height to fill screen edge-to-edge
+      targetLW = 896;
+      targetLH = Math.round(896 / aspect);
+    }
 
-    InputManager.setCanvasScale(scale);
+    setLogicalDimensions(targetLW, targetLH);
+
+    canvas.width = targetLW;
+    canvas.height = targetLH;
+
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.left = '0px';
+    canvas.style.top = '0px';
+
+    InputManager.setCanvasScale(sw / targetLW);
+
+    if (typeof MobileControls !== 'undefined' && MobileControls.updateTouchVis) {
+      MobileControls.updateTouchVis();
+    }
   }
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
@@ -79,42 +103,10 @@ function bootstrap() {
   window.addEventListener('keydown', (e) => {
     const k = e.key;
 
-    // 0. Global Developer & Replay Ending Shortcuts (Works unconditionally in ANY game state)
-    // Rampage: Shift+R, Alt+R, or Mac Option+R (®)
-    // Betrayal: Shift+B, Alt+B, or Mac Option+B (∫)
-    // Hero: Shift+H, Alt+H, or Mac Option+H (˙)
-    const isShiftOrAlt = (e.shiftKey || e.altKey) && !e.ctrlKey && !e.metaKey;
-    const isInputFocused = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
-
-    if (isShiftOrAlt && !isInputFocused) {
-      if (e.code === 'KeyR' || e.key === 'r' || e.key === 'R' || e.key === '®') {
+    // Developer Sanctum Gate / Chamber Intercept
+    if (DeveloperSanctumUI.isGateOpen() || GameState.STATE === GameStates.DEVELOPER_SANCTUM) {
+      if (DeveloperSanctumUI.handleKeyDown(k)) {
         e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.triggerRampageEnding === 'function') {
-          window.triggerRampageEnding();
-        } else if (typeof RampageCinematic !== 'undefined' && RampageCinematic.start) {
-          RampageCinematic.start();
-        }
-        return;
-      }
-      if (e.code === 'KeyB' || e.key === 'b' || e.key === 'B' || e.key === '∫') {
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.triggerBetrayalEnding === 'function') {
-          window.triggerBetrayalEnding();
-        } else if (typeof BetrayalCinematic !== 'undefined' && BetrayalCinematic.start) {
-          BetrayalCinematic.start();
-        }
-        return;
-      }
-      if (e.code === 'KeyH' || e.key === 'h' || e.key === 'H' || e.key === '˙') {
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.triggerHeroEnding === 'function') {
-          window.triggerHeroEnding();
-        } else if (typeof HeroCinematic !== 'undefined' && HeroCinematic.start) {
-          HeroCinematic.start();
-        }
         return;
       }
     }
@@ -162,10 +154,24 @@ function bootstrap() {
       }
     }
 
+    // 0.07. Cinematic Archive navigation and action (Up/Down/Left/Right/Enter/Escape)
+    if (GameState.STATE === GameStates.CINEMATIC_ARCHIVE) {
+      if (CinematicArchiveUI.handleKeyDown(k)) {
+        e.preventDefault();
+        return;
+      }
+    }
+
     // 0.1. Cinematic skip/advance (Enter or Space)
     if (k === 'Enter' || k === ' ' || e.code === 'Space') {
       if (GameState.STATE === GameStates.BOSS_DEFEAT_CINEMATIC || GameState.STATE === 'boss_defeat_cinematic') {
         e.preventDefault();
+        if (CinematicReplayContext.isReplaying() || CinematicSafety.isReplay()) {
+          if (CinematicSafety.isValidSkipKey(' ')) {
+            CinematicReplayContext.finishReplay();
+          }
+          return;
+        }
         if (WardenDefeatCinematic.canSkip && WardenDefeatCinematic.canSkip()) {
           WardenDefeatCinematic.skip();
           return;
@@ -183,6 +189,19 @@ function bootstrap() {
       }
       if (GameState.STATE === GameStates.CINEMATIC) {
         e.preventDefault();
+        if (CinematicReplayContext.isReplaying() || CinematicSafety.isReplay()) {
+          if (CinematicSafety.isValidSkipKey(' ')) {
+            CinematicReplayContext.finishReplay();
+          }
+          return;
+        }
+        if (!CinematicSafety.isValidSkipKey(' ')) {
+          return;
+        }
+        if (EpilogueCinematic && EpilogueCinematic.isActive()) {
+          EpilogueCinematic.skip();
+          return;
+        }
         if (EndingCinematics.isHeroActive && EndingCinematics.isHeroActive()) {
           EndingCinematics.skipHero();
           return;
@@ -208,6 +227,15 @@ function bootstrap() {
       }
       if (GameState.STATE === GameStates.BOSS_INTRO || GameState.BOSS_INTRO_ACTIVE) {
         e.preventDefault();
+        if (CinematicReplayContext.isReplaying() || CinematicSafety.isReplay()) {
+          if (CinematicSafety.isValidSkipKey(' ')) {
+            CinematicReplayContext.finishReplay();
+          }
+          return;
+        }
+        if (!CinematicSafety.isValidSkipKey(' ')) {
+          return;
+        }
         BossIntros.skip();
         return;
       }
@@ -221,17 +249,11 @@ function bootstrap() {
       }
     }
 
-    // 0.2. Escape to close menu modals or skip boss intro
-    if (k === 'Escape') {
-      if (GameState.STATE === GameStates.TITLE) {
-        if (MainMenu.handleEscape()) {
-          e.preventDefault();
-          return;
-        }
-      }
-      if (GameState.STATE === GameStates.BOSS_INTRO || GameState.BOSS_INTRO_ACTIVE) {
+
+    // 0.2. Achievements UI keyboard navigation (Arrows, Tab, Esc)
+    if (GameState.STATE === GameStates.ACHIEVEMENTS) {
+      if (AchievementsUI.handleKeyDown(e.key)) {
         e.preventDefault();
-        BossIntros.skip();
         return;
       }
     }
@@ -243,29 +265,46 @@ function bootstrap() {
       return;
     }
 
-    // 0.7. Weapon Replacement Modal Active (1, 2, 3 replace, Esc/X/G discard)
+    // 0.7. Weapon Replacement Modal Active (Isolated Input: prompt vs selector)
     const repModal = GameState.ACTIVE_WEAPON_REPLACE_MODAL || GameState.pendingWeaponDrop;
     if (repModal) {
-      if (k === '1') {
-        e.preventDefault();
-        WeaponInventory.replaceWeaponSlot(0, repModal.newWeapon);
-        return;
+      const mode = repModal.mode || 'prompt';
+      if (mode === 'prompt') {
+        if (k === 'Enter' || k === 'e' || k === 'E' || k === 's' || k === 'S') {
+          e.preventDefault();
+          WeaponInventory.switchToSelector();
+          return;
+        }
+        if (k === 'Escape' || k === 'x' || k === 'X' || k === 'c' || k === 'C' || k === 'g' || k === 'G') {
+          e.preventDefault();
+          WeaponInventory.discardReplacementWeapon();
+          return;
+        }
+      } else {
+        if (k === '1') {
+          e.preventDefault();
+          WeaponInventory.replaceWeaponSlot(0, repModal.newWeapon);
+          return;
+        }
+        if (k === '2') {
+          e.preventDefault();
+          WeaponInventory.replaceWeaponSlot(1, repModal.newWeapon);
+          return;
+        }
+        if (k === '3') {
+          e.preventDefault();
+          WeaponInventory.replaceWeaponSlot(2, repModal.newWeapon);
+          return;
+        }
+        if (k === 'Escape' || k === 'x' || k === 'X' || k === 'c' || k === 'C' || k === 'g' || k === 'G') {
+          e.preventDefault();
+          WeaponInventory.discardReplacementWeapon();
+          return;
+        }
       }
-      if (k === '2') {
-        e.preventDefault();
-        WeaponInventory.replaceWeaponSlot(1, repModal.newWeapon);
-        return;
-      }
-      if (k === '3') {
-        e.preventDefault();
-        WeaponInventory.replaceWeaponSlot(2, repModal.newWeapon);
-        return;
-      }
-      if (k === 'Escape' || k === 'x' || k === 'X' || k === 'g' || k === 'G') {
-        e.preventDefault();
-        WeaponInventory.discardReplacementWeapon();
-        return;
-      }
+      // Block all other keys from falling through to gameplay while modal is active
+      e.preventDefault();
+      return;
     }
 
     // 1. Weapon Slot Hotkeys (1, 2, 3)
@@ -319,8 +358,40 @@ function bootstrap() {
 
     // 4. Pause / Esc
     if (k === 'Escape') {
-      if (GameState.STATE === GameStates.CINEMATIC) {
+      e.preventDefault();
+
+      // 4.0. Safe Replay Context Intercept (Escape always exits replay cleanly without touching gameplay)
+      if (CinematicReplayContext.isReplaying() || CinematicSafety.isReplay()) {
+        CinematicReplayContext.finishReplay();
+        return;
+      }
+
+      // 4.1. Boss Defeat Cinematics (Floor 3 Gorgaroth & Floor 10 Warden)
+      if (GameState.STATE === GameStates.BOSS_DEFEAT_CINEMATIC || GameState.STATE === 'boss_defeat_cinematic' || (GorgarothCinematics.isActive && GorgarothCinematics.isActive()) || (WardenDefeatCinematic.isActive && WardenDefeatCinematic.isActive())) {
+        if (!CinematicSafety.isValidSkipKey('Escape')) {
+          return;
+        }
+        if (WardenDefeatCinematic.isActive && WardenDefeatCinematic.isActive()) {
+          WardenDefeatCinematic.skip();
+          return;
+        }
+        if (GorgarothCinematics.isActive && GorgarothCinematics.isActive()) {
+          GorgarothCinematics.skip();
+          return;
+        }
+        return;
+      }
+
+      // 4.2. In-Game Story Cinematics (Prologue Descent, Endings)
+      if (GameState.STATE === GameStates.CINEMATIC || GameState.CINEMATIC_ACTIVE) {
+        if (!CinematicSafety.isValidSkipKey('Escape')) {
+          return;
+        }
         if (EndingCinematics.isActive()) {
+          if (EpilogueCinematic && EpilogueCinematic.isActive()) {
+            EpilogueCinematic.skip();
+            return;
+          }
           if (EndingCinematics.isHeroActive && EndingCinematics.isHeroActive()) {
             EndingCinematics.skipHero();
             return;
@@ -341,20 +412,62 @@ function bootstrap() {
         }
         return;
       }
-      if (GameState.STATE === GameStates.PLAYING) {
-        pauseGame();
-      } else if (GameState.STATE === GameStates.PAUSED) {
-        resumeGame();
-      } else if (GameState.STATE === GameStates.SETTINGS) {
+
+      // 4.3. Boss Intros
+      if (GameState.STATE === GameStates.BOSS_INTRO || GameState.BOSS_INTRO_ACTIVE) {
+        if (!CinematicSafety.isValidSkipKey('Escape')) {
+          return;
+        }
+        BossIntros.skip();
+        return;
+      }
+
+      // 4.4. UI Menus
+      if (GameState.STATE === GameStates.SETTINGS) {
         SettingsUI.handleKeyDown('Escape');
-      } else if (GameState.STATE === GameStates.ACHIEVEMENTS) {
+        return;
+      }
+      if (GameState.STATE === GameStates.ACHIEVEMENTS) {
         AchievementsUI.handleKeyDown('Escape');
-      } else if (GameState.STATE === GameStates.CODEX) {
+        return;
+      }
+      if (GameState.STATE === GameStates.CODEX) {
         CodexUI.handleKeyDown('Escape');
-      } else if (GameState.STATE === GameStates.SANCTUM) {
+        return;
+      }
+      if (GameState.STATE === GameStates.SANCTUM) {
         SanctumUI.handleKeyDown ? SanctumUI.handleKeyDown('Escape') : quitToMainMenu();
-      } else if (GameState.STATE === GameStates.DEATH_NORMAL || GameState.STATE === GameStates.DEATH_SANITY || GameState.STATE === GameStates.DYING || GameState.STATE === GameStates.DEATH_RESULTS || GameState.STATE === 'endcard') {
+        return;
+      }
+      if (DeveloperSanctumUI.isGateOpen()) {
+        DeveloperSanctumUI.closeGate();
+        return;
+      }
+      if (GameState.STATE === GameStates.DEVELOPER_SANCTUM) {
+        DeveloperSanctumUI.closeSanctum();
+        return;
+      }
+      if (GameState.STATE === GameStates.PAUSED) {
+        if (!GameState.CINEMATIC_ACTIVE && GameState.P && !GameState.P.dead && !GameState.P.dying) {
+          resumeGame();
+        }
+        return;
+      }
+      if (GameState.STATE === GameStates.PLAYING) {
+        if (GameState.MAP_EXPANDED) {
+          GameState.MAP_EXPANDED = false;
+          return;
+        }
+        pauseGame();
+        return;
+      }
+      if (GameState.STATE === GameStates.TITLE) {
+        MainMenu.handleEscape();
+        return;
+      }
+      if (GameState.STATE === GameStates.DEATH_NORMAL || GameState.STATE === GameStates.DEATH_SANITY || GameState.STATE === GameStates.DYING || GameState.STATE === GameStates.DEATH_RESULTS || GameState.STATE === 'endcard') {
         quitToMainMenu();
+        return;
       }
       return;
     }
@@ -369,10 +482,18 @@ function bootstrap() {
 
     // 5. Game Speed Tuning (O / P)
     if (k === 'o' || k === 'O') {
-      GameState.GAME_SPEED = Math.max(0.5, (GameState.GAME_SPEED || 1.0) - 0.25);
+      GameState.GAME_SPEED = Math.max(0.5, Math.round(((GameState.GAME_SPEED || 1.0) - 0.25) * 100) / 100);
+      const s = SaveSystem.getSettings();
+      s.gameSpeed = GameState.GAME_SPEED;
+      SaveSystem.saveSettings(s);
+      SoundManager.snd('menu_press');
     }
     if (k === 'p' || k === 'P') {
-      GameState.GAME_SPEED = Math.min(2.0, (GameState.GAME_SPEED || 1.0) + 0.25);
+      GameState.GAME_SPEED = Math.min(2.0, Math.round(((GameState.GAME_SPEED || 1.0) + 0.25) * 100) / 100);
+      const s = SaveSystem.getSettings();
+      s.gameSpeed = GameState.GAME_SPEED;
+      SaveSystem.saveSettings(s);
+      SoundManager.snd('menu_press');
     }
   });
 
@@ -398,17 +519,7 @@ function bootstrap() {
     window.ShatteredMindCinematic = ShatteredMindCinematic;
     window.EndingDispatcher = EndingDispatcher;
     window.HeroCinematic = HeroCinematic;
-    window.heroSeek = (t, andPause = false) => HeroCinematic.seek(t, andPause);
-    window.triggerHeroEnding = () => { GameState.IS_DEBUG_ENDING = true; EndingDispatcher.reset(); EndingDispatcher.resolveAndStart('hero'); };
-    window.startHeroEnding = () => { GameState.IS_DEBUG_ENDING = true; EndingDispatcher.reset(); EndingDispatcher.resolveAndStart('hero'); };
-    window.BetrayalCinematic = BetrayalCinematic;
-    window.betrayalSeek = (t, andPause = false) => BetrayalCinematic.seek(t, andPause);
-    window.triggerBetrayalEnding = () => { GameState.IS_DEBUG_ENDING = true; EndingDispatcher.reset(); EndingDispatcher.resolveAndStart('betrayal'); };
-    window.startBetrayalEnding = () => { GameState.IS_DEBUG_ENDING = true; EndingDispatcher.reset(); EndingDispatcher.resolveAndStart('betrayal'); };
-    window.RampageCinematic = RampageCinematic;
-    window.rampageSeek = (t, andPause = false) => RampageCinematic.seek(t, andPause);
-    window.triggerRampageEnding = () => { GameState.IS_DEBUG_ENDING = true; EndingDispatcher.reset(); EndingDispatcher.resolveAndStart('rampage'); };
-    window.startRampageEnding = () => { GameState.IS_DEBUG_ENDING = true; EndingDispatcher.reset(); EndingDispatcher.resolveAndStart('rampage'); };
+    window.DeveloperSanctumUI = DeveloperSanctumUI;
     window.DB_ENDING = EndingCinematics;
     window.WardenDefeatCinematic = WardenDefeatCinematic;
     window.GorgarothCinematics = GorgarothCinematics;
@@ -453,55 +564,6 @@ function bootstrap() {
       }
     };
 
-    // Development-only sanity testing shortcuts: Alt+1 (100%), Alt+2 (50%), Alt+3 (20%), Alt+4 (5%), Alt+0 (0% / Shattered Mind)
-    // Shortcuts for ending replay: Shift+R / Alt+R (Rampage), Shift+B / Alt+B (Betrayal), Shift+H / Alt+H (Hero)
-    // Supports both Windows/Linux (Digit0-4) and macOS Option keys (¡, ™, £, ¢, º, ®, ∫, ˙)
-    window.addEventListener('keydown', (e) => {
-      if (e.altKey && !e.ctrlKey && !e.metaKey) {
-        if (e.key === '1' || e.code === 'Digit1' || e.key === '¡') { window.setSanity(100); }
-        else if (e.key === '2' || e.code === 'Digit2' || e.key === '™') { window.setSanity(50); }
-        else if (e.key === '3' || e.code === 'Digit3' || e.key === '£') { window.setSanity(20); }
-        else if (e.key === '4' || e.code === 'Digit4' || e.key === '¢') { window.setSanity(5); }
-        else if (e.key === '0' || e.code === 'Digit0' || e.key === 'º') { window.setSanity(0); }
-        else if (e.key === 'r' || e.code === 'KeyR' || e.key === '®') {
-          if (typeof window.triggerRampageEnding === 'function') {
-            e.preventDefault();
-            window.triggerRampageEnding();
-          }
-        }
-        else if (e.key === 'b' || e.code === 'KeyB' || e.key === '∫') {
-          if (typeof window.triggerBetrayalEnding === 'function') {
-            e.preventDefault();
-            window.triggerBetrayalEnding();
-          }
-        }
-        else if (e.key === 'h' || e.code === 'KeyH' || e.key === '˙') {
-          if (typeof window.triggerHeroEnding === 'function') {
-            e.preventDefault();
-            window.triggerHeroEnding();
-          }
-        }
-      } else if (e.shiftKey && (e.code === 'KeyR' || e.key === 'R' || e.key === 'r')) {
-        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-        if (typeof window.triggerRampageEnding === 'function') {
-          e.preventDefault();
-          window.triggerRampageEnding();
-        }
-      } else if (e.shiftKey && (e.code === 'KeyB' || e.key === 'B')) {
-        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-        if (typeof window.triggerBetrayalEnding === 'function') {
-          e.preventDefault();
-          window.triggerBetrayalEnding();
-        }
-      } else if (e.shiftKey && (e.code === 'KeyH' || e.key === 'H')) {
-        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
-        if (typeof window.triggerHeroEnding === 'function') {
-          e.preventDefault();
-          window.triggerHeroEnding();
-        }
-      }
-    });
-
     window.testSanityFloor = (floor) => {
       GameState.FLOOR = floor;
       GameState.LV = floor;
@@ -515,9 +577,12 @@ function bootstrap() {
     window.resumeGame = resumeGame;
     window.quitToMainMenu = quitToMainMenu;
     window.FloorManager = FloorManager;
+    window.CombatSystem = CombatSystem;
+    window.LootSystem = LootSystem;
     window.doAttack = () => CombatSystem.doAttack();
     window.triggerWeaponAbility = () => CombatSystem.triggerWeaponAbility();
     window.switchWeaponSlot = (s) => WeaponInventory.switchWeaponSlot(s);
+    window.WeaponInventory = WeaponInventory;
     window.CodexUI = CodexUI;
     window.SanctumUI = SanctumUI;
     window.SettingsUI = SettingsUI;
@@ -533,6 +598,7 @@ function bootstrap() {
     window.ShatteredMindCinematic = ShatteredMindCinematic;
     window.DeathCinematics = DeathCinematics;
     window.LastEmberCinematic = LastEmberCinematic;
+    window.EpilogueCinematic = EpilogueCinematic;
     window.MainMenu = MainMenu;
     window.Credits = Credits;
     window.PauseMenu = PauseMenu;

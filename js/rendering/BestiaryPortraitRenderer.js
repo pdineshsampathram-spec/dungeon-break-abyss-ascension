@@ -8,6 +8,23 @@ import { CharacterRenderer } from './CharacterRenderer.js';
 import { roundRect } from '../core/Constants.js';
 import { drawPixelEye } from '../cinematics/ShatteredMindCinematic.js';
 
+// ─────────────────────────────────────────────────────────────
+// 10 Custom Floor Chronicle Atmospheric Artwork Preload Cache
+// ─────────────────────────────────────────────────────────────
+const CHRONICLE_ASSETS = {};
+function _preloadChronicleAssets() {
+  if (typeof Image === 'undefined') return;
+  for (let f = 1; f <= 10; f++) {
+    const img = new Image();
+    const entry = { img, loaded: false };
+    img.onload = () => { entry.loaded = true; };
+    img.onerror = () => { entry.loaded = false; };
+    img.src = `assets/codex/chronicles/chronicle_floor_${f}.jpg`;
+    CHRONICLE_ASSETS[f] = entry;
+  }
+}
+_preloadChronicleAssets();
+
 export const BestiaryPortraitRenderer = {
   /**
    * Render an authentic enemy or boss portrait inside a bounding box
@@ -1497,8 +1514,23 @@ export const BestiaryPortraitRenderer = {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // UNLOCKED STATE: 10 Dedicated Pixel-Art Scene Renderers
+    // UNLOCKED STATE: Custom Pixel-Art Artwork with Canvas 2D Fallback
     // ─────────────────────────────────────────────────────────────
+    const asset = CHRONICLE_ASSETS[floorNum];
+    if (asset && asset.loaded && asset.img) {
+      ctx.drawImage(asset.img, x, y, w, h);
+
+      // Subtle atmospheric bottom vignette for seamless frame integration
+      const vig = ctx.createLinearGradient(x, y + h - 28, x, y + h);
+      vig.addColorStop(0, 'rgba(6, 8, 16, 0)');
+      vig.addColorStop(1, 'rgba(6, 8, 16, 0.40)');
+      ctx.fillStyle = vig;
+      ctx.fillRect(x, y + h - 28, w, 28);
+
+      ctx.restore();
+      return;
+    }
+
     const isReducedMotion = (typeof GameState !== 'undefined' && GameState.REDUCED_MOTION) ||
       (typeof window !== 'undefined' && window.SaveSystem && window.SaveSystem.getSettings && window.SaveSystem.getSettings().reducedMotion);
     const animTime = isReducedMotion ? 0 : time;
@@ -2442,99 +2474,157 @@ export const BestiaryPortraitRenderer = {
 
       // ───────────────────────────────────────────────────────────
       // FLOOR 10 — THE WARDEN'S LAST TRIAL (BOSS: ABYSS WARDEN)
-      // Authoritative Warden production renderer, throne, singularity
+      // Masterwork Redesign: Sunken Citadel Throne Chamber & Singularity Halo
+      // Symmetrical gothic cathedral spires, obsidian throne dais, central Warden
       // ───────────────────────────────────────────────────────────
       case 10: {
-        // Deep cosmic throne room
-        ctx.fillStyle = '#070312';
+        // 1. Vaulted Abyssal Cathedral Hall Backdrop
+        ctx.fillStyle = '#06030e';
         ctx.fillRect(x, y, w, h);
 
-        // Behind Throne: Swirling Gravitational Singularity Accretion Ring
-        const singX = cx - 20, singY = y + 42;
-        const singRadius = 42;
+        // Gothic arched pillars in deep violet shadow
+        ctx.fillStyle = '#0d071c';
+        const pillarW = 24;
+        ctx.fillRect(x + 16, y, pillarW, h - 22);
+        ctx.fillRect(x + w - 16 - pillarW, y, pillarW, h - 22);
 
-        // Concentric swirling accretion disks
+        // Transverse ribbed vault arches meeting in the upper hall
+        ctx.strokeStyle = '#1e113a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + 16 + pillarW, y + 40);
+        ctx.quadraticCurveTo(cx, y + 8, x + w - 16 - pillarW, y + 40);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x + 16 + pillarW, y + 70);
+        ctx.quadraticCurveTo(cx, y + 25, x + w - 16 - pillarW, y + 70);
+        ctx.stroke();
+
+        // 2. Majestic Central Singularity Halo (Behind the Throne Dais)
+        const singX = cx, singY = y + 54;
+        const singRadius = 46;
+
         ctx.save();
-        ctx.translate(singX, singY);
-        ctx.rotate(isReducedMotion ? 0 : animTime * 0.6);
-
-        const singGrad = ctx.createRadialGradient(0, 0, 10, 0, 0, singRadius);
-        singGrad.addColorStop(0, '#000000');
-        singGrad.addColorStop(0.35, '#581c87');
-        singGrad.addColorStop(0.7, '#7c3aed');
-        singGrad.addColorStop(0.9, '#f59e0b');
-        singGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        // Concentric gravitational accretion glow
+        const singGrad = ctx.createRadialGradient(singX, singY, 8, singX, singY, singRadius);
+        singGrad.addColorStop(0, '#020108');
+        singGrad.addColorStop(0.35, '#4c1d95');
+        singGrad.addColorStop(0.65, '#7c3aed');
+        singGrad.addColorStop(0.85, 'rgba(217, 119, 6, 0.45)');
+        singGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
         ctx.fillStyle = singGrad;
         ctx.beginPath();
-        ctx.ellipse(0, 0, singRadius, singRadius * 0.45, 0, 0, Math.PI * 2);
+        ctx.arc(singX, singY, singRadius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Accretion light ring
-        ctx.strokeStyle = '#fef08a';
-        ctx.lineWidth = 1.4;
+        // Stable coronal light ring
+        ctx.strokeStyle = 'rgba(253, 230, 138, 0.65)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(singX, singY, 26, 0, Math.PI * 2);
         ctx.stroke();
-        ctx.restore();
 
-        // Central Pitch-Black Singularity Core
+        // Singularity core (pitch black event horizon)
         ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.arc(singX, singY, 12, 0, Math.PI * 2);
+        ctx.arc(singX, singY, 14, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
 
-        // The Stepped Dais and Vacant Sunken Throne (Left-Center)
-        const throneW = 54, throneH = 50;
-        const throneX = cx - 75;
-        const throneY = y + h - 20 - throneH;
+        // 3. Flanking Cathedral Braziers with Violet Soul Fire
+        const bY = y + h - 42;
+        const drawBrazier = (bx) => {
+          ctx.save();
+          // Stand
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(bx - 3, bY, 6, 20);
+          // Bowl
+          ctx.fillStyle = '#0f172a';
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(bx, bY, 9, 0, Math.PI);
+          ctx.fill(); ctx.stroke();
+          // Violet soul flame
+          const flameFlicker = isReducedMotion ? 0 : Math.sin(animTime * 5.0 + bx) * 2;
+          ctx.fillStyle = '#c084fc';
+          ctx.beginPath();
+          ctx.moveTo(bx - 6, bY);
+          ctx.quadraticCurveTo(bx, bY - 14 + flameFlicker, bx + 6, bY);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(bx, bY - 4, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        };
+        drawBrazier(cx - 105);
+        drawBrazier(cx + 105);
 
-        // Stepped dais
+        // 4. Stepped Dais and Royal Abyss Carpet
+        const daisBaseY = y + h - 22;
+        // Base floor
+        ctx.fillStyle = '#0f1422';
+        ctx.fillRect(x + 20, daisBaseY, w - 40, 22);
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 20, daisBaseY, w - 40, 22);
+
+        // Stepped dais (3 tiers ascending)
         ctx.fillStyle = '#1e1b4b';
-        ctx.fillRect(x + 20, y + h - 22, w - 40, 22);
-        ctx.fillRect(cx - 95, y + h - 26, 95, 4);
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 1;
+        // Tier 1
+        ctx.fillRect(cx - 80, daisBaseY - 6, 160, 6);
+        ctx.strokeRect(cx - 80, daisBaseY - 6, 160, 6);
+        // Tier 2
+        ctx.fillRect(cx - 62, daisBaseY - 12, 124, 6);
+        ctx.strokeRect(cx - 62, daisBaseY - 12, 124, 6);
+        // Tier 3
+        ctx.fillRect(cx - 45, daisBaseY - 18, 90, 6);
+        ctx.strokeRect(cx - 45, daisBaseY - 18, 90, 6);
 
-        // High-backed Obsidian Throne
-        ctx.fillStyle = '#0f172a';
-        ctx.strokeStyle = '#4338ca';
-        ctx.lineWidth = 1.4;
-        roundRect(ctx, throneX, throneY, throneW, throneH, 3);
+        // Crimson & gold-bordered runner carpet down the dais
+        ctx.fillStyle = '#991b1b';
+        ctx.fillRect(cx - 14, daisBaseY - 18, 28, 40);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 0.8;
+        ctx.strokeRect(cx - 14, daisBaseY - 18, 28, 40);
+
+        // 5. Imposing High-Backed Obsidian Throne (Behind Warden)
+        const throneW = 48, throneH = 58;
+        const throneX = cx - throneW / 2;
+        const throneY = daisBaseY - 18 - throneH;
+
+        ctx.fillStyle = '#080d1a';
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 1.2;
+        roundRect(ctx, throneX, throneY, throneW, throneH, 4);
         ctx.fill(); ctx.stroke();
 
-        // Crown crest atop throne
+        // Throne carved spires & crown crest
         ctx.fillStyle = '#d97706';
         ctx.beginPath();
-        ctx.moveTo(throneX + 8, throneY);
-        ctx.lineTo(throneX + 16, throneY - 8);
-        ctx.lineTo(throneX + throneW / 2, throneY - 3);
-        ctx.lineTo(throneX + throneW - 16, throneY - 8);
-        ctx.lineTo(throneX + throneW - 8, throneY);
+        ctx.moveTo(throneX + 4, throneY);
+        ctx.lineTo(throneX + 12, throneY - 10);
+        ctx.lineTo(cx, throneY - 3);
+        ctx.lineTo(throneX + throneW - 12, throneY - 10);
+        ctx.lineTo(throneX + throneW - 4, throneY);
         ctx.closePath();
         ctx.fill();
 
-        // Fallen Abyss Warden's Curved Greatsword driven into the dais
-        const gswordX = cx - 18;
-        const gswordY = y + h - 24;
-        ctx.save();
-        ctx.translate(gswordX, gswordY);
-        ctx.rotate(0.24);
+        // Inlaid throne void eye rune
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(cx, throneY + 16, 3, 0, Math.PI * 2);
+        ctx.fill();
 
-        // Heavy dark iron blade
-        ctx.fillStyle = '#475569';
-        ctx.fillRect(-3, -36, 6, 36);
-        // Crimson blood groove
-        ctx.fillStyle = '#dc2626';
-        ctx.fillRect(-1, -32, 2, 28);
-        // Crossguard & pommel
-        ctx.fillStyle = '#d97706';
-        ctx.fillRect(-9, -38, 18, 3.5);
-        ctx.fillStyle = '#1e1b4b';
-        ctx.fillRect(-2, -46, 4, 8);
-        ctx.fillStyle = '#dc2626';
-        ctx.beginPath(); ctx.arc(0, -48, 3, 0, Math.PI * 2); ctx.fill();
-        ctx.restore();
-
-        // Authoritative Production Boss Renderer: Abyss Warden standing beside the throne!
+        // 6. Centered Authoritative Production Boss Renderer: The Abyss Warden!
+        // Symmetrical, commanding focal hierarchy, perfectly scaled
         ctx.save();
-        ctx.translate(cx + 45, y + h - 22);
-        ctx.scale(0.64, 0.64);
+        ctx.translate(cx, daisBaseY - 14);
+        ctx.scale(0.70, 0.70);
         const wardenBoss = {
           id: 'abyss_warden',
           phase: 1,
@@ -2543,18 +2633,18 @@ export const BestiaryPortraitRenderer = {
           weaponDropped: false,
           crackedArmor: false,
           eyeGlow: 1.0,
-          ph: animTime * 3
+          ph: isReducedMotion ? 0 : animTime * 3
         };
         CharacterRenderer.drawWarden(ctx, wardenBoss, false, pulse);
         ctx.restore();
 
-        // Floating Soul Essence Motes rising toward singularity
+        // 7. Subtle Ambient Soul Particles (Respects Reduced Motion)
         if (!isReducedMotion) {
           ctx.fillStyle = '#a5f3fc';
-          for (let sm = 0; sm < 8; sm++) {
-            const px = singX - 40 + ((sm * 21 + animTime * 18) % 80);
-            const py = y + h - 35 - ((sm * 12 + animTime * 24) % 65);
-            ctx.fillRect(px, py, 1.5, 1.5);
+          for (let sm = 0; sm < 6; sm++) {
+            const px = singX - 35 + ((sm * 23 + animTime * 14) % 70);
+            const py = y + h - 30 - ((sm * 15 + animTime * 20) % 55);
+            ctx.fillRect(px, py, 1.2, 1.2);
           }
         }
         break;

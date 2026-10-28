@@ -18,6 +18,8 @@ import { AchievementSystem } from '../systems/AchievementSystem.js';
 import { EventBus } from '../core/EventBus.js';
 import { Camera } from '../rendering/Camera.js';
 import { GorgarothCinematics } from './GorgarothCinematics.js';
+import { CinematicSafety } from './CinematicSafety.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 
 export const CINEMATIC_BANNER = {
   active: false,
@@ -51,9 +53,16 @@ export const BossIntros = {
   // ─────────────────────────────────────────────────────────────
   // 1. START BOSS INTRODUCTION CINEMATIC
   // ─────────────────────────────────────────────────────────────
-  start(bossId) {
+  start(bossId, options = {}) {
     const { BOSS } = GameState;
     const bId = bossId || (BOSS && BOSS.id) || 'gorgaroth';
+    const isReplay = (typeof options === 'boolean') ? options : !!options.isReplay;
+    const introId = 'boss_intro_' + bId;
+
+    CinematicSafety.startCinematic(introId, typeof options === 'object' ? options : { isReplay });
+    if (!isReplay && SaveSystem && SaveSystem.recordCinematicUnlock) {
+      SaveSystem.recordCinematicUnlock(introId);
+    }
 
     GameState.setState(GameStates.BOSS_INTRO || 'boss_intro');
     GameState.BOSS_INTRO_ACTIVE = true;
@@ -142,12 +151,20 @@ export const BossIntros = {
   // ─────────────────────────────────────────────────────────────
   // 2. START BOSS DEFEAT CINEMATIC (GORGAROTH & MALAKOR)
   // ─────────────────────────────────────────────────────────────
-  startDefeat(boss) {
+  startDefeat(boss, options = {}) {
     const bId = (typeof boss === 'string' ? boss : (boss && boss.id)) || (GameState.BOSS && GameState.BOSS.id) || 'gorgaroth';
 
     if (bId === 'gorgaroth') {
-      GorgarothCinematics.startDefeat(boss);
+      GorgarothCinematics.startDefeat(boss, options);
       return;
+    }
+
+    const isReplay = (typeof options === 'boolean') ? options : !!options.isReplay;
+    const defeatId = 'boss_defeat_' + bId;
+
+    CinematicSafety.startCinematic(defeatId, typeof options === 'object' ? options : { isReplay });
+    if (!isReplay && SaveSystem && SaveSystem.recordCinematicUnlock) {
+      SaveSystem.recordCinematicUnlock(defeatId);
     }
 
     GameState.setState(GameStates.BOSS_INTRO || 'boss_intro');
@@ -743,8 +760,15 @@ export const BossIntros = {
 
       // Malakor Defeat
       else {
+        const { BOSS, P } = GameState;
+        if (BOSS && GameState.CAM) {
+          GameState.CAM.tx = BOSS.x;
+          GameState.CAM.ty = BOSS.y;
+        }
+
         if (t < 1.2) {
           // Shot 1: Shield shatters
+          if (GameState.CAM) GameState.CAM.tz = 1.65;
           CinematicRenderer.setShot(cx, cy, 1.65, 0);
         } else if (t < 2.4) {
           // Shot 2: Void energy escapes
@@ -752,17 +776,25 @@ export const BossIntros = {
             intro.soundCues.energy = true;
             SoundManager.snd('shockwave');
             CinematicRenderer.addShake(12);
+            if (GameState.CAM) GameState.CAM.shk = 12;
+          }
+          if (GameState.CAM) {
+            GameState.CAM.ty = (BOSS ? BOSS.y : 0) - 0.2;
+            GameState.CAM.tz = 1.8;
           }
           CinematicRenderer.setShot(cx, cy - 10, 1.8, 0.03);
         } else if (t < 3.8) {
           // Shot 3: Body begins dissolving into void vortex
+          if (GameState.CAM) GameState.CAM.tz = 1.6;
           CinematicRenderer.setShot(cx, cy, 1.6, 0);
         } else if (t < 4.8) {
           // Shot 4: Void vortex collapses inward into singularity
           if (!intro.soundCues.collapse) {
             intro.soundCues.collapse = true;
             CinematicRenderer.addShake(10);
+            if (GameState.CAM) GameState.CAM.shk = 10;
           }
+          if (GameState.CAM) GameState.CAM.tz = 1.4;
           CinematicRenderer.setShot(cx, cy, 1.4, 0);
         } else if (t < 5.6) {
           // Shot 5: Ethereal portal appears
@@ -770,6 +802,11 @@ export const BossIntros = {
             intro.soundCues.portal = true;
             SoundManager.snd('portal_enter');
             intro.flashAlpha = 0.9;
+          }
+          if (BOSS && P && GameState.CAM) {
+            GameState.CAM.tx = (BOSS.x + P.x) / 2;
+            GameState.CAM.ty = (BOSS.y + P.y) / 2;
+            GameState.CAM.tz = 1.2;
           }
           CinematicRenderer.setShot(cx, cy, 1.2, 0);
         } else {
@@ -869,8 +906,8 @@ export const BossIntros = {
       ctx.restore();
     }
 
-    // Skip Prompt
-    if (t > 0.8 && t < intro.duration - 0.5) {
+    // Skip Prompt (Shown only after 3.0s unskippable window)
+    if (CinematicSafety.shouldShowSkipHint() && t < intro.duration - 0.5) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
       ctx.font = '11px Cinzel, serif';
       ctx.textAlign = 'right';
@@ -1123,9 +1160,12 @@ export const BossIntros = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // 5. SKIP & FINISH TRANSITIONS
-  // ─────────────────────────────────────────────────────────────
+  canSkip() {
+    return CinematicSafety.canSkip();
+  },
+
   skip() {
+    if (!this.canSkip()) return;
     if (ACTIVE_BOSS_INTRO) {
       if (ACTIVE_BOSS_INTRO.type === 'defeat') {
         this.finishDefeat();
@@ -1136,6 +1176,16 @@ export const BossIntros = {
   },
 
   finish() {
+    if (CinematicSafety.isReplay()) {
+      ACTIVE_BOSS_INTRO = null;
+      GameState.ACTIVE_BOSS_INTRO = null;
+      GameState.BOSS_INTRO_ACTIVE = false;
+      GameState.CINEMATIC_ACTIVE = false;
+      GameState.ACTIVE_CINEMATIC_TYPE = null;
+      CinematicSafety.finishReplay();
+      return;
+    }
+
     ACTIVE_BOSS_INTRO = null;
     GameState.ACTIVE_BOSS_INTRO = null;
     GameState.BOSS_INTRO_WING_SPREAD = 1.0;
@@ -1153,6 +1203,7 @@ export const BossIntros = {
       if (GameState.BOSS.id === 'malakor') GameState.BOSS.introMaterialize = 1;
     }
     GameState.setState(GameStates.PLAYING);
+    CinematicSafety.reset();
 
     // Reset gameplay camera
     if (GameState.P) {
@@ -1165,6 +1216,16 @@ export const BossIntros = {
   },
 
   finishDefeat() {
+    if (CinematicSafety.isReplay()) {
+      ACTIVE_BOSS_INTRO = null;
+      GameState.ACTIVE_BOSS_INTRO = null;
+      GameState.BOSS_INTRO_ACTIVE = false;
+      GameState.CINEMATIC_ACTIVE = false;
+      GameState.ACTIVE_CINEMATIC_TYPE = null;
+      CinematicSafety.finishReplay();
+      return;
+    }
+
     const bId = (ACTIVE_BOSS_INTRO && ACTIVE_BOSS_INTRO.bossId) || 'gorgaroth';
 
     ACTIVE_BOSS_INTRO = null;
@@ -1230,6 +1291,7 @@ export const BossIntros = {
     );
 
     GameState.setState(GameStates.PLAYING);
+    CinematicSafety.reset();
     if (GameState.P) {
       GameState.CAM.tx = GameState.P.x;
       GameState.CAM.ty = GameState.P.y;

@@ -16,7 +16,7 @@ import { PortalTransition } from '../cinematics/PortalTransition.js';
 import { BossIntros } from '../cinematics/BossIntros.js';
 import { DeathCinematics } from '../cinematics/DeathCinematics.js';
 import { CinematicDirector } from '../cinematics/CinematicDirector.js';
-import { MainMenuScene } from '../cinematics/MainMenuScene.js';
+import { MainMenuScene } from '../cinematics/MainMenuScene.js?v=2.9';
 import { Credits } from '../cinematics/Credits.js';
 import { LastEmberCinematic } from '../cinematics/LastEmberCinematic.js';
 import { EndingCinematics, ACTIVE_ENDING } from '../cinematics/EndingCinematics.js';
@@ -35,8 +35,14 @@ export const Renderer = {
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, LW, LH);
 
-    // Title state live background
-    if (GameState.STATE === GameStates.TITLE) {
+    // Title state or Title-modal live background
+    const isModalFromTitle = (GameState.STATE === GameStates.SANCTUM ||
+                              GameState.STATE === GameStates.CODEX ||
+                              (GameState.STATE === GameStates.SETTINGS && typeof window !== 'undefined' && window.SettingsUI && window.SettingsUI.getReturnState && window.SettingsUI.getReturnState() === GameStates.TITLE) ||
+                              (GameState.STATE === GameStates.ACHIEVEMENTS && typeof window !== 'undefined' && window.AchievementsUI && window.AchievementsUI.getReturnState && window.AchievementsUI.getReturnState() === GameStates.TITLE) ||
+                              (!GameState.MAP && (GameState.STATE === GameStates.SETTINGS || GameState.STATE === GameStates.ACHIEVEMENTS)));
+
+    if (GameState.STATE === GameStates.TITLE || isModalFromTitle) {
       MainMenuScene.draw(ctx);
       return;
     }
@@ -84,7 +90,8 @@ export const Renderer = {
     const suppressDungeonWorld = (isShatteredMindActive && window.ShatteredMindCinematic.suppressRealWorld()) ||
                                  (isHeroActive && window.HeroCinematic.suppressRealWorld()) ||
                                  (isBetrayalActive && window.BetrayalCinematic.suppressRealWorld()) ||
-                                 (isRampageActive && window.RampageCinematic.suppressRealWorld());
+                                 (isRampageActive && window.RampageCinematic.suppressRealWorld()) ||
+                                 (typeof window !== 'undefined' && window.EpilogueCinematic && window.EpilogueCinematic.isActive && window.EpilogueCinematic.isActive());
 
     ctx.save();
     Camera.apply(ctx);

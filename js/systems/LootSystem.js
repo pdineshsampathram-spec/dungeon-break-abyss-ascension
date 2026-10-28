@@ -37,13 +37,18 @@ export const LootSystem = {
       if (it.taken) return;
 
       if (it.kind === 'weapon') {
-        const canInteract = (!it.swapCooldown || it.swapCooldown <= 0) && (!it.discardCooldown || it.discardCooldown <= 0);
-        if (canInteract) {
-          const dist = Math.hypot(P.x - it.x, P.y - it.y);
-          if (dist < minWepDist) {
-            nearestWeapon = it;
-            minWepDist = dist;
-          }
+        const dist = Math.hypot(P.x - it.x, P.y - it.y);
+        // Clear ignore flag once player walks away (>= 1.4 tiles)
+        if (it.ignoredUntilStepAway && dist >= 1.4) {
+          it.ignoredUntilStepAway = false;
+        }
+
+        const canInteract = (!it.swapCooldown || it.swapCooldown <= 0) &&
+                            (!it.discardCooldown || it.discardCooldown <= 0) &&
+                            !it.ignoredUntilStepAway;
+        if (canInteract && dist < minWepDist) {
+          nearestWeapon = it;
+          minWepDist = dist;
         }
       }
 
@@ -68,14 +73,17 @@ export const LootSystem = {
       if (Math.abs(P.x - it.x) < 0.75 && Math.abs(P.y - it.y) < 0.75) {
         if (it.kind === 'weapon') {
           const hasEmpty = GameState.weaponSlots.some(w => w === null);
-          const canInteract = (!it.swapCooldown || it.swapCooldown <= 0) && (!it.discardCooldown || it.discardCooldown <= 0);
+          const canInteract = (!it.swapCooldown || it.swapCooldown <= 0) &&
+                              (!it.discardCooldown || it.discardCooldown <= 0) &&
+                              !it.ignoredUntilStepAway;
           if (hasEmpty && canInteract) {
             it.taken = true;
             const newWep = WeaponFactory.create(it.sub || 'sword', it.rarity ? it.rarity.name : 'Common', it.affixes || [], LV);
             WeaponInventory.pickupWeapon(newWep, it);
+          } else if (!hasEmpty && canInteract && !GameState.ACTIVE_WEAPON_REPLACE_MODAL) {
+            // Case B: All 3 slots occupied -> Contextual ARSENAL FULL cache panel!
+            WeaponInventory.openReplaceModal(it, 'prompt');
           }
-          // Note: When all 3 slots are full, do NOT pop up an unprompted modal on walkover!
-          // The player uses [E] to swap active weapon or [G] to open the 3-slot replace modal.
         } else if (it.kind === 'health') {
           it.taken = true;
           HealthSystem.healPlayer(2);
@@ -97,20 +105,16 @@ export const LootSystem = {
         } else if (it.kind === 'story_echo') {
           it.taken = true;
           if (it.echoData && it.echoData.id) {
-            GameState.UNLOCKED_MEMORIES[it.echoData.id] = true;
-            SaveSystem.saveMemories();
+            SaveSystem.unlockMemory(it.echoData.id);
           }
           EventBus.emit('story:echo_trigger', it.echoData);
         } else if (it.kind === 'lore_scroll') {
           it.taken = true;
           if (it.scrollData && it.scrollData.id) {
-            GameState.UNLOCKED_LORE[it.scrollData.id] = true;
+            SaveSystem.unlockLore(it.scrollData.id);
+            if (it.scrollData.legacyId) SaveSystem.unlockLore(it.scrollData.legacyId);
             GameState.ACTIVE_LORE_MODAL = it.scrollData;
-            SaveSystem.saveLore();
             SoundManager.snd('item_pickup');
-            if (Object.keys(GameState.UNLOCKED_LORE).length >= 8) {
-              AchievementSystem.unlock('lore_master');
-            }
           }
           EventBus.emit('lore:scroll_trigger', it.scrollData);
         }

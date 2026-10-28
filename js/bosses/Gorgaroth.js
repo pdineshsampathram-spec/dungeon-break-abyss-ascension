@@ -44,24 +44,48 @@ export const Gorgaroth = {
     }
 
     // ─────────────────────────────────────────────────────────
-    // Attack 1: Earth Slam (Telegraphed Leap & Shockwave)
+    // Attack 1: Melee Pillar Strike (Normal Hit — 3 HP) & Earth Slam (Heavy Hit — 5 HP)
     // ─────────────────────────────────────────────────────────
-    if (dist < 2.4 && boss.atkC <= 0 && !boss.charging) {
-      boss.atkC = boss.phase === 2 ? 1.4 : 2.0;
-      boss.slamAnim = 0.55;
-      boss.slamming = true;
-      boss.slamWarning = {
-        x: P.x,
-        y: P.y,
-        timer: 0.55,
-        fired: false,
-        attackId: ++_gorgarothAttackId
-      };
-      GameState.CAM.shk = 6;
-      SoundManager.snd('melee_hit');
+    if (dist < 2.6 && boss.atkC <= 0 && !boss.charging && !boss.slamming && !boss.swiping) {
+      // In close quarters, alternate between quick pillar strike and earth slam
+      const preferSwipe = dist < 1.7 && Math.random() < 0.55;
+      if (preferSwipe) {
+        boss.atkC = boss.phase === 2 ? 1.1 : 1.5;
+        boss.swiping = true;
+        boss.swipeTimer = 0.35;
+        boss.swipeAttackId = ++_gorgarothAttackId;
+        SoundManager.snd('weapon_clang');
+      } else {
+        boss.atkC = boss.phase === 2 ? 1.5 : 2.2;
+        boss.slamAnim = 0.55;
+        boss.slamming = true;
+        boss.slamWarning = {
+          x: P.x,
+          y: P.y,
+          timer: 0.55,
+          fired: false,
+          attackId: ++_gorgarothAttackId
+        };
+        GameState.CAM.shk = 6;
+        SoundManager.snd('melee_hit');
+      }
     }
 
-    // Tick Earth Slam
+    // Tick Melee Pillar Strike (3 HP Normal Hit)
+    if (boss.swiping) {
+      boss.swipeTimer -= dt;
+      if (boss.swipeTimer <= 0) {
+        boss.swiping = false;
+        GameState.CAM.shk = 8;
+        SoundManager.snd('melee_hit');
+        ParticleRenderer.spawnRing(boss.x + (dx / dist) * 1.0, boss.y + (dy / dist) * 1.0, '#fb923c');
+        if (dist < 2.0) {
+          dealDamage({ isBoss: true, attackId: boss.swipeAttackId, x: boss.x, y: boss.y }, P, 3, 'melee');
+        }
+      }
+    }
+
+    // Tick Earth Slam (5 HP Heavy Hit)
     if (boss.slamWarning && !boss.slamWarning.fired) {
       boss.slamWarning.timer -= dt;
       if (boss.slamWarning.timer <= 0) {
@@ -73,15 +97,15 @@ export const Gorgaroth = {
         ParticleRenderer.spawnP(boss.slamWarning.x, boss.slamWarning.y, 16, { col: '#ea580c', spd: 1.8, r: 3 });
 
         if (Math.hypot(P.x - boss.slamWarning.x, P.y - boss.slamWarning.y) < 2.2) {
-          dealDamage({ isBoss: true, attackId: boss.slamWarning.attackId, x: boss.slamWarning.x, y: boss.slamWarning.y }, P, 2, 'heavy');
+          dealDamage({ isBoss: true, attackId: boss.slamWarning.attackId, x: boss.slamWarning.x, y: boss.slamWarning.y }, P, 5, 'heavy');
         }
       }
     }
 
     // ─────────────────────────────────────────────────────────
-    // Attack 2: Rage Charge (Phase 2 Only)
+    // Attack 2: Rage Charge (Phase 2 Only — Major Attack — 8 HP)
     // ─────────────────────────────────────────────────────────
-    if (boss.phase === 2 && !boss.charging && !boss.slamming && (boss.chargeCooldown || 0) <= 0 && dist > 3.0) {
+    if (boss.phase === 2 && !boss.charging && !boss.slamming && !boss.swiping && (boss.chargeCooldown || 0) <= 0 && dist > 3.0) {
       boss.charging = true;
       boss.chargeTimer = 0.75;
       boss.chargeDirX = dx / dist;
@@ -101,7 +125,7 @@ export const Gorgaroth = {
       ParticleRenderer.spawnP(boss.x, boss.y, 3, { col: '#ea580c', spd: 0.8, r: 2.5 });
 
       if (dist < 1.6) {
-        dealDamage({ isBoss: true, attackId: boss.chargeAttackId, x: boss.x, y: boss.y }, P, 3, 'heavy');
+        dealDamage({ isBoss: true, attackId: boss.chargeAttackId, x: boss.x, y: boss.y }, P, 8, 'heavy');
       }
 
       if (boss.chargeTimer <= 0) {

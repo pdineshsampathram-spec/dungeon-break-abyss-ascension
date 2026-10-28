@@ -7,7 +7,7 @@ import { GameState } from '../core/GameState.js';
 import { ROWS, COLS } from '../core/Constants.js';
 
 export const BossArenaGenerator = {
-  build(floor) {
+  _initGrid() {
     GameState.MAP = [];
     GameState.ROOMS = [];
     GameState.TORCHES = [];
@@ -15,6 +15,13 @@ export const BossArenaGenerator = {
     for (let r = 0; r < ROWS; r++) {
       GameState.MAP.push(new Array(COLS).fill(1));
     }
+    if (!GameState.P) {
+      GameState.P = { x: 10, y: 10, vx: 0, vy: 0, hp: 10, maxHp: 10, san: 100 };
+    }
+  },
+
+  build(floor) {
+    this._initGrid();
 
     if (floor === 10) {
       this.buildAbyssWardenThroneRoom();
@@ -29,6 +36,7 @@ export const BossArenaGenerator = {
   // FLOOR 3: GORGAROTH'S IRON JAIL (42x28)
   // ─────────────────────────────────────────────────────────────
   buildGorgarothIronJail() {
+    this._initGrid();
     const aw = 42, ah = 28;
     const ax = ((COLS - aw) / 2) | 0;
     const ay = ((ROWS - ah) / 2) | 0;
@@ -112,6 +120,7 @@ export const BossArenaGenerator = {
   // FLOOR 6: MALAKOR'S VOID SANCTUM (44x30)
   // ─────────────────────────────────────────────────────────────
   buildMalakorVoidSanctum() {
+    this._initGrid();
     const aw = 44, ah = 30;
     const ax = ((COLS - aw) / 2) | 0;
     const ay = ((ROWS - ah) / 2) | 0;
@@ -145,11 +154,15 @@ export const BossArenaGenerator = {
     });
 
     GameState.MAP[ay + 2][cx] = 2;
-    // A small stable pocket at the entrance: it only shelters Rowan from
-    // Malakor's ambient pressure, never from his projectiles.
+    // Two tactical sanctuary wards (South and North anchors): they shelter Rowan from
+    // Malakor's ambient void decay, providing clear tactical recovery opportunities.
     GameState.ROOMS = [{
       x: ax, y: ay, w: aw, h: ah, cx, cy, type: 'malakor_arena',
-      voidSafeArea: { x: cx, y: ay + ah - 4, r: 2.15 }
+      voidSafeAreas: [
+        { x: cx, y: ay + ah - 4, r: 2.75, name: 'South Sanctuary' },
+        { x: cx, y: ay + 5, r: 2.75, name: 'North Sanctuary' }
+      ],
+      voidSafeArea: { x: cx, y: ay + ah - 4, r: 2.75 }
     }];
 
     GameState.P.x = cx;
@@ -162,6 +175,7 @@ export const BossArenaGenerator = {
   // FLOOR 10: THE ABYSS WARDEN'S THRONE CHAMBER (48x34)
   // ─────────────────────────────────────────────────────────────
   buildAbyssWardenThroneRoom() {
+    this._initGrid();
     const aw = 48, ah = 34;
     const ax = ((COLS - aw) / 2) | 0;
     const ay = ((ROWS - ah) / 2) | 0;

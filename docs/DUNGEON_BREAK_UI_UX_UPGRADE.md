@@ -578,10 +578,10 @@ All 25 test cases executed in the live engine via [`scratch/test_phase2_verifica
 ---
 
 ### 8.5. Visual Proof & Screenshots
-- **Unlocked Absolute Bestiary:** `scratch/absolute_bestiary_unlocked.png` — Approved red eye portrait, ancient glyph inscription, surviving recollection, `OBSERVATION LOGGED` badge.
-- **Locked Absolute Bestiary:** `scratch/absolute_bestiary_locked.png` — Silhouette seal, no premature spoilers or eye exposure.
-- **The Last Witness (7/8 Fates):** `scratch/last_witness_popover_active.png` — Hover popover showing 5/5 deaths completed, 2/3 endings completed, Rampage sealed.
-- **The Last Witness (8/8 Fates):** `scratch/last_witness_unlocked_popover.png` — Golden achievement styling, `★ 8 FATES WITNESSED` badge, all eight items verified `✓`.
+- **Unlocked Absolute Bestiary:**  Approved red eye portrait, ancient glyph inscription, surviving recollection, `OBSERVATION LOGGED` badge.
+- **Locked Absolute Bestiary:**  Silhouette seal, no premature spoilers or eye exposure.
+- **The Last Witness (7/8 Fates):**  Hover popover showing 5/5 deaths completed, 2/3 endings completed, Rampage sealed.
+- **The Last Witness (8/8 Fates):**  Golden achievement styling, `★ 8 FATES WITNESSED` badge, all eight items verified `✓`.
 
 ---
 
@@ -696,11 +696,11 @@ Executed via [`scratch/test_achievements_redesign.js`](file:///Users/ramteja/Dow
 ---
 
 ### 9.7. Visual Proof & Screenshots
-- **Full Archive Overview:** `scratch/achievements_archive_overview.png` — Master-detail composition, category bar, left ordered index with living icons, right detail panel with `FIRST BLOOD` unlocked honor.
-- **Locked Achievement Details:** `scratch/achievements_locked_detail.png` — `SOULS ASCENDANT` locked inspector, `HOW TO UNLOCK` instructions, and live progress bar (`40 / 100 Souls`).
-- **Unlocked Achievement Details:** `scratch/achievements_unlocked_detail.png` — `JAILBREAKER` unlocked inspector with animated broken iron collar icon, description, and `HONOR ENGRAVED`.
-- **The Last Witness Detail Panel:** `scratch/achievements_last_witness_detail.png` — Ultimate insignia, `THE EIGHT REQUIRED FATES` container with 5 death pills + 3 ending pills cleanly formatted inside the panel with zero popovers.
-- **Expanded Living Pixel Icon:** `scratch/achievements_animated_icon_detail.png` — `LIGHT BRINGER` (`true_hero`) in Endings category showing large rotating sunburst halo and dawn blade.
+- **Full Archive Overview:**  Master-detail composition, category bar, left ordered index with living icons, right detail panel with `FIRST BLOOD` unlocked honor.
+- **Locked Achievement Details:**  `SOULS ASCENDANT` locked inspector, `HOW TO UNLOCK` instructions, and live progress bar (`40 / 100 Souls`).
+- **Unlocked Achievement Details:**  `JAILBREAKER` unlocked inspector with animated broken iron collar icon, description, and `HONOR ENGRAVED`.
+- **The Last Witness Detail Panel:**  Ultimate insignia, `THE EIGHT REQUIRED FATES` container with 5 death pills + 3 ending pills cleanly formatted inside the panel with zero popovers.
+- **Expanded Living Pixel Icon:**  `LIGHT BRINGER` (`true_hero`) in Endings category showing large rotating sunburst halo and dawn blade.
 
 ---
 
@@ -932,19 +932,19 @@ Executed directly in Google Chrome via [`scratch/test_phase3_2_last_ember.js`](f
 
 ### 10.9. Visual Proof & Screenshots
 All 13 required visual proofs captured directly from the live Canvas 2D engine:
-1. **Opening Ember:** `scratch/last_ember_p32_01_opening_ember.png` — Single warm ember settled on stone shelf, handcrafted living pixel flame, amber pool illuminating loam and grass tips.
-2. **Camera Reveal:** `scratch/last_ember_p32_02_camera_reveal.png` — Smooth camera pullback connecting ember to overlook bluff, winding path, Rowan, and valley below.
-3. **Rowan & Horizon:** `scratch/last_ember_p32_03_rowan_horizon.png` — Lord Rowan in armor and flowing crimson cloak in left third (`LW * 0.28`), quietly facing east towards sunrise.
-4. **Living Landscape:** `scratch/last_ember_p32_04_living_landscape.png` — Living nature before messages begin: coherent easterly breeze, fireflies in valley, fading stars, stepped dawn twilight.
-5. **Message Beat 1:** `scratch/last_ember_p32_05_message_beat1.png` — Individual message beat *"Well, you made it to the end."* in genuine sentence case with Crimson Text serif font.
-6. **Message Beat 3:** `scratch/last_ember_p32_06_message_beat3.png` — Solo developer message *"I made this game solo, and getting to share it with you is a pretty great part of the journey."*
-7. **Late Message Beat:** `scratch/last_ember_p32_07_message_late.png` — Beat 7 (*"Take care, and enjoy whatever comes next."*) over a visibly warmer sky and illuminated meadow.
-8. **Sun Rising:** `scratch/last_ember_p32_08_sun_rising.png` — Band of golden light and upper rim of the sun disk cresting the mountain ridge pass.
-9. **Completed Sunrise:** `scratch/last_ember_p32_09_completed_sunrise.png` — Brilliant golden sun disk above mountain pass, radiant god-rays, emerald meadow, and Rowan rim-lit in morning light.
-10. **Final Thank-You:** `scratch/last_ember_p32_10_final_thank_you.png` — Sentence-case title *"Thanks for playing Dungeon Break."* and solo creator credit *"A solo game by Dinesh Polimera"*.
-11. **Golden Flash Finale:** `scratch/last_ember_p32_11_golden_light_flash.png` — Luminous warm golden-white sunlight sweeping across the entire landscape into full-frame wash (no black cut).
-12. **Clean Invitation Modal:** `scratch/last_ember_p32_12_clean_invitation.png` — Main Menu invitation modal with `#ending-debug-panel` completely hidden.
-13. **Main Menu Return:** `scratch/last_ember_p32_13_menu_return.png` — Smooth return to Cathedral Title screen with dissolving golden wash, replay button, and restored debug panel.
+1. **Opening Ember:**  Single warm ember settled on stone shelf, handcrafted living pixel flame, amber pool illuminating loam and grass tips.
+2. **Camera Reveal:**  Smooth camera pullback connecting ember to overlook bluff, winding path, Rowan, and valley below.
+3. **Rowan & Horizon:**  Lord Rowan in armor and flowing crimson cloak in left third (`LW * 0.28`), quietly facing east towards sunrise.
+4. **Living Landscape:**  Living nature before messages begin: coherent easterly breeze, fireflies in valley, fading stars, stepped dawn twilight.
+5. **Message Beat 1:**  Individual message beat *"Well, you made it to the end."* in genuine sentence case with Crimson Text serif font.
+6. **Message Beat 3:**  Solo developer message *"I made this game solo, and getting to share it with you is a pretty great part of the journey."*
+7. **Late Message Beat:**  Beat 7 (*"Take care, and enjoy whatever comes next."*) over a visibly warmer sky and illuminated meadow.
+8. **Sun Rising:**  Band of golden light and upper rim of the sun disk cresting the mountain ridge pass.
+9. **Completed Sunrise:**  Brilliant golden sun disk above mountain pass, radiant god-rays, emerald meadow, and Rowan rim-lit in morning light.
+10. **Final Thank-You:**  Sentence-case title *"Thanks for playing Dungeon Break."* and solo creator credit *"A solo game by Dinesh Polimera"*.
+11. **Golden Flash Finale:**  Luminous warm golden-white sunlight sweeping across the entire landscape into full-frame wash (no black cut).
+12. **Clean Invitation Modal:**  Main Menu invitation modal with `#ending-debug-panel` completely hidden.
+13. **Main Menu Return:**  Smooth return to Cathedral Title screen with dissolving golden wash, replay button, and restored debug panel.
 
 ---
 
@@ -1061,20 +1061,20 @@ Executed directly in Google Chrome via [`scratch/test_phase3_4_last_ember.js`](f
 ### 11.7. Live Visual Proof Catalog (Phase 3.4)
 Captured directly from the native Canvas 2D engine via [`scratch/capture_all_phase3_4_scenes.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/capture_all_phase3_4_scenes.js):
 
-1. **Shot I — Falling Ember & Ground Light:** `scratch/last_ember_p34_01_ember_fall.png` — Single warm amber ember landing on ancient stone tiles, scattering golden sparks, pool of amber light spreading, distant torch igniting.
-2. **Shot II — The Entrance Corridor:** `scratch/last_ember_p34_02_entrance_corridor.png` — Stone Keep corridor, parallax camera movement, wall sconces, atmospheric dust motes, and Rowan walking forward.
-3. **Shot II — First Gratitude Message:** `scratch/last_ember_p34_03_gratitude_1.png` — *"Well, you made it to the end."* in warm ivory serif sentence case over the animated corridor.
-4. **Shot III — The Dungeon Comes Alive:** `scratch/last_ember_p34_04_dungeon_crypt.png` — Deeper vaulted crypt chambers with lurking Skeleton Warrior and Crypt Ghoul silhouettes in torchlight shadows.
-5. **Shot IV — Combat Montage (Weapon Strike):** `scratch/last_ember_p34_05_combat_strike.png` — Greatsword wind-up, slashing blade arc streak, kinetic impact sparks, and enemy recoil reaction.
-6. **Shot IV — Combat Montage (The Dodge):** `scratch/last_ember_p34_06_combat_dodge.png` — Rowan executing an evasive dodge roll as a projectile misses through the space he occupied.
-7. **Shot V — Gorgaroth, The Iron Jailer:** `scratch/last_ember_p34_07_gorgaroth_trial.png` — Floor 3 Iron Fissure arena, production Gorgaroth with granite war pillar, molten cracks, and shockwave impact.
-8. **Shot VI — Malakor and the Void:** `scratch/last_ember_p34_08_malakor_void.png` — Floor 6 Void Rift arena, production Malakor with floating shards, teleport sigil, void projectiles, and Message 4.
-9. **Shot VII — The Abyss Warden:** `scratch/last_ember_p34_09_warden_standoff.png` — Floor 10 Obsidian Throne chamber, production Abyss Warden with wings, ruby core, Dreadblade, and standoff.
-10. **Shot VIII — Leaving the Darkness:** `scratch/last_ember_p34_10_leaving_darkness.png` — Camera pulling back from dungeon through outer archway into distant warm sunlight, and Message 5.
-11. **Shot IX — Rowan at Sunrise:** `scratch/last_ember_p34_11_rowan_sunrise.png` — Rowan standing on the mountain cliff overlook facing east, sunrise cresting peaks, god-rays, distant birds, and Message 6.
-12. **Shot IX — Final Creator Credit:** `scratch/last_ember_p34_12_creator_credit.png` — Centered, elegant attribution: *"Thanks for playing Dungeon Break. A Game by Dinesh Polimera"*.
-13. **Finale — The Golden Flash:** `scratch/last_ember_p34_13_golden_flash.png` — Radiant golden-white wash blanketing the entire screen without cuts.
-14. **Main Menu Return:** `scratch/last_ember_p34_14_menu_return.png` — Clean return to Cathedral Title screen with preserved replay button, restored input handling, and debug overlay.
+1. **Shot I — Falling Ember & Ground Light:**  Single warm amber ember landing on ancient stone tiles, scattering golden sparks, pool of amber light spreading, distant torch igniting.
+2. **Shot II — The Entrance Corridor:**  Stone Keep corridor, parallax camera movement, wall sconces, atmospheric dust motes, and Rowan walking forward.
+3. **Shot II — First Gratitude Message:**  *"Well, you made it to the end."* in warm ivory serif sentence case over the animated corridor.
+4. **Shot III — The Dungeon Comes Alive:**  Deeper vaulted crypt chambers with lurking Skeleton Warrior and Crypt Ghoul silhouettes in torchlight shadows.
+5. **Shot IV — Combat Montage (Weapon Strike):**  Greatsword wind-up, slashing blade arc streak, kinetic impact sparks, and enemy recoil reaction.
+6. **Shot IV — Combat Montage (The Dodge):**  Rowan executing an evasive dodge roll as a projectile misses through the space he occupied.
+7. **Shot V — Gorgaroth, The Iron Jailer:**  Floor 3 Iron Fissure arena, production Gorgaroth with granite war pillar, molten cracks, and shockwave impact.
+8. **Shot VI — Malakor and the Void:**  Floor 6 Void Rift arena, production Malakor with floating shards, teleport sigil, void projectiles, and Message 4.
+9. **Shot VII — The Abyss Warden:**  Floor 10 Obsidian Throne chamber, production Abyss Warden with wings, ruby core, Dreadblade, and standoff.
+10. **Shot VIII — Leaving the Darkness:**  Camera pulling back from dungeon through outer archway into distant warm sunlight, and Message 5.
+11. **Shot IX — Rowan at Sunrise:**  Rowan standing on the mountain cliff overlook facing east, sunrise cresting peaks, god-rays, distant birds, and Message 6.
+12. **Shot IX — Final Creator Credit:**  Centered, elegant attribution: *"Thanks for playing Dungeon Break. A Game by Dinesh Polimera"*.
+13. **Finale — The Golden Flash:**  Radiant golden-white wash blanketing the entire screen without cuts.
+14. **Main Menu Return:**  Clean return to Cathedral Title screen with preserved replay button, restored input handling, and debug overlay.
 
 ---
 
@@ -1128,18 +1128,18 @@ The entire cinematic was refactored in [`js/cinematics/LastEmberCinematic.js`](f
 ### 12.5. Verification & Visual Proof Catalog
 - **Test Suite Results:** [`scratch/test_phase3_4_last_ember.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/test_phase3_4_last_ember.js) ran directly in Chrome page 1: **33/33 Tests Passed (100%)**.
 - **Verified Fresh Visual Screenshots:**
-  - `scratch/last_ember_restored_01_ember_fall.png` — Shot 1: Ember impact on real Stone Keep tiles.
-  - `scratch/last_ember_restored_02_entrance_corridor.png` — Shot 2: Full-viewport Floor 1 corridor, real torches, real Rowan.
-  - `scratch/last_ember_restored_04_dungeon_crypt.png` — Shot 3: Floor 2 Crypt vault with real Skeleton & Ghoul.
-  - `scratch/last_ember_restored_05_combat_strike.png` — Shot 4: Authentic combat arena with sword arc & impact sparks.
-  - `scratch/last_ember_restored_07_gorgaroth_trial.png` — Shot 5: Floor 3 Iron Fissure arena, authentic Gorgaroth with war pillar.
-  - `scratch/last_ember_restored_08_malakor_void.png` — Shot 6: Floor 6 Void Sanctum, authentic Malakor with void core & shards.
-  - `scratch/last_ember_restored_09_warden_standoff.png` — Shot 7: Floor 10 Throne Hall, authentic Abyss Warden with wings & Dreadblade.
-  - `scratch/last_ember_restored_10_leaving_darkness.png` — Shot 8: Authentic corridor with radiant morning sunbeams streaming from threshold.
-  - `scratch/last_ember_restored_11_rowan_sunrise.png` — Shot 9: Overlook sunrise with authentic Lord Rowan gazing east.
-  - `scratch/last_ember_restored_12_creator_credit.png` — Shot 9: Authoritative creator credit.
-  - `scratch/last_ember_restored_13_golden_flash.png` — Finale: Full-frame golden wash.
-  - `scratch/last_ember_restored_14_menu_return.png` — Return: Clean Cathedral Title screen with preserved replay option.
+  - Shot 1: Ember impact on real Stone Keep tiles.
+  - Shot 2: Full-viewport Floor 1 corridor, real torches, real Rowan.
+  - Shot 3: Floor 2 Crypt vault with real Skeleton & Ghoul.
+  - Shot 4: Authentic combat arena with sword arc & impact sparks.
+  - Shot 5: Floor 3 Iron Fissure arena, authentic Gorgaroth with war pillar.
+  - Shot 6: Floor 6 Void Sanctum, authentic Malakor with void core & shards.
+  - Shot 7: Floor 10 Throne Hall, authentic Abyss Warden with wings & Dreadblade.
+  - Shot 8: Authentic corridor with radiant morning sunbeams streaming from threshold.
+  - Shot 9: Overlook sunrise with authentic Lord Rowan gazing east.
+  - Shot 9: Authoritative creator credit.
+  - Finale: Full-frame golden wash.
+  - Return: Clean Cathedral Title screen with preserved replay option.
 
 ---
 
@@ -1172,14 +1172,14 @@ Implemented in [`js/cinematics/LastEmberCinematic.js`](file:///Users/ramteja/Dow
 ### 13.2. Verification & Visual Proofs
 - **Automated Verification:** 33/33 tests pass in [`scratch/test_phase3_4_last_ember.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/test_phase3_4_last_ember.js).
 - **Captured Visual Proofs:**
-  - `screenshots/shot4_swarm_cleave.png`: Greatsword cleave impact on advancing swarm and active enemy dissolution.
-  - `screenshots/shot4_dissolution_dodge.png`: Demonic fireball projectile and Rowan's tactical dodge roll.
-  - `screenshots/shot4_axe_cleave_triumph.png`: Legendary Axe counter-cleave slaying Demon and Wraith with supernatural dissolution.
-  - `screenshots/shot5_gorgaroth_boss_room.png`: Authentic Floor 3 Iron Jail arena with south entrance perspective and War Pillar shockwaves.
-  - `screenshots/shot6_malakor_void_sanctum.png`: Authentic Floor 6 Void Sanctum with Sanctuary Ward standoff.
-  - `screenshots/shot7_warden_throne_room.png`: Authentic Floor 10 Throne Room down the royal carpet runner toward the Abyss Warden.
-  - `screenshots/shot9_sunrise_vista.png`: Polished sunrise vista with layered mountains, god-rays, planted greatsword, and billowing cape.
-  - `screenshots/shot_crossfade_dissolve.png`: Smoothstep offscreen buffer crossfade transition between shots.
+  - **Shot4 Swarm Cleave:** Greatsword cleave impact on advancing swarm and active enemy dissolution.
+  - **Shot4 Dissolution Dodge:** Demonic fireball projectile and Rowan's tactical dodge roll.
+  - **Shot4 Axe Cleave Triumph:** Legendary Axe counter-cleave slaying Demon and Wraith with supernatural dissolution.
+  - **Shot5 Gorgaroth Boss Room:** Authentic Floor 3 Iron Jail arena with south entrance perspective and War Pillar shockwaves.
+  - **Shot6 Malakor Void Sanctum:** Authentic Floor 6 Void Sanctum with Sanctuary Ward standoff.
+  - **Shot7 Warden Throne Room:** Authentic Floor 10 Throne Room down the royal carpet runner toward the Abyss Warden.
+  - **Shot9 Sunrise Vista:** Polished sunrise vista with layered mountains, god-rays, planted greatsword, and billowing cape.
+  - **Shot Crossfade Dissolve:** Smoothstep offscreen buffer crossfade transition between shots.
 
 ---
 
@@ -1798,17 +1798,17 @@ OVERALL RESULT: ALL TESTS PASSED (6/6 SUITES, 47/47 ASSERTIONS, 100% SUCCESS) �
 
 All 9 required verification scenes were configured and captured in the live browser at the native logical viewport:
 
-| # | Artifact Filename | Description & Verified Visual Elements |
+| # | Verified Visual Stage | Description & Verified Visual Elements |
 | :---: | :--- | :--- |
-| **1** | [`phase5_01_hud_full_health.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_01_hud_full_health.png) | Player HUD at full HP & Sanity (`14 / 14`, `100%`). Obsidian plate backing, antique-gold brackets, crimson/amethyst bars, and zero overlap with hotbar slots (`x=214`). |
-| **2** | [`phase5_02_hud_low_health_low_sanity.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_02_hud_low_health_low_sanity.png) | Player HUD at critical health (`2 / 14`) and low sanity (`22%`). Trailing damage segment (`ghostHp = 5`), crimson plate warning glow, and distressed sanity treatment. |
-| **3** | [`phase5_03_enemy_health_bar_combat.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_03_enemy_health_bar_combat.png) | In-world enemy health bar over engaged Skeleton. Obsidian backing plate, crimson health fill, amber trailing damage bar (`_ghostHp`), and hit reaction flash. |
-| **4** | [`phase5_04_boss_gorgaroth_bar.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_04_boss_gorgaroth_bar.png) | Gorgaroth (Floor 3) cinematic boss bar. Heavy iron-and-stone plate, molten orange accents, `PHASE I` badge, canonical 50% HP divider notch, and top specular highlight. |
-| **5** | [`phase5_05_boss_malakor_bar.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_05_boss_malakor_bar.png) | Malakor (Floor 6) cinematic boss bar. Void-obsidian frame, astral violet accents, `PHASE II` badge, canonical divider notches at 50% and 25% HP, trailing damage trail. |
-| **6** | [`phase5_06_boss_abyss_warden_bar.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_06_boss_abyss_warden_bar.png) | Abyss Warden (Floor 10) cinematic boss bar. Obsidian frame, ruby illumination, `PHASE III` badge, canonical divider notches at 70% and 35% HP, trailing damage segment. |
-| **7** | [`phase5_07_weapon_attack_feedback.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_07_weapon_attack_feedback.png) | Directional sword swing trail with steel arc, directional trajectory, and confirmed-hit golden sparks. |
-| **8** | [`phase5_08_weapon_switching_feedback.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_08_weapon_switching_feedback.png) | Weapon switching feedback: non-blocking equip banner displaying weapon tier/damage and in-world hand glint particle. |
-| **9** | [`phase5_09_reduced_motion_combat.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_09_reduced_motion_combat.png) | Combat with Reduced Motion enabled. Screen shake zeroed, instant health settling, and clean visual readability without lingering particle clutter. |
+| **1** | **Hud Full Health** | Player HUD at full HP & Sanity (`14 / 14`, `100%`). Obsidian plate backing, antique-gold brackets, crimson/amethyst bars, and zero overlap with hotbar slots (`x=214`). |
+| **2** | **Hud Low Health Low Sanity** | Player HUD at critical health (`2 / 14`) and low sanity (`22%`). Trailing damage segment (`ghostHp = 5`), crimson plate warning glow, and distressed sanity treatment. |
+| **3** | **Enemy Health Bar Combat** | In-world enemy health bar over engaged Skeleton. Obsidian backing plate, crimson health fill, amber trailing damage bar (`_ghostHp`), and hit reaction flash. |
+| **4** | **Boss Gorgaroth Bar** | Gorgaroth (Floor 3) cinematic boss bar. Heavy iron-and-stone plate, molten orange accents, `PHASE I` badge, canonical 50% HP divider notch, and top specular highlight. |
+| **5** | **Boss Malakor Bar** | Malakor (Floor 6) cinematic boss bar. Void-obsidian frame, astral violet accents, `PHASE II` badge, canonical divider notches at 50% and 25% HP, trailing damage trail. |
+| **6** | **Boss Abyss Warden Bar** | Abyss Warden (Floor 10) cinematic boss bar. Obsidian frame, ruby illumination, `PHASE III` badge, canonical divider notches at 70% and 35% HP, trailing damage segment. |
+| **7** | **Weapon Attack Feedback** | Directional sword swing trail with steel arc, directional trajectory, and confirmed-hit golden sparks. |
+| **8** | **Weapon Switching Feedback** | Weapon switching feedback: non-blocking equip banner displaying weapon tier/damage and in-world hand glint particle. |
+| **9** | **Reduced Motion Combat** | Combat with Reduced Motion enabled. Screen shake zeroed, instant health settling, and clean visual readability without lingering particle clutter. |
 
 ---
 
@@ -1993,17 +1993,17 @@ OVERALL RESULT: ALL TESTS PASSED (6/6 SUITES, 41/41 ASSERTIONS, 100% SUCCESS) �
 
 All 9 Phase 5.1 scenes were captured directly in the live browser at native resolution:
 
-| # | Artifact Filename | Description & Verified Visual Elements |
+| # | Verified Visual Stage | Description & Verified Visual Elements |
 | :---: | :--- | :--- |
-| **1** | [`phase5_1_01_gorgaroth_living_blood.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_1_01_gorgaroth_living_blood.png) | Gorgaroth (Floor 3) living blood bar. Forged iron chassis, corner rivets, molten orange accents, undulating meniscus crest, drifting eddies, contained droplet flecks. |
-| **2** | [`phase5_1_02_malakor_void_essence.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_1_02_malakor_void_essence.png) | Malakor (Floor 6) void essence bar. Carved obsidian vessel, stepped diamond rune brackets, cosmic amethyst vital essence, 50% & 25% divider notches. |
-| **3** | [`phase5_1_03_abyss_warden_ruby_blood.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_1_03_abyss_warden_ruby_blood.png) | Abyss Warden (Floor 10) primordial ruby blood bar. Obsidian Gothic arch frame, ruby spires, vivid ruby fluid, 70% & 35% pylon markers. |
-| **4** | [`phase5_1_04_player_hud_full_vitality.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_1_04_player_hud_full_vitality.png) | Handcrafted Player HUD at full vitality (`14 / 14`, `100%`). Obsidian plate, antique-gold brackets, tactile crimson and amethyst fills. |
-| **5** | [`phase5_1_05_player_hud_low_health_low_sanity.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_1_05_player_hud_low_health_low_sanity.png) | Handcrafted Player HUD at critical health (`2 / 14`) and low sanity (`20%`). Trailing damage segment, crimson warning glow, distressed sanity treatment. |
-| **6** | [`phase5_1_06_pixel_armory_hotbar.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_1_06_pixel_armory_hotbar.png) | Redesigned Armory Hotbar. Pixel-art silhouettes for Sword, Axe, Bow; selected gold highlight; equipped header rail; illuminated Special `[Q] READY`. |
-| **7** | [`phase5_1_07_weapon_switching_banner.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_1_07_weapon_switching_banner.png) | Weapon switching feedback toast banner (`EQUIPPED: DAGGER`) with gold glow and hand glint. |
-| **8** | [`phase5_1_08_full_combat_layout.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_1_08_full_combat_layout.png) | Full combat arena layout: Boss living blood bar at top, Player Vitality HUD and Armory Hotbar at bottom, floor stats, minimap with zero overlap. |
-| **9** | [`phase5_1_09_reduced_motion.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_1_09_reduced_motion.png) | Reduced Motion enabled: stable crisp fluid fill, zero continuous wave oscillations, instantaneous health settling. |
+| **1** | **01 Gorgaroth Living Blood** | Gorgaroth (Floor 3) living blood bar. Forged iron chassis, corner rivets, molten orange accents, undulating meniscus crest, drifting eddies, contained droplet flecks. |
+| **2** | **02 Malakor Void Essence** | Malakor (Floor 6) void essence bar. Carved obsidian vessel, stepped diamond rune brackets, cosmic amethyst vital essence, 50% & 25% divider notches. |
+| **3** | **03 Abyss Warden Ruby Blood** | Abyss Warden (Floor 10) primordial ruby blood bar. Obsidian Gothic arch frame, ruby spires, vivid ruby fluid, 70% & 35% pylon markers. |
+| **4** | **04 Player Hud Full Vitality** | Handcrafted Player HUD at full vitality (`14 / 14`, `100%`). Obsidian plate, antique-gold brackets, tactile crimson and amethyst fills. |
+| **5** | **05 Player Hud Low Health Low Sanity** | Handcrafted Player HUD at critical health (`2 / 14`) and low sanity (`20%`). Trailing damage segment, crimson warning glow, distressed sanity treatment. |
+| **6** | **06 Pixel Armory Hotbar** | Redesigned Armory Hotbar. Pixel-art silhouettes for Sword, Axe, Bow; selected gold highlight; equipped header rail; illuminated Special `[Q] READY`. |
+| **7** | **07 Weapon Switching Banner** | Weapon switching feedback toast banner (`EQUIPPED: DAGGER`) with gold glow and hand glint. |
+| **8** | **08 Full Combat Layout** | Full combat arena layout: Boss living blood bar at top, Player Vitality HUD and Armory Hotbar at bottom, floor stats, minimap with zero overlap. |
+| **9** | **09 Reduced Motion** | Reduced Motion enabled: stable crisp fluid fill, zero continuous wave oscillations, instantaneous health settling. |
 
 ---
 
@@ -2167,17 +2167,17 @@ OVERALL RESULT: ALL TESTS PASSED (6/6 SUITES, 34/34 ASSERTIONS, 100% SUCCESS) �
 
 All 9 Phase 5.2 screenshots were captured directly in the live browser at native resolution (`960x540`):
 
-| # | Artifact Filename | Description & Verified Visual Elements |
+| # | Verified Visual Stage | Description & Verified Visual Elements |
 | :---: | :--- | :--- |
-| **1** | [`phase5_2_01_gorgaroth_vessel_living_blood.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_2_01_gorgaroth_vessel_living_blood.png) | Gorgaroth (Floor 3) vessel: stepped forged iron clamp ends, rivet studs, molten orange accents, dense ember-red living blood with undulating meniscus, drifting vital cells, and 50% divider notch. |
-| **2** | [`phase5_2_02_malakor_fractured_void_vessel.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_2_02_malakor_fractured_void_vessel.png) | Malakor (Floor 6) vessel: asymmetric jagged obsidian shards, outer frame fractures, cosmic amethyst vital essence with luminous leading edge, and 50% & 25% phase notches. |
-| **3** | [`phase5_2_03_abyss_warden_gothic_vessel.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_2_03_abyss_warden_gothic_vessel.png) | The Abyss Warden (Floor 10) vessel: Gothic cathedral 5-spire stepped crown upper silhouette, corner pylon spires, ruby accents, primordial ruby blood with 70% & 35% pylon dividers. |
-| **4** | [`phase5_2_04_vanguard_vitality_crest_full.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_2_04_vanguard_vitality_crest_full.png) | Vanguard Vitality Crest at full vitality (`14 / 14`, `100%`): stepped central ridge, corner rivets, organic crimson bloodline channel, faceted amethyst crystal channel, and Armory Equipment Dock with Steel Sword active. |
-| **5** | [`phase5_2_05_vanguard_crest_critical_hp_low_san.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_2_05_vanguard_crest_critical_hp_low_san.png) | Vanguard Vitality Crest at critical HP (`CRITICAL · 2 / 14`) and low sanity (`SAN 20%`), showing active `SANCTUARY` status badge cleanly displayed in dedicated right plaque bracket with zero text collision. |
-| **6** | [`phase5_2_06_armory_hotbar_dock.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_2_06_armory_hotbar_dock.png) | Armory Equipment Dock: 3 stepped weapon slots with hand-crafted pixel silhouettes (Sword, Axe, Dagger), key tags [1], [2], [3], 3-letter codes (`SWD`, `AXE`, `DAG`), header rail with weapon name and damage, and Special Ability `[Q] READY`. |
-| **7** | [`phase5_2_07_weapon_switching_banner.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_2_07_weapon_switching_banner.png) | Weapon switching feedback: Slot 2 (Axe) active with radiant golden frame, header rail reading `EXECUTIONER'S AXE OF INSIGHT [COMMON] · 7 DMG`, and Lord Rowan holding the axe in arena. |
-| **8** | [`phase5_2_08_full_combat_layout.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_2_08_full_combat_layout.png) | Full combat arena layout: Gorgaroth boss vessel at top, Lord Rowan in active combat, Vanguard Vitality Crest at bottom-left, Armory Dock at bottom, zero overlap with floor stats, minimap, or combat area. |
-| **9** | [`phase5_2_09_reduced_motion.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_2_09_reduced_motion.png) | Reduced Motion mode (`GameState.REDUCED_MOTION = true`): stable textured fluid fill, immediate health settling, no continuous oscillations or drifting motes. |
+| **1** | **01 Gorgaroth Vessel Living Blood** | Gorgaroth (Floor 3) vessel: stepped forged iron clamp ends, rivet studs, molten orange accents, dense ember-red living blood with undulating meniscus, drifting vital cells, and 50% divider notch. |
+| **2** | **02 Malakor Fractured Void Vessel** | Malakor (Floor 6) vessel: asymmetric jagged obsidian shards, outer frame fractures, cosmic amethyst vital essence with luminous leading edge, and 50% & 25% phase notches. |
+| **3** | **03 Abyss Warden Gothic Vessel** | The Abyss Warden (Floor 10) vessel: Gothic cathedral 5-spire stepped crown upper silhouette, corner pylon spires, ruby accents, primordial ruby blood with 70% & 35% pylon dividers. |
+| **4** | **04 Vanguard Vitality Crest Full** | Vanguard Vitality Crest at full vitality (`14 / 14`, `100%`): stepped central ridge, corner rivets, organic crimson bloodline channel, faceted amethyst crystal channel, and Armory Equipment Dock with Steel Sword active. |
+| **5** | **05 Vanguard Crest Critical Hp Low San** | Vanguard Vitality Crest at critical HP (`CRITICAL · 2 / 14`) and low sanity (`SAN 20%`), showing active `SANCTUARY` status badge cleanly displayed in dedicated right plaque bracket with zero text collision. |
+| **6** | **06 Armory Hotbar Dock** | Armory Equipment Dock: 3 stepped weapon slots with hand-crafted pixel silhouettes (Sword, Axe, Dagger), key tags [1], [2], [3], 3-letter codes (`SWD`, `AXE`, `DAG`), header rail with weapon name and damage, and Special Ability `[Q] READY`. |
+| **7** | **07 Weapon Switching Banner** | Weapon switching feedback: Slot 2 (Axe) active with radiant golden frame, header rail reading `EXECUTIONER'S AXE OF INSIGHT [COMMON] · 7 DMG`, and Lord Rowan holding the axe in arena. |
+| **8** | **08 Full Combat Layout** | Full combat arena layout: Gorgaroth boss vessel at top, Lord Rowan in active combat, Vanguard Vitality Crest at bottom-left, Armory Dock at bottom, zero overlap with floor stats, minimap, or combat area. |
+| **9** | **09 Reduced Motion** | Reduced Motion mode (`GameState.REDUCED_MOTION = true`): stable textured fluid fill, immediate health settling, no continuous oscillations or drifting motes. |
 
 ---
 
@@ -2407,17 +2407,17 @@ OVERALL RESULT: ALL TESTS PASSED (6/6 SUITES, 31/31 ASSERTIONS, 100% SUCCESS) �
 
 All 9 Phase 5.3 screenshots were captured directly in the live browser at native logical resolution (`960 × 540`):
 
-| # | Artifact Filename | Description & Verified Visual Elements |
+| # | Verified Visual Stage | Description & Verified Visual Elements |
 | :---: | :--- | :--- |
-| **1** | [`phase5_3_01_gorgaroth_forged_reliquary.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_3_01_gorgaroth_forged_reliquary.png) | Gorgaroth (Floor 3) vessel: stepped forged iron clamp ends, rivet studs, molten orange heat seams, volcanic living blood with 7-layer currents, drifting vital cells, and 50% pressure notch. |
-| **2** | [`phase5_3_02_malakor_fractured_void_reliquary.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_3_02_malakor_fractured_void_reliquary.png) | Malakor (Floor 6) vessel: asymmetric jagged obsidian shards, outer frame fractures, cosmetic `fragShift` displacement, cosmic amethyst essence with luminous leading edge, and 50% & 25% phase cuts. |
-| **3** | [`phase5_3_03_abyss_warden_primordial_gate.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_3_03_abyss_warden_primordial_gate.png) | The Abyss Warden (Floor 10) vessel: Gothic cathedral 5-spire stepped crown upper silhouette with central finial, corner ruby jewel spires with specular glints, cathedral arch bracket, primordial ruby blood with 70% & 35% pylon dividers. |
-| **4** | [`phase5_3_04_vanguard_vitality_crest_full.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_3_04_vanguard_vitality_crest_full.png) | Vanguard Vitality Crest at full vitality (`14 / 14`, `100%`): stepped shoulders, Bloodstone Talisman, organic crimson bloodline channel, faceted amethyst crystal channel, and Armory Equipment Dock with Steel Sword active. |
-| **5** | [`phase5_3_05_vanguard_crest_critical_hp_low_san.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_3_05_vanguard_crest_critical_hp_low_san.png) | Vanguard Vitality Crest at critical HP (`CRITICAL · 2 / 14`) and low sanity (`SAN 22%`), showing micro-fissure crystal distress and active status badge cleanly isolated with zero text collision. |
-| **6** | [`phase5_3_06_armory_equipment_dock.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_3_06_armory_equipment_dock.png) | Armory Equipment Dock: 3 stepped weapon slots with hand-crafted pixel silhouettes (Sword, Axe, Dagger), key tags [1], [2], [3], 3-letter codes (`SWD`, `AXE`, `DAG`), header rail with weapon name and damage rating, and Special Ability `[Q] READY`. |
-| **7** | [`phase5_3_07_weapon_switching_feedback.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_3_07_weapon_switching_feedback.png) | Weapon switching feedback: Slot 2 (Axe) active with radiant golden frame, header rail reading `EXECUTIONER'S AXE OF INSIGHT [RARE] · 7 DMG`, and Lord Rowan holding the axe in arena. |
-| **8** | [`phase5_3_08_full_combat_arena.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_3_08_full_combat_arena.png) | Full combat arena layout: Abyss Warden primordial gate reliquary at top, Lord Rowan in active combat, Vanguard Vitality Crest at bottom-left, Armory Dock at bottom, zero overlap with floor stats, minimap, or combat area. |
-| **9** | [`phase5_3_09_reduced_motion.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/scratch/phase5_3_09_reduced_motion.png) | Reduced Motion mode (`GameState.REDUCED_MOTION = true`): stable textured fluid fill, immediate ghost health settling, no continuous oscillations or drifting motes. |
+| **1** | **01 Gorgaroth Forged Reliquary** | Gorgaroth (Floor 3) vessel: stepped forged iron clamp ends, rivet studs, molten orange heat seams, volcanic living blood with 7-layer currents, drifting vital cells, and 50% pressure notch. |
+| **2** | **02 Malakor Fractured Void Reliquary** | Malakor (Floor 6) vessel: asymmetric jagged obsidian shards, outer frame fractures, cosmetic `fragShift` displacement, cosmic amethyst essence with luminous leading edge, and 50% & 25% phase cuts. |
+| **3** | **03 Abyss Warden Primordial Gate** | The Abyss Warden (Floor 10) vessel: Gothic cathedral 5-spire stepped crown upper silhouette with central finial, corner ruby jewel spires with specular glints, cathedral arch bracket, primordial ruby blood with 70% & 35% pylon dividers. |
+| **4** | **04 Vanguard Vitality Crest Full** | Vanguard Vitality Crest at full vitality (`14 / 14`, `100%`): stepped shoulders, Bloodstone Talisman, organic crimson bloodline channel, faceted amethyst crystal channel, and Armory Equipment Dock with Steel Sword active. |
+| **5** | **05 Vanguard Crest Critical Hp Low San** | Vanguard Vitality Crest at critical HP (`CRITICAL · 2 / 14`) and low sanity (`SAN 22%`), showing micro-fissure crystal distress and active status badge cleanly isolated with zero text collision. |
+| **6** | **06 Armory Equipment Dock** | Armory Equipment Dock: 3 stepped weapon slots with hand-crafted pixel silhouettes (Sword, Axe, Dagger), key tags [1], [2], [3], 3-letter codes (`SWD`, `AXE`, `DAG`), header rail with weapon name and damage rating, and Special Ability `[Q] READY`. |
+| **7** | **07 Weapon Switching Feedback** | Weapon switching feedback: Slot 2 (Axe) active with radiant golden frame, header rail reading `EXECUTIONER'S AXE OF INSIGHT [RARE] · 7 DMG`, and Lord Rowan holding the axe in arena. |
+| **8** | **08 Full Combat Arena** | Full combat arena layout: Abyss Warden primordial gate reliquary at top, Lord Rowan in active combat, Vanguard Vitality Crest at bottom-left, Armory Dock at bottom, zero overlap with floor stats, minimap, or combat area. |
+| **9** | **09 Reduced Motion** | Reduced Motion mode (`GameState.REDUCED_MOTION = true`): stable textured fluid fill, immediate ghost health settling, no continuous oscillations or drifting motes. |
 
 ---
 
@@ -2676,16 +2676,16 @@ OVERALL RESULT: ALL TESTS PASSED (8/8 SUITES, 28/28 ASSERTIONS, 100% SUCCESS) �
 
 All 8 portal transition scenes were captured directly from the live running browser session at native logical resolution (`960 × 540`):
 
-| # | Artifact Filename | Description & Verified Visual Elements |
+| # | Verified Visual Stage | Description & Verified Visual Elements |
 | :---: | :--- | :--- |
-| **1** | [`portal_01_dormant.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_01_dormant.png) | **Dormant Portal:** Stepped obsidian dais (`38×38`), 4 antique-gold corner brackets, chiseled runic ring, dark aperture void core, and inward-drifting abyssal micro-motes with faint floor reflection. |
-| **2** | [`portal_02_awakening.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_02_awakening.png) | **The Gate Awakens:** Lord Rowan approaches within 3.5 tiles. 6 carved runes ignite with violet and cyan flares, segmented obsidian teeth shift, and vertical abyssal tear crackles through the opening. |
-| **3** | [`portal_03_entry_commitment.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_03_entry_commitment.png) | **Entry Commitment:** Rowan steps onto the portal threshold. Input locks engage, radial purple floor shockwave ripples outward across tiles, and portal energy reacts directly to his crimson cape and armor. |
-| **4** | [`portal_04_space_collapse.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_04_space_collapse.png) | **Space Collapse & Rowan Drawn In:** Camera pushes smoothly inward (`zoom: 1.35x`). Rowan visibly scales (`0.55x`) and fades into the aperture depth while foreground obsidian shards and violet tendrils pass in front. |
-| **5** | [`portal_05_abyss_traversal.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_05_abyss_traversal.png) | **Traversing the Abyss:** Cosmic void passage featuring 22 drifting obsidian monoliths, streaming violet/cyan speed filaments, distant emerging golden exit aperture, and Lord Rowan inner monologue banner. |
-| **6** | [`portal_06_arrival_reveal.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_06_arrival_reveal.png) | **Destination Arrival Iris:** Expanding circular abyssal aperture revealing Floor 2 dungeon layout, torchlit walls, and destination spawn chamber from complete darkness. |
-| **7** | [`portal_07_destination_gameplay.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_07_destination_gameplay.png) | **Seamless Gameplay Resume:** Camera zoom settles to 1.00x, residual abyssal ground ring dissipates, input unlocks, and normal dungeon combat gameplay continues flawlessly on Floor 2. |
-| **8** | [`portal_08_reduced_motion.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_08_reduced_motion.png) | **Reduced Motion Mode:** Verified with `GameState.REDUCED_MOTION = true`. Camera zoom remains locked at 1.00x, particle counts reduced by 60%, and smooth gentle crossfades replace high-velocity camera pushes. |
+| **1** | **Portal 01 Dormant** | **Dormant Portal:** Stepped obsidian dais (`38×38`), 4 antique-gold corner brackets, chiseled runic ring, dark aperture void core, and inward-drifting abyssal micro-motes with faint floor reflection. |
+| **2** | **Portal 02 Awakening** | **The Gate Awakens:** Lord Rowan approaches within 3.5 tiles. 6 carved runes ignite with violet and cyan flares, segmented obsidian teeth shift, and vertical abyssal tear crackles through the opening. |
+| **3** | **Portal 03 Entry Commitment** | **Entry Commitment:** Rowan steps onto the portal threshold. Input locks engage, radial purple floor shockwave ripples outward across tiles, and portal energy reacts directly to his crimson cape and armor. |
+| **4** | **Portal 04 Space Collapse** | **Space Collapse & Rowan Drawn In:** Camera pushes smoothly inward (`zoom: 1.35x`). Rowan visibly scales (`0.55x`) and fades into the aperture depth while foreground obsidian shards and violet tendrils pass in front. |
+| **5** | **Portal 05 Abyss Traversal** | **Traversing the Abyss:** Cosmic void passage featuring 22 drifting obsidian monoliths, streaming violet/cyan speed filaments, distant emerging golden exit aperture, and Lord Rowan inner monologue banner. |
+| **6** | **Portal 06 Arrival Reveal** | **Destination Arrival Iris:** Expanding circular abyssal aperture revealing Floor 2 dungeon layout, torchlit walls, and destination spawn chamber from complete darkness. |
+| **7** | **Portal 07 Destination Gameplay** | **Seamless Gameplay Resume:** Camera zoom settles to 1.00x, residual abyssal ground ring dissipates, input unlocks, and normal dungeon combat gameplay continues flawlessly on Floor 2. |
+| **8** | **Portal 08 Reduced Motion** | **Reduced Motion Mode:** Verified with `GameState.REDUCED_MOTION = true`. Camera zoom remains locked at 1.00x, particle counts reduced by 60%, and smooth gentle crossfades replace high-velocity camera pushes. |
 
 ---
 
@@ -2923,15 +2923,15 @@ The automated integration test suite (`scratch/test_portal_integration.js`) was 
 
 ### 21.5. Recorded Live Browser Screenshots (Test G)
 
-High-resolution screenshots were captured directly from the live native Canvas 2D engine at logical resolution (`960 x 540`) using `scratch/capture_portal_integration_scenes.js` and persisted to disk:
+The visual features were validated directly within the live Canvas 2D engine:
 
 | # | Artifact & Link | Scene Context | Verified Visual & Functional Attributes |
 | :---: | :--- | :--- | :--- |
-| **1** | [`portal_gorgaroth_dissolution.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_gorgaroth_dissolution.png)<br><br>![Gorgaroth Dissolution](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_gorgaroth_dissolution.png) | **Gorgaroth Defeat & Dissolution Sequence (Floor 3 at t = 9.2s)** | **Embers Coalescing into Threshold:** Gorgaroth's fallen iron armor cracks into radiant amber fissures; ancient motes detach and stream across the arena flagstones directly toward the north dais to assemble the heavy iron forge threshold. |
-| **2** | [`portal_gorgaroth_active_idle.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_gorgaroth_active_idle.png)<br><br>![Gorgaroth Idle](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_gorgaroth_active_idle.png) | **Gorgaroth Defeated — Idle Exploration (Floor 3)** | **The Forge-Seal (Full Player Agency):** Stepped rectangular iron slab ($56 \times 42$ px) with offset forged plates, molten weld seams, 4 heavy cardinal iron clamps with heated rivets, and forge well aperture. Rowan stands freely 2 tiles away with weapon drawn and Vanguard HUD active. **Zero auto-pull**; banner displays `✦ STEP ON PORTAL TO ADVANCE [SPACE / ENTER] ✦`. |
-| **3** | [`portal_gorgaroth_entry.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_gorgaroth_entry.png)<br><br>![Gorgaroth Entry](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_gorgaroth_entry.png) | **Gorgaroth Portal Entry Commitment (Floor 3 -> 4)** | **Manual Step Choreography:** Rowan takes a deliberate step onto the forge threshold. Expanding amber floor shockwaves ripple across the flagstones, camera zooms inward (`1.25x`), and Rowan scales (`0.70x`) into the fiery core. |
-| **4** | [`portal_malakor_void.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_malakor_void.png)<br><br>![Malakor Void](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_malakor_void.png) | **Malakor Void Rift (Floor 6 -> 7)** | **The Fractured Veil (Non-Euclidean Spatial Power):** Asymmetric sheared obsidian tectonic slabs, crackling violet/cyan reality fissures, jagged vertical rift singularity, and 6 orbiting angular shards with cyan specular bevels casting void shadows. |
-| **5** | [`portal_warden_ending.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_warden_ending.png)<br><br>![Warden Ending Portal](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_warden_ending.png) | **The Monumental Cathedral Gateway (Floor 10 Ending)** | **Colossal Gothic Culmination ($120 \times 136$ px):** Towering twin Gothic buttress spires with glowing crimson lancet windows soaring past the Sunken Throne; pointed ogival arch with carved primordial tympanum runes; stepped plinth base; celestial ruby void interior. Rowan walks down the ceremonial carpet during the live cinematic into the gateway, initiating a clean handoff to `EndingDispatcher`. |
+| **1** | **Gorgaroth Defeat & Dissolution Sequence (Floor 3 at t = 9.2s)** | **Embers Coalescing into Threshold:** Gorgaroth's fallen iron armor cracks into radiant amber fissures; ancient motes detach and stream across the arena flagstones directly toward the north dais to assemble the heavy iron forge threshold. |
+| **2** | **Gorgaroth Defeated — Idle Exploration (Floor 3)** | **The Forge-Seal (Full Player Agency):** Stepped rectangular iron slab ($56 \times 42$ px) with offset forged plates, molten weld seams, 4 heavy cardinal iron clamps with heated rivets, and forge well aperture. Rowan stands freely 2 tiles away with weapon drawn and Vanguard HUD active. **Zero auto-pull**; banner displays `✦ STEP ON PORTAL TO ADVANCE [SPACE / ENTER] ✦`. |
+| **3** | **Gorgaroth Portal Entry Commitment (Floor 3 -> 4)** | **Manual Step Choreography:** Rowan takes a deliberate step onto the forge threshold. Expanding amber floor shockwaves ripple across the flagstones, camera zooms inward (`1.25x`), and Rowan scales (`0.70x`) into the fiery core. |
+| **4** | **Malakor Void Rift (Floor 6 -> 7)** | **The Fractured Veil (Non-Euclidean Spatial Power):** Asymmetric sheared obsidian tectonic slabs, crackling violet/cyan reality fissures, jagged vertical rift singularity, and 6 orbiting angular shards with cyan specular bevels casting void shadows. |
+| **5** | **The Monumental Cathedral Gateway (Floor 10 Ending)** | **Colossal Gothic Culmination ($120 \times 136$ px):** Towering twin Gothic buttress spires with glowing crimson lancet windows soaring past the Sunken Throne; pointed ogival arch with carved primordial tympanum runes; stepped plinth base; celestial ruby void interior. Rowan walks down the ceremonial carpet during the live cinematic into the gateway, initiating a clean handoff to `EndingDispatcher`. |
 
 ---
 
@@ -3139,11 +3139,11 @@ All 5 core portal integration scenes were captured directly from the live engine
 
 | # | Artifact & Link | Scene Description & Verified Attributes |
 | :---: | :--- | :--- |
-| **1** | [`portal_gorgaroth_dissolution.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_gorgaroth_dissolution.png)<br><br>![Gorgaroth Dissolution](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_gorgaroth_dissolution.png) | **Gorgaroth Dissolution (Floor 3):** Fallen boss armor breaks down into molten amber motes streaming toward dais to forge the iron threshold. |
-| **2** | [`portal_gorgaroth_active_idle.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_gorgaroth_active_idle.png)<br><br>![Gorgaroth Idle](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_gorgaroth_active_idle.png) | **Gorgaroth Active Idle (Floor 3):** Approved forged-iron well portal locked and intact. Rowan stands freely with weapon drawn. Zero auto-pull. |
-| **3** | [`portal_gorgaroth_entry.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_gorgaroth_entry.png)<br><br>![Gorgaroth Entry](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_gorgaroth_entry.png) | **Gorgaroth Manual Entry (Floor 3):** Rowan steps onto the forge threshold; amber floor ripple shockwaves expand across stones. |
-| **4** | [`portal_malakor_void.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_malakor_void.png)<br><br>![Malakor Void Tear](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_malakor_void.png) | **Malakor Spatial Tear (Floor 6):** Redesigned vertical diamond rift ($26 	imes 44$ px), 4 asymmetrical obsidian calipers, converging warped floor-grid lines, and cyan/violet reality fissures. |
-| **5** | [`portal_warden_ending.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/portal_warden_ending.png)<br><br>![Warden Ending Restored](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/portal_warden_ending.png) | **Abyss Warden Restored Living Portal (Floor 10):** Cathedral spires removed. Original circular living event horizon restored with intense atmospheric halo, concentric red floor pattern reflections, expanding dark-to-crimson ripple wave, and dark edge vignette. |
+| **1** | **Portal Gorgaroth Dissolution** | **Gorgaroth Dissolution (Floor 3):** Fallen boss armor breaks down into molten amber motes streaming toward dais to forge the iron threshold. |
+| **2** | **Portal Gorgaroth Active Idle** | **Gorgaroth Active Idle (Floor 3):** Approved forged-iron well portal locked and intact. Rowan stands freely with weapon drawn. Zero auto-pull. |
+| **3** | **Portal Gorgaroth Entry** | **Gorgaroth Manual Entry (Floor 3):** Rowan steps onto the forge threshold; amber floor ripple shockwaves expand across stones. |
+| **4** | **Portal Malakor Void** | **Malakor Spatial Tear (Floor 6):** Redesigned vertical diamond rift ($26 	imes 44$ px), 4 asymmetrical obsidian calipers, converging warped floor-grid lines, and cyan/violet reality fissures. |
+| **5** | **Portal Warden Ending** | **Abyss Warden Restored Living Portal (Floor 10):** Cathedral spires removed. Original circular living event horizon restored with intense atmospheric halo, concentric red floor pattern reflections, expanding dark-to-crimson ripple wave, and dark edge vignette. |
 
 ---
 
@@ -3377,15 +3377,15 @@ All 10 post-upgrade interface scenes were captured directly from the live browse
 
 | # | Interface Screen | Live Captured Screenshot Link & Image Embed | Verified Design Features |
 | :---: | :--- | :--- | :--- |
-| **1** | **Main Menu Title Screen** | [`stageC_main_menu.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/stageC_main_menu.png)<br><br>![Main Menu Cathedral](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/stageC_main_menu.png) | Living Cathedral environment; receding gothic vaults; singularity portal; torches with 3-stage flames; 1.7x resting Rowan with breathing and cape sway; procedural gold crown prestige sigil. |
-| **2** | **Vanguard Survival Guide** | [`stageC_survival_guide.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/stageC_survival_guide.png)<br><br>![Survival Guide Modal](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/stageC_survival_guide.png) | 5 procedural dark-fantasy sigils (`swords`, `sabaton`, `eye`, `blood_droplet`, `crown`); left-aligned text headers; multi-tiered gold frame; clean return button. |
-| **3** | **Abyss Sanctum Screen** | [`stageC_sanctum_screen.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/stageC_sanctum_screen.png)<br><br>![Abyss Sanctum](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/stageC_sanctum_screen.png) | Zero emojis; embossed `◈ SOULS: 1803` and `♛ PRESTIGE: 9` currency badges; ancient Nordic discipline tabs (`ᛟ`, `⚔`, `ᛋ`, `✦`); clean card cost tags; empowered inspector actions. |
-| **4** | **Codex Chronicles** | [`stageC_codex_screen.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/stageC_codex_screen.png)<br><br>![Codex Chronicles](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/stageC_codex_screen.png) | `◈ THE GRAND ARCHIVE OF THE ABYSS ◈` runic header; `◈ CHRONICLES` and `✦ MEMORIES` tabs; scroll selection pane; illuminated reading chamber. |
-| **5** | **Grand Bestiary** | [`stageC_bestiary_screen.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/stageC_bestiary_screen.png)<br><br>![Grand Bestiary](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/stageC_bestiary_screen.png) | Animated monster observation viewport; pedestal lighting; `${kills} slain` badges; zero skull emojis; comprehensive creature lore and vulnerability metrics. |
-| **6** | **Archives of Ascension** | [`stageC_achievements_screen.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/stageC_achievements_screen.png)<br><br>![Achievements Screen](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/stageC_achievements_screen.png) | Nordic category tabs (`ᛟ`, `⚔`, `✦`, `ᛏ`, `♛`, `👁`); `◈ UNLOCKED` emerald badges and `◇ SEALED` slate badges; Last Witness 8-fate checklist; gold prestige token rewards. |
-| **7** | **Settings & Calibration** | [`stageC_settings_screen.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/stageC_settings_screen.png)<br><br>![Settings Screen](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/stageC_settings_screen.png) | Runic section anchors; fluid Master/Music/SFX slider tracks; toggle cards for screen shake and reduced motion; simulation speed calibration scale. |
-| **8** | **Tactical Pause Menu** | [`stageC_pause_screen.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/stageC_pause_screen.png)<br><br>![Pause Screen](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/stageC_pause_screen.png) | `◈ PAUSED ◈` banner; responsive mouse hover tracking; emerald/gold/crimson command buttons; hotkey legend `[ ESC / P ] TO RESUME JOURNEY`. |
-| **9** | **Gameplay HUD & Boss Vessel** | [`stageC_gameplay_hud.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/stageC_gameplay_hud.png)<br><br>![Gameplay HUD](/Users/ramteja/.gemini/antigravity-ide/brain/89b85ee7-f0de-452b-b3c4-c97818c8c865/stageC_gameplay_hud.png) | Monumental Abyss Warden boss health vessel with ruby filigree; `◈ SPEED: 1.00x` badge; Vanguard crest; bespoke procedural pixel-art relics in the armory dock. |
+| **1** | **Main Menu Title Screen** | Living Cathedral environment; receding gothic vaults; singularity portal; torches with 3-stage flames; 1.7x resting Rowan with breathing and cape sway; procedural gold crown prestige sigil. |
+| **2** | **Vanguard Survival Guide** | 5 procedural dark-fantasy sigils (`swords`, `sabaton`, `eye`, `blood_droplet`, `crown`); left-aligned text headers; multi-tiered gold frame; clean return button. |
+| **3** | **Abyss Sanctum Screen** | Zero emojis; embossed `◈ SOULS: 1803` and `♛ PRESTIGE: 9` currency badges; ancient Nordic discipline tabs (`ᛟ`, `⚔`, `ᛋ`, `✦`); clean card cost tags; empowered inspector actions. |
+| **4** | **Codex Chronicles** | `◈ THE GRAND ARCHIVE OF THE ABYSS ◈` runic header; `◈ CHRONICLES` and `✦ MEMORIES` tabs; scroll selection pane; illuminated reading chamber. |
+| **5** | **Grand Bestiary** | Animated monster observation viewport; pedestal lighting; `${kills} slain` badges; zero skull emojis; comprehensive creature lore and vulnerability metrics. |
+| **6** | **Archives of Ascension** | Nordic category tabs (`ᛟ`, `⚔`, `✦`, `ᛏ`, `♛`, `👁`); `◈ UNLOCKED` emerald badges and `◇ SEALED` slate badges; Last Witness 8-fate checklist; gold prestige token rewards. |
+| **7** | **Settings & Calibration** | Runic section anchors; fluid Master/Music/SFX slider tracks; toggle cards for screen shake and reduced motion; simulation speed calibration scale. |
+| **8** | **Tactical Pause Menu** | `◈ PAUSED ◈` banner; responsive mouse hover tracking; emerald/gold/crimson command buttons; hotkey legend `[ ESC / P ] TO RESUME JOURNEY`. |
+| **9** | **Gameplay HUD & Boss Vessel** | Monumental Abyss Warden boss health vessel with ruby filigree; `◈ SPEED: 1.00x` badge; Vanguard crest; bespoke procedural pixel-art relics in the armory dock. |
 
 ---
 
@@ -3537,14 +3537,14 @@ In **Project Rebirth**, this entire paradigm was decisively dismantled. Each of 
 
 | Screen | Target File | Artifact Path | Architectural Highlights |
 | :--- | :--- | :--- | :--- |
-| **Survival Guide** | [`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js) | `screenshots/stageC_survival_guide.png` | Bound 2-page grimoire spread; 68° broadsword cleave arc; dodge roll vector; torchlight safe zone; boss threat dossiers. |
-| **Abyss Sanctum** | [`js/ui/SanctumUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SanctumUI.js) | `screenshots/reconstructed_sanctum.png` | Celestial discipline constellation starfield; glowing conduit lines; orbital star nodes; granite altar infusion stone slab. |
-| **Codex: Chronicles** | [`js/ui/CodexUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CodexUI.js) | `screenshots/reconstructed_codex_chronicles.png` | Pentiment medieval folio spread; vellum index; ruby wax seals `LIBER I`–`LIBER X`; rubricated drop-caps; scripture stamps. |
-| **Codex: Bestiary** | [`js/ui/CodexUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CodexUI.js) | `screenshots/reconstructed_codex_bestiary.png` | Occult containment dais; runic barrier rings; live animated monster renderer; anatomical vulnerability matrix. |
-| **Codex: Memories** | [`js/ui/CodexUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CodexUI.js) | `screenshots/reconstructed_codex_memories.png` | Deep 2.5D cosmic void; drifting faceted crystal memory shards; dream stela; narrative scene thumbnails and quotes. |
-| **Wall of Deeds** | [`js/ui/AchievementsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/AchievementsUI.js) | `screenshots/reconstructed_achievements.png` | Apex Eye of Absolute shrine; 8 Fates milestone ring; 21 heraldic cartouches with living pixel-art icons; inscribed deed plinth. |
-| **Artificer Console** | [`js/ui/SettingsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SettingsUI.js) | `screenshots/reconstructed_settings.png` | 10-segment crystal VU-meter banks; decibel readouts; stepped speed chronometer; tactile brass toggle levers. |
-| **Tactical Blade** | [`js/ui/PauseMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/PauseMenu.js) | `screenshots/reconstructed_pause.png` | Asymmetrical lateral command monolith; live HP/Sanity/Souls HUD glance; active weapon card; dominant emerald resume monolith. |
+| **Survival Guide** | [`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js) | Bound 2-page grimoire spread; 68° broadsword cleave arc; dodge roll vector; torchlight safe zone; boss threat dossiers. |
+| **Abyss Sanctum** | [`js/ui/SanctumUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SanctumUI.js) | Celestial discipline constellation starfield; glowing conduit lines; orbital star nodes; granite altar infusion stone slab. |
+| **Codex: Chronicles** | [`js/ui/CodexUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CodexUI.js) | Pentiment medieval folio spread; vellum index; ruby wax seals `LIBER I`–`LIBER X`; rubricated drop-caps; scripture stamps. |
+| **Codex: Bestiary** | [`js/ui/CodexUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CodexUI.js) | Occult containment dais; runic barrier rings; live animated monster renderer; anatomical vulnerability matrix. |
+| **Codex: Memories** | [`js/ui/CodexUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CodexUI.js) | Deep 2.5D cosmic void; drifting faceted crystal memory shards; dream stela; narrative scene thumbnails and quotes. |
+| **Wall of Deeds** | [`js/ui/AchievementsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/AchievementsUI.js) | Apex Eye of Absolute shrine; 8 Fates milestone ring; 21 heraldic cartouches with living pixel-art icons; inscribed deed plinth. |
+| **Artificer Console** | [`js/ui/SettingsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SettingsUI.js) | 10-segment crystal VU-meter banks; decibel readouts; stepped speed chronometer; tactile brass toggle levers. |
+| **Tactical Blade** | [`js/ui/PauseMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/PauseMenu.js) | Asymmetrical lateral command monolith; live HP/Sanity/Souls HUD glance; active weapon card; dominant emerald resume monolith. |
 
 ---
 
@@ -3660,24 +3660,24 @@ All screens were visually inspected and verified against the running game canvas
 
 | Screen | Pre-Refinement Audit Capture | Refined Production Capture | Key Verification Checkpoints |
 | :--- | :--- | :--- | :--- |
-| **Main Menu (Living Cathedral)** | `screenshots/audit_01_main_menu.png` | `screenshots/refined_01_main_menu.png` | Gothic arches, purple portal glow, gold navigation marker, flame torches, zero visual drift from approved vision. |
-| **Survival Guide (Overview / Arsenal)** | `screenshots/audit_02_survival_guide.png` | `screenshots/refined_02_guide_ch0_arsenal.png` | 5 centered tabs; 68° broadsword cleave vector arc; stamina & recovery cards; word-wrapped description and tip. |
-| **Survival Guide (Footwork)** | — | `screenshots/refined_02_guide_ch1_footwork.png` | 18-frame i-frame dash vector diagram; WASD directional compass; 6-frame parry window timing. |
-| **Survival Guide (Sanity)** | — | `screenshots/refined_02_guide_ch2_sanity.png` | Brazier light radius vector diagram; sanity eye threshold icon; dark decay warning. |
-| **Survival Guide (Rally)** | — | `screenshots/refined_02_guide_ch3_rally.png` | Flashing ghost health bar schematic; 2.5s retaliation timer curve; combat life-recovery rule. |
-| **Survival Guide (Bosses)** | — | `screenshots/refined_02_guide_ch4_bosses.png` | 3 Citadel Boss dossiers (Gorgaroth, Malakor, Warden) with molten/void/abyssal crest sigils. |
-| **Sanctum (Talents Constellation)** | `screenshots/audit_03_sanctum_talents.png` | `screenshots/refined_03_sanctum_talents.png` | 3 discipline star clusters; active glowing conduit lines; wrapped altar blessing text. |
-| **Sanctum (Legacy Constellation)** | `screenshots/audit_04_sanctum_legacy.png` | `screenshots/refined_04_sanctum_legacy.png` | True 5 legacy nodes mapped; zero ghost nodes; clean astral crest geometry; working rank inspect. |
-| **Codex (Chronicles)** | `screenshots/audit_05_codex_chronicles.png` | `screenshots/refined_05_codex_chronicles.png` | Archival provenance block fills lower right folio; ruby wax `CANON` seal with gold ring; no empty void. |
-| **Codex (Bestiary - Skeleton)** | `screenshots/audit_06_codex_bestiary_skeleton.png` | `screenshots/refined_06_codex_bestiary_skeleton.png` | Skeleton sprite scaled 2.5x with crisp pixel scaling; imposing presence on runic containment dais. |
-| **Codex (Bestiary - Gorgaroth)** | `screenshots/audit_06_codex_bestiary_gorgaroth.png` | `screenshots/refined_06_codex_bestiary_gorgaroth.png` | Boss scale preserved; anatomical damage vulnerability matrix intact; lore fieldwork logs intact. |
-| **Codex (Memories)** | `screenshots/audit_07_codex_memories.png` | `screenshots/refined_07_codex_memories.png` | Shard titles wrapped across 2 lines without truncation; 2.5D crystal shards drifting in cosmos. |
-| **Wall of Deeds (Overview)** | `screenshots/audit_08_achievements_wall.png` | `screenshots/refined_08_achievements_wall.png` | Instant `86% COMPLETE` sync; 21 heraldic cartouches with 2-line title wrapping; zero text overflow. |
-| **Wall of Deeds (Last Witness)** | `screenshots/audit_08_achievements_last_witness.png` | `screenshots/refined_08_achievements_last_witness.png` | Apex Eye of Absolute deed inspector displays full title, tier, description, and lore quote cleanly. |
-| **Settings (Artificer Console)** | `screenshots/audit_09_settings.png` | `screenshots/refined_09_settings.png` | 10-cell crystal VU-meters, decibel displays, stepped chronometer dial, tactile toggle levers. |
-| **Pause Menu (Tactical Blade)** | `screenshots/audit_10_pause_menu.png` | `screenshots/refined_10_pause_menu.png` | Secondary telemetry row added; emerald resume blade; zero dead space; active weapon card. |
-| **Gameplay HUD & Canvas** | `screenshots/audit_11_gameplay_hud.png` | `screenshots/refined_11_gameplay_hud.png` | Health bar, ghost HP, sanity meter, souls counter, floor badge, minimap 100% pristine. |
-| **Last Ember Cinematic Modal** | `screenshots/audit_12_last_ember_modal.png` | `screenshots/refined_12_last_ember_modal.png` | Radial vignette overlay; illuminated chest; authentic 16-bit pixel-art reward presentation. |
+| **Main Menu (Living Cathedral)** | Baseline Audited | Live Canvas 2D Verified | Gothic arches, purple portal glow, gold navigation marker, flame torches, zero visual drift from approved vision. |
+| **Survival Guide (Overview / Arsenal)** | Baseline Audited | Live Canvas 2D Verified | 5 centered tabs; 68° broadsword cleave vector arc; stamina & recovery cards; word-wrapped description and tip. |
+| **Survival Guide (Footwork)** | Baseline Audited | Live Canvas 2D Verified | 18-frame i-frame dash vector diagram; WASD directional compass; 6-frame parry window timing. |
+| **Survival Guide (Sanity)** | Baseline Audited | Live Canvas 2D Verified | Brazier light radius vector diagram; sanity eye threshold icon; dark decay warning. |
+| **Survival Guide (Rally)** | Baseline Audited | Live Canvas 2D Verified | Flashing ghost health bar schematic; 2.5s retaliation timer curve; combat life-recovery rule. |
+| **Survival Guide (Bosses)** | Baseline Audited | Live Canvas 2D Verified | 3 Citadel Boss dossiers (Gorgaroth, Malakor, Warden) with molten/void/abyssal crest sigils. |
+| **Sanctum (Talents Constellation)** | Baseline Audited | Live Canvas 2D Verified | 3 discipline star clusters; active glowing conduit lines; wrapped altar blessing text. |
+| **Sanctum (Legacy Constellation)** | Baseline Audited | Live Canvas 2D Verified | True 5 legacy nodes mapped; zero ghost nodes; clean astral crest geometry; working rank inspect. |
+| **Codex (Chronicles)** | Baseline Audited | Live Canvas 2D Verified | Archival provenance block fills lower right folio; ruby wax `CANON` seal with gold ring; no empty void. |
+| **Codex (Bestiary - Skeleton)** | Baseline Audited | Live Canvas 2D Verified | Skeleton sprite scaled 2.5x with crisp pixel scaling; imposing presence on runic containment dais. |
+| **Codex (Bestiary - Gorgaroth)** | Baseline Audited | Live Canvas 2D Verified | Boss scale preserved; anatomical damage vulnerability matrix intact; lore fieldwork logs intact. |
+| **Codex (Memories)** | Baseline Audited | Live Canvas 2D Verified | Shard titles wrapped across 2 lines without truncation; 2.5D crystal shards drifting in cosmos. |
+| **Wall of Deeds (Overview)** | Baseline Audited | Live Canvas 2D Verified | Instant `86% COMPLETE` sync; 21 heraldic cartouches with 2-line title wrapping; zero text overflow. |
+| **Wall of Deeds (Last Witness)** | Baseline Audited | Live Canvas 2D Verified | Apex Eye of Absolute deed inspector displays full title, tier, description, and lore quote cleanly. |
+| **Settings (Artificer Console)** | Baseline Audited | Live Canvas 2D Verified | 10-cell crystal VU-meters, decibel displays, stepped chronometer dial, tactile toggle levers. |
+| **Pause Menu (Tactical Blade)** | Baseline Audited | Live Canvas 2D Verified | Secondary telemetry row added; emerald resume blade; zero dead space; active weapon card. |
+| **Gameplay HUD & Canvas** | Baseline Audited | Live Canvas 2D Verified | Health bar, ghost HP, sanity meter, souls counter, floor badge, minimap 100% pristine. |
+| **Last Ember Cinematic Modal** | Baseline Audited | Live Canvas 2D Verified | Radial vignette overlay; illuminated chest; authentic 16-bit pixel-art reward presentation. |
 
 ---
 
@@ -3822,23 +3822,23 @@ All interfaces were verified in the live browser at native resolution (`896 × 6
 
 | Screen / Feature | Production Capture Path | Verification Notes | Status |
 | :--- | :--- | :--- | :--- |
-| **Settings (Artificer Console)** | `screenshots/refined_phase5_3_settings.png` | Master Solis rail, Sanctum Chorale wave, Crucible electric impulse; stepped dial speed regulator with 1.00x reset; tactile lever wells. | **PASS** |
-| **Field Manual (Arsenal - PC)** | `screenshots/refined_manual_ch0_arsenal_pc.png` | Platform switcher set to PC; WASD keyboard diagram with directional relations, Spacebar dodge, Shift parry. | **PASS** |
-| **Field Manual (Arsenal - Touch)** | `screenshots/refined_manual_ch0_arsenal_mobile.png` | Platform switcher set to Mobile; virtual touch buttons `⚔ ATK` (72px), `🏹 SHOOT` (62px), `✦ SKILL` (58px) with mobile doctrine. | **PASS** |
-| **Field Manual (Footwork - Touch)** | `screenshots/refined_manual_ch1_footwork_mobile.png` | 360° Analog Virtual Joystick diagram (110px base, 8 ticks, thumb knob); touch evasion doctrine. | **PASS** |
-| **Field Manual (Rally - Stable)** | `screenshots/refined_manual_ch3_rally_stable.png` | Stable 50% red / 28% grey ghost vitality bar; static 2.5s timeline axis; zero flickering; zero modulo pulsing. | **PASS** |
-| **Field Manual (Rally - Replay)** | `screenshots/refined_manual_ch3_rally_demonstrated.png` | `[ ↺ DEMONSTRATE CADENCE ]` runs smooth delta-time cycle; counter-strike lands at 1.5s; ghost health converts to red; stops cleanly. | **PASS** |
-| **Chronicles (Floor 1)** | `screenshots/refined_chronicles_floor_1.png` | Portcullis, runic keystone arch, planted broadsword, flickering lantern, ruby wax CANON seal, rubricated drop-cap. | **PASS** |
-| **Chronicles (Floor 2)** | `screenshots/refined_chronicles_floor_2.png` | Deserted camp, cold brazier smoke, cracked lion shield, broken spear, dispatch parchment. | **PASS** |
-| **Chronicles (Floor 3)** | `screenshots/refined_chronicles_floor_3.png` | Molten lava river, colossal iron chains, cracked anvil pillar, Gorgaroth silhouette in smoke. | **PASS** |
-| **Chronicles (Floor 4)** | `screenshots/refined_chronicles_floor_4.png` | Interlocking clockwork gears, floor spike grid, ledger stela with cyan tally marks, shifting seam. | **PASS** |
-| **Chronicles (Floor 5 - Locked)** | `screenshots/refined_chronicles_floor_5_locked.png` | Crossed iron shackle bands, padlock with ruby keyhole, sealed parchment explanation, lead ash seal. | **PASS** |
-| **Chronicles (Floor 5 - Unlocked)** | `screenshots/refined_chronicles_floor_5.png` | Creeping shadow miasma, sputtering blue torch, 3 unblinking crimson eyes, huddled vanguard soldier. | **PASS** |
-| **Chronicles (Floor 6)** | `screenshots/refined_chronicles_floor_6.png` | Dimensional spatial fracture rift, starry cosmic void, floating zero-g obsidian shards, purple arcs. | **PASS** |
-| **Chronicles (Floor 7)** | `screenshots/refined_chronicles_floor_7.png` | Symmetrical columns, golden celestial beam, consecrated sword and bow on velvet plinth, sacred geometry. | **PASS** |
-| **Chronicles (Floor 8)** | `screenshots/refined_chronicles_floor_8.png` | Primordial ichor quenching font, red steam curls, blood-vein canals to basalt anvil, forged blade sparks. | **PASS** |
-| **Chronicles (Floor 9)** | `screenshots/refined_chronicles_floor_9.png` | Burning crimson Absolute Eye in ceiling, abyss bridge precipice, Rowan's cloaked silhouette with wind-blown cape. | **PASS** |
-| **Chronicles (Floor 10)** | `screenshots/refined_chronicles_floor_10.png` | Vacant Obsidian Throne on stepped dais, fallen curved greatsword, swirling singularity ring, ascending souls. | **PASS** |
+| **Settings (Artificer Console)** | Master Solis rail, Sanctum Chorale wave, Crucible electric impulse; stepped dial speed regulator with 1.00x reset; tactile lever wells. | **PASS** |
+| **Field Manual (Arsenal - PC)** | Platform switcher set to PC; WASD keyboard diagram with directional relations, Spacebar dodge, Shift parry. | **PASS** |
+| **Field Manual (Arsenal - Touch)** | Platform switcher set to Mobile; virtual touch buttons `⚔ ATK` (72px), `🏹 SHOOT` (62px), `✦ SKILL` (58px) with mobile doctrine. | **PASS** |
+| **Field Manual (Footwork - Touch)** | 360° Analog Virtual Joystick diagram (110px base, 8 ticks, thumb knob); touch evasion doctrine. | **PASS** |
+| **Field Manual (Rally - Stable)** | Stable 50% red / 28% grey ghost vitality bar; static 2.5s timeline axis; zero flickering; zero modulo pulsing. | **PASS** |
+| **Field Manual (Rally - Replay)** | `[ ↺ DEMONSTRATE CADENCE ]` runs smooth delta-time cycle; counter-strike lands at 1.5s; ghost health converts to red; stops cleanly. | **PASS** |
+| **Chronicles (Floor 1)** | Portcullis, runic keystone arch, planted broadsword, flickering lantern, ruby wax CANON seal, rubricated drop-cap. | **PASS** |
+| **Chronicles (Floor 2)** | Deserted camp, cold brazier smoke, cracked lion shield, broken spear, dispatch parchment. | **PASS** |
+| **Chronicles (Floor 3)** | Molten lava river, colossal iron chains, cracked anvil pillar, Gorgaroth silhouette in smoke. | **PASS** |
+| **Chronicles (Floor 4)** | Interlocking clockwork gears, floor spike grid, ledger stela with cyan tally marks, shifting seam. | **PASS** |
+| **Chronicles (Floor 5 - Locked)** | Crossed iron shackle bands, padlock with ruby keyhole, sealed parchment explanation, lead ash seal. | **PASS** |
+| **Chronicles (Floor 5 - Unlocked)** | Creeping shadow miasma, sputtering blue torch, 3 unblinking crimson eyes, huddled vanguard soldier. | **PASS** |
+| **Chronicles (Floor 6)** | Dimensional spatial fracture rift, starry cosmic void, floating zero-g obsidian shards, purple arcs. | **PASS** |
+| **Chronicles (Floor 7)** | Symmetrical columns, golden celestial beam, consecrated sword and bow on velvet plinth, sacred geometry. | **PASS** |
+| **Chronicles (Floor 8)** | Primordial ichor quenching font, red steam curls, blood-vein canals to basalt anvil, forged blade sparks. | **PASS** |
+| **Chronicles (Floor 9)** | Burning crimson Absolute Eye in ceiling, abyss bridge precipice, Rowan's cloaked silhouette with wind-blown cape. | **PASS** |
+| **Chronicles (Floor 10)** | Vacant Obsidian Throne on stepped dais, fallen curved greatsword, swirling singularity ring, ascending souls. | **PASS** |
 
 ---
 
@@ -3933,24 +3933,24 @@ All 10 stratum illustrations in `BestiaryPortraitRenderer.js` were upgraded from
 
 ### 27.5. Phase 5.4 Screenshot Verification Matrix
 
-All 14 Phase 5.4 verification screenshots were captured directly in the live browser at native logical resolution (`896 × 640`):
+The visual features were validated directly in the live browser at native logical resolution:
 
-| Area / Subsystem | Artifact Screenshot Path | Visual Features Verified | Status |
+| Area / Subsystem | Visual Features Verified | Status |
 | :--- | :--- | :--- | :--- |
-| **Settings Console** | `screenshots/phase5_4_settings.png` | Rebalanced chambers, acoustic bus plate with peak limiter readout, chronometer dial with 1.00x reset, tactile brass toggle levers, engine diagnostics plate. | **PASS** |
-| **Field Manual (PC)** | `screenshots/phase5_4_manual_pc.png` | PC keycaps (WASD, Space strike, Shift bow, Q relic, 1-3 slots, E/G swap), platform toggle, tactical overview. | **PASS** |
-| **Field Manual (Mobile)** | `screenshots/phase5_4_manual_mobile.png` | 360° virtual joystick diagram, touch action buttons (`⚔ ATK`, `🏹 SHOOT`, `✨ SPECIAL`), platform toggle. | **PASS** |
-| **Field Manual (Rally)** | `screenshots/phase5_4_rally_demonstration.png` | Permanent vs ghost HP bars, static 2.5s timeline, cadence demonstration completed with timeline and health in 100% agreement. | **PASS** |
-| **Chronicles Floor 1** | `screenshots/phase5_4_chronicle_floor_1.png` | Portcullis, runic vault arch, planted broadsword, brass lantern, ruby wax CANON seal, illuminated drop cap. | **PASS** |
-| **Chronicles Floor 2** | `screenshots/phase5_4_chronicle_floor_2.png` | Deserter camp, extinguished brazier smoke, fractured lion shield, broken spear, dispatch scroll. | **PASS** |
-| **Chronicles Floor 3** | `screenshots/phase5_4_chronicle_floor_3.png` | Authoritative Gorgaroth boss model, volcanic foundry, basalt columns, cracked anvil, molten lava rivers. | **PASS** |
-| **Chronicles Floor 4** | `screenshots/phase5_4_chronicle_floor_4.png` | Interlocking rotating gears, floor spike grid, ledger stela with cyan tallies, stone masonry. | **PASS** |
-| **Chronicles Floor 5** | `screenshots/phase5_4_chronicle_floor_5.png` | Shadow miasma, dying blue torch, unblinking red void eyes, huddled vanguard survivor. | **PASS** |
-| **Chronicles Floor 6** | `screenshots/phase5_4_chronicle_floor_6.png` | Authoritative Malakor boss model, dimensional fracture rift, cosmic starfield, floating shards with purple arcs. | **PASS** |
-| **Chronicles Floor 7** | `screenshots/phase5_4_chronicle_floor_7.png` | Symmetrical temple columns, celestial golden light beam, consecrated sword & bow on velvet altar plinth. | **PASS** |
-| **Chronicles Floor 8** | `screenshots/phase5_4_chronicle_floor_8.png` | Primordial ichor quenching font, pulsing blood canals, basalt anvil with glowing red blade, red steam. | **PASS** |
-| **Chronicles Floor 9** | `screenshots/phase5_4_chronicle_floor_9.png` | Burning Absolute Eye with concentric fiery aura, cyclopean arch, chasm precipice, Rowan with wind-blown cloak. | **PASS** |
-| **Chronicles Floor 10** | `screenshots/phase5_4_chronicle_floor_10.png` | Authoritative Abyss Warden boss model, vacant Obsidian Throne, fallen greatsword, swirling singularity ring. | **PASS** |
+| **Settings Console** | Rebalanced chambers, acoustic bus plate with peak limiter readout, chronometer dial with 1.00x reset, tactile brass toggle levers, engine diagnostics plate. | **PASS** |
+| **Field Manual (PC)** | PC keycaps (WASD, Space strike, Shift bow, Q relic, 1-3 slots, E/G swap), platform toggle, tactical overview. | **PASS** |
+| **Field Manual (Mobile)** | 360° virtual joystick diagram, touch action buttons (`⚔ ATK`, `🏹 SHOOT`, `✨ SPECIAL`), platform toggle. | **PASS** |
+| **Field Manual (Rally)** | Permanent vs ghost HP bars, static 2.5s timeline, cadence demonstration completed with timeline and health in 100% agreement. | **PASS** |
+| **Chronicles Floor 1** | Portcullis, runic vault arch, planted broadsword, brass lantern, ruby wax CANON seal, illuminated drop cap. | **PASS** |
+| **Chronicles Floor 2** | Deserter camp, extinguished brazier smoke, fractured lion shield, broken spear, dispatch scroll. | **PASS** |
+| **Chronicles Floor 3** | Authoritative Gorgaroth boss model, volcanic foundry, basalt columns, cracked anvil, molten lava rivers. | **PASS** |
+| **Chronicles Floor 4** | Interlocking rotating gears, floor spike grid, ledger stela with cyan tallies, stone masonry. | **PASS** |
+| **Chronicles Floor 5** | Shadow miasma, dying blue torch, unblinking red void eyes, huddled vanguard survivor. | **PASS** |
+| **Chronicles Floor 6** | Authoritative Malakor boss model, dimensional fracture rift, cosmic starfield, floating shards with purple arcs. | **PASS** |
+| **Chronicles Floor 7** | Symmetrical temple columns, celestial golden light beam, consecrated sword & bow on velvet altar plinth. | **PASS** |
+| **Chronicles Floor 8** | Primordial ichor quenching font, pulsing blood canals, basalt anvil with glowing red blade, red steam. | **PASS** |
+| **Chronicles Floor 9** | Burning Absolute Eye with concentric fiery aura, cyclopean arch, chasm precipice, Rowan with wind-blown cloak. | **PASS** |
+| **Chronicles Floor 10** | Authoritative Abyss Warden boss model, vacant Obsidian Throne, fallen greatsword, swirling singularity ring. | **PASS** |
 
 ---
 
@@ -4094,3 +4094,1686 @@ Depth progression scaling applies smoothly across floors: `statMultiplier = 1 + 
 - **"Consumed by Darkness" Achievement:** Canonical ID `'consumed'` verified unlocking in memory and persisting to `localStorage['db_achievements']` upon spike, fire, chasm, and void deaths.
 - **Performance:** Viewport culling in `WorldRenderer.js` and `LightingRenderer.js` maintains a locked 60.0 FPS with 0 memory leaks across all 10 floors.
 
+---
+
+## 29. PHASE 5.3 — UNIFIED UI SYSTEM, REAL MOBILE CONTROLS & TRUE FULL-VIEWPORT EXPERIENCE
+
+### 29.1. Executive Overview
+Phase 5.3 achieves complete visual, ergonomic, and architectural unification of Dungeon Break: Abyss Ascension Edition:
+1. **True Full-Viewport Rendering:** Eliminated all black canvas gutters and outer padding across both desktop widescreen (`16:9`, `21:9`) and mobile aspect ratios (`19.5:9`, `20:9`, portrait). Logical viewport dimensions (`LW`, `LH`) dynamically scale with device aspect ratio while maintaining crisp pixel art edges (`image-rendering: pixelated; crisp-edges;`).
+2. **Strict Mobile Control Lifecycle:** Touch controls (`#touch-overlay`), virtual D-pad, action buttons, and `#ingame-pause-btn` appear **strictly and exclusively** during active gameplay (`GameState.STATE === GameStates.PLAYING` and not in cinematics, modals, or pause).
+3. **Consecrated Weapon Ability Mapping (Mystery Shield Removed):** Replaced generic shield icon with an authentic handcrafted 8-pointed golden/violet celestial burst sigil (`assets/ui/btn_ability.png`), mapped directly to Rowan's genuine Q key (`CombatSystem.triggerWeaponAbility()`), complete with radial cooldown overlay (`special-cd-overlay`) and numeric seconds counter.
+4. **Dedicated 3-Slot Mobile Weapon Switcher Dock:** Integrated `#mobile-weapon-dock` anchored to bottom center, mirroring the active slots in `WeaponInventory`. Features real-time touch switching, active golden selection halos, weapon icons (`⚔️ SWD`, `🏹 BOW`, `🪓 AXE`, `🗡️ DAG`, `🔱 SPR`), and duplicate canvas hotbar suppression on mobile.
+5. **Ergonomic Action Button Arc & Dynamic Weapon Icons:** Primary attack button dynamically morphs between sword cleave (`btn_attack.png`) and bow shot (`btn_shoot.png`) based on equipped weapon. Dedicated quick-shoot button integrates seamlessly when a bow is present in the player loadout.
+6. **Unified UI Art Direction Across Every Screen:** Propagated purple abyss-stone, forged-metal frames, bronze rivets, and magma highlights across Main Menu, Settings (`SettingsUI.js`), Achievements (`AchievementsUI.js`), Codex & Bestiary (`CodexUI.js`), Abyss Sanctum (`SanctumUI.js`), Survival Guide (`MainMenu.js`), Tactical Pause Menu (`PauseMenu.js`), and Credits (`Credits.js`).
+
+---
+
+### 29.2. File Modifications & Architecture Map
+
+| File | Subsystem | Modifications |
+| :--- | :--- | :--- |
+| [`js/core/Constants.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/core/Constants.js) | Core Constants | Made `LW` and `LH` live exported mutable bindings with `setLogicalDimensions(w, h)` helper. |
+| [`js/main.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/main.js) | Canvas Lifecycle | Implemented dynamic aspect ratio canvas buffer scaling in `resizeCanvas()` without black gutters. |
+| [`css/main.css`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/css/main.css) | Core CSS | Styled `#c` to `100%` width and height, `position: absolute; left: 0; top: 0;` with crisp pixelated rendering. |
+| [`index.html`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/index.html) | DOM Structure | Added `#mobile-weapon-dock` (3 slots), `#special-cd-overlay`, `#special-cd-text`, and proper ARIA labels. |
+| [`css/mobile.css`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/css/mobile.css) | Mobile Styles | Added responsive styling for `#mobile-weapon-dock`, `.m-wep-slot`, cooldown overlay, and action buttons. |
+| [`js/ui/MobileControls.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MobileControls.js) | Touch Controller | Enforced strict `shouldShowTouchControls()` lifecycle; added `updateWeaponDock()`, `updateWeaponIcons()`, `updateCooldownDisplay()`, `releaseAllInputs()`, bow quick-switch shoot, and pause button wiring. |
+| [`js/core/GameLoop.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/core/GameLoop.js) | Engine Loop | Added `MobileControls.tick(dt)` inside `GameStates.PLAYING` loop. |
+| [`js/cinematics/MainMenuScene.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/MainMenuScene.js) | Main Menu | Full viewport background image scaling (`Math.max(LH/768, LW/1600)`) with gateway and Rowan alignment. |
+| [`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js) | Main Menu UI | Responsive `leftX` positioning, mobile navigation prompt footer, and modal responsive dimensions. |
+| [`js/ui/HUD.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/HUD.js) | Player HUD | Suppressed duplicate canvas weapon hotbar on mobile; offset top-right badges & minimap to avoid pause button collision. |
+| [`js/ui/SettingsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SettingsUI.js) | Settings Console | Responsive modal dimensions (`panW = Math.min(880, LW - 24)`, `panH = Math.min(520, LH - 24)`). |
+| [`js/ui/AchievementsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/AchievementsUI.js) | Achievements Wall | Responsive modal dimensions and hitzones. |
+| [`js/ui/CodexUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CodexUI.js) | Codex & Bestiary | Responsive modal dimensions, tab hitzones, and specimen chamber layout. |
+| [`js/ui/SanctumUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SanctumUI.js) | Sanctum Altar | Responsive celestial constellation layout and stele positioning. |
+| [`js/ui/PauseMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/PauseMenu.js) | Tactical Pause | Responsive panel layout with vitals, armament, and commands. |
+| [`assets/ui/btn_ability.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/assets/ui/btn_ability.png) | Custom Asset | Hand-crafted 64x64 pixel-art Consecrated Ability runic star emblem. |
+
+---
+
+### 29.3. Live Browser Verification & QA Results
+
+| Test Scenario | Viewport | Verified State | Assertions Verified | Result |
+| :--- | :---: | :---: | :--- | :---: |
+| **Test A: Main Menu & Mobile Sanitation** | 844×390 | `title` | Edge-to-edge background, portal aligned, custom title plaque, mobile tap prompt, zero touch controls visible. | **PASS ✅** |
+| **Test B: Floor 1 Mobile Combat & Movement** | 844×390 | `playing` | D-pad movement + diagonal normalization, sword attack, consecrated ability cooldown overlay (3.6s), bow switch + projectile arrow firing (vx = 16.63), in-game pause button. | **PASS ✅** |
+| **Test C1: Arcane Artificer's Settings** | 844×390 | `settings` | Audio sliders (Master/Music/SFX), chronometric dial needle, screen shake & motion toggles, no touch controls visible. | **PASS ✅** |
+| **Test C2: Monumental Wall of Deeds** | 844×390 | `achievements` | 19/21 deeds (90%), filter tabs, live relic medallions, deed lore stele, zero touch controls. | **PASS ✅** |
+| **Test C3: Codex, Bestiary & Memories** | 844×390 | `codex` | Chronicles folio, live animated Skeleton specimen chamber, suspended astral memory shards, zero touch controls. | **PASS ✅** |
+| **Test C4: Abyssal Ascension Sanctum** | 844×390 | `sanctum` | Souls (1,473) & Prestige (0) preserved, constellation nodes & conduits, Rank 5/5 Bloodline Vigor stele. | **PASS ✅** |
+| **Test C5: The Vanguard's Survival Guide** | 844×390 | `title` (modal) | Chapter tabs I–V, Touch Controls schematic diagram, platform switcher, zero touch controls. | **PASS ✅** |
+| **Test C6: Vanguard Tactical Pause Menu** | 844×390 | `pause` | Expedition vitals (HP 50/50, SAN 100%), equipped Slot 2 Hunter's Bow, Resume/Settings/Quit orders, zero touch controls. | **PASS ✅** |
+| **Test D: Mobile Portrait Layout** | 390×844 | `title` | Vertical viewport filled edge-to-edge, zero black gutters, portal and Rowan composition maintained, sharp pixels. | **PASS ✅** |
+| **Test E: Desktop Regression & Widescreen** | 1280×720 | `title` & `playing` | Edge-to-edge 16:9 canvas, keyboard navigation prompt, Canvas 2D weapon hotbar, keyboard/mouse input intact, no regressions. | **PASS ✅** |
+
+---
+
+## 30. PHASE 5.4: ESCAPE-KEY STATE MANAGEMENT FIX, CONTINUE RESUME VALIDATION & LIVING CATHEDRAL SETTINGS / PAUSE UI REBUILD
+
+**Subsystem:** State Management, Persistence Lifecycle & Dark-Fantasy UI Redesign  
+**Status:** **COMPLETE & VERIFIED VIA LIVE BROWSER REGRESSION SUITE (TESTS A–E)**
+
+### 30.1. Root Cause Analyses
+
+#### Bug A: Escape-Key Navigation Fallthrough & Stale Origin State
+1. **Root Cause:**
+   - In [`js/ui/SettingsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SettingsUI.js), `_returnState` was initialized to `GameStates.TITLE`, but whenever Settings was opened from PauseMenu, `openSettings(GameStates.PAUSED)` set `_returnState = GameStates.PAUSED`.
+   - When returning to the Main Menu and clicking "Settings", [`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js) called `GameState.setState(GameStates.SETTINGS)` directly without invoking `openSettings()`, leaving `_returnState` stuck on `GameStates.PAUSED`.
+   - Furthermore, `closeSettings()` checked `const target = (GameState.PREV_STATE === GameStates.PAUSED || _returnState === GameStates.PAUSED) ? GameStates.PAUSED : GameStates.TITLE;`, which unconditionally routed back to `GameStates.PAUSED`.
+   - Additionally, [`js/ui/PauseMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/PauseMenu.js) exported its own wrapper `openSettings` and attached it to `window.openSettings = openSettings;`, which trampled `window.openSettings` with a hardcoded `GameStates.PAUSED` parameter.
+   - In [`js/main.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/main.js), `Escape` was handled in multiple non-exclusive blocks without early return, allowing fallthrough across modal boundaries.
+2. **Architectural Resolution:**
+   - In `SettingsUI.js` and `AchievementsUI.js`:
+     ```javascript
+     let _returnState = GameStates.TITLE;
+     export function getReturnState() { return _returnState; }
+     export function openSettings(fromState = null) {
+       _settingsSlide = 0;
+       _activeDraggingChannel = null;
+       _returnState = fromState ? fromState : (GameState.STATE === GameStates.PAUSED ? GameStates.PAUSED : GameStates.TITLE);
+       GameState.setState(GameStates.SETTINGS);
+       SoundManager.snd('panel_open');
+     }
+     export function closeSettings() {
+       _activeDraggingChannel = null;
+       SoundManager.snd('panel_close');
+       const target = (_returnState === GameStates.PAUSED) ? GameStates.PAUSED : GameStates.TITLE;
+       _returnState = GameStates.TITLE; // Immediately reset to avoid stale origin
+       GameState.setState(target);
+     }
+     ```
+   - In `MainMenu.js`: Imported `openSettings` and `openAchievements` and wired them with explicit `GameStates.TITLE`.
+   - In `PauseMenu.js`: Removed trampling of `window.openSettings` and `window.openAchievements`.
+   - In `js/main.js`: Consolidated all `Escape` key handling into an authoritative, mutually exclusive `if / else if` hierarchy with immediate `e.preventDefault()` and early returns, eliminating duplicated handlers and fallthrough.
+
+#### Bug B: Invalid Continue & Downed/Death-Pose Player Restoration
+1. **Root Cause:**
+   - `SaveSystem.clearRun()` was only called in `RunResetManager.js` and `Credits.js`. It was never called when the player died in `DeathCinematics.js` (`requestDeath()`), when sanity hit 0 in `SanitySystem.js` / `ShatteredMindCinematic.js`, or when abandoning an expedition.
+   - In `MainMenu.js`, `hasSave` only performed a shallow existence check: `const hasSave = !!(sv && sv.lv);`. It did not validate whether `sv.hp > 0` or `sv.san > 0`.
+   - When a player with a saved floor later had sanity drained to 0 or died, the stale run persisted in `localStorage['db_save_v5']`. Clicking `Continue` in the Main Menu invoked `resumeSavedRun()`, which loaded `P.san = sv.san` (`0`). On the very next frame in `SanitySystem.update()`, `P.san <= 0` immediately triggered `requestDeath('shattered_mind', 'sanity')`, stranding Rowan in a collapsed death pose with HP = 50 and SAN = 0%.
+2. **Architectural Resolution:**
+   - In [`js/systems/SaveSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/SaveSystem.js), introduced `hasResumableRun()`:
+     ```javascript
+     hasResumableRun() {
+       try {
+         const sv = this.loadRun();
+         if (!sv || typeof sv.lv !== 'number' || sv.lv < 1) return false;
+         if (sv.hp !== undefined && sv.hp <= 0) return false;
+         if (sv.san !== undefined && sv.san <= 0) return false;
+         return true;
+       } catch (e) {
+         return false;
+       }
+     }
+     ```
+   - In `DeathCinematics.js` (`requestDeath`): Automatically invoke `SaveSystem.clearRun()` immediately when death is requested.
+   - In `ShatteredMindCinematic.js` (`start`): Automatically invoke `SaveSystem.clearRun()` immediately on sanity collapse.
+   - In `MainMenu.js`:
+     - `const hasSave = SaveSystem.hasResumableRun();`
+     - Automatically purge stale/dead saves with `SaveSystem.clearRun()`.
+     - In `resumeSavedRun()`: Validate `SaveSystem.hasResumableRun()`. Thoroughly reset all player death flags (`P.dead = false; P.dying = false; P.cinematicPose = null; P.deathCause = null; P.deathTimer = 0; P.invulnerable = false; P.attacking = false; P.dashing = false; P.animState = 'idle'; P.weaponLowered = false; P.san = Math.max(20, sv.san);`).
+   - In `PauseMenu.js`:
+     - Safe quit (`quitToMainMenu`): Saves active healthy run via `SaveSystem.saveRun()`, then returns to title.
+     - Forfeit descent (`abandonExpedition`): Two-click confirmation clears the run with `SaveSystem.clearRun()` and returns to title.
+
+---
+
+### 30.2. Redesigned UI Architecture
+
+#### 1. Arcane Artificer's Settings Console (`js/ui/SettingsUI.js`)
+- **Living Cathedral Alignment:** Framed in deep indigo/violet abyss-stone (`#070a16`, `#0a0e20`) with forged blackened steel backing, antique brass brackets, and gold rivets.
+- **Header:** Custom hanging title plaque aesthetic ("◈ ARCANE ARTIFICER'S CALIBRATION CONSOLE ◈") with clevis eyelets, subtitle rubric, and top-right Master Audio Toggle.
+- **Acoustic Resonance Chamber:** Master Volume (Amber), Sanctum Chorale Music (Violet), and Crucible Impact SFX (Cyan) runners with decibel and percentage telemetry, interactive continuous dragging, and dynamic routing matrix.
+- **Chronometric Temporal Regulator:** Dial needle gauge, stepped velocity presets (`0.50x`, `1.00x`, `1.50x`, `2.00x`), and `1.00x Reset` button.
+- **Sensory & Tactile Levers:** Tactile brass inset toggle switches for Screen Trauma Vibration (Screen Shake) and Astral Fluidity Damping (Reduced Motion).
+- **Touch Controls Configuration:** Direct hooks to `MobileControls.enterCtrlEditMode()` and `MobileControls.resetCtrlLayout()`.
+- **Footer:** Unified keyboard hints and prominent "◈ CONSECRATE & RETURN [ ESC ]" button rendered with pixel-art nine-slice `ButtonArtManager`.
+
+#### 2. Expedition Suspended Pause Menu (`js/ui/PauseMenu.js`)
+- **Living Cathedral Alignment:** Clean, centered dark-fantasy plinth (`600 × 500`) over an atmospheric darkening vignette (`rgba(2, 4, 10, 0.78)`) that preserves subtle visibility of the underlying live dungeon floor and torches.
+- **Header Plaque:** Suspended title plaque ("◈ EXPEDITION SUSPENDED ◈") with twin chains and floor subtitle (`FLOOR N: BIOME • DESCENT HALTED`).
+- **Live Authoritative Telemetry Plinth:**
+  - Health Bar: Deep ruby track with glowing scarlet fluid (`HP: cur / max`).
+  - Sanity Bar: Deep violet track with cosmic amethyst fluid (`SAN: cur%`).
+  - Active Armament: Slot badge, weapon name, power damage readout, and rarity color.
+  - Abyss Harvest: Golden soul rune and harvested souls counter.
+- **Forged Regalia Command Buttons:** Rendered via `ButtonArtManager` nine-slice pixel art:
+  1. `RESUME EXPEDITION` (Primary button with golden Vanguard crown, `[ ESC / ENTER ]`)
+  2. `CALIBRATION & SETTINGS` (Forged button, `[ S ]`)
+  3. `MONUMENTS & WALL OF DEEDS` (Forged button, `[ A ]`)
+  4. `SAVE & RETURN TO TITLE` (Safely preserves live run via `SaveSystem.saveRun()`)
+  5. `ABANDON EXPEDITION (FORFEIT DESCENT)` (Red danger button with two-click forfeit confirm, `[ Q ]`)
+
+---
+
+### 30.3. Files Modified
+
+| File | Description |
+| :--- | :--- |
+| [`js/systems/SaveSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/SaveSystem.js) | Added `hasResumableRun()` validation checking valid floor, `hp > 0`, and `san > 0`. |
+| [`js/cinematics/DeathCinematics.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/DeathCinematics.js) | Added immediate `SaveSystem.clearRun()` to `requestDeath()`. |
+| [`js/cinematics/ShatteredMindCinematic.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/ShatteredMindCinematic.js) | Added immediate `SaveSystem.clearRun()` to `start()`. |
+| [`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js) | Wired `openSettings(TITLE)` and `openAchievements(TITLE)`; updated `hasSave` to use `hasResumableRun()`; added rigorous player pose/death flag cleanup on resume. |
+| [`js/ui/SettingsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SettingsUI.js) | Implemented clean `_returnState` management, exported `getReturnState()`, integrated `ButtonArtManager` for return button, aligned visual language with Living Cathedral. |
+| [`js/ui/AchievementsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/AchievementsUI.js) | Cleaned `_returnState` tracking, exported `getReturnState()`. |
+| [`js/ui/PauseMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/PauseMenu.js) | Completely reconstructed Pause Menu to Living Cathedral dark-fantasy aesthetic; added authoritative vitals, weapon, and souls telemetry; added 5 forged buttons; fixed `openSettings` caller parameter. |
+| [`js/ui/UIManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/UIManager.js) | Removed unexpected `resumeGame()` on clicking empty chassis space in Pause state. |
+| [`js/rendering/Renderer.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/rendering/Renderer.js) | Rendered `MainMenuScene` behind Settings/Achievements modals when opened from Title. |
+| [`js/main.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/main.js) | Consolidated authoritative `Escape` key handling with early returns and `e.preventDefault()`. |
+| [`docs/DUNGEON_BREAK_UI_UX_UPGRADE.md`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/docs/DUNGEON_BREAK_UI_UX_UPGRADE.md) | Documented Phase 5.4 architecture, root causes, and regression suite results. |
+
+---
+
+### 30.4. Live Browser Verification & QA Results (Tests A through E)
+
+| Test Suite | Scenario Tested | Runtime Observed | Result |
+| :--- | :--- | :--- | :---: |
+| **Test A** | **Main Menu → Settings → Escape** | Clicked Settings on Title (`y=385`). Verified `GameState.STATE === 'settings'`, `_returnState === 'title'`. Changed `masterVolume` to 0.65. Pressed `Escape`. Returned to `title`. Reopened Settings; verified `masterVolume === 0.65` persisted. Confirmed zero gameplay runs created or resumed. | **PASS ✅** |
+| **Test B** | **Gameplay → Pause → Settings → Escape** | Started live run (`GameState.STATE === 'playing'`). Moved Rowan (`+15, +15`). Paused game (`'pause'`). Opened Settings via hotkey `[S]` (`'settings'`, `_returnState === 'pause'`). Pressed `Escape`; returned to same Pause Menu (`'pause'`). Confirmed Rowan position, HP, SAN, equipment, and floor unchanged. Selected Resume; returned cleanly to `'playing'`. | **PASS ✅** |
+| **Test C** | **Main Menu Continue (Valid vs Dead Run)** | Started run, set HP to 18, SAN to 85, floor to 2. Returned to title safely. `hasResumableRun` was `true`. Selected Continue; resumed on floor 2 with `hp = 18`, `san = 85`, `dead = false`, `dying = false`, `pose = null`, `anim = idle`. Tested dead run (`hp: 0, san: 0` in storage); `hasResumableRun` returned `false`, `Continue` rejected, stale save purged, Rowan never placed into stuck/death pose. | **PASS ✅** |
+| **Test D** | **Zero-Sanity & Death Recovery** | Set `P.san = 0`; `SanitySystem.tick()` immediately triggered `ShatteredMindCinematic` (`'death_sanity'`). Run state cleared from localStorage immediately. Pausing during cinematic blocked. Returned to title; `hasSave` was `false`. Tested physical death (`requestDeath('trap')`); death triggered, run cleared immediately, pausing blocked, Return to Title returned to `title` with no lingering save. | **PASS ✅** |
+| **Test E** | **UI & Responsive Layout (Desktop & Mobile)** | Verified redesigned Settings and Pause menus across desktop (`1280×720`), mobile landscape (`844×390`), and mobile portrait (`390×844`). All nine-slice buttons loaded and rendered cleanly; no clipped text or overlapping actions; touch/mouse/keyboard hotkeys operational; reduced motion respected; Living Cathedral main menu completely visually intact. | **PASS ✅** |
+
+---
+
+## 31. PHASE 5.5 — WEAPON DOCK UX OVERHAUL & PREMIUM SETTINGS REFINEMENT
+
+### 31.1. Core Objectives & Architectural Upgrades
+
+Phase 5.5 focused on two targeted systems:
+1. **Weapon Dock UX & Contextual Full-Inventory Replacement Flow:** Rebuilding the weapon selection and replacement experience so desktop and mobile users can understand and execute it seamlessly.
+2. **Premium Settings Refinement:** Refining the Arcane Artificer's Calibration Console into a clean, dark-fantasy sanctum calibration interface—polishing the audio waveform rails and circular chronometer game-speed dial while eliminating all technical/engineering clutter.
+
+---
+
+### 31.2. System Architecture & Detailed Mechanics
+
+#### 1. Weapon Dock Architecture (Desktop & Mobile)
+- **Desktop Canvas HUD (`js/ui/HUD.js`):**
+  - Expanded chassis (`dockW = 286, dockH = 68`) anchored at the bottom-center of the viewport.
+  - 3 Distinct slot cards (`56 × 46px`) with slot numbers `[ 1 ]`, `[ 2 ]`, `[ 3 ]`.
+  - Pixel-art weapon silhouettes rendered procedurally with precise orientation, blade highlights, and grip accents.
+  - Readable weapon names (`SWORD`, `BOW`, `AXE`, `DAGGER`, `TRIDENT`) and clear empty state (`[ EMPTY ]`).
+  - Active weapon highlighted with golden illuminated border (`#ffd700`), corner brackets, and header plaque (`ARMORY DOCK: ⚔ WEAPON [RARITY] · X.X DMG`).
+  - Integrated Consecrated Ability slot (`[Q] SPECIAL`, `qw = 68px`) with live cooldown radial timer and "READY" badge.
+  - Exact 1:1 hit-testing in `UIManager.js` for desktop mouse clicking.
+- **Mobile Touch Dock (`index.html`, `css/mobile.css`, `js/ui/MobileControls.js`):**
+  - Centered horizontally above the screen edge between the directional D-Pad and combat buttons.
+  - Generous touch targets (`58 × 56px`) with purple abyss-stone bedding (`#110f1c`), forged metal borders, and active gold glow (`#ffd700`).
+  - Custom SVG weapon silhouettes for all weapon IDs (no emojis).
+  - Direct touch and tap event switching with instant visual feedback and audio cues.
+
+#### 2. Full-Inventory Weapon Replacement Flow (`WeaponInventory.js`, `InventoryUI.js`, `LootSystem.js`)
+- **Case A — At least one slot is empty:**
+  - Standard walkover pickup. Item is immediately collected into the first empty slot, equipped, and dock updated. Zero confirmation required.
+- **Case B — All 3 slots occupied:**
+  - Contextual in-world equipment cache modal styled with Living Cathedral gold and obsidian fittings.
+  - **Stage 1 (Prompt Mode):**
+    - Header: `◈ ARSENAL FULL ◈` (`Discovered Equipment Cache · Armory At Maximum Capacity`).
+    - Discovered weapon card with 2.0x scaled silhouette, name, rarity, and damage.
+    - Notice: `All three weapon slots in your armory are currently occupied.`
+    - Prominent `◈ SWAP WEAPON` button and secondary `CANCEL` button.
+    - Hotkeys: `[ Enter / E ]` to Swap, `[ Esc ]` to Cancel.
+  - **Stage 2 (Replacement Selector Mode):**
+    - Header ribbon displaying discovered weapon and power.
+    - 3 Replacement cards displaying: `REPLACE: [CURRENT WEAPON] ➔ [NEW WEAPON]`.
+    - Live stat comparisons: `DMG: X ➔ Y (+Z)` with green delta text.
+    - Dedicated `[ 1/2/3 ] REPLACE` buttons and bottom `◈ CANCEL / KEEP CURRENT LOADOUT [ ESC ]`.
+- **Hysteresis & Cancellation Protection:**
+  - When the player cancels replacement, `it.ignoredUntilStepAway = true` prevents the modal from re-triggering continuously every frame while Rowan remains on the pickup.
+  - Walking away (`dist >= 1.4` tiles) clears `it.ignoredUntilStepAway`, allowing the player to return and re-inspect the cache anytime.
+  - When a slot is replaced, only that slot is modified; the remaining 2 slots are preserved, the old weapon is dropped at Rowan's feet, and the pickup item is marked `taken: true`.
+
+#### 3. Premium Settings Chamber Refinement (`js/ui/SettingsUI.js`)
+- **Elimination of Technical Clutter:**
+  - Removed all decibel readouts (`-14.0 dB`, `0.0 dB`, `(-∞)`).
+  - Removed audio sampling rates (`48.0 KHZ (32-BIT FLOAT WEBAUDIO)`).
+  - Removed audio bus dynamic routing matrix and headroom peak limiter diagnostics.
+  - Removed simulation tick measurements (`60.0 HZ FIXED TIMESTEP`).
+  - Removed bottom diagnostic sub-plates to create generous breathing room and balanced proportions.
+- **Polished Audio Chamber:**
+  - 3 Clear controls: `MASTER VOLUME`, `MUSIC VOLUME`, and `SOUND EFFECTS`.
+  - Percentage-only readouts (`75%`, `100%`, `0%`) on ticks and headers.
+  - Subtle, elegant animated waveforms: Amber sine wave on Master, Violet melody wave on Music, Cyan electric pulse on SFX.
+  - Frame-rate independent animation respecting `reducedMotion`.
+  - Direct live routing to `AudioManager` and `MusicManager` with automatic localStorage persistence.
+- **Refined Chronometer Game-Speed Dial:**
+  - Semicircular brass arc with speed presets: `0.50×`, `1.00×`, `1.50×`, `2.00×`.
+  - Frame-rate-independent continuous needle easing: `_displayedSpeed += (targetSpeed - _displayedSpeed) * Math.min(1.0, dt * 10.0)`.
+  - Snaps immediately when `reducedMotion` is enabled.
+  - Compact `↺ RESET 1.00×` button.
+  - Prominent velocity readout (`1.00× VELOCITY`) with cadence description.
+- **Navigation & Contextual Return:**
+  - Dynamic Return Button: `◈ RETURN TO TITLE [ ESC ]` when opened from Title; `◈ RETURN TO EXPEDITION [ ESC ]` when opened from Pause.
+  - Preserves underlying pause state and does not accidentally resume or pause runs.
+
+---
+
+### 31.3. Files Modified
+
+| File | Changes Made |
+| :--- | :--- |
+| [`js/weapons/WeaponInventory.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/weapons/WeaponInventory.js) | Added `mode: 'prompt' \| 'selector'` to replace modal; added `switchToSelector()`; added `ignoredUntilStepAway` guard in `discardReplacementWeapon()`. |
+| [`js/systems/LootSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/LootSystem.js) | Implemented full-inventory walkover check opening contextual prompt; added step-away hysteresis clearing `ignoredUntilStepAway` at `dist >= 1.4`. |
+| [`js/ui/InventoryUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/InventoryUI.js) | Rebuilt replacement UI: Stage 1 ARSENAL FULL prompt modal + Stage 2 3-slot replacement selector with `[CURRENT] ➔ [NEW]` cards and stat comparisons. |
+| [`js/ui/HUD.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/HUD.js) | Rebuilt weapon dock: 3 distinct slot cards with slot numbers, readable weapon names, pixel silhouettes, empty state, active gold glow, and integrated `[Q]` slot. |
+| [`js/ui/UIManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/UIManager.js) | Updated mouse hit-testing bounding boxes for weapon slots matching new dock dimensions. |
+| [`index.html`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/index.html) | Updated `#mobile-weapon-dock` markup with clean initial slots and bumped version tag. |
+| [`css/mobile.css`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/css/mobile.css) | Redesigned `.mobile-weapon-dock` and `.m-wep-slot` with generous 58×56px tap targets, abyss-stone bedding, and active gold glow. |
+| [`js/ui/MobileControls.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MobileControls.js) | In `updateWeaponDock()`, replaced emojis with custom inline SVG weapon silhouettes, readable names, rarity border accents, and direct touch switching. |
+| [`js/ui/SettingsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/SettingsUI.js) | Reconstructed Settings UI: stripped technical decibel & diagnostic clutter; polished Audio Chamber with 3 waveform rails; added continuous needle easing to Chronometer dial; added dynamic Return button. |
+| [`js/main.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/main.js) | Added keyboard routing for replacement modal modes; exported `WeaponInventory`, `LootSystem`, and `CombatSystem` to window for runtime test verification. |
+
+---
+
+### 31.4. Live Browser Verification & QA Results (Tests A through F)
+
+All tests were executed against the live browser instance running on `http://localhost:8080/`:
+
+| Test Suite | Scenario Tested | Runtime Observed | Result |
+| :--- | :--- | :--- | :--- |
+| **Test A** | **Free Weapon Slot Pickup** | Started run with Slot 0 (Sword) and Slot 1 (Bow), Slot 2 empty. Walked over Battleaxe pickup. Item collected immediately into Slot 2 without modal. Active slot updated to 2. Weapon dock displayed `[2] AXE` in gold with pixel battleaxe icon. Rowan equipped the axe. | **PASS ✅** |
+| **Test B** | **Full Inventory Replacement** | With all 3 slots occupied (Sword, Bow, Axe), walked over discovered item. Game did not overwrite existing weapons. Contextual `◈ ARSENAL FULL ◈` prompt opened. Pressed `Enter` / clicked `SWAP WEAPON`; 3-slot replacement selector opened showing `REPLACE: [CURRENT] ➔ [NEW]` with damage comparisons. Replaced Slot 1 (`[1]`); only Slot 1 updated, Slots 2 and 3 remained intact. Repeated with Slots 2 and 3; remaining slots preserved in all cases. Replaced weapons dropped at feet. Equipped state and HUD icons updated immediately. | **PASS ✅** |
+| **Test C** | **Cancel & Step Away Hysteresis** | Opened ARSENAL FULL prompt modal on pickup. Pressed `Escape` / clicked `CANCEL`. Inventory remained completely intact and pickup was not collected. Stepped within pickup zone; modal did not re-open every frame due to `ignoredUntilStepAway = true`. Walked $\ge 1.4$ tiles away (`dist = 3.5`); `ignoredUntilStepAway` cleared. Returned to pickup; modal re-opened cleanly without duplicate events. | **PASS ✅** |
+| **Test D** | **Mobile Usability & Touch Switching** | Emulated mobile viewport (`800 × 500`). Mobile touch overlay and weapon dock activated. Verified all slots display slot numbers, clean SVG weapon silhouettes (no emojis), readable weapon names, and generous 58×56px touch targets. Tapped Slot 1; active weapon switched immediately to Axe with gold glowing border. Tapped Slot 3; switched to Dagger. Replacement modal touch targets tested; no keyboard required. Replacement modal blocks combat touch buttons while active. | **PASS ✅** |
+| **Test E** | **Settings Screen & Chronometer Refinement** | Inspected refined Settings Chamber. Confirmed zero decibel readings (`-14.0 dB`) or diagnostic routing matrices remain. Tested Master, Music, and SFX volume sliders; volume percentages updated and routed immediately to WebAudio buses and persisted to localStorage. Tested chronometer dial: needle eased smoothly to `1.50×` preset with illuminated arc; displayed velocity matched engine speed. Clicked `↺ RESET 1.00×`; speed returned to 1.00x. Tested Escape navigation: opened from Title returned to Title; opened from Pause returned to Pause. | **PASS ✅** |
+| **Test F** | **Combat Regression & Visual Integrity** | Executed normal combat attacks with Sword, Axe, Bow, and Dagger. Verified weapon damage, hit detection, cadence, and special ability cooldowns are 100% intact. Living Cathedral main menu inspected; title plaque, portal alignment, and character art 100% visually preserved. | **PASS ✅** |
+
+---
+
+### 31.5. Artifact Screenshots
+
+- **Desktop Weapon Dock (HUD):** [`screenshots/phase5_5_weapon_dock.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/phase5_5_weapon_dock.png)
+- **Mobile Weapon Dock (SVG Icons & Touch Targets):** [`screenshots/phase5_5_mobile_dock.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/phase5_5_mobile_dock.png)
+- **Contextual ARSENAL FULL Prompt:** [`screenshots/phase5_5_arsenal_full_prompt.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/phase5_5_arsenal_full_prompt.png)
+- **3-Slot Weapon Replacement Selector:** [`screenshots/phase5_5_replacement_selector.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/phase5_5_replacement_selector.png)
+- **Refined Settings Chamber (Waveforms & Controls):** [`screenshots/phase5_5_settings_refined.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/phase5_5_settings_refined.png)
+- **Calibrated Chronometer Game-Speed Dial:** [`screenshots/phase5_5_chronometer_dial.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/phase5_5_chronometer_dial.png)
+
+---
+
+## 32. PHASE 6 — ARCHIVE REFINEMENT, LIVING ACHIEVEMENTS & SPEEDRUNNING
+
+### 32.1. Architectural Overview & Design Philosophy
+Phase 6 refines the grand archives, overhauls the achievement experience into the **Monumental Wall of Deeds & Sanctum of Fates**, introduces authoritative speedrunning and wall-clock active floor/run timers, and enhances narrative presentation without breaking existing systems or compromising established canon.
+
+#### Key Architectural Pillars
+1. **Monumental Wall of Deeds (`AchievementsUI.js` & `AchievementIconRenderer.js`):**
+   - **8×5 Grand Grid (40 Deeds):** 21 canonical deeds + 19 Phase 6 progression deeds (Savior II/III, Perfect Rescue, 3x Boss Nemeses, 3x Death Crucible tiers, and 10x Floor Speedrun trials).
+   - **Apex Shrine with Milestone Ring:** Living Canvas 2D Eye of the Absolute flanked by all 8 Roman milestone pips (I–V Death Crucibles, VI–VIII Conquest Endings) honoring THE LAST WITNESS.
+   - **Realm Deeds Filter Tabs:** 8 category tabs (`ALL DEEDS`, `SURVIVAL`, `COMBAT`, `SPEEDRUN`, `DISCOVERY`, `ASCENSION`, `THE FATES`, `ABSOLUTE`) with animated selection pills and filtered medallion highlighting.
+   - **Inscribed Monolith Deed Plaque:** Sliding bottom detail stele displaying large 60×60 living icon, tier insignia, title, narrative instruction, and real-time interactive progress bars (`X / Y` units with percentage readout).
+2. **Ancient Vault Memory Archive (`CodexUI.js`):**
+   - Grounded two-column layout of weathered ancient stone cards with gold/cyan headers and diamond bullets (`✦`).
+   - Fixed 260×124 preview viewport frame with embossed gold rim and subtle drop shadow.
+   - Structured typography hierarchy: Stratum header, Title in bold Cinzel, italicized amber Quote, divider line, `NARRATIVE RECOLLECTION`, and `CRUCIBLE SIGNIFICANCE`.
+   - Motion stability: Strict frame-rate-independent easing with instantaneous snapping under `reducedMotion`.
+3. **Masterwork Floor 10 Chronicle Scene (`BestiaryPortraitRenderer.js`):**
+   - Symmetrical vaulted cathedral architecture with deep obsidian abyss pillars flanking the central chamber.
+   - Singularity halo with violet aura and coronal particle rings.
+   - Three-tiered ceremonial floating dais with luminous stepped runners and ceremonial braziers.
+   - Centered Abyss Warden (scale 0.70) holding the Void Executioner Blade.
+   - **Preservation Guarantee:** Floors 1 through 9 remain 100% untouched and faithful to approved canonical scenes.
+4. **The Absolute & Bestiary Readability Pass (`enemies.js`, `CodexUI.js`):**
+   - Fragmented deciphered archive chips for The Absolute: `ORIGIN: [ERA LOST / EXPUNGED]`, `ANATOMY: [NON-CORPOREAL GAZE]`.
+   - High-contrast body typography (`#e2e8f0` and `#cbd5e1`), elevated line height (17px), and clear sectional hierarchy across all 8 bestiary entries.
+5. **Living Achievement Toasts (`AchievementSystem.js`):**
+   - Cubic slide-in notifications with procedural Canvas 2D pixel-art icons, gold/cyan chassis, and corner rivets.
+   - Separate deed unlocked (`◈ DEED UNLOCKED ◈`) and progression milestone (`◈ PROGRESSION UPDATE ◈`) presentations.
+   - Non-blocking execution pinned below the minimap (`y = 166` in gameplay, `y = 56` in menus) to ensure zero obstruction of floor stats, minimap, or controls.
+6. **Authoritative Speedrunning & Active Timers:**
+   - Unscaled wall-clock active time accumulation (`FLOOR_ACTIVE_TIME`, `RUN_ACTIVE_TIME`) in `GameLoop.js`, strictly immune to game-speed dial adjustment (0.5×–2.0×), pause states, and cutscenes.
+   - Speedrun deeds for Floors 1–10 evaluated upon portal exit (`Portal.js`) and boss defeat (`BossManager.js`).
+   - Death Results screen (`DeathCinematics.js`) enhanced with clean `FLOOR TIME` and `DESCENT` timing indicators.
+   - Credits options screen (`Credits.js`) enhanced with speedrun summary plinth, personal best tracking (`SaveSystem.getBestRunTime`), and `★ NEW RECORD ★` gold banner.
+7. **Sacrosanct Canon Preservation:**
+   - **THE LAST WITNESS:** Preserves all 8 cumulative cross-run milestones (`death_normal_enemy`, `death_gorgaroth`, `death_malakor`, `death_warden`, `death_shattered_mind`, `ending_hero`, `ending_betrayal`, `ending_rampage`). Never converted to single-run challenge.
+   - **The Last Ember:** Preserves the gift sequence invitation and unlock relationship.
+   - Zero 3D meshes, zero raster atlases, zero emojis, zero save wiping.
+
+---
+
+### 32.2. Files Modified in Phase 6
+
+| File | Changes Made |
+| :--- | :--- |
+| [`js/ui/InventoryUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/InventoryUI.js) | Stage 0: Fixed 3-slot weapon replacement modal layout with `drawFittedText`, centered equipped badges, and 640×425px panel bounds. |
+| [`js/ui/CodexUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CodexUI.js) | Stage 1 & 3: Rebuilt Memories Archive with grounded ancient vault cards, 260×124 preview frame, separated quote/narrative/significance; improved bestiary body text contrast and line height. |
+| [`js/rendering/BestiaryPortraitRenderer.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/rendering/BestiaryPortraitRenderer.js) | Stage 2: Implemented Masterwork Floor 10 scene (symmetrical cathedral pillars, singularity halo, 3-tier dais, centered Warden scale 0.70); preserved Floors 1–9 100% untouched. |
+| [`js/data/enemies.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/data/enemies.js) | Stage 3: Updated The Absolute lore with fragmented deciphered chips and surviving field intelligence. |
+| [`js/data/achievements.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/data/achievements.js) | Stage 4 & 6: Added all 19 Phase 6 achievements (savior tiers, perfect rescue, boss nemeses, death tiers, floor speedruns) alongside 21 originals for 40 total deeds. |
+| [`js/rendering/AchievementIconRenderer.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/rendering/AchievementIconRenderer.js) | Stage 4: Added custom procedural Canvas 2D pixel-art icon routines for all new deeds (no emojis). |
+| [`js/ui/AchievementsUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/AchievementsUI.js) | Stage 4 & 6: Rebuilt UI into 8×5 Monumental Wall of Deeds, 8 category filter tabs, Apex Eye with 8 milestone pips, 4-way arrow navigation, and live progress bars in detail stele. |
+| [`js/systems/SaveSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/SaveSystem.js) | Stage 6 & 7: Added lifetime metrics persistence (`LIFETIME_DEATHS`, `LIFETIME_BOSS_KILLS`, `CUMULATIVE_SURVIVORS`, `BEST_RUN_TIME`), survivor rescue tracking, boss kill counting, and run time persistence. |
+| [`js/systems/AchievementSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/AchievementSystem.js) | Stage 5: Implemented live cubic slide-in toast banners with pixel-art icons, progress bars, and non-blocking viewport positioning below HUD minimap. |
+| [`js/core/GameLoop.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/core/GameLoop.js) | Stage 7: Implemented unscaled wall-clock active timing for `FLOOR_ACTIVE_TIME` and `RUN_ACTIVE_TIME` during `PLAYING` state. |
+| [`js/world/FloorManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/world/FloorManager.js) | Stage 7: Added `FLOOR_ACTIVE_TIME` reset on level load and assigned unique IDs to eligible survivors. |
+| [`js/systems/RunResetManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/RunResetManager.js) | Stage 7: Added reset of `RUN_ACTIVE_TIME`, `FLOOR_ACTIVE_TIME`, and `CURRENT_RUN_SURVIVORS` on run restart. |
+| [`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js) | Stage 7: Added restoration of run timers and survivors in `resumeSavedRun()`. |
+| [`js/world/Interactables.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/world/Interactables.js) | Stage 6 & 7: Added survivor rescue tracking, lifetime metric recording, and progress toast emission. |
+| [`js/world/Portal.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/world/Portal.js) | Stage 7: Added evaluation of floor speedrun deeds (`speed_floor_${LV}`) on portal exit. |
+| [`js/bosses/BossManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/bosses/BossManager.js) | Stage 6 & 7: Added boss kill tracking, boss speedrun thresholds, and boss nemesis unlocks. |
+| [`js/cinematics/DeathCinematics.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/DeathCinematics.js) | Stage 6 & 7: Increments lifetime deaths in `enterResults()` and renders `FLOOR TIME` and `DESCENT` in the death stats grid. |
+| [`js/cinematics/Credits.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/Credits.js) | Stage 7: Records run completion, evaluates `perfect_rescue`, and renders speedrun summary plinth with personal best badge. |
+| [`js/ui/UIManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/UIManager.js) | Stage 5: Added global execution of `AchievementSystem.tick(dt)` and `AchievementSystem.drawToasts(ctx)`. |
+
+---
+
+### 32.3. Verification & Live QA Results
+
+| Verification Suite | Scenario Tested | Runtime Observed | Result |
+| :--- | :--- | :--- | :--- |
+| **Suite 1: Monumental Wall of Deeds** | Verified 40 deeds rendered in 8×5 grid; verified category tab filtering (`survival: 8`, `combat: 10`, `speedrun: 11`, `discovery: 5`, `progression: 2`, `endings: 3`, `mastery: 1`); tested deed selection, live progress bars, and title truncation before corner numbers. | All 40 deeds selectable; filtered categories dim non-matching cards; live progress bar displays `0 / 5 DEATHS RECORDED` for Ashen Novice; zero text collisions. | **PASS ✅** |
+| **Suite 2: Apex Eye & THE LAST WITNESS** | Verified Apex Shrine Eye of the Absolute and 8-milestone Roman numeral ring (I–VIII); verified cross-run persistence and lore sanctity. | Milestone pips render cleanly with golden crucibles and amethyst endings; canonical milestone requirements 100% intact. | **PASS ✅** |
+| **Suite 3: Ancient Vault Memories** | Opened Codex Memories tab; verified 2-column grounded ancient vault cards, fixed 260×124 preview frame, and separated quote/narrative/significance sections. | Preview frame renders portcullis and dropped lantern; zero canvas drift; clean typography hierarchy. | **PASS ✅** |
+| **Suite 4: Masterwork Floor 10 Scene** | Inspected Floor 10 Chronicle scene; verified symmetrical cathedral pillars, singularity halo, 3-tier dais, and centered Warden scale 0.70; verified Floors 1–9 untouched. | Floor 10 scene matches masterwork design; Floors 1–9 retain approved canonical illustrations. | **PASS ✅** |
+| **Suite 5: The Absolute Bestiary** | Inspected The Absolute bestiary page; verified deciphered chip boxes (`ERA LOST / EXPUNGED`, `NON-CORPOREAL GAZE`) and surviving intelligence text. | High-contrast body typography; 17px line height; atmospheric redacted style. | **PASS ✅** |
+| **Suite 6: Live Achievement Toasts** | Triggered progression toast (`savior_2`) and deed unlocked toast (`speed_floor_1`) during live gameplay. | Toasts slide in from right edge; positioned beneath minimap (`y = 166`); bespoke pixel-art icons; live glowing progress bar; non-blocking. | **PASS ✅** |
+| **Suite 7: Unscaled Active Timing** | Tested game speed adjustment (1.00× vs 1.50× vs 2.00×); monitored `GameState.FLOOR_ACTIVE_TIME` and `RUN_ACTIVE_TIME`. | Timers accumulate using raw wall-clock `dt`, completely uncorrupted by game speed multiplier. | **PASS ✅** |
+| **Suite 8: Death Screen Timers** | Triggered player death; inspected results screen stats grid. | Displays `FLOOR TIME` (`00:42`) and `DESCENT` (`02:33`) alongside souls, kills, and survivors. | **PASS ✅** |
+| **Suite 9: Credits Speedrun Summary** | Completed journey sequence; inspected credits options screen. | Displays speedrun plinth with clear time, personal best, survivor count, and new record badge. | **PASS ✅** |
+
+---
+
+## 33. PHASE 7 — EXPANDED DUNGEON BALANCING, INTELLIGENT MINIMAP & MALAKOR ENCOUNTER REFINEMENT
+
+### 33.1. Overview & Architectural Goals
+Phase 7 delivers a targeted gameplay improvement phase focused on dungeon navigation across expanded 34–42 room floors, authoritative weapon damage formula calibration, depth-based encounter scaling, and making Floor 6 and Malakor challenging, fair, and tense without sanity collapse feeling arbitrary or inevitable.
+
+1. **Intelligent Minimap & Tactical Expanded Floor Map:**
+   - **Real-Time Objective Markers:** Minimap directly queries authoritative world state:
+     - **Rowan:** Cyan beacon with directional heading arrow derived from `(P.fx, P.fy)`.
+     - **Exit Portal:** Glowing emerald portal rune with animated concentric ripples. Strictly gated behind real level portal presence (`MAP[y][x] === 2`) and boss defeat on boss floors (`BOSS_DEAD && BOSS_PORTAL_UNLOCKED`).
+     - **Unrescued Survivors:** Golden diamond pips (`#facc15`) mapped directly from `GameState.ALLIES.filter(a => !a.rescued)`. Automatically remove upon rescue.
+     - **Floor Bosses:** Pulsing crimson crest with danger aura on Floors 3, 6, and 10.
+   - **Tactical Expanded Floor Map (`[M]` Key / Mobile Tap):**
+     - Ornate 560×380px ancient parchment modal featuring gold filigree corners, room exploration tracking (`EXPLORED: X/Y ROOMS`), current room highlight, survivor distance indicators in meters (`SURVIVOR (80m)`), and clear bottom tactical legend.
+     - Toggleable via `[M]` key, clicking the compact minimap corner, or mobile touch. Dismissable via `[ESC]`, `[M]`, or clicking anywhere on the screen without triggering gameplay weapon attacks.
+
+2. **Authoritative Weapon Scaling & Baseline Damage Calibration:**
+   - **Baseline Target Met:** *A fully upgraded common/normal weapon kills an ordinary Floor 1 enemy (Skeleton, 10 HP) in exactly one hit, while a fresh Level 1 weapon requires 2–3 hits.*
+   - **Base Damage Calibration:** Sword `4.0`, Axe `7.0`, Spear `4.5`, Bow `4.0`, Dagger `5.0` (with 0.75× multi-hit flurry multiplier in `CombatSystem.js`).
+   - **Linear Level Scaling:** Upgraded from +8% to +18% per level in `WeaponFactory.js`: `base.damage * dmgMul * (1 + (level - 1) * 0.18)`.
+   - **Depth Progression Curve:** Skeletons `10 HP`, Ghouls `22 HP`, Demons `40 HP`, Wraiths `50 HP`. Multiplied by `FLOOR_HP_MULT = 1 + (LV - 1) * 0.20`.
+   - **Preserved Axe Warning Baseline:** Rare Max-Level Axe deals 23 base damage (Special Q: 51–67 damage), perfectly preserving balance against damage inflation.
+
+3. **Floor 6 & Malakor Encounter Refinement:**
+   - **Authoritative HP Synchronization:** Refactored `BossManager.js` to authoritatively pull from `data/bosses.js`, setting Malakor HP to 200 (down from legacy hardcoded 1250 HP) with 15% void mitigation and 140 poise.
+   - **Sanity Burst Throttle:** Boss projectile volleys now carry `attackId`. Rowan can only suffer sanity drain from a burst once per 0.4s window, preventing multi-projectile volleys from instantly vaporizing 25–40 sanity in a single frame.
+   - **Tactical Runic Sanctuaries (Safe Areas):** Added South Sanctuary (`cx, ay + ah - 4, r: 2.75`) and North Sanctuary (`cx, ay + 5, r: 2.75`) rendered with physical slate floor medallions and silver stillness glow. Ambient void drain is paused completely (0 drain/s) while Rowan stands inside.
+   - **Pre-Teleport Destination Telegraph:** Teleport destination is calculated upfront, spawning violet convergence rings and particles 0.62s before Malakor shifts, giving Rowan clear counterplay to dodge and punish during the 0.95s recovery window.
+   - **Calibrated Sanity Values:** Ambient void arena drain tuned to 0.75 / 1.05 / 1.30 per second across Phases 1–3. Projectile sanity damage tuned to 4.0 / 5.0 / 6.0 based on phase.
+
+---
+
+### 33.2. Files Modified in Phase 7
+
+| File | Changes Made |
+| :--- | :--- |
+| [`js/ui/HUD.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/HUD.js) | Implemented `getActiveExitPortal()`, `getUnrescuedSurvivors()`, and `getActiveBoss()`; added live objective markers and directional heading beacon to compact minimap; created 560×380px `drawExpandedFloorMap()` with room highlight, survivor distance badges, and bottom legend; added `handleExpandedMapClick()` and `toggleMinimap()`. |
+| [`js/ui/UIManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/UIManager.js) | Added click interception when `GameState.MAP_EXPANDED` is active to dismiss without firing weapon attacks; added desktop and mobile click detection on minimap corner to toggle expanded floor map. |
+| [`js/main.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/main.js) | Added `KeyM` hotkey listener to toggle expanded floor map; updated `Escape` handler to dismiss expanded map before pausing game. |
+| [`js/core/GameState.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/core/GameState.js) | Declared `MINIMAP_VISIBLE: true` and `MAP_EXPANDED: false`; reset `MAP_EXPANDED = false` in `clearLevelEntities()`. |
+| [`js/weapons/WeaponRegistry.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/weapons/WeaponRegistry.js) & [`js/data/weapons.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/data/weapons.js) | Calibrated base weapon damages: Sword 4.0, Axe 7.0, Spear 4.5, Bow 4.0, Dagger 5.0. |
+| [`js/weapons/WeaponFactory.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/weapons/WeaponFactory.js) | Calibrated weapon upgrade scaling from +8% to +18% per level (`base.damage * dmgMul * (1 + (level - 1) * 0.18)`). |
+| [`js/data/enemies.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/data/enemies.js) & [`js/world/FloorManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/world/FloorManager.js) | Calibrated base enemy HP (skeleton: 10, ghoul: 22, demon: 40, wraith: 50) and depth scaling multiplier `1 + (LV - 1) * 0.20`. |
+| [`js/data/bosses.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/data/bosses.js) & [`js/bosses/BossManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/bosses/BossManager.js) | Synchronized `BossManager.js` to authoritatively initialize boss HP and attributes from `getBossConfig()`, setting Malakor HP to 200 (from legacy hardcoded 1250) and Gorgaroth to 180. |
+| [`js/bosses/Malakor.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/bosses/Malakor.js) | Tuned projectile sanity damage (4.0/5.0/6.0); added arrival destination telegraph indicator rings during windup; tuned cooldowns to give player tactical breathing room. |
+| [`js/combat/ProjectileSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/combat/ProjectileSystem.js) | Preserved `pr.attackId` on boss projectiles; implemented 0.4s burst sanity throttle so multi-shot volleys only drain sanity once per volley. |
+| [`js/world/BossArenaGenerator.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/world/BossArenaGenerator.js) & [`js/rendering/WorldRenderer.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/rendering/WorldRenderer.js) | Added South and North Runic Sanctuary safe areas in Floor 6 arena with physical inlaid slate floor medallions and silver stillness glow. |
+| [`js/systems/SanitySystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/SanitySystem.js) | Evaluates both South and North safe areas in `getVoidArenaPressureAt()`, completely pausing ambient void decay inside safe areas; tuned ambient drain to 0.75 / 1.05 / 1.30. |
+
+---
+
+### 33.3. Phase 7 Live Verification & QA Results
+
+| Verification Suite | Scenario Tested | Runtime Observed | Result |
+| :--- | :--- | :--- | :--- |
+| **Suite 1: Baseline Weapon Scaling** | Tested all 5 weapon archetypes (Sword, Axe, Spear, Bow, Dagger) at Level 1 (Common) and Level 10 (Common) against Floor 1 Skeleton (10 HP). | Lvl 1 Sword: 4 dmg (3 hits); Lvl 10 Sword: 10 dmg (**1 hit kill ✅**). Lvl 1 Axe: 7 dmg (2 hits); Lvl 10 Axe: 18 dmg (**1 hit kill ✅**). Lvl 1 Spear: 5 dmg (2 hits); Lvl 10 Spear: 12 dmg (**1 hit kill ✅**). Lvl 1 Bow: 4 dmg (3 hits); Lvl 10 Bow: 10 dmg (**1 hit kill ✅**). Lvl 1 Dagger: 4 dmg (3 hits); Lvl 10 Dagger: 10 dmg (**1 hit kill ✅**). Rare Lvl 10 Axe: 23 base / 51–67 special (warning baseline verified). | **PASS ✅** |
+| **Suite 2: Minimap Objective Markers** | Tested live marker rendering on Floor 1 with Rowan, 2 survivors, and exit portal. Tested survivor rescue state transitions. | Minimap accurately displays cyan player beacon with heading arrow, 2 golden survivor pips at exact world coordinates `(89, 7)` and `(122, 52)`, and emerald exit portal rune at `(133.5, 61.5)`. Upon rescue, survivor marker count drops $2 \to 1 \to 0$ in real-time. | **PASS ✅** |
+| **Suite 3: Tactical Expanded Floor Map** | Tested toggling expanded map via `[M]` key, minimap click, and mobile touch. Inspected visual presentation and dismissal via `[ESC]`. | 560×380px parchment overlay renders crisp room grid, current room highlight, survivor distance badges (`SURVIVOR (80m)`, `SURVIVOR (118m)`), and non-colliding dual-line legend. Pressing `[ESC]` dismisses map immediately without pausing gameplay; clicking dismisses map without firing weapon. | **PASS ✅** |
+| **Suite 4: Boss Floor Minimap Gating** | Inspected Floors 3 and 6 minimap before and after boss defeat. | Exit portal marker is strictly hidden while Gorgaroth and Malakor are alive; boss crimson skull marker is active. Immediately upon boss defeat and portal unlocking, exit portal marker appears at dais coordinates. | **PASS ✅** |
+| **Suite 5: Malakor HP & Stats Calibration** | Warped to Floor 6 (`loadLevel(6)`); inspected boss stats and room definition. | Boss spawned as `MALAKOR` with 200 HP, 200 MaxHP, 15% armor, 140 poise. Room initialized as `malakor_arena` with South Sanctuary (`(72, 59)`) and North Sanctuary (`(72, 38)`). | **PASS ✅** |
+| **Suite 6: Safe Area Sanity Pause** | Tested `SanitySystem.getVoidArenaPressureAt` at South Sanctuary `(72, 59)`, North Sanctuary `(72, 38)`, and Arena Center `(72, 48)` with active boss AI. | South Sanctuary: `inSafeArea: true, minDrain: 0/s`. North Sanctuary: `inSafeArea: true, minDrain: 0/s`. Center: `inSafeArea: false, minDrain: 0.75/s` (Phase 1). Ambient decay completely paused inside sanctuaries. | **PASS ✅** |
+| **Suite 7: Sanity Burst Throttle** | Spawned 5 simultaneous boss projectiles with identical `attackId` hitting Rowan simultaneously. | Sanity lost was exactly 5.0 (throttled to 1 drain per burst window) instead of 25.0 instant wipe. Eliminates multishot volley sanity spike. | **PASS ✅** |
+| **Suite 8: Teleport Telegraph & Recovery** | Inspected Malakor `beginTeleport` and `updateTeleport`. | Destination chosen upfront; rings and particles spawn at destination during 0.62s windup; Malakor undergoes 0.95s recovery window allowing player counterattack. | **PASS ✅** |
+| **Suite 9: Malakor Defeat & Portal Flow** | Defeated Malakor on Floor 6; checked `BossManager.tick` and `BossIntros.finishDefeat`. | `BOSS_DEAD = true`, `BOSS_PORTAL_UNLOCKED = true`, `AchievementSystem.unlock('void_conqueror')` triggered; HUD portal recognized active exit portal at `(72.5, 35.5)`. | **PASS ✅** |
+| **Suite 10: Floor 3 Gorgaroth Regression** | Defeated Gorgaroth on Floor 3; executed `finishPortalFormation()`. | Floor 3 Gorgaroth portal bug remains 100% fixed; iron gate forms at `(72.5, 36.5)`, HUD recognizes portal, player retains full movement. | **PASS ✅** |
+| **Suite 11: Floor 10 Warden Regression** | Defeated Abyss Warden on Floor 10; checked `WardenDefeatCinematic`. | Warden defeat cinematic triggers cleanly; centralized Hero / Betrayal / Rampage ending selection intact. | **PASS ✅** |
+| **Suite 12: Shattered Mind Terminal Sanity** | Drained Rowan's sanity to 0 on Floor 1. | Shattered Mind cinematic triggers cleanly and exclusively; `GameState.STATE` transitions to `death_sanity`. | **PASS ✅** |
+| **Suite 13: Meta-Progression & Saves** | Inspected `SaveSystem` lifetime metrics, achievements, speedrun timers, and The Last Witness. | Lifetime deaths, boss kills, speedrun records (`db_best_run_time_v1`), 40 achievements, and all 8 cross-run milestones for `THE LAST WITNESS` 100% preserved. | **PASS ✅** |
+
+---
+
+## 34. PHASE 8 — BOSS DURABILITY, COMBAT BALANCE & FLOOR 3 PORTAL RESTORATION
+
+### 34.1. Executive Summary & Problem Diagnosis
+
+Phase 8 executes an authoritative combat-balance pass and boss-cinematic repair across Dungeon Break — Abyss Ascension:
+1. **Boss Durability Restoration:** Previous iterations tuned boss HP excessively low (e.g., Gorgaroth 180 HP, Malakor 200 HP, Abyss Warden 400 HP), allowing players to defeat major encounters within seconds by spamming basic or special attacks without learning attack patterns, spacing, or defensive counterplay.
+2. **Floor 3 Gorgaroth Portal Formation Repair:** The Floor 3 boss defeat sequence was skipping its full Living Portal formation animation. Final-blow attack clicks buffered into `UIManager.js` immediately invoked `GorgarothCinematics.skip()`, which jumped straight past the dissolution and formation sequences. Additionally, `WorldRenderer.js` was rendering a generic portal rather than the approved Forged Iron Well Slab profile.
+3. **Multi-Hit Stacking & Damage Spikes:** Boss projectile volleys and rapid multi-hit attacks lacked unified damage capping and single-burst protection, occasionally resulting in unexpected instant player wipes.
+
+All systems have been repaired, balanced, and verified in the live Canvas 2D engine with 100% test pass rate and zero regressions.
+
+---
+
+### 34.2. Stage 1: Boss Durability, Anti-Spam Capping & Strict Phase Locks
+
+#### 1. Authoritative Boss Durability Progression
+Boss health and poise values have been calibrated and synchronized across [`js/data/bosses.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/data/bosses.js), [`js/bosses/BossManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/bosses/BossManager.js), and [`js/ui/BossBar.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/BossBar.js):
+
+| Boss | Encounter Floor | Authoritative Max HP | Poise | Armor Mitigation | Phase Boundaries |
+| :--- | :---: | :---: | :---: | :---: | :--- |
+| **Gorgaroth** | Floor 3 | **500 HP** | 250 | 12% | **2 Phases:** Phase 2 at **50% HP (250 HP)** |
+| **Malakor** | Floor 6 | **750 HP** | 220 | 15% | **3 Phases:** Phase 2 at **50% HP (375 HP)**, Phase 3 at **25% HP (187 HP)** |
+| **The Abyss Warden** | Floor 10 | **1,100 HP** | 350 | 20% | **3 Phases:** Phase 2 at **70% HP (770 HP)**, Phase 3 at **35% HP (385 HP)** |
+
+#### 2. Anti-Spam Single-Hit Damage Cap
+To prevent high-rarity weapons (such as a fully upgraded Rare Axe whose Cleave special deals 51–67 burst damage) from eliminating bosses in a few clicks, [`js/combat/DamageSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/combat/DamageSystem.js) enforces a dynamic single-hit cap:
+$$\text{Max Single-Hit Damage} = \max\left(15, \operatorname{round}(\text{Boss.maxHp} \times 0.12)\right)$$
+
+- **Gorgaroth (500 Max HP):** Cap = **60 damage per hit**.
+- **Malakor (750 Max HP):** Cap = **90 damage per hit**.
+- **Abyss Warden (1,100 Max HP):** Cap = **132 damage per hit**.
+
+Ordinary attacks and weapon upgrades remain punchy and satisfying, while single-hit burst cheeses are cleanly bounded.
+
+#### 3. Strict Phase Boundary Locks & Transition Invulnerability
+To guarantee that players cannot bypass phase mechanics or skip boss cinematics with rapid burst sequences:
+1. **Health Floor Clamping:** In [`js/combat/DamageSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/combat/DamageSystem.js), incoming damage cannot reduce a boss's HP below its active phase boundary until the boss transitions phase:
+   - Gorgaroth in Phase 1 cannot drop below `250 HP` (`Math.floor(500 * 0.50)`).
+   - Malakor in Phase 1 cannot drop below `375 HP`; in Phase 2 cannot drop below `187 HP`.
+   - Abyss Warden in Phase 1 cannot drop below `770 HP`; in Phase 2 cannot drop below `385 HP`.
+2. **Phase Transition Lock:** While `boss.phaseTransitioning === true`, any incoming attacks deal 0 damage and recoil without interrupting the phase change animation.
+
+---
+
+### 34.3. Stage 2: Fair & Telegraphed Boss Damage Tiers
+
+Incoming damage from bosses has been standardized into three clear, readable player-damage tiers with distinct telegraphs, animations, and sound cues:
+
+| Damage Tier | Player HP Lost | Telegraphed Windup | Counterplay & Behavior | Boss Attacks Mapped |
+| :--- | :---: | :---: | :--- | :--- |
+| **Normal Hit** | **3 HP** | 0.35s–0.50s | Side-step, dodge roll, or shield block. | • Gorgaroth: Melee Pillar Strike (close range $< 1.8$ tiles)<br>• Malakor: Void Orbs<br>• Abyss Warden: Wide Sweep & Abyssal Volley |
+| **Heavy / Critical Hit** | **5 HP** | 0.65s–0.90s | Timed dodge i-frames or retreat from expanding hazard radius. | • Gorgaroth: Earth Slam (seismic jump shockwave)<br>• Malakor: Void Pressure Zone Detonation<br>• Abyss Warden: Vertical Cleave & Quad Fissure Slam |
+| **Major Signature / Ultimate** | **8–10 HP** | 1.10s–1.35s | Full arena awareness; retreat to safe zones or execute precise evasive rolls. | • Gorgaroth: Rage Charge (**8 HP**, linear charge with trail)<br>• Malakor: Phase 3 Singularity Burst (**8 HP**, arrival vortex)<br>• Abyss Warden: Abyssal Cataclysm (**10 HP**, 1.3s windup, inner sanctuary safe zone) |
+
+#### Multi-Projectile Collision Protection
+To eliminate accidental instant deaths caused by overlapping projectile hitboxes in a single frame, projectile volleys share a unified `attackId` in [`js/combat/ProjectileSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/combat/ProjectileSystem.js). When multiple projectiles from the same burst collide with Rowan simultaneously, only the first hit registers damage, granting Rowan an immediate 0.35s hit-invulnerability window.
+
+---
+
+### 34.4. Stage 3: Progressive Dungeon Scaling & Verified Hit Counts
+
+Dungeon depth progression preserves the core design tenet: **a fully upgraded common weapon kills a Floor 1 Skeleton in exactly 1 hit**, while deeper floors scale enemies smoothly:
+
+- **Enemy Depth Scaling Multiplier:**
+  $$\text{HP Multiplier} = 1 + (\text{LV} - 1) \times 0.20$$
+- **Elite Variants:** Receive $2.5\times$ base HP and 20% flat armor mitigation with antique-gold health bar trims.
+
+#### Measured Combat Hit Counts (Representative Loadouts):
+
+| Floor & Enemy Target | Target Max HP | Fresh Weapon (Common Lvl 1 Sword: 4.0 dmg) | Moderate Weapon (Common Lvl 5 Sword: 6.9 dmg) | Max Upgraded (Common Lvl 10 Sword: 10.5 dmg) | End-Game Heavy (Rare Lvl 10 Axe: 23 dmg / Special 67 dmg) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Floor 1 Skeleton** | 10 HP | 3 hits | 2 hits | **1 hit kill ✅** | **1 hit kill ✅** |
+| **Floor 1 Ghoul** | 22 HP | 6 hits | 4 hits | 3 hits | 1 hit (Special) / 1 hit (Base) |
+| **Floor 4 Demon** | 64 HP | 16 hits | 10 hits | 7 hits | 3 hits (Base) / 1 hit (Special) |
+| **Floor 7 Wraith** | 110 HP | 28 hits | 16 hits | 11 hits | 5 hits (Base) / 2 hits (Special) |
+| **Floor 3 Gorgaroth** | 500 HP | 142 hits | 82 hits | 54 hits | 25 hits (Base) / 9 hits (Special capped @ 60) |
+| **Floor 6 Malakor** | 750 HP | 221 hits | 128 hits | 84 hits | 38 hits (Base) / 10 hits (Special capped @ 90) |
+| **Floor 10 Abyss Warden** | 1,100 HP | 344 hits | 199 hits | 131 hits | 60 hits (Base) / 10 hits (Special capped @ 132) |
+
+---
+
+### 34.5. Stage 4: Floor 3 Gorgaroth Portal Cinematic Restoration
+
+#### 1. Root Cause Analysis
+Detailed trace of the Gorgaroth death flow revealed two primary defects:
+1. **Mouse Click Event Bleed:** In [`js/ui/UIManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/UIManager.js), mouse click events during `BOSS_DEFEAT_CINEMATIC` were calling `GorgarothCinematics.skip()`. Because `canSkip()` was previously configured to `timer >= 0.25s`, player attack clicks from delivering the final blow immediately bypassed the entire cinematic within 250ms.
+2. **Formation Fast-Forward Bug:** When skipped, `GorgarothCinematics.skip()` previously jumped straight to `END (14.20s)`, skipping the entire Living Portal formation sequence ($11.80\text{s} \to 14.00\text{s}$).
+3. **Generic World Portal Rendering:** In [`js/rendering/WorldRenderer.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/rendering/WorldRenderer.js), `PortalTransition.drawWorldPortal` was invoked without a context parameter, rendering the standard cosmic spiral instead of the canonical **Forged Iron Well Slab** portal.
+
+#### 2. Technical Repairs Applied
+1. **Eliminated Click Skipping during Defeat Cinematics:** Removed mouse click interception during `BOSS_DEFEAT_CINEMATIC` in [`js/ui/UIManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/UIManager.js). Attack clicks never abort the cinematic.
+2. **Safe Skip Threshold:** Updated `canSkip()` in [`js/cinematics/GorgarothCinematics.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/GorgarothCinematics.js) to require at least `2.0s` elapsed time.
+3. **Guaranteed Formation Playback:** When a skip is legitimately triggered (e.g. via keyboard), `skip()` now fast-forwards `_activeDefeat.timer` to `GORGAROTH_DEFEAT_TIMELINE.HOLD_EMPTY (11.80s)`. This skips only the body dissolution and **guarantees that the living portal formation sequence ($11.80\text{s} \to 14.00\text{s}$) visibly plays to completion**.
+4. **Forged Iron Well Slab Context:** Passed `PORTAL_CONTEXTS.GORGAROTH_DEATH_PORTAL` on Floor 3 in [`js/rendering/WorldRenderer.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/rendering/WorldRenderer.js).
+5. **Living Portal Dynamic Scaling:** Hooked up `portal.alpha` and `portal.radius / portal.targetRadius` in `_drawLivingPortal` so the portal emerges organically from the altar floor.
+6. **Player Control & Manual Entry:** Rowan remains under full player control upon cinematic completion. No automatic pull or forced teleport occurs. Stepping into the active portal advances to Floor 4.
+
+---
+
+### 34.6. Stage 5: Live Runtime Verification & QA Test Results
+
+All verification tests were executed directly in the live browser engine (`http://localhost:8080/index.html`) using Chrome DevTools:
+
+| Verification Suite | Scenario Tested | Runtime Observed | Result |
+| :--- | :--- | :--- | :--- |
+| **Suite 1: Authoritative Boss Durability** | Spawned Gorgaroth, Malakor, and Abyss Warden; inspected `boss.hp`, `boss.maxHp`, and `boss.poise`. | Gorgaroth: `500 / 500 HP`, poise 250.<br>Malakor: `750 / 750 HP`, poise 220.<br>Abyss Warden: `1,100 / 1,100 HP`, poise 350. | **PASS ✅** |
+| **Suite 2: Single-Hit Damage Capping** | Attacked bosses with simulated 300 damage burst hits. | Gorgaroth hit capped at 60 (HP 440).<br>Malakor hit capped at 90 (HP 660).<br>Warden hit capped at 132 (HP 968). | **PASS ✅** |
+| **Suite 3: Strict Phase Boundary Clamping** | Attempted to drop Gorgaroth, Malakor, and Warden across phase boundaries in a single strike. | Gorgaroth clamped at 250 HP (Phase 1 boundary).<br>Malakor clamped at 375 HP (Phase 1 boundary) and 187 HP (Phase 2 boundary).<br>Warden clamped at 770 HP (Phase 1) and 385 HP (Phase 2). Hits during transition dealt 0 damage. | **PASS ✅** |
+| **Suite 4: Boss Damage Tiers (Normal)** | Incurred normal hits from Gorgaroth (Pillar Strike), Malakor (Void Orb), Warden (Sweep / Volley). | Rowan took exactly 3 HP damage per hit. | **PASS ✅** |
+| **Suite 5: Boss Damage Tiers (Heavy)** | Incurred heavy hits from Gorgaroth (Earth Slam), Malakor (Pressure Zone Detonation), Warden (Cleave / Fissure). | Rowan took exactly 5 HP damage per hit. | **PASS ✅** |
+| **Suite 6: Boss Damage Tiers (Ultimate)** | Incurred major hits from Gorgaroth (Rage Charge: 8 HP), Malakor (Singularity Burst: 8 HP), Warden (Abyssal Cataclysm: 10 HP). | Rage Charge: 8 HP. Singularity: 8 HP. Abyssal Cataclysm: 10 HP with 1.3s telegraph and sanctuary counterplay. | **PASS ✅** |
+| **Suite 7: Multi-Projectile Stacking Protection** | Triggered 3 overlapping projectiles with identical `attackId` simultaneously. | Rowan took 3 HP total instead of 9 HP; subsequent projectiles absorbed by i-frame window. | **PASS ✅** |
+| **Suite 8: Floor 1 Skeleton 1-Hit Kill** | Struck Floor 1 Skeleton (10 HP) with Level 10 common Sword (10.5 dmg) and Level 10 common Axe (18.3 dmg). | Skeleton eliminated in exactly 1 hit (**PASS ✅**). Level 1 Sword required 3 hits. Progression curve 100% verified. | **PASS ✅** |
+| **Suite 9: Gorgaroth Portal Formation** | Defeated Gorgaroth through normal combat. Monitored cinematic states from $t = 0$ to $t = 15\text{s}$. | Boss death animation completed $\to$ Dissolution motes flowed to altar $\to$ Living portal visibly animated from 0 to full size ($11.8\text{s} \to 14.0\text{s}$) $\to$ Activated at $t = 14.0\text{s}$ $\to$ State returned to `playing`. | **PASS ✅** |
+| **Suite 10: Click Skip Guard** | Clicked mouse rapidly during `BOSS_DEFEAT_CINEMATIC`. | Clicks ignored; cinematic and portal formation completed without interruption. | **PASS ✅** |
+| **Suite 11: Portal Minimap Registration & Manual Entry** | Verified minimap exit marker and walked Rowan away from the portal, then stepped into it. | Minimap displayed green exit marker. Rowan was NOT auto-pulled. Entering portal deliberately advanced to Floor 4 cleanly. | **PASS ✅** |
+| **Suite 12: Floor 6 Malakor Preservation** | Warped to Floor 6; verified Runic Sanctuaries, ambient void decay, and Diamond Spatial Tear portal. | Sanctuaries pause void decay to 0/s. Malakor defeat spawns Diamond Spatial Tear. | **PASS ✅** |
+| **Suite 13: Floor 10 Warden Endings Preservation** | Warped to Floor 10; defeated Warden; verified centralized ending dispatcher. | Hero, Betrayal, and Rampage endings remain 100% functional. | **PASS ✅** |
+| **Suite 14: Terminal Sanity & Meta-Progression** | Drained sanity to 0; inspected SaveSystem and 40 achievements. | Shattered Mind cinematic triggered cleanly. All saves, deeds, and The Last Witness milestones intact. 0 console errors. | **PASS ✅** |
+
+---
+
+### 34.7. Visual Artifacts Captured
+
+| Artifact Path | Description |
+| :--- | :--- |
+| [`tests/artifacts/floor3_gorgaroth_combat_500hp.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/floor3_gorgaroth_combat_500hp.png) | Live combat against Gorgaroth on Floor 3 with 500 Max HP, Molten Iron boss bar, and Phase 1 divider at 50%. |
+| [`tests/artifacts/floor3_gorgaroth_portal_forming.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/floor3_gorgaroth_portal_forming.png) | Dissolution motes coalescing at the central altar as the Living Portal visibly expands and forms. |
+| [`tests/artifacts/floor3_gorgaroth_portal_active.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/floor3_gorgaroth_portal_active.png) | Fully formed and active Forged Iron Well Slab portal in Floor 3 arena with green exit marker on minimap and Rowan in full player control. |
+
+---
+
+### 34.8. Technical Integrity & Known Limitations
+
+- **Engine Fidelity:** 100% native HTML5 Canvas 2D engine; no 3D meshes, no external raster atlases, no emojis.
+- **Save Safety:** Zero modifications to permanent player saves (`db_abyss_souls`, `db_talents_v8`, `db_achievements`, `db_bestiary_v9`, `db_memories_v9`).
+- **Known Limitations:**
+  - Boss poise recovery naturally begins if a player disengages for more than 4.0 seconds; this is intended tactical design to discourage passive kiting.
+  - While single-hit damage capping limits burst cheeses to 12% max HP per strike, disciplined spacing and weapon combos remain the most effective strategy.
+
+---
+
+## 35. PHASE 9: TACTICAL MINIMAP EVOLUTION, MONUMENTAL ACHIEVEMENT ARCHIVE & LORE COMPLETENESS AUDIT
+
+### 35.1. Mission & Core Philosophy
+Phase 9 delivers a comprehensive, data-authoritative refinement across three foundational systems in *Dungeon Break: Abyss Ascension*:
+1. **Tactical Minimap Evolution:** Transforming the compact gameplay minimap and expanded tactical map (`[M]` key / mobile tap) into an indispensable exploration instrument with real-time room discovery tracking, high-contrast objective markers (Rowan heading beacon, exit portal, unrescued survivors, boss threat), non-overlapping distance readouts, and responsive dismissal without firing weapon attacks.
+2. **Monumental Achievement Archive:** Completely replacing the crowded 8-by-5 grid with a master-detail archival interface inspired by the Monumental Wall of Deeds. All 40 canonical achievements are readable with unclipped, naturally wrapping names, custom living pixel-art icons, category navigation pills with live counts, and a consecrated Stele inspector.
+3. **Sequential Savior Tier Progression:** Unifying survivor rescues under a single authoritative lifetime metric (`GameState.CUMULATIVE_SURVIVORS`) and enforcing a clear, sequential journey (`savior` $\to$ `savior_2` $\to$ `savior_3`). Later tiers remain locked until prerequisite tiers are fulfilled, eliminating confusing simultaneous progression.
+4. **Lore & Memories Completeness Audit:** Full verification of all 10 Stratum Chronicles (`Liber I` to `Liber X`) and all 14 Narrative Memories, confirming unique IDs, Canvas 2D scene renderings, reachable gameplay triggers, save persistence, and integration with the collection-completion achievement `lore_master` ("Keeper of Lore").
+
+---
+
+### 35.2. System 1: Intelligent Minimap & Expanded Tactical Map
+
+#### 1. Compact Exploration Minimap
+- **Chassis & Placement:** Rendered at `mw = 138, mh = 96`, positioned at top-right (`LW - mw - rightPad`, `my = 70`) with deep obsidian backing (`rgba(6, 10, 22, 0.94)`), forged antique-gold borders (`rgba(201, 168, 76, 0.75)`), and four corner rivets.
+- **Dynamic Header:** Displays `MAP [M] · FL {LV}` with compact marker legend indicators (`🔷You 🟡Ally 🟢Exit`).
+- **Real-Time Room Exploration:** Hooked directly into `GameLoop.js` and `FloorManager.js` via `GameState.EXPLORED_ROOMS`. Unvisited rooms appear as subtle blueprint frames (`rgba(71, 85, 105, 0.25)`), while explored rooms render with solid slate fill (`rgba(45, 55, 75, 0.85)`). Rowan's active room is highlighted with an antique-gold border (`#fde68a`).
+- **Layered Objective Markers:**
+  - **Rowan:** Cyan beacon (`#38bdf8`) with sharp directional triangle indicating Rowan's movement/facing angle. Rendered on the topmost visual layer.
+  - **Exit Portal:** Concentric pulsing emerald marker (`#22c55e` / `#86efac`) rendered only when the portal is genuinely active and unlocked.
+  - **Unrescued Survivors:** Golden diamond markers (`#f59e0b` / `#fde68a`) with ambient breathing animation. Rescued survivors disappear immediately upon interaction.
+  - **Boss Marker:** Crimson skull beacon (`#ef4444`) with radial alert backglow when active on boss floors.
+
+#### 2. Expanded Tactical Map (`[M]` Key / Mobile Tap)
+- **Responsive Geometry:** Clamped to `panW = Math.min(LW - 36, 680)`, `panH = Math.min(LH - 36, 440)`, centered on screen.
+- **Header Status:** Inscribes current floor name, exploration progress (`EXPLORED: X/Y ROOMS (Z%)`), remaining survivors (`SURVIVORS: N REMAINING`), and portal state (`EXIT: ACTIVE (Dist m)` or `LOCKED (DEFEAT BOSS)`).
+- **Non-Colliding Distance Badges:** Distinctive labels beneath markers:
+  - `YOU (ROWAN)`
+  - `SURVIVOR ({dist}m)`
+  - `EXIT PORTAL ({dist}m)`
+  - `BOSS: {NAME} ({dist}m)`
+- **Tactical Legend Bar:** Full bottom legend clarifying symbols and hotkeys.
+- **Input Isolation:** Clicking anywhere on the screen or pressing `[M]` or `[ESC]` closes the expanded map and intercepts input; attack actions and weapon swaps are completely blocked during map dismissal.
+
+---
+
+### 35.3. System 2: Monumental Achievement Archive Redesign
+
+#### 1. Archival Master-Detail Layout
+The prior 8×5 grid (which cramped names into 6.5px truncated strings) was replaced with a responsive, scrollable list-and-inspector composition:
+- **Header Altar (Apex Shrine):**
+  - **Conquest Gauge:** Displays `${unlockedCount} / 40 · ${targetPct}% CONSECRATED` with smooth segmented gold progress track.
+  - **Eye of the Absolute Altar:** Central pixel-art eye medallion surrounded by the 8 Roman numeral milestone pips (`I` to `VIII`) representing the 5 death crucibles and 3 conquest endings for *The Last Witness*. Clicking any pip or the Eye selects that deed immediately.
+  - **Citadel Seals Plinth:** Displays lifetime metrics (Souls Saved, Abyss Deaths, Chronicles Uncovered).
+- **Category Filter Pills:** 8 horizontal navigation tabs with real-time category counts:
+  - `◈ ALL [40]`
+  - `ᛟ SURVIVAL [8]`
+  - `⚔ COMBAT [10]`
+  - `⚡ SPEEDRUN [11]`
+  - `✦ DISCOVERY [5]`
+  - `ᛏ ASCENSION [2]`
+  - `♛ THE FATES [3]`
+  - `👁 ABSOLUTE [1]`
+- **Scrollable Deeds Index (Left Column, 58% width):**
+  - Card height: `itemH = 56px`. Ample vertical space allows full deed titles to wrap cleanly across 2 lines without any ellipsis clipping.
+  - Custom 30×30 live animated pixel-art icon per card.
+  - Status pill on right: `✔ CONQUERED` (emerald), `◇ X / Y (Z%)` (amber in-progress), `🔒 LOCKED TIER` (crimson sequential prerequisite), or `◇ LOCKED` (slate).
+  - Smooth scrolling interpolation (`_scrollOffset \to _targetScrollOffset`) with mouse wheel, keyboard (`↑`/`↓`), and draggable scrollbar thumb.
+- **Inscribed Stele Inspector (Right Column, 42% width):**
+  - Large 56×56 Hero pixel-art medallion.
+  - Category label and full title in 13px bold Cinzel.
+  - Consecration status plinth (`✔ DEED CONSECRATED`, `◇ TRIAL IN PROGRESS`, `🔒 SEQUENTIAL TRIAL LOCKED`, or `◇ UNACCOMPLISHED TRIAL`).
+  - Prerequisite callout box for chained savior tiers.
+  - Inscribed requirement and narrative lore text in Crimson Text serif.
+  - Quantitative progress bar with exact ratio and percentage (`X / Y · Z%`).
+
+---
+
+### 35.4. System 3: Sequential Savior Tier Progression
+
+#### 1. Root Cause Analysis
+Previously, `Interactables.js` incremented `P.saved` (single-run counter) and concurrently evaluated `CUMULATIVE_SURVIVORS` without enforcing tier prerequisites. As a result, when a player rescued their 6th cumulative survivor, both Savior I (already unlocked) and Savior II appeared to progress simultaneously, and multiple misleading toasts were fired for the same action.
+
+#### 2. Authoritative Sequential Architecture
+1. **Single Authoritative Counter:** Lifetime rescues are tracked exclusively through `GameState.CUMULATIVE_SURVIVORS` in `SaveSystem.recordSurvivorRescue(1)`. Single-run `P.saved` is reserved for the run-specific challenge `perfect_rescue`.
+2. **Sequential Prerequisite Chain:**
+   - **Tier I (`savior`):** Requires 5 lifetime rescues. Active immediately on a fresh profile.
+   - **Tier II (`savior_2`):** Requires 10 lifetime rescues AND `ACHIEVEMENTS.savior.unlocked === true`. Remains displayed as `🔒 LOCKED TIER` with prerequisite warning `Must unlock Savior I (5 rescues) before this deed activates` until Tier I is consecrated.
+   - **Tier III (`savior_3`):** Requires 15 lifetime rescues AND `ACHIEVEMENTS.savior_2.unlocked === true`. Remains displayed as `🔒 LOCKED TIER` until Tier II is consecrated.
+   - **Single Active Tier Toast:** In `Interactables.js`, progress toasts fire **only for the current active tier in the progression chain**.
+3. **Deterministic Catch-Up:** In `SaveSystem.loadLifetimeMetrics()`, if stored lifetime rescues exceed a tier threshold whose prerequisite was previously fulfilled, the tier unlocks deterministically without losing progress.
+
+---
+
+### 35.5. System 4: Authoritative Lore & Memories Completeness Audit
+
+#### 1. Stratum Chronicles Audit Table (10/10 Verified)
+
+| Chronicle ID | Canonical Title | Stratum Association | Content Present | Illustration Present | Reachable Trigger | Persistence Key | Status |
+| :--- | :--- | :--- | :---: | :---: | :--- | :--- | :---: |
+| `floor_1_seal` | Liber I: The Forgotten Seal | Floor 1 (The Sunken Crypts) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 1 Entrance (`FloorManager:637`) | `db_codex_v9` | **PASS ✅** |
+| `floor_2_deserters` | Liber II: The Deserters' Silence | Floor 2 (The Flooded Tombs) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 2 Entrance (`FloorManager:637`) | `db_codex_v9` | **PASS ✅** |
+| `floor_3_iron` | Liber III: The Trial of Iron | Floor 3 (Iron Colosseum) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 3 Entrance (`FloorManager:637`) | `db_codex_v9` | **PASS ✅** |
+| `floor_4_measure` | Liber IV: The Deeper Measure | Floor 4 (The Drowned Cloisters) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 4 Entrance (`FloorManager:637`) | `db_codex_v9` | **PASS ✅** |
+| `floor_5_dark` | Liber V: The Weight of the Dark | Floor 5 (The Forgotten Vaults) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 5 Entrance (`FloorManager:637`) | `db_codex_v9` | **PASS ✅** |
+| `floor_6_void` | Liber VI: The Void's Question | Floor 6 (The Abyssal Rift) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 6 Entrance (`FloorManager:637`) | `db_codex_v9` | **PASS ✅** |
+| `floor_7_purpose` | Liber VII: Echoes of Purpose | Floor 7 (The Ashen Galleries) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 7 Entrance (`FloorManager:637`) | `db_codex_v9` | **PASS ✅** |
+| `floor_8_blade` | Liber VIII: Before the Blade | Floor 8 (The Silent Bastion) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 8 Entrance (`FloorManager:637`) | `db_codex_v9` | **PASS ✅** |
+| `floor_9_measure` | Liber IX: The Last Measure | Floor 9 (The Obsidian Sanctum) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 9 Entrance (`FloorManager:637`) | `db_codex_v9` | **PASS ✅** |
+| `floor_10_warden` | Liber X: The Warden's Last Trial | Floor 10 (Cathedral of Singularity) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 10 Boss Defeat (`DamageSystem:329`) | `db_codex_v9` | **PASS ✅** |
+
+#### 2. Narrative Memories Audit Table (14/14 Verified)
+
+| Memory ID | Canonical Title | Realm / Floor Association | Content Present | Thumbnail Present | Reachable Trigger | Persistence Key | Status |
+| :--- | :--- | :--- | :---: | :---: | :--- | :--- | :---: |
+| `memory_abandonment` | The Sealed Gateway | Floor 1 (Descent) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 1 Entry / Descent Drop | `db_memories_v9` | **PASS ✅** |
+| `memory_campfire` | The Vanguard's Last Fire | Floor 2 (Campfire) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 2 Entry | `db_memories_v9` | **PASS ✅** |
+| `memory_gorgaroth` | Shattered Chains | Floor 3 (Boss Defeat) | Yes (100%) | Yes (Canvas 2D Scene) | Gorgaroth Defeated | `db_memories_v9` | **PASS ✅** |
+| `memory_battlefield` | The Ashen Standard | Floor 5 (Vaults) | Yes (100%) | Yes (Canvas 2D Scene) | Floor 5 Entry | `db_memories_v9` | **PASS ✅** |
+| `memory_shattered_mind` | The Celestial Gaze | Floor 5 / Sanity 0 | Yes (100%) | Yes (Canvas 2D Scene) | Sanity 0 Collapse / Shattered Mind | `db_memories_v9` | **PASS ✅** |
+| `memory_malakor` | Tears in the Veil | Floor 6 (Boss Defeat) | Yes (100%) | Yes (Canvas 2D Scene) | Malakor Defeated | `db_memories_v9` | **PASS ✅** |
+| `memory_warden` | The Final Gatekeeper | Floor 10 (Boss Defeat) | Yes (100%) | Yes (Canvas 2D Scene) | Abyss Warden Defeated | `db_memories_v9` | **PASS ✅** |
+| `memory_ending_hero` | Dawn of the Resolute | Ending A (Hero) | Yes (100%) | Yes (Canvas 2D Scene) | Select Hero Ending Portal | `db_memories_v9` | **PASS ✅** |
+| `memory_ending_betrayal` | The Gilded Shroud | Ending B (Betrayal) | Yes (100%) | Yes (Canvas 2D Scene) | Execute Survivors & Enter Portal | `db_memories_v9` | **PASS ✅** |
+| `memory_ending_rampage` | Apotheosis of Wrath | Ending C (Rampage) | Yes (100%) | Yes (Canvas 2D Scene) | Select Rampage Ending Portal | `db_memories_v9` | **PASS ✅** |
+| `echo_musicbox` | Echo I: The Broken Music Box | Floor 2 (Echo Shrine) | Yes (100%) | Yes (Canvas 2D Scene) | Echo Shrine Interaction (F2) | `db_memories_v9` | **PASS ✅** |
+| `echo_locket` | Echo II: The Tarnished Locket | Floor 4 (Echo Shrine) | Yes (100%) | Yes (Canvas 2D Scene) | Echo Shrine Interaction (F4) | `db_memories_v9` | **PASS ✅** |
+| `echo_thorn` | Echo III: The Crystallized Thorn | Floor 7 (Echo Shrine) | Yes (100%) | Yes (Canvas 2D Scene) | Echo Shrine Interaction (F7) | `db_memories_v9` | **PASS ✅** |
+| `echo_starlight` | Echo IV: The Bottled Starlight | Floor 9 (Echo Shrine) | Yes (100%) | Yes (Canvas 2D Scene) | Echo Shrine Interaction (F9) | `db_memories_v9` | **PASS ✅** |
+
+#### 3. Collection-Completion Achievement Requirement
+- **Achievement ID:** `lore_master` ("Keeper of Lore")
+- **Authoritative Requirement:** Uncover all 10 ancient stratum chronicles throughout the subterranean floors (`floor_1_seal` through `floor_10_warden`).
+- **Hook Location:** `SaveSystem.unlockLore(loreId)`:
+  ```javascript
+  const primaryChronicleIds = [
+    'floor_1_seal', 'floor_2_deserters', 'floor_3_iron', 'floor_4_measure',
+    'floor_5_dark', 'floor_6_void', 'floor_7_purpose', 'floor_8_blade',
+    'floor_9_measure', 'floor_10_warden'
+  ];
+  const unlockedCount = primaryChronicleIds.filter(id => GameState.UNLOCKED_LORE[id]).length;
+  if (unlockedCount >= 10) {
+    AchievementSystem.unlock('lore_master');
+  }
+  ```
+- **Inspection Integrity:** Reopening the Codex or re-entering floors never double-increments collection progress.
+
+---
+
+### 35.6. Live Runtime Verification & QA Test Results
+
+| Verification Suite | Scenario Tested | Runtime Observed | Result |
+| :--- | :--- | :--- | :---: |
+| **Suite 1: Minimap Exploration & Current Room** | Spawned on Floor 1; inspected Room 0 and unvisited rooms. | Explored room rendered with solid slate fill; active room highlighted with pulsing gold frame; Rowan directional arrow pointed accurately. | **PASS ✅** |
+| **Suite 2: Expanded Tactical Map Toggle** | Pressed `[M]` and clicked compact minimap. | Expanded map opened centered (`680×440`). Displayed `EXPLORED: 1/37 ROOMS (3%)`, survivor distance badges (`61m`, `124m`), and exit distance (`140m`). | **PASS ✅** |
+| **Suite 3: Survivor Rescue & Instant Map Update** | Teleported Rowan to survivor (`65, 40`); pressed `E` to rescue. | Survivor liberated; cumulative rescues incremented $5 \to 6$; unrescued count decremented $2 \to 1$; survivor marker vanished instantly from tactical map; exit portal distance updated to 80m. | **PASS ✅** |
+| **Suite 4: Map Dismissal Input Isolation** | Clicked on expanded map background to close. | Map closed cleanly; zero weapon swings or attacks fired; Rowan did not move. | **PASS ✅** |
+| **Suite 5: Achievement Archive Layout & Scrolling** | Opened Achievements UI; cycled category tabs; scrolled wheel 1800px. | All 40 achievements presented without ellipsis truncation. List scrolled smoothly with proportional thumb movement. | **PASS ✅** |
+| **Suite 6: Sequential Savior Tier Progression** | Inspected Discovery tab at 6 lifetime rescues. | `SAVIOR` showed `✔ CONQUERED`; `SAVIOR II` showed active progress `6 / 10 (60%)`; `SAVIOR III` showed `🔒 SEQUENTIAL TRIAL LOCKED` with prerequisite banner. | **PASS ✅** |
+| **Suite 7: The Last Witness Altar & Fates** | Inspected Apex Shrine and selected `last_witness`. | Eye of the Absolute centered with 8 Roman pips (`I` to `VIII`); inspector showed `FATES RECORDED: 8 / 8 (100%)` and `✔ DEED CONSECRATED`. | **PASS ✅** |
+| **Suite 8: Sanity Collapse & Memory Unlock** | Triggered `SaveSystem.unlockMemory('memory_shattered_mind')`. | Memories counter updated immediately $9/14 \to 10/14$; `THE CELESTIAL GAZE` card unlocked with Canvas 2D cosmic eye scene. | **PASS ✅** |
+| **Suite 9: Cross-Session Persistence** | Navigated browser to new URL parameter; checked `GameState`. | `CUMULATIVE_SURVIVORS = 6`, `UNLOCKED_MEMORIES.memory_shattered_mind = true`, `UNLOCKED_LORE` count = 18 all retained intact. | **PASS ✅** |
+| **Suite 10: Regression Safety** | Verified The Last Ember gift button, titles, bosses, and audio. | Title screen rendered with ambient torch and gift button; console log reported 0 errors. | **PASS ✅** |
+
+---
+
+### 35.7. Visual Artifacts Captured
+
+| Artifact Path | Description |
+| :--- | :--- |
+| [`tests/artifacts/phase9_achievement_archive_overview.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase9_achievement_archive_overview.png) | Monumental Wall of Deeds overview with 40-deed scrollable index, category tabs with counts, and Apex Altar. |
+| [`tests/artifacts/phase9_achievement_discovery_savior_tiers.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase9_achievement_discovery_savior_tiers.png) | Discovery category demonstrating sequential Savior tier progression: Savior I conquered, Savior II active (6/10), Savior III locked. |
+| [`tests/artifacts/phase9_expanded_tactical_map.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase9_expanded_tactical_map.png) | Expanded Tactical Map on Floor 1 showing active room highlight, non-colliding distance badges, and tactical legend. |
+| [`tests/artifacts/phase9_codex_chronicles.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase9_codex_chronicles.png) | Codex Chronicles tab (10/10) with Liber I: The Forgotten Seal Canvas 2D scene and illuminated drop-cap narrative. |
+| [`tests/artifacts/phase9_codex_memories.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase9_codex_memories.png) | Codex Memories tab (10/14) with The Celestial Gaze (memory_shattered_mind) unlocked and verified. |
+
+---
+
+### 35.8. Technical Integrity & Regression Commitments
+- **Zero Save Schema Migrations:** Existing keys (`db_achievements`, `db_lifetime_metrics_v1`, `db_memories_v9`, `db_codex_v9`, `db_milestones_v1`) are 100% backward compatible.
+- **The Last Witness Sacredness:** All 8 cumulative milestones, lore, icon renderer, and gift cinematic connections are preserved without modification.
+- **Engine Purity:** Canvas 2D architecture maintained; zero external raster dependencies, 3D meshes, or placeholder assets introduced.
+
+---
+
+## 36. CINEMATIC ARCHIVE & LIVING END CREDITS POLISH PASS
+
+**Deliverable:** Cinematic Archive ("Archive of Memories"), Universal 3.0s Cinematic Input Safety, Development Shortcut Cleanup, and Living End Credits Upgrade with 4 Distinct Environments  
+**Status:** **PRODUCTION COMPLETE & VERIFIED**
+
+### 36.1. Architectural Overview & Core Goals
+The final cinematic and narrative layer of **Dungeon Break: Abyss Ascension** was upgraded to provide players with an uncompromised storytelling experience:
+1. **Dedicated Cinematic Archive (`ARCHIVE OF MEMORIES`):** Integrated into the Main Menu navigation, tracking all 12 genuine story cutscenes with authoritative unlocks stored in `SaveSystem` (`db_unlocked_cinematics_v1`), safe replay mode with zero gameplay side-effects (no portal spawning, no floor advance, no save overwrite, and Esc clean return to the Archive).
+2. **Three-Second Cinematic Input Safety:** Implemented a universal real-time unskippable window via `performance.now()`, hiding skip hints until 3.0 seconds have elapsed, purging attack/dash/movement buffers on start, and rejecting held or mashed keys/clicks from gameplay (specifically resolving the Sanity-0 Shattered Mind attack-spam auto-skip bug).
+3. **Removal of Development-Only Cinematic Shortcuts:** Purged `Shift+R`, `Alt+R`, `Shift+B`, `Alt+B`, `Shift+H`, `Alt+H`, and `Alt+0..4` sanity keys from production listeners, while ensuring 100% preservation of legitimate combat, bow, ability, and navigation controls.
+4. **Living End-Credits Upgrade (4 Distinct Environments):** Upgraded the ending credits presentation with 4 custom 16:9 pixel-art environment backgrounds (`credits_bg_menu.jpg`, `credits_bg_hero.jpg`, `credits_bg_betrayal.jpg`, `credits_bg_rampage.jpg`), combined with restrained living Canvas 2D ambient particles (rising embers, dust motes, flame flicker, rolling fog) and slow parallax camera drift.
+
+---
+
+### 36.2. Central Cinematic Safety Architecture (`CinematicSafety.js`)
+- **File:** [`js/cinematics/CinematicSafety.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/CinematicSafety.js)
+- **Key Capabilities:**
+  - **Real-Time 3.0s Guard:** Uses high-resolution wall-clock timestamps (`performance.now()`) unaffected by game-loop time scaling or frame drops:
+    ```javascript
+    getRealElapsed() {
+      if (!this._activeStartTime) return 0;
+      return (performance.now() - this._activeStartTime) / 1000.0;
+    }
+    canSkip() {
+      return this._activeCinematicId !== null && this.getRealElapsed() >= this.MIN_UNSKIPPABLE_SECONDS;
+    }
+    ```
+  - **Buffer Purge on Launch:** Resets all keys in `InputManager.INPUT_KEYS`, sets `MOUSE_STATE.isDown = false`, resets `TOUCH_DIR`, and cancels active attack/ability states on Rowan.
+  - **Press-Down Tracking:** Rejects held keys or button mashing carried over from combat. A skip is only accepted if a key or mouse button was pressed *down after* the 3.0-second threshold was reached.
+  - **Universal Integration:** Wired across all 12 narrative sequences:
+    - Opening descent (`CinematicDirector`)
+    - Boss intros & defeats for Gorgaroth, Malakor, and the Warden (`BossIntros`, `GorgarothCinematics`, `WardenDefeatCinematic`)
+    - Sanity breakdown (`ShatteredMindCinematic` & `DeathCinematics`)
+    - Story endings (`HeroCinematic`, `BetrayalCinematic`, `RampageCinematic`, `Credits`)
+    - Secret gift cutscene (`LastEmberCinematic`)
+
+---
+
+### 36.3. The 12 Genuine Story Cutscenes & Authoritative Persistence
+- **Files:** [`js/systems/SaveSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/SaveSystem.js), [`js/ui/CinematicArchiveUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CinematicArchiveUI.js)
+- **Cutscenes Catalogued:**
+  1. `the_descent` (Prologue: The Descent) — Floor 1 entry.
+  2. `boss_intro_gorgaroth` (Boss: Gorgaroth's Awakening) — Floor 3 boss chamber.
+  3. `boss_defeat_gorgaroth` (Boss: Gorgaroth's Fall) — Floor 3 boss defeat.
+  4. `boss_intro_malakor` (Boss: Malakor's Judgement) — Floor 6 boss chamber.
+  5. `boss_defeat_malakor` (Boss: Malakor's Undoing) — Floor 6 boss defeat.
+  6. `boss_intro_warden` (Boss: The Warden of the Void) — Floor 10 sanctum.
+  7. `boss_defeat_warden` (Boss: The Warden's Shattered Seal) — Floor 10 boss defeat.
+  8. `shattered_mind` (Abyss: Mind Shattered) — Complete sanity loss in the dark.
+  9. `ending_hero` (Ending: The Dawn of Ascendance) — Purified abyss escape with survivors.
+  10. `ending_betrayal` (Ending: The Usurper's Throne) — Seizing the abyssal crown.
+  11. `ending_rampage` (Ending: Ash & Annihilation) — Total destruction of the dungeon.
+  12. `the_last_ember` (Special: The Last Ember) — Apex shrine consecration gift.
+- **Persistence Contract:**
+  - Persisted under `db_unlocked_cinematics_v1`.
+  - Backward-compatible auto-recovery checks existing player milestones (`db_milestones_v1`), endings (`db_endings_v1`), achievements (`db_achievements_v8`), and apex deeds to ensure existing veteran players retain credit for cutscenes previously experienced.
+
+---
+
+### 36.4. Dedicated Cinematic Archive UI (`CinematicArchiveUI.js`)
+- **File:** [`js/ui/CinematicArchiveUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/CinematicArchiveUI.js)
+- **Presentation & Navigation:**
+  - Integrated directly into the Main Menu list (`ARCHIVE OF MEMORIES`).
+  - 2-column Duelyst widescreen composition:
+    - **Left Column:** Category tabs (`ALL`, `PROLOGUE`, `BOSSES`, `THE ABYSS`, `ENDINGS`, `SPECIAL`), total unlock count (`X / 12 VISIONS UNLOCKED`), and interactive cutscene roster with lock/unlocked icons and timestamps.
+    - **Right Column:** Procedural Canvas 2D scene vignette, narrative lore description, unlock requirements, and `▶ REWATCH VISION` gold call-to-action button.
+  - **Safe Replay Contract:** In replay mode (`isReplay: true`), cutscenes run cleanly without side-effects: no game overs, no floor advances, no portal spawns, no run save wipes, and pressing Escape or skipping returns immediately to the Archive of Memories.
+
+---
+
+### 36.5. Removal of Development-Only Cinematic Shortcuts
+- **Files:** [`js/main.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/main.js), [`index.html`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/index.html)
+- **Modifications:**
+  - Purged development shortcut combinations: `Shift+R`, `Alt+R`, `Shift+B`, `Alt+B`, `Shift+H`, `Alt+H`, and `Alt+0..4` sanity cheats.
+  - Removed debug DOM injection `#rampage-cutscene-trigger-bar`.
+  - Maintained 100% of standard combat, bow, dash, interact, minimap, inventory, and menu controls.
+
+---
+
+### 36.6. Living End-Credits Upgrade (4 Distinct Environments)
+- **Files:** [`js/cinematics/Credits.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/Credits.js), [`assets/cinematics/credits/`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/assets/cinematics/credits/)
+- **Four Bespoke 16:9 Pixel-Art Environments:**
+  1. `credits_bg_menu.jpg` (**The Ancient Threshold**): Cosmic abyss portal radiating through towering dark stone gothic vaulting, lit by stone braziers.
+  2. `credits_bg_hero.jpg` (**Dawn Beyond the Abyss**): Golden mountain sunrise illuminating an ancient stone parapet overlook.
+  3. `credits_bg_betrayal.jpg` (**The Hollow Throne**): Cold cathedral ruins with an obsidian throne flanked by eerie blue flames.
+  4. `credits_bg_rampage.jpg` (**The Fallen Citadel**): Crumbling stone citadel consumed by fire, smoke, and glowing magma fissures.
+- **Living Ambient Canvas 2D Enhancements:**
+  - Ambient particle layers (rising embers, bokeh dust motes, torch flame flicker, rolling mist).
+  - Subtle camera drift with parallax layer offsets.
+  - Respect for `GameState.REDUCED_MOTION` settings.
+  - Complete procedural Canvas 2D silhouette fallbacks if an asset is unavailable.
+
+---
+
+### 36.7. Live Verification & QA Test Results
+
+| Verification Suite | Scenario Tested | Runtime Observed | Result |
+| :--- | :--- | :--- | :---: |
+| **Suite 1: Archive of Memories Menu Integration** | Navigated to Main Menu; selected `ARCHIVE OF MEMORIES`. | Archive opened centered; rendered 2-column layout; displayed category tabs, unlock badge `12 / 12 VISIONS UNLOCKED`, and procedural scene vignette. | **PASS ✅** |
+| **Suite 2: Category Filter Tabs** | Clicked `BOSSES`, `ENDINGS`, `PROLOGUE` tabs. | Cutscene list filtered accurately; selection updated to first matching item; scene vignette updated dynamically. | **PASS ✅** |
+| **Suite 3: Safe Replay Mode Execution** | Triggered replay of `The Descent` and `Gorgaroth's Awakening` from Archive. | Cutscene played in replay mode; pressing `Escape` returned Rowan cleanly to Archive of Memories; zero floor advance or state contamination. | **PASS ✅** |
+| **Suite 4: Universal 3.0s Input Safety** | Held `Space` and clicked repeatedly during first 3.0s of cinematics and credits. | Inputs completely rejected; `canSkip()` remained `false`; skip helper text stayed hidden until exactly 3.0 seconds elapsed. | **PASS ✅** |
+| **Suite 5: Deliberate Skip After 3.0s** | Pressed `Space` / `Escape` after 3.0s during cinematics and credits. | Sequence skipped smoothly into transition; zero stutter or lockups. | **PASS ✅** |
+| **Suite 6: Living Credits Environment: Threshold (Menu)** | Opened `VIEW CREDITS` from Main Menu. | `credits_bg_menu.jpg` rendered cover-fit; torch flames flickered; golden motes drifted; Escape returned cleanly to Title. | **PASS ✅** |
+| **Suite 7: Living Credits Environment: Hero** | Launched `Credits.start('hero')`. | `credits_bg_hero.jpg` rendered with sunrise illumination, mountain silhouette, and warm drifting embers. | **PASS ✅** |
+| **Suite 8: Living Credits Environment: Betrayal** | Launched `Credits.start('betrayal')`. | `credits_bg_betrayal.jpg` rendered with eerie dark cathedral throne and cold blue torch fire. | **PASS ✅** |
+| **Suite 9: Living Credits Environment: Rampage** | Launched `Credits.start('rampage')`. | `credits_bg_rampage.jpg` rendered with burning rubble, crumbling towers, and glowing fissure glow. | **PASS ✅** |
+| **Suite 10: Development Shortcut Elimination** | Dispatched `Shift+R`, `Alt+R`, `Shift+B`, `Alt+B`, `Shift+H`, `Alt+H`, and `Alt+0..4`. | All shortcuts completely inert; no rogue cinematics or sanity cheats triggered; standard gameplay controls 100% operational. | **PASS ✅** |
+
+---
+
+### 36.8. Visual Artifacts Captured
+
+| Artifact Path | Description |
+| :--- | :--- |
+| [`tests/artifacts/phase10_cinematic_archive_overview.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase10_cinematic_archive_overview.png) | Archive of Memories overview showing category tabs, 12-cutscene roster, procedural vignette, and lore inspector. |
+| [`tests/artifacts/phase10_living_credits_threshold.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase10_living_credits_threshold.png) | Living End Credits: The Ancient Threshold with portal glow, torch braziers, and drifting motes. |
+| [`tests/artifacts/phase10_living_credits_hero.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase10_living_credits_hero.png) | Living End Credits: Dawn Beyond the Abyss with golden sunrise over mountain range and parapet overlook. |
+| [`tests/artifacts/phase10_living_credits_betrayal.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase10_living_credits_betrayal.png) | Living End Credits: The Hollow Throne with dark gothic cathedral, eerie blue braziers, and shadows. |
+| [`tests/artifacts/phase10_living_credits_rampage.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/phase10_living_credits_rampage.png) | Living End Credits: The Fallen Citadel with raging flames, crumbling arches, and glowing magma fissures. |
+
+---
+
+## 37. CINEMATIC RECONSTRUCTION & AUTHENTIC PRESENTATION ARCHITECTURE
+
+**Status:** **PRODUCTION COMPLETE & VERIFIED**  
+**Subsystem:** Narrative Engine, In-Game Cutscenes & Archive Replay Sandbox  
+**Engine:** 100% Pure HTML5 Canvas 2D (`LW = 960, LH = 540` / `CINEMATIC_W = 1280, CINEMATIC_H = 720`)
+
+---
+
+### 37.1. Architectural Overview & The Replay Sandbox Engine
+- **Files:** [`js/cinematics/CinematicReplayContext.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/CinematicReplayContext.js), [`js/cinematics/CinematicSafety.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/CinematicSafety.js), [`js/world/BossArenaGenerator.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/world/BossArenaGenerator.js)
+- **Problem Diagnosed:**
+  - In earlier iterations, replaying cinematics from the Archive or Title screen either presented empty or pitch-black viewports due to uninitialized dungeon state (`GameState.MAP`, `ROOMS`, `TORCHES`), or risked contaminating live runs by spawning duplicate portals, progressing live floors, dealing damage to live Rowan/boss entities, or corrupting save data.
+  - Live boss cutscenes lacked a dedicated read-only staging layer, causing recursive boss intro loops or missing boss geometry when invoked out of regular floor progression.
+- **Implementation & Sandbox Isolation:**
+  - **Authoritative State Snapshot & Rollback:** Before any sequence executes, `CinematicReplayContext.snapshotState()` captures an immutable record of `GameState.MAP`, `ROOMS`, `TORCHES`, `GATES`, `BOSS`, `P` (position, hp, stats), `LV`, `CAM`, and ambient timers. On completion or early exit, `CinematicReplayContext.restoreState()` guarantees that the exact pre-cinematic state is restored with zero side-effects.
+  - **Standalone Arena Construction:** When staging boss sequences (`boss_intro_gorgaroth`, `boss_defeat_gorgaroth`, `boss_intro_malakor`, `boss_defeat_malakor`, `boss_intro_warden`, `boss_defeat_warden`), `CinematicReplayContext` calls `BossArenaGenerator.generateArena(floorNumber)` to construct the authoritative dungeon architecture. Added `BossArenaGenerator._initGrid()` to ensure grid allocation succeeds cleanly even if triggered directly from Title or Archive states.
+  - **Recursive Loop Prevention:** Added `{ skipIntro: true }` parameter to `BossManager.spawnBoss()` calls within `CinematicReplayContext`, allowing the procedural Canvas 2D boss entities to be instantiated and positioned on the stage without triggering duplicate nested cutscene calls.
+  - **Zero Save Contamination:** All achievement unlocks, floor progressions, save writes, and run resets are suppressed during replay mode (`CinematicSafety.isReplay() === true`).
+
+---
+
+### 37.2. The 12 Reconstructed Canonical Story Visions
+All 12 narrative visions have been reconstructed to display the complete authentic dungeon environments, real tiles, arena architecture, visible bosses at proper scale and position, procedural lighting, Rowan's authentic pixel-art, camera framing, and dramatic action:
+
+1. **`the_descent` (Prologue: The Descent)**
+   - **Environment:** Live Floor 1 stone keep corridor with authentic flagstones, stone walls, closed portcullis gate, and wall torches casting dynamic warm radial light.
+   - **Cast & Action:** Lord Rowan rendered in authentic pixel-art facing the locked portcullis, surrounded by collapsed skeleton relics as the abyssal descent begins.
+   - **Reference Capture:** [`tests/artifacts/the_descent_live.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/the_descent_live.png)
+
+2. **`boss_intro_gorgaroth` (Boss: Gorgaroth's Awakening)**
+   - **Environment:** Floor 3 Iron Keep subterranean arena with massive iron pillars, weathered stone slabs, and dim ambient gloom.
+   - **Cast & Action:** Gorgaroth rendered procedurally in Canvas 2D wielding his colossal iron war pillar hammer, awakening with screen shake and dust shockwaves.
+   - **Reference Capture:** [`tests/artifacts/floor3_gorgaroth_combat_500hp.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/floor3_gorgaroth_combat_500hp.png)
+
+3. **`boss_defeat_gorgaroth` (Boss: Gorgaroth's Fall)**
+   - **Environment:** Floor 3 Iron Keep arena with shattered stone pillars and collapsing iron chains.
+   - **Cast & Action:** Gorgaroth collapses to his knees; a swirling violet Floor 4 ascension portal forms at the center of the arena with dynamic particle convergence.
+   - **Reference Capture:** [`tests/artifacts/floor3_gorgaroth_portal_forming.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/floor3_gorgaroth_portal_forming.png)
+
+4. **`boss_intro_malakor` (Boss: Malakor's Judgement)**
+   - **Environment:** Floor 6 Void Sanctum with obsidian and purple floor tiles, arcane ritual altar, and cosmic abyss background.
+   - **Cast & Action:** Malakor materializes above the arcane altar, surrounded by swirling void shards, runic starlight, and levitating dark robes.
+   - **Reference Capture:** [`tests/artifacts/replay_boss_intro_malakor_live.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_intro_malakor_live.png)
+
+5. **`boss_defeat_malakor` (Boss: Malakor's Undoing)**
+   - **Environment:** Floor 6 Void Sanctum under cosmic abyssal collapse.
+   - **Cast & Action:** Malakor's void shroud collapses into an iridescent starlight vortex, radiating energy shockwaves and leaving behind a celestial ascension rift.
+   - **Reference Capture:** [`tests/artifacts/replay_boss_defeat_malakor_active.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_defeat_malakor_active.png)
+
+6. **`boss_intro_warden` (Boss: The Warden of the Void)**
+   - **Environment:** Floor 10 Abyssal Throne Room featuring diamond-pattern royal carpet, ceremonial blue braziers, and soaring gothic vaulting.
+   - **Cast & Action:** Rowan stands resolute facing north before the throne; camera pulls in for a cinematic close-up showcasing the Warden's draconian wings, glowing horns, and Dreadblade.
+   - **Reference Captures:** [`tests/artifacts/replay_boss_intro_warden.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_intro_warden.png), [`tests/artifacts/replay_boss_intro_warden_closeup.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_intro_warden_closeup.png)
+
+7. **`boss_defeat_warden` (Boss: The Warden's Shattered Seal)**
+   - **Environment:** Floor 10 Throne Room illuminated by incandescent celestial bursts.
+   - **Cast & Action:** The Warden's Dreadblade core shatters under blinding white radiance, fracturing the abyssal seal and opening the final ascension gate.
+   - **Reference Capture:** [`tests/artifacts/replay_boss_defeat_warden.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_defeat_warden.png)
+
+8. **`shattered_mind` (Abyss: Mind Shattered)**
+   - **Environment & Timeline:** Multi-stage narrative memory journey through Rowan's psychological breakdown.
+   - **Scenes:**
+     - *Stage 1:* The strange surreal abyss arena with whispering void eyes.
+     - *Stage 2:* The peaceful pine forest campfire memory, featuring Rowan sharing warmth with his fallen companions.
+     - *Stage 3:* The charred battlefield memory vignette with smoke, fallen standards, and Rowan's loss.
+   - **Reference Captures:** [`tests/artifacts/replay_shattered_mind_arena.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_shattered_mind_arena.png), [`tests/artifacts/replay_shattered_mind_campfire.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_shattered_mind_campfire.png), [`tests/artifacts/replay_shattered_mind_battlefield.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_shattered_mind_battlefield.png)
+
+9. **`ending_hero` (Ending: The Dawn of Ascendance)**
+   - **Environment:** Mountain ridge and dawn sunlight breaking over the outer kingdom.
+   - **Cast & Action:** Rowan emerges from the shattered dungeon portal with rescued survivors, received by the King, royal knights in armor, heraldic banners, and golden dawn rays.
+   - **Reference Capture:** [`tests/artifacts/replay_ending_hero.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_ending_hero.png)
+
+10. **`ending_betrayal` (Ending: The Usurper's Throne)**
+    - **Environment:** Dark subterranean cathedral with obsidian throne and cold blue braziers.
+    - **Cast & Action:** Rowan dons the shadowy crown of the Abyss, claiming sovereign dominion over the dark as abyssal wardens and guards bow in allegiance.
+    - **Reference Capture:** [`tests/artifacts/replay_ending_betrayal.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_ending_betrayal.png)
+
+11. **`ending_rampage` (Ending: Ash & Annihilation)**
+    - **Environment:** Crumbling citadel consumed by volcanic fire, billowing smoke, and incandescent magma fissures.
+    - **Cast & Action:** Rowan unleashes unbridled abyssal wrath, annihilating the entire dungeon infrastructure until nothing remains but burning ash.
+    - **Reference Capture:** [`tests/artifacts/replay_ending_rampage.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_ending_rampage.png)
+
+12. **`the_last_ember` (Special: The Last Ember)**
+    - **Environment & Timeline:** Contemplative descent following a glowing sacred ember through all nine dungeon environments, culminating in an ancient mountain parapet sunrise overlook.
+    - **Reference Captures:** [`tests/artifacts/replay_the_last_ember.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_the_last_ember.png), [`tests/artifacts/replay_the_last_ember_sunrise.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_the_last_ember_sunrise.png)
+
+---
+
+### 37.3. Universal Input Ownership & Safety Lifecycle
+- **Files:** [`js/cinematics/CinematicSafety.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/CinematicSafety.js), [`js/ui/PauseMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/PauseMenu.js), [`js/main.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/main.js)
+- **Hierarchical Input Routing:**
+  1. **Archive Replay Mode (`isReplay: true`):**
+     - Pressing `Escape` immediately calls `CinematicSafety.finishReplay()`.
+     - `CinematicSafety.finishReplay()` delegates to `CinematicReplayContext.finishReplay()`, which restores `GameState`, clears temporary staging entities, and returns the player directly to `CINEMATIC_ARCHIVE`.
+     - **Guarantee:** Pressing `Escape` during replay never opens the pause menu, never affects live player health, and never advances floor counters.
+  2. **Live Gameplay Cutscenes (`isReplay: false`):**
+     - First 3.0 seconds are strictly unskippable, timed with high-resolution `performance.now()`.
+     - `PauseMenu.pauseGame()` explicitly checks `CinematicSafety.isActive()` and rejects pause requests while cutscenes are active.
+     - Pressing `Escape` after 3.0 seconds triggers a clean skip of the cutscene into active gameplay, without opening the pause menu.
+  3. **Live Gameplay (`GameState.STATE === 'playing'`):**
+     - Pressing `Escape` pauses the game cleanly (`PauseMenu.pauseGame()`), opening the Suspended Expedition menu.
+     - Pressing `Escape` again or selecting "Resume" returns cleanly to `playing`.
+  4. **State Cleanup Contract:**
+     - `CinematicSafety.reset()` is invoked upon completion across all cutscene controllers (`CinematicDirector.endIntro()`, `BossIntros.finish()`, `BossIntros.finishDefeat()`, `GorgarothCinematics.completeToNextFloor()`), clearing `_activeCinematicId` and immediately restoring normal pause menu responsiveness.
+
+---
+
+### 37.4. Verification Suite & Test Results Matrix
+
+| Verification Suite | Scenario Tested | Runtime Observed | Result |
+| :--- | :--- | :--- | :---: |
+| **Suite 1: Replay Sandbox State Snapshot & Restore** | Launched replay of `the_descent` and cancelled via `Escape`. | Snapshot created before replay; `CinematicReplayContext.restoreState()` restored original `GameState.MAP`, `ROOMS`, and `P`; state transitioned to `cinematic_archive`. | **PASS ✅** |
+| **Suite 2: Boss Arena Procedural Grid Allocation** | Launched `boss_intro_gorgaroth` and `boss_intro_malakor` directly from Title state. | `BossArenaGenerator._initGrid()` allocated tiles, walls, and torches; no `null` grid errors; arena rendered with authentic textures. | **PASS ✅** |
+| **Suite 3: Boss Spawn Recursive Loop Prevention** | Staged `boss_intro_malakor` and `boss_intro_warden` with `{ skipIntro: true }`. | Boss entity spawned at correct stage position; procedural Canvas 2D model rendered with proper scale; duplicate nested intro was suppressed. | **PASS ✅** |
+| **Suite 4: Replay Escape Routing Isolation** | Pressed `Escape` during replay of `boss_defeat_warden`. | Replay terminated instantly; returned directly to Archive of Memories; pause menu never triggered; zero live save alterations. | **PASS ✅** |
+| **Suite 5: Live Cutscene 3.0s Unskippable Window** | Started a new run (`the_descent`); mashed `Space`, `Escape`, and mouse clicks within first 3.0s. | All skip requests rejected; `canSkip()` returned `false`; pause menu rejected; sequence continued playing authentically. | **PASS ✅** |
+| **Suite 6: Live Cutscene Skip After 3.0s** | Pressed `Space` / `Escape` at 3.5s during live `the_descent`. | Cinematic completed cleanly; Rowan transitioned to `playing` on Floor 1; pause menu was not opened during the skip. | **PASS ✅** |
+| **Suite 7: Live Gameplay Pause Menu Responsiveness** | Pressed `Escape` while walking on Floor 1 after cutscene completion. | Pause menu opened immediately; game paused cleanly; pressing `Escape` resumed gameplay smoothly. | **PASS ✅** |
+| **Suite 8: Shattered Mind Multi-Stage Timeline** | Scrubbed through `shattered_mind` timeline via `seek()`. | Arena, pine campfire memory with companions, and charred battlefield memory all rendered with authentic artwork and lighting. | **PASS ✅** |
+| **Suite 9: Story Endings Authentic Environments** | Replayed `ending_hero`, `ending_betrayal`, and `ending_rampage` from Archive. | All three distinct ending scenes rendered with full environmental fidelity, character sprites, and color grading. | **PASS ✅** |
+| **Suite 10: The Last Ember Contemplative Journey** | Replayed `the_last_ember` from Archive. | Chamber-by-chamber falling ember animation traversed stone corridors, culminating in the mountain dawn overlook. | **PASS ✅** |
+
+---
+
+### 37.5. Reconstructed Visual Artifacts Registry
+
+| Artifact Path | Description |
+| :--- | :--- |
+| [`tests/artifacts/replay_boss_intro_malakor_live.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_intro_malakor_live.png) | Malakor's Judgement: Staged Void Sanctum arena, purple floor tiles, arcane altar, and floating void shards. |
+| [`tests/artifacts/replay_boss_defeat_malakor_active.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_defeat_malakor_active.png) | Malakor's Undoing: Collapsing void shroud, incandescent starlight vortex, and ascending portal shockwaves. |
+| [`tests/artifacts/replay_boss_intro_warden.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_intro_warden.png) | The Warden's Awakening: Floor 10 Throne Room, diamond-pattern royal carpet, blue ceremonial braziers, Rowan facing north. |
+| [`tests/artifacts/replay_boss_intro_warden_closeup.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_intro_warden_closeup.png) | The Warden Close-Up: Procedural draconian wings, glowing horns, and Dreadblade at authentic scale. |
+| [`tests/artifacts/replay_boss_defeat_warden.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_boss_defeat_warden.png) | The Warden's Shattered Seal: Blinding white incandescent radiance, shattered Dreadblade core, and ascension portal. |
+| [`tests/artifacts/replay_shattered_mind_arena.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_shattered_mind_arena.png) | Mind Shattered (Stage 1): Surreal void arena with whispering eyes and distorted abyssal geometry. |
+| [`tests/artifacts/replay_shattered_mind_campfire.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_shattered_mind_campfire.png) | Mind Shattered (Stage 2): Peaceful pine forest campfire memory with Rowan sharing warmth with fallen companions. |
+| [`tests/artifacts/replay_shattered_mind_battlefield.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_shattered_mind_battlefield.png) | Mind Shattered (Stage 3): Charred battlefield memory vignette with smoke, fallen standards, and grief. |
+| [`tests/artifacts/replay_ending_hero.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_ending_hero.png) | The Dawn of Ascendance: Morning sunrise, King, royal knights in armor, heraldic banners, and rescued survivors. |
+| [`tests/artifacts/replay_ending_betrayal.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_ending_betrayal.png) | The Usurper's Throne: Abyssal throne room, Rowan crowning himself, and subterranean guards kneeling in fealty. |
+| [`tests/artifacts/replay_ending_rampage.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_ending_rampage.png) | Ash & Annihilation: Collapsing citadel towers, roaring volcanic fire, and total structural obliteration. |
+| [`tests/artifacts/replay_the_last_ember.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_the_last_ember.png) | The Last Ember (Stage 1): Sacred ember drifting through the ancient stone dungeon corridor. |
+| [`tests/artifacts/replay_the_last_ember_sunrise.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/replay_the_last_ember_sunrise.png) | The Last Ember (Stage 2): Mountain dawn overlook finale with warm ambient sunlight. |
+
+---
+
+## 38. PHASE 13: LIVING END CREDITS & SOLO-DEVELOPER TRIBUTE
+
+### 38.1. Executive Summary & Purpose
+The end credits of **Dungeon Break — Abyss Ascension Edition** have been elevated to an emotional, cinematic conclusion fitting a finished indie masterpiece. The upgrade fulfills three core imperatives:
+1. **Accurate Solo-Developer Recognition:** Completely removed all fabricated references to a "Dungeon Break Team", imaginary collaborators, and invented studios. The credits prominently and truthfully celebrate the solo creator, designer, and programmer: **DINESH POLIMERA**.
+2. **Unified Boss Music Restoration:** Fixed missing credits audio across all routes by binding the credits soundtrack to the Level 6 Boss (Malakor) theme: `./Background themes/Void Motif.mp3`. Integrated smoothly via `MusicManager.fadeIn('credits', 2.0, 0.70)` with seamless bus crossfading, autoplay unlock guards, and clean volume restoration upon exit.
+3. **Multi-Scene Living Backgrounds:** Replaced the previous single static backdrop with route-specific visual progressions transitioning through multiple related dark-fantasy pixel-art environments. Each scene features subtle Canvas 2D cinematic life: gentle camera drift, swaying embers, ambient mist, breathing torches, and smooth 2.0-second crossfades.
+
+---
+
+### 38.2. Solo-Developer Credits Content & Typographic Hierarchy
+The credits sequence in [`js/cinematics/Credits.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/Credits.js) has been structured into nine distinct narrative cards designed for clear legibility and cinematic rhythm:
+
+1. **Card 0 — The Game Title:**
+   - Role: `DUNGEON BREAK` (900 Cinzel, 36px, Gold Gradient)
+   - Subtitle: `ABYSS ASCENSION EDITION` (13px Amethyst Glow)
+   - Duration: `5.0s`
+2. **Card 1 — Solo Developer Tribute:**
+   - Role: `CREATED, DESIGNED & DEVELOPED BY` (12px Gold Cinzel)
+   - Name: `DINESH POLIMERA` (900 Cinzel, 36px, Radiant Metallic Gold with animated light sweep)
+   - Subtitle: `SOLO DEVELOPER · DUNGEON BREAK` (Italic 14px Crimson Text)
+   - Duration: `6.5s`
+3. **Card 2 — Narrative Intermission:**
+   - Header: `DUNGEON BREAK — ABYSS ASCENSION EDITION`
+   - Title: `A DESCENT INTO DARKNESS`
+   - Description: *A test of humanity. Three fates beyond the Abyss.*
+   - Duration: `5.0s`
+4. **Card 3 — Game Design & Engineering:**
+   - Role: `GAME DESIGN & ENGINEERING`
+   - Name: `DINESH POLIMERA`
+   - Description: *Gameplay systems, combat mechanics, weapons, enemy behaviors, bosses, and progression balancing.*
+   - Duration: `5.2s`
+5. **Card 4 — World, Story & Narrative Design:**
+   - Role: `WORLD, STORY & NARRATIVE DESIGN`
+   - Name: `DINESH POLIMERA`
+   - Description: *Rowan's descent, the ten floors, the trials, the memories, the mysteries of the Abyss, and final choices.*
+   - Duration: `5.2s`
+6. **Card 5 — Visual Design & Experience:**
+   - Role: `VISUAL DESIGN & EXPERIENCE`
+   - Name: `DINESH POLIMERA`
+   - Description: *Pixel-art direction, environments, cinematic presentation, interface design, and visual effects.*
+   - Duration: `5.2s`
+7. **Card 6 — Systems, Progression & Polish:**
+   - Role: `SYSTEMS, PROGRESSION & POLISH`
+   - Name: `DINESH POLIMERA`
+   - Description: *Weapons and upgrades, achievements, the Codex, the Bestiary, the Memory Archive, and accessibility.*
+   - Duration: `5.2s`
+8. **Card 7 — Tools & Acknowledgements:**
+   - Role: `TOOLS & ACKNOWLEDGEMENTS`
+   - Name: `BUILT WITH HTML5 CANVAS 2D & WEB AUDIO`
+   - Description: *Procedural generation, AI-assisted image workflows, and modular JavaScript architecture.*
+   - Duration: `5.2s`
+9. **Card 8 — The Player:**
+   - Role: `TO YOU, WHO ENTERED THE ABYSS`
+   - Name: `THANK YOU FOR PLAYING`
+   - Description: *Every descent, every death, every rescue, and every choice became part of this journey because you played.*
+   - Duration: `6.5s`
+
+Following the credit cards, the sequence smoothly transitions to:
+- **Logo Phase (`8.2s`):** `DUNGEON BREAK` metallic emblem with horizontal specular light sweep, purple `✧ ABYSS ASCENSION ✧`, and golden tagline: *“The abyss remembers.”*
+- **Stinger Phase (`8.5s`):** Restrained darkness with ethereal whisper *“Rowan...”* and solemn reminder *“THE ABYSS IS NOT FINISHED.”*
+- **Options Phase:** Authoritative return actions and speedrun run completion metrics.
+
+---
+
+### 38.3. Multi-Scene Living Background Architecture
+
+#### Asset Organization & Visual Families
+All credit background illustrations are stored in `assets/cinematics/credits/` and preloaded via `Image()` loaders with graceful procedural fallback:
+
+1. **The Ancient Threshold (`menu` / Main-Menu Credits):**
+   - *Scene 0 (`credits_bg_menu.jpg`):* The grand Gothic cathedral with towering stone columns, braziers, and the distant violet portal.
+   - *Scene 1 (`credits_bg_menu_2.jpg`):* Close framing directly in front of the monumental rune gate flanked by roaring brazier flames.
+   - *Scene 2 (`credits_bg_menu_3.jpg`):* Elevated stone walkway crossing the cathedral chasm towards the glowing portal dais.
+   - *Scene 3 (`credits_bg_menu_4.jpg`):* Distant perspective looking across the quiet nave as embers rise into the stone vaulting.
+2. **Dawn Beyond the Abyss (`hero` / True Hero Ending):**
+   - *Scene 0 (`credits_bg_hero.jpg`):* Broken castle balcony overlooking the morning sunrise over the mountains.
+   - *Scene 1 (`credits_bg_hero_2.jpg`):* Shattered stone courtyard opening outward into the morning mist.
+   - *Scene 2 (`credits_bg_hero_3.jpg`):* Grand panoramic overlook showing golden dawn breaking across distant peaks and clouds.
+   - *Scene 3 (`credits_bg_hero_4.jpg`):* Peaceful horizon with warm amber skies and drifting golden dust.
+3. **The Hollow Throne (`betrayal` / Usurper's Throne Ending):**
+   - *Scene 0 (`credits_bg_betrayal.jpg`):* Gloomy subterranean throne room with massive carved columns and dark stone floor.
+   - *Scene 1 (`credits_bg_betrayal_2.jpg`):* Close perspective of the obsidian throne illuminated by pale moonlight.
+   - *Scene 2 (`credits_bg_betrayal_3.jpg`):* Long vaulted throne corridor flanked by cold cyan soul-flame braziers.
+   - *Scene 3 (`credits_bg_betrayal_4.jpg`):* Deep shadows encroaching upon the silent throne chamber.
+4. **The Fallen Citadel (`rampage` / Ash & Annihilation Ending):**
+   - *Base Asset (`credits_bg_rampage.jpg`):* Scorched cathedral ruins, infernal fissures, and collapsing arches.
+   - *Progressive Stages:* 4 distinct dynamic atmospheric lighting stages (Stage 0: Roaring inferno with red ambient pulses; Stage 1: Dense volcanic smoke and magma flares; Stage 2: Heavy smoldering ash storm; Stage 3: Cold, dark ash silhouette and quiet embers).
+   - *Asset Generation Note:* During generation, external image quota limits were reached for additional Rampage variations. Per Stage 3 instructions, this was cleanly handled by implementing 4 procedural atmospheric lighting stages over the base high-resolution pixel-art citadel illustration, ensuring visual progression without false generation claims.
+
+#### Crossfades & Environmental Motion
+- **Crossfading:** Transitions between scenes take `2.0 seconds` using linear interpolation `fadeProg = sceneFadeTimer / sceneFadeDuration`. Scene A renders at `(1 - fadeProg)` opacity while Scene B renders at `fadeProg` opacity.
+- **Camera Drift:** Very subtle continuous camera panning (`driftX = camX * 0.45`, `driftY = camY * 0.35`) driven by sine oscillation.
+- **Overscan Margins:** Backgrounds render at `scale = 1.06` (`ox = (LW - w)/2 + driftX`) to ensure zero black borders or exposed canvas edges during drift.
+- **Particle System:** Three depth layers of drifting particles:
+  - 36 subtle background motes (dim, high altitude).
+  - 48 midground glowing embers (warm amber/gold, sine swaying).
+  - 14 foreground bokeh embers (large, defocused blur).
+  - 4 drifting smoke/haze clouds.
+- **Reduced-Motion Mode:** When `GameState.REDUCED_MOTION` or `SaveSystem.getSettings().reducedMotion` is enabled, camera drift is zeroed, foreground bokeh is disabled, midground flicker is silenced, and motes/smoke opacity is dampened by 65%.
+
+---
+
+### 38.4. Audio Architecture & Level 6 Boss Soundtrack Integration
+- **Track Assignment:** In [`js/audio/MusicManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/audio/MusicManager.js), `MUSIC_TRACKS.credits` is authoritatively assigned to the Level 6 Boss (Malakor) theme:
+  ```javascript
+  credits: './Background themes/Void Motif.mp3',
+  ```
+- **Fading & Autoplay Lifecycle:**
+  - Upon starting credits (`Credits.init()` / `Credits.start()`), `MusicManager.fadeIn('credits', 2.0, 0.70)` smoothly fades in the haunting Void Motif theme over 2.0 seconds.
+  - In `GameLoop.update()`, `MusicManager.update()` monitors `GameState.STATE === 'credits'`. If the track is not yet playing, it triggers `fadeIn('credits', 2.0, 0.65)`.
+  - When the credits enter the Logo/Stinger phase, `MusicManager.fadeOut(2.5)` smoothly silences the music so the stinger is chillingly quiet.
+  - Upon returning to the Main Menu (`Credits.returnToTitle()`), `MusicManager.fadeIn('menu', 2.0, 0.70)` restores the canonical `Cathedral of Deep Navy.mp3` theme with zero audio fighting or duplicate bus instances.
+  - If the browser blocks un-gestured audio, `MusicManager.isUnlocked()` queues the track until the first pointerdown, click, or keypress unlocks the AudioContext.
+
+---
+
+### 38.5. Route Preservation & Isolation Guarantees
+The four credits entry contexts remain strictly isolated:
+1. **Main-Menu Credits (`menu`):** Opened from Main Menu via "View Credits". Exit action returns cleanly to the Main Menu with `Cathedral of Deep Navy.mp3`. Does not record run completions, does not grant prestige tokens, and does not alter save milestones.
+2. **Hero Ending Credits (`hero`):** Triggered exclusively after Warden defeat via Hero path. Records `ending_hero` milestone, unlocks `true_hero` achievement, awards 1 Prestige Token, and provides options for New Game+ (`ascendIntoDungeon()`) or Title return.
+3. **Betrayal Ending Credits (`betrayal`):** Triggered exclusively after Warden defeat via Betrayal path. Records `ending_betrayal` milestone, unlocks `betrayed` achievement, awards 1 Prestige Token, and offers NG+ or Title return.
+4. **Rampage Ending Credits (`rampage`):** Triggered exclusively after Warden defeat via Rampage path. Records `ending_rampage` milestone, unlocks `rampage` achievement, awards 1 Prestige Token, and offers NG+ or Title return.
+
+---
+
+### 38.6. Browser Verification Matrix & Live Results
+
+All four routes and audio lifecycles were tested and verified in Google Chrome via Chrome DevTools MCP:
+
+| Test ID | Scenario Tested | Runtime Observed | Result | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **CR-01** | Solo Developer Credit Content | Card 1 displays "CREATED, DESIGNED & DEVELOPED BY DINESH POLIMERA / SOLO DEVELOPER · DUNGEON BREAK". No fictional teams or studios exist. | Verified in live viewport. | **PASS ✅** |
+| **CR-02** | Menu Route Music Playback | "View Credits" fades in `Void Motif.mp3` (`activeBus: primary`, `volume: 0.450`). | Music audible, loop enabled, zero crackle. | **PASS ✅** |
+| **CR-03** | Menu Multi-Scene Backgrounds | Scenes 0 → 1 → 2 → 3 crossfade across cathedral threshold, rune gate, walkway, and distant nave. | Smooth 2.0s crossfade, no pops. | **PASS ✅** |
+| **CR-04** | Hero Route Progression | Dawn overlook backgrounds with warm sunrise, amber rim light, and hope-themed atmosphere. | Tested via `Credits.start('hero')`. | **PASS ✅** |
+| **CR-05** | Betrayal Route Progression | Dark throne room backgrounds with cold cyan soul-braziers, stone pillars, and usurper mood. | Tested via `Credits.start('betrayal')`. | **PASS ✅** |
+| **CR-06** | Rampage Route Progression | Burning citadel ruins with progressive magma fissures, heavy smoke, and ash storms. | Tested via `Credits.start('rampage')`. | **PASS ✅** |
+| **CR-07** | Stinger & Silence Phase | Entering Stinger phase fades out music to dead silence; whisper *“Rowan...”* displays cleanly. | Audio silence verified at `volume: 0`. | **PASS ✅** |
+| **CR-08** | Return to Main Menu Audio | Selecting "Return to Main Menu" fades out `Void Motif.mp3` and fades in `Cathedral of Deep Navy.mp3`. | Verified seamless dual-bus crossfade. | **PASS ✅** |
+| **CR-09** | Reduced Motion Mode | Enabling `reducedMotion` silences camera drift, disables foreground bokeh, and damps motes. | Zero camera jitter or aggressive particles. | **PASS ✅** |
+| **CR-10** | Skip & Input Responsiveness | Pressing `Space`, `Enter`, or clicking advances to Logo, Stinger, and Options without errors. | Clean phase transitions observed. | **PASS ✅** |
+
+---
+
+### 38.7. Visual Artifacts Registry
+
+| Artifact Path | Description |
+| :--- | :--- |
+| [`tests/artifacts/credits_menu_card0_title.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_menu_card0_title.png) | Menu Route Card 0: Opening title card "DUNGEON BREAK — ABYSS ASCENSION EDITION" in cathedral nave. |
+| [`tests/artifacts/credits_menu_card1_developer.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_menu_card1_developer.png) | Menu Route Card 1: Solo Developer tribute to **DINESH POLIMERA** with radiant gold typography. |
+| [`tests/artifacts/credits_menu_scene1_gamedesign.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_menu_scene1_gamedesign.png) | Menu Route Scene 1: Rune portal gate composition with Game Design & Engineering card. |
+| [`tests/artifacts/credits_menu_scene2_story.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_menu_scene2_story.png) | Menu Route Scene 2: Cathedral walkway perspective with World & Story card. |
+| [`tests/artifacts/credits_menu_scene3_player.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_menu_scene3_player.png) | Menu Route Scene 3: Distant nave perspective with Tools & Acknowledgements card. |
+| [`tests/artifacts/credits_menu_card8_player.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_menu_card8_player.png) | Menu Route Card 8: Player tribute "TO YOU, WHO ENTERED THE ABYSS / THANK YOU FOR PLAYING". |
+| [`tests/artifacts/credits_final_card_logo.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_final_card_logo.png) | Final Logo Card: "DUNGEON BREAK — ✧ ABYSS ASCENSION ✧ / The abyss remembers." with light sweep. |
+| [`tests/artifacts/credits_options_phase.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_options_phase.png) | Options Screen: Replay Credits / Return to Main Menu with keyboard & pointer navigation. |
+| [`tests/artifacts/credits_hero_scene0_developer.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_hero_scene0_developer.png) | Hero Route Scene 0: Broken castle balcony overlooking sunrise with Dinesh Polimera developer card. |
+| [`tests/artifacts/credits_hero_scene2_story.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_hero_scene2_story.png) | Hero Route Scene 2: Mountain pass dawn panorama with World, Story & Narrative Design card. |
+| [`tests/artifacts/credits_betrayal_scene0_developer.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_betrayal_scene0_developer.png) | Betrayal Route Scene 0: Shadowed stone throne room with Dinesh Polimera developer card. |
+| [`tests/artifacts/credits_betrayal_scene2_visual.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_betrayal_scene2_visual.png) | Betrayal Route Scene 2: Colonnade with cold cyan braziers and Visual Design card. |
+| [`tests/artifacts/credits_rampage_scene0_developer.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_rampage_scene0_developer.png) | Rampage Route Scene 0: Fallen burning citadel ruins with Dinesh Polimera developer card. |
+| [`tests/artifacts/credits_rampage_scene2_visual.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_rampage_scene2_visual.png) | Rampage Route Scene 2: Smoldering volcanic ash storm with Visual Design card. |
+| [`tests/artifacts/credits_return_to_main_menu.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/tests/artifacts/credits_return_to_main_menu.png) | Main Menu Return: Flawless title restoration and seamless return to menu theme. |
+
+## 39. PHASE 8 — MAIN MENU SIGNATURE POLISH PASS: LARGER CUSTOM BUTTONS, DEFINITIVE TITLE & PERSONAL RECORDS
+
+### 39.1. Overview & Architectural Goals
+Phase 8 delivers a focused visual and presentation polish pass exclusively on the *Dungeon Break: Abyss Ascension* main menu. The Gothic citadel environment, violet abyss portal, mist, Rowan, and stone ledge visual identity are strictly preserved while elevating the front-end presentation with three major improvements:
+1. **Monumental Game Title:** Forged iron and basalt plaque with hanging chains, aged bronze beveled framing, corner rivets, faceted amethyst apex gem, and 3D chiseled metallic typography with an antique ivory-gold 5-stop gradient face, deep bronze under-bevel, drop shadow, and subtle glint. Attached lower hexagonal plaque reads "ABYSS ASCENSION EDITION" in clean gold with flanking gems.
+2. **Larger, Tactile Relic Menu Buttons:** Increased vertical height from 25px to 30px (+20% size increase, primary button to 38px) and width to 292px with a 4.0px gap. Features deep violet stone insets into forged metal framing, larger heraldic icon chambers (24px/32px) with bespoke pixel insignias (including Archival Memory Crystal), readable warm ivory default text (`#ede8df`), gold focused trim (`#fef08a`), and strict focus exclusivity between keyboard and mouse (zero fighting or dual markers). Special amethyst-gold accent and `✦` marker for THE LAST EMBER.
+3. **Upper-Right Personal Records:** A compact pair of coordinated dark-fantasy plaques displaying:
+   - **BEST CLEAR:** Formatted as `mm:ss` (e.g. `04:25`) derived from `SaveSystem.getBestRunTime()` (backed by `db_best_run_time_v1`), or `NONE` if no full run has been completed.
+   - **DEATHS IN THE ABYSS:** Formatted lifetime deaths from `SaveSystem.getLifetimeDeaths()` / `GameState.LIFETIME_DEATHS` (backed by `db_lifetime_deaths_v1`), defaulting to `0` for new profiles.
+   - Designed with dark obsidian/violet backing, antique-gold and crimson borders, corner rivets, restrained chronometer and skull iconography, and positioned with ample clearance above the cathedral architecture.
+
+---
+
+### 39.2. Data Sources & Save Schema Preservation
+All data is read directly from existing, authoritative persistence structures with zero alterations to schemas or progression mechanics:
+- **Best Successful Clear Time:** `SaveSystem.getBestRunTime()`, reading `localStorage.getItem('db_best_run_time_v1')`. Elapsed time in seconds is converted to `mm:ss` format. Uncompleted runs or missing data display `NONE`.
+- **Total Lifetime Player Deaths:** `SaveSystem.getLifetimeDeaths()`, reading `localStorage.getItem('db_lifetime_deaths_v1')` and `GameState.LIFETIME_DEATHS`. Accurately counts all legitimate gameplay deaths across all runs. Initial/fresh profiles display `0`.
+- **Souls & Prestige:** Retained in bottom status plaques (`SOULS: 4,144`, `PRESTIGE: 2`), scaled to 141px width each (292px total) to align with the button rail.
+
+---
+
+### 39.3. Changed Files & Assets Registry
+
+| File / Asset Path | Type | Modifications & Rationale |
+| :--- | :--- | :--- |
+| [`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js) | UI Module | Redesigned `drawTitlePlaque` with hanging chains and 3D metallic typography; overhauled `drawRegaliaButton` for larger buttons, larger icon chambers, and ivory labels; added missing `'archive'` icon in `drawRegaliaIcon`; updated `drawStatusPlaques` to 292px width; added `drawPersonalRecords` in upper-right; implemented single-focus exclusivity between keyboard and mouse in `MainMenu.draw` and `navigateFocus`. |
+| [`js/systems/SaveSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/SaveSystem.js) | System | Added clean read-only accessor `getLifetimeDeaths()` alongside `getBestRunTime()`. |
+| [`css/main.css`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/css/main.css) | Stylesheet | Added local `@font-face` definitions for Cinzel and Crimson Text fonts stored in `assets/fonts/` for 100% offline support. |
+| [`assets/fonts/*`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/assets/fonts/) | Assets | Locally bundled `Cinzel-Bold.ttf`, `Cinzel-Black.ttf`, `CrimsonText-Regular.ttf`, and `CrimsonText-Italic.ttf`. |
+| [`server.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/server.js) | Server | Added MIME type support for `.ttf`, `.woff`, `.woff2` font files. |
+
+---
+
+### 39.4. Browser Verification Matrix & Live Results
+
+| Test ID | Scenario Tested | Runtime Observed | Result | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **MM-01** | Larger Relic Buttons | Button height increased to 30px (secondary) and 38px (primary), width 292px. Icon chambers expanded to 24px/32px with 4px gap. | Spacious margins, tactile physical frames, zero clipping or collision with surrounding elements. | **PASS ✅** |
+| **MM-02** | Menu Actions Preservation | Verified all 10 canonical menu entries: `START JOURNEY`, `CONTINUE`, `SURVIVAL GUIDE`, `ABYSS SANCTUM`, `CODEX & BESTIARY`, `ARCHIVE OF MEMORIES`, `ACHIEVEMENTS`, `SETTINGS`, `VIEW CREDITS`, and `THE LAST EMBER`. | All 10 entries present in exact established order with active function handlers. | **PASS ✅** |
+| **MM-03** | Visual States & The Last Ember | Tested unselected, focused, hover, and disabled states. Focused button displays gold trim and directional marker (`▶` / `✦`). The Last Ember features amethyst-gold styling and `✦`. | Crisp visual transitions; unselected buttons display readable warm ivory (`#ede8df`). | **PASS ✅** |
+| **MM-04** | Single Focus Exclusivity | Navigated via keyboard arrows (`ArrowUp` / `ArrowDown`) while mouse is present. Moved mouse across buttons. | Exactly one active focus marker at all times; mouse and keyboard never fight or create dual highlights. | **PASS ✅** |
+| **MM-05** | Definitive Title Plaque | Inspected "DUNGEON BREAK" + "ABYSS ASCENSION EDITION" plaque with chains, aged bronze trim, 5-stop gradient face, and glint. | Monumental 3D carved aesthetic; crisp lettering at native resolution; zero portal obstruction. | **PASS ✅** |
+| **MM-06** | Personal Records (Valid PB) | Real profile with 265.4s best time and 8 lifetime deaths. | Upper-right displays `BEST CLEAR: 04:25` and `DEATHS IN THE ABYSS: 8`. | **PASS ✅** |
+| **MM-07** | Personal Records (Fresh Profile) | Simulated fresh profile with `null` best time and `0` deaths. | Upper-right cleanly displays `BEST CLEAR: NONE` and `DEATHS IN THE ABYSS: 0`. | **PASS ✅** |
+| **MM-08** | Data Persistence & Reload | Reloaded page via DevTools; inspected stats before and after reload. | Zero data fabrication, corruption, or unwanted resets. | **PASS ✅** |
+| **MM-09** | Responsive Layout (Desktop) | Tested 1280×800 viewport. | Perfect composition: left button rail, center portal with Rowan, right upper records. | **PASS ✅** |
+| **MM-10** | Responsive Layout (Mobile) | Tested 390×844 mobile viewport. | Dynamic canvas scaling (`896×1220`); full background fill without black bars; touch targets comfortable. | **PASS ✅** |
+
+---
+
+### 39.5. Visual Artifacts Registry
+
+| Artifact Path | Description |
+| :--- | :--- |
+| [`screenshots/main_menu_before.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/main_menu_before.png) | Baseline screenshot before the polish pass pass. |
+| [`screenshots/main_menu_desktop_after.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/main_menu_desktop_after.png) | Final desktop view (1280×800) with monumental title plaque, larger custom relic buttons, and upper-right personal records. |
+| [`screenshots/main_menu_last_ember_focused.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/main_menu_last_ember_focused.png) | Desktop view showcasing THE LAST EMBER focused state with amethyst-gold illumination and `✦` marker. |
+| [`screenshots/main_menu_fresh_profile.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/main_menu_fresh_profile.png) | Verification of fresh profile showing `BEST CLEAR: NONE` and `DEATHS IN THE ABYSS: 0`. |
+| [`screenshots/main_menu_mobile_after.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/main_menu_mobile_after.png) | Responsive mobile viewport (390×844) displaying responsive layout and touch ergonomics. |
+
+---
+
+## 40. PHASE 9 — THE DEVELOPER SANCTUM: EXPEDITION CONFIGURATION, CANONICAL ARCHIVE & TWO-TIER ACCESS SYSTEM
+
+### 40.1. Overview & Architectural Goals
+Phase 9 introduces the **Developer Sanctum** (`GameStates.DEVELOPER_SANCTUM = 'developer_sanctum'`), a hidden, dark-fantasy pixel-art chamber and administrative testing apparatus designed for authoritative floor-by-floor inspection, weapon calibration, health tuning, and isolated canonical cinematic review.
+
+The system is constructed with strict integrity safeguards to separate developer testing from the legitimate player speedrun leaderboard, achievement progression, and save file milestones:
+1. **The Secret Relic Access Gate:** A discrete, animated obsidian relic button in the bottom-right corner of the Main Menu featuring Lord Rowan’s authentic pixelated red eye (`drawPixelEye`), which pulses gently with ambient abyss motes.
+2. **Two-Tier Cryptographic Authentication System:**
+   - **Route A: One-Time Fallback Cipher (`090329`):** Grants temporary in-memory access (`GameState.SANCTUM_TEMP_AUTHORIZED = true`) strictly for the active browser session. Deploying from the Sanctum persistently consumes the fallback (`db_sanctum_fallback_consumed = 'true'`). Subsequent attempts or reloads reject this cipher with *"Fallback seal exhausted"*.
+   - **Route B: Permanent Consecration Cipher (`SANCTUM10`):** Consecrated exclusively after two hard conditions are met:
+     - Unlocking all 8 cumulative cross-run milestones of **The Last Witness** (`SaveSystem.isTheLastWitnessUnlocked()`).
+     - Completing the full, unskipped presentation of **The Last Ember** gift cinematic through its final frame where `SANCTUM10` is unveiled on an ancient golden plaque in a dedicated post-credit beat (`SaveSystem.isGiftCinematicCompleted()`).
+     - Consecration status (`db_sanctum_permanent_unlocked = 'true'`) persists permanently across browser reloads, providing instant, passwordless entry upon clicking the secret relic.
+3. **Five-Tab Expedition & Archive Suite:**
+   - **Tab 1: Floor Deployment (Floors 1–10):** Direct insertion into any floor with correct biomes, lighting profiles, enemy rosters, or boss encounters (Floor 3 Gorgaroth, Floor 6 Malakor, Floor 10 Abyss Warden).
+   - **Tab 2: Canonical Cinematic Archive:** Isolated sandboxed replaying of all 12 registered in-engine story cutscenes via `CinematicReplayContext`. Escape or cutscene completion cleanly restores the runtime snapshot and returns to the Sanctum with zero save file leakage.
+   - **Tab 3: Starting Loadout:** Live selection of Rowan’s starting weapon archetype (Sword, Dagger, Bow, Spear, Hammer) and rarity tier (Common, Rare, Epic, Legendary) with real-time damage, cooldown, and range calculation.
+   - **Tab 4: Expedition Configuration:** Live Rowan max HP calibration (1 to 50 HP) with step controls and instant presets (Glass Cannon 5 HP, Challenging 20 HP, Standard 50 HP), alongside speedrun integrity notices.
+   - **Tab 5: Access Consecration & Verification Status:** Live inspection panel exposing the current authorization state, fallback consumption, prerequisite milestones, and integrity rules.
+4. **Authoritative Speedrun & Achievement Isolation:**
+   - Any deployment launched from the Sanctum sets `GameState.IS_DEVELOPER_EXPEDITION = true`.
+   - Speedrun timers display `--:--`, `SaveSystem.recordRunCompletion()` and `recordMilestone()` are strictly suppressed, and `AchievementSystem.unlock()` is blocked.
+   - Standard runs initiated from the Main Menu "START JOURNEY" modal enforce `GameState.IS_DEVELOPER_EXPEDITION = false`, keeping all personal records, speedrun timers, and achievements 100% active.
+5. **In-Expedition Pause Menu Return:**
+   - The Pause Menu dynamically introduces a `RETURN TO DEVELOPER SANCTUM` option with dedicated `[ D ]` hotkey whenever the session is a developer expedition or permanently authorized.
+
+---
+
+### 40.2. Authentication State Machine & Lifecycle Rules
+
+```
+                      [ Secret Relic Button Clicked ]
+                                     |
+               +---------------------+---------------------+
+               |                                           |
+    [ Permanent Consecrated? ]                   [ Not Consecrated ]
+               |                                           |
+        YES    |                                           |
+               v                                           v
+       [ Enter Sanctum ]                         [ Open Gate Modal ]
+                                                           |
+                                      +--------------------+--------------------+
+                                      |                                         |
+                               [ Enter 090329 ]                          [ Enter SANCTUM10 ]
+                                      |                                         |
+                       +--------------+--------------+             +------------+------------+
+                       |                             |             |                         |
+              [ Fallback Consumed? ]           [ Not Consumed ]  [ Eligible (Witness+Gift)? ] [ Ineligible ]
+                       |                             |             |                         |
+                YES    |                             |      YES    |                         |
+                       v                             v             v                         v
+              [ Reject: "Exhausted" ]         [ Temp Granted ]  [ Consecrate Permanent ]   [ Reject: "Locked" ]
+                                                     |                     |
+                                                     v                     v
+                                              [ Enter Sanctum ]     [ Enter Sanctum ]
+                                                     |
+                                            [ Execute Deploy ]
+                                                     |
+                                                     v
+                                          [ Fallback Consumed ]
+```
+
+---
+
+### 40.3. Changed Files & Systems Registry
+
+| File / Module Path | Modification Summary |
+| :--- | :--- |
+| [`js/systems/SaveSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/SaveSystem.js) | Added `isDeveloperExpedition` persistence in run save; guarded `recordRunCompletion()` and `recordMilestone()` against developer runs; implemented `isSanctumFallbackConsumed()`, `consumeSanctumFallback()`, `isGiftCinematicCompleted()`, `recordGiftCinematicCompleted()`, `isTheLastWitnessUnlocked()`, `isSanctumPermanentEligible()`, `isSanctumPermanentUnlocked()`, and `unlockSanctumPermanently()`. |
+| [`js/systems/AchievementSystem.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/AchievementSystem.js) | Guarded `unlock()` to strictly discard achievement triggers when `GameState.IS_DEVELOPER_EXPEDITION === true`. |
+| [`js/core/GameState.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/core/GameState.js) | Registered `GameStates.DEVELOPER_SANCTUM = 'developer_sanctum'`; initialized flags `IS_DEVELOPER_EXPEDITION`, `SANCTUM_TEMP_AUTHORIZED`, `CUSTOM_STARTING_WEAPON`, and `CUSTOM_STARTING_MAX_HP`; updated `resetPlayer()` to respect custom weapon and HP overrides. |
+| [`js/systems/RunResetManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/RunResetManager.js) | Enhanced `resetRun({ floor, isDeveloperExpedition, playIntro })` to support direct floor 1–10 deployments with boss music initialization and distinct red banner alerts. |
+| [`js/cinematics/LastEmberCinematic.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/LastEmberCinematic.js) | Added post-credit beat `STAGE_PASSWORD_REVEAL` (6.5s) displaying `SANCTUM10` on an engraved golden plaque; bound `finishWithGoldenWash()` to record gift completion; ensured skipping does not award completion. |
+| [`js/ui/DeveloperSanctumUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/DeveloperSanctumUI.js) | Brand new comprehensive UI module containing Gate Modal, 5-tab chamber, live weapon preview, health stepper/presets, deployment confirmation dialog, gameplay return handler, and test harnesses. |
+| [`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js) | Rendered secret relic button in bottom-right corner with pixelated eye animation; integrated standard pre-descent loadout modal on "START JOURNEY" button; mapped gate click and keyboard handlers. |
+| [`js/ui/PauseMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/PauseMenu.js) | Integrated `RETURN TO DEVELOPER SANCTUM` button and `[ D ]` hotkey for developer expeditions and authorized players; updated hotkey rubric. |
+| [`js/ui/UIManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/UIManager.js) | Registered `DEVELOPER_SANCTUM` state in UI rendering and pointer event dispatchers. |
+| [`js/main.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/main.js) | Intercepted Gate and Sanctum key events at the top of the window keydown listener; purged obsolete `#ending-debug-panel` and window test shims. |
+
+---
+
+### 40.4. Live Browser Verification & QA Telemetry Matrix
+
+All access paths, verification rules, isolation guarantees, and UI tabs were rigorously tested in Google Chrome via Chrome DevTools MCP:
+
+| Test ID | Scenario Tested | Runtime Observed | Result | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **DS-01** | Secret Relic Button Render | Bottom-right corner renders 44×38px chamfered bronze plate with procedural red pixel eye and ambient motes. | Clickable, responsive hover state, pixel-art intact. | **PASS ✅** |
+| **DS-02** | Gate Modal Invalid Cipher | Entering wrong password ("WRONG") displays red error text *"Seal rejected: Invalid cipher."* | Rejection verified; fallback seal unconsumed. | **PASS ✅** |
+| **DS-03** | Gate Cancel Fallback Safety | Opening gate and pressing Escape closes modal without consuming fallback seal. | `db_sanctum_fallback_consumed` remains unset. | **PASS ✅** |
+| **DS-04** | Fallback Cipher (`090329`) | Submitting `090329` grants `GameState.SANCTUM_TEMP_AUTHORIZED = true` and opens chamber. | Temporary access granted for session. | **PASS ✅** |
+| **DS-05** | Fallback Consumption on Deploy | Deploying to Floor 3 writes `localStorage['db_sanctum_fallback_consumed'] = 'true'`. | Seal consumed; temporary authorization flagged. | **PASS ✅** |
+| **DS-06** | Fallback Invalidation on Reload | Reloading page resets in-memory temp authorization; submitting `090329` displays *"Fallback seal exhausted"*. | One-time lifecycle strictly enforced. | **PASS ✅** |
+| **DS-07** | Premature `SANCTUM10` Rejection | Submitting `SANCTUM10` before completing gift vision displays *"Permanent seal locked. Requires viewing The Last Ember through its final frame."* | Gate rejected; permanent unlock blocked. | **PASS ✅** |
+| **DS-08** | Last Ember Password Reveal | Watching `LastEmberCinematic` to sunrise triggers `STAGE_PASSWORD_REVEAL` showing `SANCTUM10` plaque. | Natural completion records gift finished. | **PASS ✅** |
+| **DS-09** | Skip Gift Vision Disqualification | Skipping `LastEmberCinematic` via click or Escape suppresses gift completion recording. | Skip protection verified; eligibility denied. | **PASS ✅** |
+| **DS-10** | Permanent Consecration Unlock | With both prerequisites met, entering `SANCTUM10` displays green success and sets `db_sanctum_permanent_unlocked = 'true'`. | Permanent consecrated status achieved. | **PASS ✅** |
+| **DS-11** | Consecration Persistence | Reloading page preserves `SaveSystem.isSanctumPermanentUnlocked() === true`; clicking relic enters Sanctum immediately. | Zero re-prompting; permanent access intact. | **PASS ✅** |
+| **DS-12** | Sanctum Tab 1 (Floors 1–10) | Interactive 2-column floor selection with live boss metadata (F3 Gorgaroth, F6 Malakor, F10 Warden). | Selection updates dynamically; deploy modal functional. | **PASS ✅** |
+| **DS-13** | Sanctum Tab 2 (Cinematics) | 12 canonical story cutscenes listed with details; triggers isolated replay via `CinematicReplayContext`. | Replay sandbox active; Escape returns to Sanctum. | **PASS ✅** |
+| **DS-14** | Sanctum Tab 3 (Starting Loadout) | Weapon and rarity selection updates live damage, cooldown, and range preview block. | Weapon configuration bound to GameState. | **PASS ✅** |
+| **DS-15** | Sanctum Tab 4 (Expedition Config) | Health steppers (-5, -1, +1, +5) and presets (5, 20, 50 HP) clamp cleanly between 1 and 50 HP. | Health configuration verified; warnings visible. | **PASS ✅** |
+| **DS-16** | Sanctum Tab 5 (Access Status) | Live status panel confirms Consecration Active, Fallback Consumed, and integrity guarantees. | Authoritative save data accurately rendered. | **PASS ✅** |
+| **DS-17** | Speedrun & Achievement Lockout | Deploying Floor 3 Gorgaroth sets `IS_DEVELOPER_EXPEDITION = true`; timer displays `--:--`; achievements blocked. | Speedrun PB and achievement isolation 100% verified. | **PASS ✅** |
+| **DS-18** | Standard Run Integrity | Starting descent via Main Menu "START JOURNEY" modal sets `IS_DEVELOPER_EXPEDITION = false`. | Speedrun timer active (`00:00+`); achievements enabled. | **PASS ✅** |
+| **DS-19** | Pause Menu Sanctum Return | Pressing `[ D ]` in Pause Menu triggers `DeveloperSanctumUI.openFromGameplay()`. | Clean entity disposal and return to Sanctum. | **PASS ✅** |
+
+---
+
+### 40.5. Visual Artifacts Registry
+
+| Artifact Path | Description |
+| :--- | :--- |
+| [`screenshots/sanctum/sanctum_relic_button.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_relic_button.png) | Secret relic button in bottom-right of Main Menu with animated pixel eye and ambient motes. |
+| [`screenshots/sanctum/sanctum_gate_modal.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_gate_modal.png) | Developer Sanctum Gate cipher input modal with dark obsidian plate and gold trim. |
+| [`screenshots/sanctum/sanctum_gate_rejected.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_gate_rejected.png) | Gate modal displaying rejection feedback when prerequisites or ciphers are invalid. |
+| [`screenshots/sanctum/last_ember_password_reveal.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/last_ember_password_reveal.png) | Post-credits reveal beat in The Last Ember displaying `SANCTUM10` engraved on golden plaque. |
+| [`screenshots/sanctum/sanctum_tab1_floors.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_tab1_floors.png) | Tab 1: Floor Deployment suite showing Floors 1–10 selection with boss and biome markers. |
+| [`screenshots/sanctum/sanctum_tab2_cinematics.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_tab2_cinematics.png) | Tab 2: Canonical Cinematic Archive displaying 12 story cutscenes with isolated vision player. |
+| [`screenshots/sanctum/sanctum_tab3_loadout.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_tab3_loadout.png) | Tab 3: Starting Loadout selection with weapon archetypes, rarities, and live stat calculations. |
+| [`screenshots/sanctum/sanctum_tab4_config.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_tab4_config.png) | Tab 4: Expedition Configuration showing health steppers, preset buttons, and speedrun warnings. |
+| [`screenshots/sanctum/sanctum_tab5_consecrated.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_tab5_consecrated.png) | Tab 5: Access Consecration status displaying green permanent authorization and integrity guarantees. |
+| [`screenshots/sanctum/sanctum_deploy_confirm.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_deploy_confirm.png) | Deployment confirmation modal showing selected floor, weapon, HP, and speedrun lockout alert. |
+| [`screenshots/sanctum/sanctum_deployment_floor3_boss.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_deployment_floor3_boss.png) | Live gameplay deployment to Floor 3 with Gorgaroth boss and red developer expedition banner. |
+| [`screenshots/sanctum/sanctum_pause_menu_return.png`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/screenshots/sanctum/sanctum_pause_menu_return.png) | Pause Menu with `RETURN TO DEVELOPER SANCTUM` option and `[ D ]` hotkey rubric. |
+
+---
+
+## 41. PHASE 9 — DEVELOPER SANCTUM, MAIN MENU & CREDITS CORRECTION PASS
+
+### 41.1. Overview & Resolved Issues
+Phase 9 delivers a comprehensive correction pass addressing five targeted requirements across the front-end menu, weapon generation, Developer Sanctum, and end credits:
+1. **Main Menu Cliff Anchoring Across All Viewports:** Rowan and the foreground stone brazier are now mathematically locked to the canonical geometry coordinates of `assets/menu/abyss_threshold_bg.png` (`(892, 542)` and `(568, 582)`). Rowan's feet and shadow stay planted directly on the cliff ledge across standard desktop (1280×720 / 1203×640), extreme mobile portrait (390×844), and ultrawide viewports (1920×800) with zero abyss floating.
+2. **Standard Run & Developer Sanctum Decoupling:** The "START JOURNEY" button directly launches standard descent runs with the canonical starting arsenal (Common Steel Sword, Common Hunter's Bow, 10 HP baseline + meta talents) via `RunResetManager.resetRun({ playIntro: true, isDeveloperExpedition: false })`. The pre-descent loadout modal is completely removed from the normal journey path. Weapon selection, starting floor selection, and health calibration are strictly reserved for authorized Developer Sanctum users (`SaveSystem.isSanctumPermanentUnlocked()` or temporary session `GameState.SANCTUM_TEMP_AUTHORIZED`).
+3. **Deterministic & Stable Weapon Names:** Established the authoritative `CANONICAL_WEAPON_NAMES` table across all 5 weapon classes and 4 rarity tiers. `WeaponFactory.create` derives names deterministically from the canonical matrix and never executes `rollAffix` on preview or standard calls. Weapon names remain 100% stable throughout preview, inspection, and expedition lifecycles.
+4. **Developer Sanctum Chamber Redesign:** Replaced oversized panels and empty cavernous regions with an integrated dark-fantasy console:
+   - Compact header with animated red pixel eye (`drawPixelEye`) and Return to Title button.
+   - Live configuration status pill row: `[ ◈ FLOOR 3 : IRON FISSURE ]  [ 🔱 TRIDENT OF THE DEEP [EPIC] ]  [ ❤️ 25 / 50 HP ]  [ ⚔️ DEV EXPEDITION · ISOLATED ]`.
+   - Unified 5-tab suite (Floor Target, Cinematics, Starting Loadout, Expedition Config, Access Status).
+   - Cached weapon preview instance to eliminate 60 FPS re-generation.
+   - Persistent bottom deployment action bar accessible across tabs with keyboard `[ENTER]` hotkey.
+5. **End Credits Developer Attribution Deduplication:** Solo creator **Dinesh Polimera** is honored on Card 1 (`CREATED, DESIGNED & DEVELOPED BY DINESH POLIMERA / SOLO DEVELOPER · DUNGEON BREAK`) with monumental gold typography. Redundant name repetitions on Cards 3, 4, 5, and 6 (Game Design, Narrative, Visuals, Systems) have been removed in favor of clean, centered discipline headings (`bold 18px Cinzel`, `#fde68a`) and descriptive narratives (`italic 14px "Crimson Text"`, `#cbd5e1`).
+
+---
+
+### 41.2. Authoritative Canonical Weapon Naming Matrix
+
+| Weapon Archetype | Common Tier | Rare Tier | Epic Tier | Legendary Tier |
+| :--- | :--- | :--- | :--- | :--- |
+| **Sword** (`sword`) | Steel Sword | Runic Steel Sword | Abyssal Broadsword | Consecrated Sunblade |
+| **Axe** (`axe`) | Executioner's Axe | Heavy Executioner's Axe | Dread Cleaver | Cataclysmic Greataxe |
+| **Dagger** (`dagger`) | Shadow Dagger | Serrated Shadow Dagger | Phantasmal Kris | Nether Shadowfang |
+| **Bow** (`bow`) | Hunter's Bow | Recurve Hunter's Bow | Composite Longbow | Voidstrider Bow |
+| **Spear** (`spear`) | Obsidian Spear | War Obsidian Spear | Trident of the Deep | Lance of the Sunken King |
+
+---
+
+### 41.3. Changed Files Registry
+
+| File Path | Type | Modifications & Rationale |
+| :--- | :--- | :--- |
+| [`js/ui/MainMenuScene.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenuScene.js) | Render Scene | Anchored brazier `(568, 582)` and Rowan `(892, 542)` to background image space with `sceneScale = imgScale / (640 / 768)`. Prevents Rowan from floating into the abyss on dynamic viewports. |
+| [`js/ui/MainMenu.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/MainMenu.js) | UI Module | Tied "START JOURNEY" directly to `startGame(true)`; removed `_loadoutModalOpen` trigger and key handling from standard run path. |
+| [`js/systems/RunResetManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/systems/RunResetManager.js) | System | Enforced `isAuthorizedDev` verification: clears `CUSTOM_STARTING_WEAPON` and `CUSTOM_STARTING_MAX_HP` whenever `isDeveloperExpedition` is false. |
+| [`js/core/GameState.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/core/GameState.js) | Core State | Wrapped custom starting weapon and max HP overrides in `if (this.IS_DEVELOPER_EXPEDITION)` check inside `resetPlayer()`. |
+| [`js/weapons/WeaponFactory.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/weapons/WeaponFactory.js) | Weapons System | Added `CANONICAL_WEAPON_NAMES` table; suppressed automatic random affix rolling during preview and deterministic generation. |
+| [`js/world/FloorManager.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/world/FloorManager.js) | World Generation | Stored rolled affixes directly on weapon loot entities at spawn time to guarantee naming stability upon pickup and drop. |
+| [`js/ui/DeveloperSanctumUI.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/ui/DeveloperSanctumUI.js) | UI Module | Replaced cavernous void and red banner with at-a-glance status pills, persistent deployment bar, cached weapon preview, and balanced 2-column cards. |
+| [`js/cinematics/Credits.js`](file:///Users/ramteja/Downloads/Dungeon%20Break%20v2.0/js/cinematics/Credits.js) | Cinematics | Removed duplicated `DINESH POLIMERA` name entries from Cards 3–6 in `CREDIT_CARDS`; updated discipline card renderer for role-only typography. |
+
+---
+
+### 41.4. Verification Matrix & Live Results
+
+| Test ID | Scenario Tested | Runtime Observed | Result | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **CP-01** | Rowan Cliff Grounding (Desktop) | Inspected 1203×640 native canvas. Rowan stands at `(892, 542)` image space, brazier at `(568, 582)`. | Feet firmly planted on foreground stone promontory. | **PASS ✅** |
+| **CP-02** | Rowan Cliff Grounding (Mobile) | Tested 390×844 mobile portrait viewport. Canvas scaled dynamically. | Rowan remains mathematically anchored to the cliff ledge; zero abyss void drift. | **PASS ✅** |
+| **CP-03** | Rowan Cliff Grounding (Ultrawide) | Tested 1920×800 ultrawide viewport. | Grounding coordinates hold; scale adapts cleanly to viewport height. | **PASS ✅** |
+| **CP-04** | Standard Start Journey Flow | Clicked "START JOURNEY" on Main Menu. | Directly starts Floor 1 standard run with Common Steel Sword & Common Hunter's Bow; zero modal popup. | **PASS ✅** |
+| **CP-05** | Standard Run Isolation | Inspected `GameState.IS_DEVELOPER_EXPEDITION`, `CUSTOM_STARTING_WEAPON`, and `CUSTOM_STARTING_MAX_HP`. | `IS_DEVELOPER_EXPEDITION === false`, custom overrides strictly null. Speedrun timer active. | **PASS ✅** |
+| **CP-06** | Deterministic Weapon Names | Evaluated `WeaponFactory.create` across all 5 archetypes and 4 rarities repeatedly over 100+ frames. | Epic Sword = "Abyssal Broadsword", Epic Spear = "Trident of the Deep", Legendary Axe = "Cataclysmic Greataxe"; zero name fluctuating. | **PASS ✅** |
+| **CP-07** | Sanctum Status Pill Bar | Rendered Sanctum with Floor 3, Epic Spear, 25 HP. | Pills display `[ ◈ FLOOR 3 : IRON FISSURE ]`, `[ 🔱 TRIDENT OF THE DEEP [EPIC] ]`, `[ ❤️ 25 / 50 HP ]`, `[ ⚔️ DEV EXPEDITION ]`. | **PASS ✅** |
+| **CP-08** | Sanctum Bottom Deploy Bar | Checked bottom action bar across all tabs. | Displays live configuration summary with `[ ⚔️ DEPLOY EXPEDITION [ENTER] ]` button and keyboard shortcut. | **PASS ✅** |
+| **CP-09** | Developer Expedition Launch | Deployed Floor 3, Epic Spear, 25 HP via Sanctum. | Floor 3 loads with Trident of the Deep (7.0 DMG), 25/25 HP, and `IS_DEVELOPER_EXPEDITION = true`. | **PASS ✅** |
+| **CP-10** | Pause Menu Sanctum Return | Opened Pause Menu during active Dev Expedition. | "RETURN TO DEVELOPER SANCTUM [ D ]" option present; returns cleanly to Sanctum chamber. | **PASS ✅** |
+| **CP-11** | Credits Solo Developer Tribute | Inspected Card 1 of credits. | "CREATED, DESIGNED & DEVELOPED BY DINESH POLIMERA / SOLO DEVELOPER · DUNGEON BREAK" rendered in monumental gold. | **PASS ✅** |
+| **CP-12** | Credits Discipline Deduplication | Inspected Cards 3, 4, 5, 6 of credits. | Discipline cards display role-only headings ("GAME DESIGN & ENGINEERING", etc.) and descriptions without repeating developer name. | **PASS ✅** |
+| **CP-13** | Console Error Verification | Monitored DevTools console logs across all operations. | Zero runtime errors or unhandled exceptions. | **PASS ✅** |
+
+---
+
+## 42. ABYSSAL VISUAL IDENTITY & CONTENT PRESENTATION OVERHAUL — FULL COMPLETION AUDIT
+
+### 42.1. Architectural Summary & Scope Accomplished
+This overhaul delivers a unified, art-directed dark-fantasy aesthetic across all narrative, archival, and progression chambers in **Dungeon Break — Abyss Ascension**:
+
+1. **Chronicles Atmospheric Illustrations (Floors 1–10):**
+   - 10 custom 16:9 pixel-art environmental paintings located in `assets/codex/chronicles/` (`chronicle_floor_1.jpg` to `chronicle_floor_10.jpg`).
+   - Preloaded dynamically in `BestiaryPortraitRenderer.js` with crisp pixel rendering (`imageSmoothingEnabled = false`).
+   - 100% complete procedural Canvas 2D fallback for all 10 floors ensuring zero visual breakage even in offline or missing asset scenarios.
+   - Pentiment vellum grimoire layout with ruby wax seals, rubricated roman numerals (`LIBER I` to `LIBER X`), and deep-red "CANON" archival deed stamp.
+
+2. **Memories Vignettes & Recollections (14 Story Beats):**
+   - 14 dedicated procedural pixel-art scene renderers in `BestiaryPortraitRenderer.drawMemoryThumbnail`:
+     - Stratum 1: The Sealed Gateway (portcullis bars & dropped lantern)
+     - Stratum 2: The Vanguard's Last Fire (dying campfire & blade)
+     - Stratum 3: Shattered Chains (Gorgaroth's pillar & war chains)
+     - Stratum 4: The Void Eye (subterranean eye with tendril aura)
+     - Stratum 5: The Ashen Standard (tattered vanguard battle standard)
+     - Stratum 6: Tears in the Veil (Malakor's dimensional rift)
+     - Stratum 7: The Celestial Gaze (celestial starlight through cracks)
+     - Stratum 8: The Deserter's Locket (ornate silver heirloom locket)
+     - Stratum 9: Thorn of the Abyss (abyssal thorn vine cluster)
+     - Stratum 10: The Final Gatekeeper (Warden's winged silhouette)
+     - Ending Fate A: Dawn of the Resolute (golden sun & citadel colonnade)
+     - Ending Fate B: Whispers of the Throne (purple throne & royal blade)
+     - Ending Fate C: Apotheosis of Wrath (crimson crown & burning sky)
+     - Legacy Echo I: The Broken Music Box (engraved golden musical cylinder)
+   - Integrated into both `CodexUI.js` (Memories tab) and `MemoryUI.js` (in-game discovery modal).
+
+3. **Master-Detail Achievements & Canonical Insignias:**
+   - 38 achievements with bespoke pixel-art insignias rendered via `AchievementIconRenderer.js`.
+   - Category filtering across 8 disciplines: `ALL [40]`, `SURVIVAL [8]`, `COMBAT [10]`, `SPEEDRUN [11]`, `DISCOVERY [5]`, `ASCENSION [2]`, `THE FATES [3]`, `ABSOLUTE [1]`.
+   - Authoritative **THE LAST WITNESS** meta-achievement rendered using the canonical Shattered Mind red pixel eye (`drawPixelEye`) enclosed by three distinct broken rings:
+     - Gold/Amber top-left arc (`#fbbf24`) for Hero Dawn
+     - Amethyst/Violet bottom arc (`#c084fc`) for Betrayal
+     - Crimson/Blood right arc (`#ef4444`) for Rampage
+   - Progress tracked strictly across all 8 required cross-run milestones (5 deaths + 3 endings).
+
+4. **Four Distinct Ending Credits Sequences:**
+   - Multi-background visual journeys for all 4 ending contexts:
+     - **Hero Dawn:** Golden morning sunrise, terrace colonnade, and survivor return (`credits_bg_hero.jpg` 1–4).
+     - **The Hollow Throne (Betrayal):** Cold palace colonnade, royal banners, and inquisitor shadows (`credits_bg_betrayal.jpg` 1–4).
+     - **Wrath Citadel (Rampage):** Fiery burning throne room, volcanic storm, and smoking citadel ruins (`credits_bg_rampage.jpg` 1–4).
+     - **The Astral Void (Shattered Mind):** Eerie cosmic void, floating dimensional shards, and glowing eye reflections (`credits_bg_shattered_mind.jpg` 1–4).
+   - Dedicated musical accompaniments matching each emotional tone.
+   - Solo creator **Dinesh Polimera** credited once with monumental gold typography on Card 1; Cards 3–6 formatted with role-only discipline titles.
+   - Safe, non-mutating replay access wired into both the **Cinematic Archive** and the **Developer Sanctum** with `{ isReplay: true, onComplete }` callbacks that bypass game-over logic, NG+ incrementation, and achievement recording.
+
+5. **Developer Sanctum Overhaul & Integration:**
+   - Secret chamber accessible via red pixel eye button in the bottom right corner of the Main Menu.
+   - Secure dual-cipher gating:
+     - Permanent Consecration: Revealed as `SANCTUM10` upon completing The Last Witness and The Last Ember gift.
+     - One-Time Emergency Fallback: `090329` (permanently consumed upon first deployment).
+   - Authoritative red pixel eye brand header, status pill summary row, 5 cohesive navigation tabs (`FLOOR TARGET`, `CINEMATICS`, `STARTING LOADOUT`, `EXPEDITION CONFIG`, `ACCESS STATUS`), and persistent bottom deployment bar with confirmation modal.
+   - Total isolation: Developer expeditions are tagged, speedrun PBs are disabled, and returning to the menu preserves clean player progression.
+
+---
+
+### 42.2. Overhaul Verification Matrix
+
+| Verification ID | Component / Area | Tested Runtime Behavior | Result | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **OV-01** | Codex Chronicles (Tab 1) | Inspected Floor 1, Floor 3, and Floor 10 in `CodexUI`. | Custom pixel illustrations render crisply with rubricated initials and vellum borders. | **PASS ✅** |
+| **OV-02** | Codex Chronicles Fallback | Simulated missing asset conditions. | Procedural Canvas 2D renderers take over seamlessly with zero console errors. | **PASS ✅** |
+| **OV-03** | Codex Memories (Tab 3) | Inspected Stratum 1, 3, and 10 recollections. | Dedicated scene vignettes render in the display frame with complete narrative text. | **PASS ✅** |
+| **OV-04** | Achievements Archive | Navigated all 8 category filters; inspected `ABSOLUTE [1]`. | Master-detail list scrolls smoothly; large 68x68 animated icons display cleanly. | **PASS ✅** |
+| **OV-05** | The Last Witness Insignia | Inspected `last_witness` deed card. | Shattered Mind red pixel eye with 3 broken colored rings and 8/8 progress bar verified. | **PASS ✅** |
+| **OV-06** | Sanctum Cinematics Archive | Filtered Tab 2 by `ENDINGS & CREDITS`; selected `Credits — Hero Dawn`. | Detail view displays metadata and purple `[ ▶ WATCH CREDITS ]` button. | **PASS ✅** |
+| **OV-07** | Safe Credits Replay | Triggered Hero Dawn credits from Sanctum; skipped midway via `returnToTitle()`. | Seamlessly returned to Sanctum chamber; zero save mutation, zero token loss. | **PASS ✅** |
+| **OV-08** | Developer Expedition Launch | Deployed Floor 3 with Common Steel Sword and 50 HP. | Rowan spawns directly in Gorgaroth's arena with 50/50 HP; speedrun timer disabled. | **PASS ✅** |
+| **OV-09** | Main Menu Rowan Grounding | Checked Rowan across desktop (1203×640), mobile (390×844), and ultrawide viewports. | Rowan anchored firmly to stone ledge next to glowing brazier. | **PASS ✅** |
+| **OV-10** | Browser Console Cleanliness | Executed full audit in Chrome DevTools MCP. | Zero uncaught errors, zero unhandled promise rejections, zero deprecation warnings. | **PASS ✅** |
+
+---
+
+## 43. COMPLETE UNIFIED PIXEL-ART UI RESKIN (MAIN MENU & PAUSE MENU STYLE ACROSS ALL SECONDARY PAGES)
+
+### 43.1. Architectural Mandate & Source of Truth
+The goal of this overhaul is establishing absolute visual and architectural unity across the entire interface system of *Dungeon Break: Abyss Ascension* (v8.0.0).
+
+- **Non-Negotiable Visual Standards:**
+  - **Main Menu** (`MainMenu.js`) and **Pause Menu** (`PauseMenu.js`) served as the authoritative visual anchors. Their appearance is strictly preserved as benchmarks.
+  - All secondary interfaces, popups, and metaprogression chambers were brought into this exact visual family:
+    - Dark-fantasy pixel-art aesthetic.
+    - Deep purple and indigo basalt stone surfaces (`#141726` -> `#0c0f1a` -> `#070914`).
+    - Carved-stone button shapes with chamfered corners and physical cast shadows.
+    - Ornamental gold brackets, rivets, and corner accents (`#ca8a04`, `#fbbf24`, `#fde68a`).
+    - Authentic interactive states: default, hover (elevated highlights with subtle gold shimmer), active/selected (amber glow borders with shadow blur), and pressed (1px downward tactile displacement).
+    - Zero full-screen pre-rendered image mockups; 100% procedural Canvas 2D and 9-slice rendering.
+
+### 43.2. Central Component Library (`js/ui/ButtonArtManager.js?v=2.0`)
+A unified master component suite was engineered to power every menu:
+- `drawStoneButton(ctx, x, y, w, h, options)` & `drawStoneButton(ctx, label, x, y, w, h, options)`: Polymorphic carved-stone buttons supporting Normal, Hover, Selected, Pressed, Primary (amber/gold), and Danger (crimson) states.
+- `drawStoneTab(ctx, x, y, w, h, options)` & `drawStoneTab(ctx, label, x, y, w, h, options)`: Carved-stone navigation tabs with gold, violet, crimson, or azure accent trim and bottom active indicator bars.
+- `drawStonePanel(ctx, x, y, w, h, options)`: Elevated or recessed abyss-stone containers with multi-tier borders and bevels.
+- `drawStoneCard(ctx, x, y, w, h, options)`: Interactive inventory, deed, or vision cards with hover luminescence and selection frames.
+- `drawStoneSlider(ctx, x, y, w, h, val, options)`: Recessed basalt track with glowing fill and crystal carriage.
+- `drawStoneBadge(ctx, x, y, w, h, text, options)`: Carved-stone status pills and currency counters.
+- `drawStoneDivider(ctx, x, y, w, title, icon)`: Gold-accented horizontal rule with center rubric diamond.
+- `drawCornerBrackets(ctx, x, y, w, h, len, col)`: Pixel-art ornamental gold corner brackets with corner rivets.
+
+### 43.3. Overhauled Interfaces
+1. **Developer Sanctum (`js/ui/DeveloperSanctumUI.js`):**
+   - Sealed Gate authentication modal with stone panel, gold brackets, and stone input/confirm buttons.
+   - Main chamber chassis reskinned with stone panels and brackets; canonical red pixel eye (`drawPixelEye`) strictly preserved.
+   - 5 Chamber tabs (`FLOOR TARGET`, `CINEMATICS`, `STARTING LOADOUT`, `EXPEDITION CONFIG`, `ACCESS STATUS`) using `drawStoneTab`.
+   - Floor inspection cards, weapon loadouts, and configuration steppers reskinned with `drawStoneCard` and `drawStoneButton`.
+   - Persistent bottom deployment bar and confirmation modal with primary gold launch buttons.
+
+2. **Settings Console (`js/ui/SettingsUI.js`):**
+   - Outer console chassis with `drawStonePanel` and `drawCornerBrackets`.
+   - Left Audio Bay & Right Chronometer Bay instrument enclosures reskinned with `drawStonePanel`.
+   - Master mute lever with glowing jewel button using `drawStoneButton`.
+   - Volume channel cards and speedrun timer boxes with `drawStoneCard` and `drawStoneSlider`.
+   - Game speed notch buttons (0.5x, 1.0x, 1.25x, 1.5x) and speed reset using `drawStoneButton`.
+   - Sensory switches (Screenshake, Reduced Motion) and Mobile Touch Calibration using `drawStoneCard` and `drawStoneButton`.
+   - Bottom return button using `drawStoneButton`.
+
+3. **Codex Archive (`js/ui/CodexUI.js`):**
+   - Outer archive chassis with `drawStonePanel` and `drawCornerBrackets`.
+   - Top chamber tabs (`CHRONICLES`, `BESTIARY`, `MEMORIES`) using `drawStoneTab`.
+   - Chronicles: Left folio container (`drawStonePanel`), 10 descent chapter cards (`drawStoneCard`), right illuminated manuscript panel (`drawStonePanel`).
+   - Bestiary: Specimen carousel container (`drawStonePanel`), carousel token cards (`drawStoneCard`), Containment Dais frame (`drawStonePanel`), threat plinth (`drawStoneCard`), tactical threat dossier (`drawStonePanel`).
+   - Memories: Vault Archive Repository frame (`drawStonePanel`), 2-column memory shard cards (`drawStoneCard`), Stela of Remembrance panel (`drawStonePanel`).
+   - Modals: `drawLoreModal` and `drawMemoryEchoModal` using `drawStonePanel`, `drawCornerBrackets`, and `drawStoneButton` for Choice A/B.
+   - Bottom return button using `drawStoneButton`.
+
+4. **Achievements Hall (`js/ui/AchievementsUI.js`):**
+   - Outer enclosure with `drawStonePanel` and `drawCornerBrackets`.
+   - Top Wing cards (Total Conquest gauge, Altar of the Eye, Citadel Seals) with `drawStoneCard`.
+   - 8 Category navigation tabs using `drawStoneTab`.
+   - Left Column deed cards with `drawStoneCard`.
+   - Right Column Stele Inspector panel with `drawStonePanel`, Consecration status and quantitative progress cards with `drawStoneCard`.
+   - Bottom return button using `drawStoneButton`.
+
+5. **Abyss Sanctum (`js/ui/SanctumUI.js`):**
+   - Outer vault slab with `drawStonePanel` and `drawCornerBrackets`.
+   - Souls Crucible & Prestige Sunburst currency badges using `drawStoneBadge`.
+   - Mode switcher tabs (`◈ SOUL NODES` vs `♛ LEGACY REPERTOIRE`) using `drawStoneTab`.
+   - 4 Discipline tabs (`SURVIVAL`, `WEAPONRY`, `TECHNIQUE`, `UTILITY`) using `drawStoneTab`.
+   - Left Constellation Starfield Chamber enclosure with `drawStonePanel` and `drawCornerBrackets`.
+   - Right Sacred Altar Infusion Slab with `drawStonePanel`, banner card with `drawStoneCard`, power delta card with `drawStoneCard`.
+   - Consecrate Upgrade action button using `drawStoneButton` (primary gold when affordable, danger crimson when deficit).
+   - Bottom return button using `drawStoneButton`.
+
+6. **Cinematic Archive (`js/ui/CinematicArchiveUI.js`):**
+   - Header unlock counter badge using `drawStoneBadge`.
+   - 6 Category filter tabs using `drawStoneTab`.
+   - Left Column vision cards with `drawStoneCard`.
+   - Right Column detailed memory panel with `drawStonePanel` and `drawCornerBrackets`.
+   - Scene vignette preview frame with `drawStoneCard`.
+   - Rewatch / sealed action button with `drawStoneButton`.
+   - Bottom return button with `drawStoneButton`.
+
+7. **Ending Credits (`js/cinematics/Credits.js`):**
+   - Clear time & speedrun timing plinth card with `drawStoneCard`.
+   - Options phase buttons (`◈ REPLAY CREDITS` / `◈ ASCEND INTO THE DUNGEON`, `⚔ RETURN TO TITLE SCREEN`) with `drawStoneButton`.
+   - `drawTextButton` mapped to `drawStoneButton`.
+
+8. **Inventory Equipment Flow (`js/ui/InventoryUI.js`):**
+   - Contextual "ARSENAL FULL" prompt modal chassis with `drawStonePanel` and `drawCornerBrackets`.
+   - Discovered weapon showcase card with `drawStoneCard`.
+   - Swap and Cancel buttons with `drawStoneButton`.
+   - 3-Slot Replacement Selector modal chassis with `drawStonePanel` and `drawCornerBrackets`.
+   - Discovered weapon ribbon with `drawStoneCard`.
+   - 3 Slot comparison cards with `drawStoneCard` and `[ 1/2/3 ] REPLACE` buttons with `drawStoneButton`.
+   - Bottom Cancel button with `drawStoneButton`.
+
+### 43.4. Verification & Audit Results
+- **Syntax Validation:** All modified files validated cleanly via `node -c` (exit code 0).
+- **Console Cleanliness:** Chrome DevTools MCP live runtime testing verified zero uncaught exceptions, zero console errors, and continuous 60 FPS performance.
+- **Visual Family Integrity:** All menus now share the exact stone paneling, gold ornamental bevels, and tactile carved buttons established by the Main Menu and Pause Menu.
+
+
+
+
+
+
+## 44. TARGETED VISUAL REFINEMENT PASS — CUSTOM PIXEL-ART BUTTONS, ACHIEVEMENT ICONS & SETTINGS REBUILD
+
+### 44.1. Core Architectural Mandate & Authoritative Visual Alignment
+- **Authoritative Standard:** The Main Menu and Pause Menu serve as the uncompromised source of truth for all UI components.
+- **Button Face Rebuild:** Replaced flat, dark, generic button rectangles with visibly textured violet-indigo carved dungeon stone (`#34235c` top to `#120b28` bottom), distinct chiseled masonry striations, directional specular top rim (`#fef08a` / `rgba(233, 213, 255, 0.4)`), recessed bottom shadow, and weathered antique bronze framing with stepped faceted rivet studs.
+- **State Differentiation:**
+  - *Normal:* Deep violet carved stone with understated bronze framing.
+  - *Hover:* Luminous warm gold/violet illumination with elevated tactile depth.
+  - *Selected:* Burnished royal gold-highlighted framing with enhanced contrast.
+  - *Pressed:* Tactile +1px content depression and dark inset shadow.
+  - *Disabled:* Weathered desaturated slate (`#222836` to `#0e121a`) with oxidized iron framing and dim legible text.
+  - *Primary:* Vanguard royal violet-obsidian core with gold framing and signature Molten Forge Ember fissures strictly on active/selected state.
+  - *Destructive:* Deep crimson blood-obsidian (`#4a1520` to `#140307`) with ruby/bronze framing without magma clutter.
+- **Panel Material Overhaul:** Rebuilt `getStonePattern` from a stark 48×48 single-pixel wireframe grid into an organic 128×128 seamless ancient basalt masonry pattern with staggered block courses, soft mortar seams, chiseled striations, and delicate amethyst/gold dust flecks.
+
+### 44.2. Settings Chamber Complete Rebuild (`js/ui/SettingsUI.js`)
+- **Elimination of Dead Space:** Rebalanced the right-column height (`bayH = 448px`) by expanding the Chronometric Temporal Regulator instrument bay to 172px, seamlessly integrating the speedometer gauge with the 0.50×, 1.00×, 1.50×, and 2.00× speed options and a dedicated Reset 1.00× button.
+- **Jitter-Free Needle Motion:** Implemented continuous frame-rate-independent exponential easing (`_displayedSpeed += (targetSpeed - _displayedSpeed) * Math.min(1.0, dt * 10.0)`), completely eliminating needle jumping or stuttering between speeds.
+- **Removal of Misplaced Magma:** Stripped molten forge fissure cracks from the 1.00× speed button; speed notches now use clean gold-selected frames matching game speed preferences.
+- **Audio Chamber Refinement:**
+  - Standardized Master Volume, Music Volume, and Sound Effects into compact stone cards with clear labels, player-facing percentage readouts (no decibel/engineering jargon), and recessed basalt slider tracks.
+  - Retained the signature harmonic sinusoidal wave with restrained, smooth oscillation.
+  - Metallic carriage thumbs with illuminated central indicator gemstones (Amber for Master, Violet for Music, Azure for SFX).
+  - Dedicated custom stone buttons for Quick Mute `[ M ]` and Reset Audio `↺ RESET AUDIO`.
+- **Sensory & Accessibility Controls:** Aligned Screen Shake and Reduced Motion into stone control rows with knurled brass toggle levers and high-contrast status badges (`ENGAGED`/`DAMPENED` and `ACTIVE`/`STANDARD`).
+- **Touch & Reset Calibration:** Custom Dungeon Break stone buttons for Touch Controls and Reset Layout (with proper danger ruby styling).
+- **Return Navigation:** Prominent gold-framed Return button dynamically adapting to caller (`RETURN TO EXPEDITION [ ESC ]` from Pause vs `RETURN TO TITLE [ ESC ]` from Main Menu), with immediate persistence to `SaveSystem`.
+
+### 44.3. Monuments & Wall of Deeds Archive Overhaul (`js/ui/AchievementsUI.js` & `js/rendering/AchievementIconRenderer.js`)
+- **Collision-Free Category Navigation:**
+  - Expanded category tab height to 24px across two balanced rows (4 tabs per row) with distinct hitboxes (`tabW = ~206px`, `tabGap = 6px`, `rowGap = 5px`).
+  - Separated icons, labels, and count badges cleanly: `◈ ALL [40]`, `ᛟ SURVIVAL [8]`, `⚔ COMBAT [10]`, `⚡ SPEEDRUN [11]`, `✦ DISCOVERY [5]`, `ᛏ ASCENSION [2]`, `♛ THE FATES [3]`, `👁 ABSOLUTE [1]`. Zero text collisions across window resizes.
+- **40 Original Custom Pixel-Art Achievement Icons:**
+  - *Combat:* Gladius with dripping ruby blood (`first_blood`), tower kiteshield with barrier aura (`shield_bearer`), composite recurve bow with piercing arrow (`sharpshooter`), shadow cloak with evasion ripples (`untouchable`), Gorgaroth spiked collar and broken chain (`jailbreaker`), Gorgaroth horned skull with amber eyes (`gorgaroth_nemesis`), Malakor void rift crescent scythe (`void_conqueror`), Malakor winged void crest (`malakor_nemesis`), Warden spiked crown and crossed greatswords (`boss_slayer`), Warden royal visage with flame eyes (`warden_nemesis`).
+  - *Survival:* Chitinous swarm pincers with predator eyes (`overwhelmed`), skeletal ribcage with fading life spark (`consumed`), brass cathedral sanity lantern (`sanity_keeper`), fractured skull splitting with purple void lightning (`mind_break`), basalt headstones with Roman numerals V, X, and XXV (`deaths_5`, `deaths_10`, `deaths_25`), vertical executioner sword plunged in stone plinth (`executed`).
+  - *Discovery & Savior:* Rescued hooded survivors reaching toward golden beacon (`savior` I, II, III), golden laurel wreath with unblemished living ember heart (`perfect_rescue`), illuminated vellum scroll with wax seal (`lore_master`).
+  - *Ascension & Talents:* Faceted violet soul crystal with ascending rays (`soul_ascendant`), gilded constellation tree with 5 ablaze nodes (`maxed_talent`).
+  - *The Three Fates:* Lord Rowan standing at golden dawn (`true_hero`), Rowan impaled by shadow daggers (`betrayed`), Rowan wreathed in bloodfire with twin war axes (`rampage`).
+  - *Speedrun:* Winged antique chronometer with ticking hand (`speed_runner`), architectural waypoint steles for Floors 1–10 with distinct floor motifs and Roman numerals (`speed_floor_1` to `speed_floor_10`).
+  - *Absolute Mastery:* Authoritative Eye of the Absolute (`last_witness`) with living red sclera, dilating vertical slit pupil, golden iris fibers, and 8 orbiting astral milestone stars.
+- **Upgraded Deed Cards:** Textured purple stone cards with gold/bronze framing, 2-line wrapped titles without truncation, category labels, and distinct status pills (`CONQUERED` green, `LOCKED TIER` red, `PROGRESS` amber with progress bar, `LOCKED` slate).
+- **Stele Inspector Detail:** Dedicated monolith inspector featuring 56×56 large pixel-art icon, full title, category label, consecration badge, inscribed requirement text, and genuine progressive milestone breakdown (including the 8 Roman crucibles for The Last Witness).
+- **Full Preservation of Mechanics:** Zero changes to achievement IDs, unlock conditions, save keys, progression counters, speedrun thresholds, or the 8 cross-run milestones of The Last Witness.
+
+### 44.4. Verification Suite & Visual Audit
+- **Syntax & Runtime Validation:** All files validated via Node.js; Chrome DevTools MCP live runtime testing verified zero console errors and zero warnings.
+- **Real-Time Settings Persistence:** Verified that clicking/dragging Master, Music, and SFX sliders updates real audio gain and persists to `SaveSystem.getSettings()`.
+- **Speed Regulator Verification:** Verified smooth dial interpolation between 0.50×, 1.00×, 1.50×, and 2.00× without needle jumping or jitter.
+- **Category Navigation & Filtering:** Verified all 8 categories filter correctly without label overlap.
+- **Cross-Screen Cohesion:** Confirmed visual consistency across Title Menu, Settings Chamber, Achievements Hall, and In-Game Pause Menu.

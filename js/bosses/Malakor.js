@@ -9,6 +9,7 @@ import { SoundManager } from '../audio/AudioManager.js';
 import { ParticleRenderer } from '../rendering/ParticleRenderer.js';
 import { solidAt } from '../world/PathValidator.js';
 import { TARGET_FPS } from '../core/Constants.js';
+import { dealDamage } from '../combat/DamageSystem.js';
 
 let _malakorAttackId = 6000;
 
@@ -38,8 +39,8 @@ function isValidTeleportDestination(x, y, boss, player) {
   if (!room || x < room.x + 1.5 || x > room.x + room.w - 2.5 ||
       y < room.y + 1.5 || y > room.y + room.h - 2.5 || solidAt(x, y)) return false;
   if (Math.hypot(x - player.x, y - player.y) < VOID_ENCOUNTER_CONFIG.minTeleportDistanceFromPlayer) return false;
-  const safe = room.voidSafeArea;
-  if (safe && Math.hypot(x - safe.x, y - safe.y) < safe.r + 1.2) return false;
+  const safeAreas = room.voidSafeAreas || (room.voidSafeArea ? [room.voidSafeArea] : []);
+  if (safeAreas.some(safe => Math.hypot(x - safe.x, y - safe.y) < safe.r + 1.2)) return false;
   const zone = boss.voidPressureZone;
   return !zone || zone.state === 'expired' || Math.hypot(x - zone.x, y - zone.y) >= zone.r + 1;
 }
@@ -94,6 +95,11 @@ function beginTeleport(boss) {
   // Authoritative destination chosen upfront for clear, transient telegraphing
   boss.teleportDest = findTeleportDestination(boss, GameState.P);
   ParticleRenderer.spawnP(boss.x, boss.y, 10, { col: '#c084fc', spd: 0.75, r: 2.3 });
+  if (boss.teleportDest) {
+    // Arrival destination telegraph indicator (allows tactical repositioning)
+    ParticleRenderer.spawnRing(boss.teleportDest.x, boss.teleportDest.y, '#e879f9');
+    ParticleRenderer.spawnP(boss.teleportDest.x, boss.teleportDest.y, 8, { col: '#e879f9', spd: 0.45, r: 2.2 });
+  }
   SoundManager.snd('void_swell');
 }
 
@@ -104,10 +110,10 @@ function spawnBossProjectile(boss, angle, speed, attackId) {
   if (solidAt(x, y, GameState.MAP, true) || Math.hypot(x - GameState.P.x, y - GameState.P.y) < 0.85) return;
   GameState.PROJECTILES.push({
     x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-    life: 0, maxLife: 4.2, damage: 1, fromPlayer: false, hit: false,
+    life: 0, maxLife: 4.2, damage: 3, fromPlayer: false, hit: false,
     isBoss: true, col: '#c084fc', attackId,
-    // A direct Void orb deals health damage and drains 5 to 8 sanity based on phase.
-    sanityDamage: boss.phase >= 3 ? 8.0 : (boss.phase === 2 ? 6.5 : 5.0)
+    // Calibrated Void orb sanity damage: 4.0 to 6.0 based on phase
+    sanityDamage: boss.phase >= 3 ? 6.0 : (boss.phase === 2 ? 5.0 : 4.0)
   });
 }
 
@@ -130,7 +136,7 @@ function fireVolley(boss, player) {
   }
   boss.lastVolleyAt = boss.combatTime;
   boss.isChargingVolley = false;
-  boss.projC = boss.phase === 3 ? 1.45 : boss.phase === 2 ? 1.9 : 2.55;
+  boss.projC = boss.phase === 3 ? 1.65 : boss.phase === 2 ? 2.15 : 2.75;
   SoundManager.snd('shockwave');
   ParticleRenderer.spawnP(boss.x, boss.y, 8, { col: '#a855f7', spd: 1.2, r: 2.5 });
 }
@@ -143,6 +149,20 @@ function spawnArrivalNova(boss) {
     if (Math.abs(Math.atan2(Math.sin(angle - laneAngle), Math.cos(angle - laneAngle))) < 0.52) continue;
     spawnBossProjectile(boss, angle, 6.25, attackId);
   }
+}
+
+function spawnPhaseThreeSingularity(boss) {
+  const attackId = ++_malakorAttackId;
+  GameState.CAM.shk = 18;
+  SoundManager.snd('shockwave');
+  SoundManager.snd('boss_roar');
+  ParticleRenderer.spawnRing(boss.x, boss.y, '#c084fc');
+  ParticleRenderer.spawnP(boss.x, boss.y, 24, { col: '#a855f7', spd: 2.5, r: 3.5 });
+  const dist = Math.hypot(GameState.P.x - boss.x, GameState.P.y - boss.y);
+  if (dist <= 2.5) {
+    dealDamage({ isBoss: true, attackId, x: boss.x, y: boss.y }, GameState.P, 8, 'heavy');
+  }
+  spawnArrivalNova(boss);
 }
 
 function updateTeleport(boss, dt) {
@@ -175,7 +195,8 @@ function updateTeleport(boss, dt) {
     boss.vulnTimer = boss.phase === 3
       ? VOID_ENCOUNTER_CONFIG.phaseThreeRecovery
       : VOID_ENCOUNTER_CONFIG.teleportRecovery;
-    if (boss.phase === 2) spawnArrivalNova(boss);
+    if (boss.phase === 3) spawnPhaseThreeSingularity(boss);
+    else if (boss.phase === 2) spawnArrivalNova(boss);
   }
   return true;
 }
@@ -187,10 +208,10 @@ function findPressureZone(boss) {
   for (let i = 0; i < 16; i++) {
     const x = room.x + 2 + Math.random() * (room.w - 4);
     const y = room.y + 2 + Math.random() * (room.h - 4);
-    const safe = room.voidSafeArea;
+    const safeAreas = room.voidSafeAreas || (room.voidSafeArea ? [room.voidSafeArea] : []);
     if (solidAt(x, y) || Math.hypot(x - player.x, y - player.y) < 2.1 ||
         Math.hypot(x - boss.x, y - boss.y) < 1.8 ||
-        (safe && Math.hypot(x - safe.x, y - safe.y) < safe.r + VOID_ENCOUNTER_CONFIG.pressureRadius + 0.8)) continue;
+        safeAreas.some(safe => Math.hypot(x - safe.x, y - safe.y) < safe.r + VOID_ENCOUNTER_CONFIG.pressureRadius + 0.8)) continue;
     return { x, y };
   }
   return null;
@@ -203,8 +224,12 @@ function updatePressureZone(boss, dt) {
     if (zone.state === 'warning' && zone.timer <= 0) {
       zone.state = 'active';
       zone.timer = VOID_ENCOUNTER_CONFIG.pressureDuration;
+      zone.attackId = ++_malakorAttackId;
       ParticleRenderer.spawnRing(zone.x, zone.y, '#c084fc');
       SoundManager.snd('void_swell');
+      if (GameState.P && Math.hypot(GameState.P.x - zone.x, GameState.P.y - zone.y) <= zone.r) {
+        dealDamage({ isBoss: true, attackId: zone.attackId, x: zone.x, y: zone.y }, GameState.P, 5, 'heavy');
+      }
     } else if (zone.state === 'active' && zone.timer <= 0) {
       boss.voidPressureZone = null;
       boss.voidZoneC = boss.phase === 3 ? 4.8 : VOID_ENCOUNTER_CONFIG.pressureCooldown;

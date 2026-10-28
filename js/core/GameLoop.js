@@ -26,12 +26,13 @@ import { WardenDefeatCinematic } from '../cinematics/WardenDefeatCinematic.js';
 import { GorgarothCinematics } from '../cinematics/GorgarothCinematics.js';
 import { Credits } from '../cinematics/Credits.js';
 import { LastEmberCinematic } from '../cinematics/LastEmberCinematic.js';
-import { MainMenuScene } from '../cinematics/MainMenuScene.js';
+import { MainMenuScene } from '../cinematics/MainMenuScene.js?v=2.9';
 import { HIT_STOP_TIMER, tickHitStop } from '../combat/HitStop.js';
 import { tickCinematicBanner } from '../ui/HUD.js';
 import { UITransitionManager } from '../ui/UITransitionManager.js';
 import { MusicManager } from '../audio/MusicManager.js';
 import { AbyssDissolution } from '../systems/AbyssDissolution.js';
+import { MobileControls } from '../ui/MobileControls.js';
 
 let _rafId = null;
 let _lastTime = 0;
@@ -106,7 +107,37 @@ export const GameLoop = {
           PortalTransition.tick(dt);
           break;
         }
+
+        // Phase 6: Unscaled Active Timing (immune to GAME_SPEED, pauses, settings)
+        if (!GameState.CINEMATIC_ACTIVE) {
+          GameState.FLOOR_ACTIVE_TIME = (GameState.FLOOR_ACTIVE_TIME || 0) + dt;
+          GameState.RUN_ACTIVE_TIME = (GameState.RUN_ACTIVE_TIME || 0) + dt;
+
+          const fSec = Math.floor(GameState.FLOOR_ACTIVE_TIME);
+          GameState.FLOOR_ACTIVE_TIME_STR =
+            String(Math.floor(fSec / 60)).padStart(2, '0') + ':' +
+            String(fSec % 60).padStart(2, '0');
+
+          const rSec = Math.floor(GameState.RUN_ACTIVE_TIME);
+          GameState.RUN_ACTIVE_TIME_STR =
+            String(Math.floor(rSec / 60)).padStart(2, '0') + ':' +
+            String(rSec % 60).padStart(2, '0');
+        }
+
         PlayerController.tickPlayer(gameDt);
+
+        // Update real-time room exploration for minimap
+        if (GameState.ROOMS && GameState.P) {
+          if (!GameState.EXPLORED_ROOMS) GameState.EXPLORED_ROOMS = new Set([0]);
+          const px = GameState.P.x, py = GameState.P.y;
+          for (let rIdx = 0; rIdx < GameState.ROOMS.length; rIdx++) {
+            const rm = GameState.ROOMS[rIdx];
+            if (px >= rm.x - 1.0 && px <= rm.x + rm.w + 1.0 &&
+                py >= rm.y - 1.0 && py <= rm.y + rm.h + 1.0) {
+              GameState.EXPLORED_ROOMS.add(rIdx);
+            }
+          }
+        }
         Interactables.tickTraps(gameDt);
         Interactables.collectAllies();
         Interactables.tickShrines(gameDt);
@@ -121,6 +152,7 @@ export const GameLoop = {
         PortalTransition.tick(dt);
         BossIntros.tick(dt);
         tickCinematicBanner(dt);
+        MobileControls.tick(dt);
         break;
 
       case GameStates.WARP:

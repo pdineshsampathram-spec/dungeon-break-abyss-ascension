@@ -36,7 +36,9 @@ export const SaveSystem = {
     this.loadEndings();
     this.loadMilestones();
     this.checkTheLastWitness(false);
+    this.loadUnlockedCinematics();
     this.loadPhase3State();
+    this.loadLifetimeMetrics();
   },
 
   // Settings Persistence
@@ -102,6 +104,18 @@ export const SaveSystem = {
   },
 
   // Run Save
+  hasResumableRun() {
+    try {
+      const sv = this.loadRun();
+      if (!sv || typeof sv.lv !== 'number' || sv.lv < 1) return false;
+      if (sv.hp !== undefined && sv.hp <= 0) return false;
+      if (sv.san !== undefined && sv.san <= 0) return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+
   saveRun() {
     try {
       const data = {
@@ -115,7 +129,11 @@ export const SaveSystem = {
         bowKills: GameState.BOW_KILLS,
         weaponSlots: GameState.weaponSlots,
         activeSlot: GameState.activeWeaponSlot,
-        relics: GameState.P.relics
+        relics: GameState.P.relics,
+        runActiveTime: GameState.RUN_ACTIVE_TIME || 0,
+        floorActiveTime: GameState.FLOOR_ACTIVE_TIME || 0,
+        currentRunSurvivors: GameState.CURRENT_RUN_SURVIVORS || { eligible: [], rescued: [] },
+        isDeveloperExpedition: !!GameState.IS_DEVELOPER_EXPEDITION
       };
       localStorage.setItem('db_save_v5', JSON.stringify(data));
     } catch (e) {
@@ -136,6 +154,156 @@ export const SaveSystem = {
     try {
       localStorage.removeItem('db_save_v5');
     } catch (e) {}
+  },
+
+  // ── Phase 6: Lifetime Progression & Speedrun Metrics ──
+  loadLifetimeMetrics() {
+    try {
+      const d = parseInt(localStorage.getItem('db_lifetime_deaths_v1') || '0', 10);
+      GameState.LIFETIME_DEATHS = isNaN(d) || d < 0 ? 0 : d;
+
+      const bkRaw = localStorage.getItem('db_lifetime_boss_kills_v1');
+      GameState.LIFETIME_BOSS_KILLS = bkRaw ? JSON.parse(bkRaw) : { gorgaroth: 0, malakor: 0, warden: 0 };
+      if (typeof GameState.LIFETIME_BOSS_KILLS.gorgaroth !== 'number') GameState.LIFETIME_BOSS_KILLS.gorgaroth = 0;
+      if (typeof GameState.LIFETIME_BOSS_KILLS.malakor !== 'number') GameState.LIFETIME_BOSS_KILLS.malakor = 0;
+      if (typeof GameState.LIFETIME_BOSS_KILLS.warden !== 'number') GameState.LIFETIME_BOSS_KILLS.warden = 0;
+
+      const s = parseInt(localStorage.getItem('db_cumulative_survivors_v1') || '0', 10);
+      GameState.CUMULATIVE_SURVIVORS = isNaN(s) || s < 0 ? 0 : s;
+
+      const btRaw = localStorage.getItem('db_best_run_time_v1');
+      GameState.BEST_RUN_TIME = btRaw !== null ? parseFloat(btRaw) : null;
+    } catch (e) {
+      GameState.LIFETIME_DEATHS = 0;
+      GameState.LIFETIME_BOSS_KILLS = { gorgaroth: 0, malakor: 0, warden: 0 };
+      GameState.CUMULATIVE_SURVIVORS = 0;
+      GameState.BEST_RUN_TIME = null;
+    }
+    // Deterministic check of sequential savior progression
+    if (GameState.CUMULATIVE_SURVIVORS >= 5) AchievementSystem.unlock('savior');
+    if (AchievementSystem.isUnlocked('savior') && GameState.CUMULATIVE_SURVIVORS >= 10) AchievementSystem.unlock('savior_2');
+    if (AchievementSystem.isUnlocked('savior_2') && GameState.CUMULATIVE_SURVIVORS >= 15) AchievementSystem.unlock('savior_3');
+
+    return {
+      deaths: GameState.LIFETIME_DEATHS,
+      bossKills: GameState.LIFETIME_BOSS_KILLS,
+      survivors: GameState.CUMULATIVE_SURVIVORS,
+      bestRunTime: GameState.BEST_RUN_TIME
+    };
+  },
+
+  saveLifetimeMetrics() {
+    try {
+      localStorage.setItem('db_lifetime_deaths_v1', String(GameState.LIFETIME_DEATHS || 0));
+      localStorage.setItem('db_lifetime_boss_kills_v1', JSON.stringify(GameState.LIFETIME_BOSS_KILLS || { gorgaroth: 0, malakor: 0, warden: 0 }));
+      localStorage.setItem('db_cumulative_survivors_v1', String(GameState.CUMULATIVE_SURVIVORS || 0));
+      if (GameState.BEST_RUN_TIME !== null && typeof GameState.BEST_RUN_TIME === 'number') {
+        localStorage.setItem('db_best_run_time_v1', String(GameState.BEST_RUN_TIME));
+      }
+    } catch (e) {}
+  },
+
+  incrementLifetimeDeaths() {
+    GameState.LIFETIME_DEATHS = (GameState.LIFETIME_DEATHS || 0) + 1;
+    this.saveLifetimeMetrics();
+    const count = GameState.LIFETIME_DEATHS;
+    if (count >= 5) AchievementSystem.unlock('deaths_5');
+    if (count >= 10) AchievementSystem.unlock('deaths_10');
+    if (count >= 25) AchievementSystem.unlock('deaths_25');
+    return count;
+  },
+
+  recordBossDefeat(bossId) {
+    if (!GameState.LIFETIME_BOSS_KILLS) {
+      GameState.LIFETIME_BOSS_KILLS = { gorgaroth: 0, malakor: 0, warden: 0 };
+    }
+    const bMap = {
+      gorgaroth: 'gorgaroth',
+      iron_warden: 'gorgaroth',
+      malakor: 'malakor',
+      void_reaver: 'malakor',
+      abyss_warden: 'warden',
+      warden: 'warden'
+    };
+    const key = bMap[bossId];
+    if (key && typeof GameState.LIFETIME_BOSS_KILLS[key] === 'number') {
+      GameState.LIFETIME_BOSS_KILLS[key]++;
+      this.saveLifetimeMetrics();
+      if (key === 'gorgaroth' && GameState.LIFETIME_BOSS_KILLS.gorgaroth >= 5) {
+        AchievementSystem.unlock('gorgaroth_nemesis');
+      } else if (key === 'malakor' && GameState.LIFETIME_BOSS_KILLS.malakor >= 5) {
+        AchievementSystem.unlock('malakor_nemesis');
+      } else if (key === 'warden' && GameState.LIFETIME_BOSS_KILLS.warden >= 5) {
+        AchievementSystem.unlock('warden_nemesis');
+      }
+    }
+  },
+
+  recordSurvivorRescue(count = 1) {
+    GameState.CUMULATIVE_SURVIVORS = (GameState.CUMULATIVE_SURVIVORS || 0) + count;
+    this.saveLifetimeMetrics();
+    const total = GameState.CUMULATIVE_SURVIVORS;
+    if (total >= 5) AchievementSystem.unlock('savior');
+    if (AchievementSystem.isUnlocked('savior') && total >= 10) AchievementSystem.unlock('savior_2');
+    if (AchievementSystem.isUnlocked('savior_2') && total >= 15) AchievementSystem.unlock('savior_3');
+    return total;
+  },
+
+  recordRunCompletion(elapsedSeconds) {
+    if (GameState.IS_DEVELOPER_EXPEDITION) {
+      console.log('[SaveSystem] Developer expedition run completion; personal best and speedrun recording bypassed.');
+      return {
+        time: elapsedSeconds,
+        bestTime: this.getBestRunTime(),
+        isNewPB: false,
+        isDeveloperExpedition: true
+      };
+    }
+    const prevBest = this.getBestRunTime();
+    let isNewPB = false;
+    if (typeof elapsedSeconds === 'number' && elapsedSeconds > 0) {
+      if (prevBest === null || elapsedSeconds < prevBest) {
+        GameState.BEST_RUN_TIME = elapsedSeconds;
+        isNewPB = true;
+        this.saveLifetimeMetrics();
+      }
+    }
+    return {
+      time: elapsedSeconds,
+      bestTime: GameState.BEST_RUN_TIME !== null ? GameState.BEST_RUN_TIME : elapsedSeconds,
+      isNewPB
+    };
+  },
+
+  getBestRunTime() {
+    if (GameState.BEST_RUN_TIME !== null && typeof GameState.BEST_RUN_TIME === 'number') {
+      return GameState.BEST_RUN_TIME;
+    }
+    try {
+      const bt = localStorage.getItem('db_best_run_time_v1');
+      if (bt !== null) {
+        const val = parseFloat(bt);
+        if (!isNaN(val) && val > 0) {
+          GameState.BEST_RUN_TIME = val;
+          return val;
+        }
+      }
+    } catch (e) {}
+    return null;
+  },
+
+  getLifetimeDeaths() {
+    if (typeof GameState !== 'undefined' && typeof GameState.LIFETIME_DEATHS === 'number') {
+      return GameState.LIFETIME_DEATHS;
+    }
+    try {
+      const d = parseInt(localStorage.getItem('db_lifetime_deaths_v1') || '0', 10);
+      if (!isNaN(d) && d >= 0) {
+        if (typeof GameState !== 'undefined') GameState.LIFETIME_DEATHS = d;
+        return d;
+      }
+    } catch (e) {}
+    return 0;
   },
 
   // Souls & Prestige
@@ -219,6 +387,16 @@ export const SaveSystem = {
     if (!GameState.UNLOCKED_LORE[loreId]) {
       GameState.UNLOCKED_LORE[loreId] = true;
       this.saveLore();
+    }
+    // Check Lore Master achievement (requires all 10 canonical floor chronicles)
+    const primaryChronicleIds = [
+      'floor_1_seal', 'floor_2_deserters', 'floor_3_iron', 'floor_4_measure',
+      'floor_5_dark', 'floor_6_void', 'floor_7_purpose', 'floor_8_blade',
+      'floor_9_measure', 'floor_10_warden'
+    ];
+    const unlockedCount = primaryChronicleIds.filter(id => GameState.UNLOCKED_LORE[id]).length;
+    if (unlockedCount >= 10) {
+      AchievementSystem.unlock('lore_master');
     }
   },
 
@@ -332,7 +510,114 @@ export const SaveSystem = {
       endings[type] = true;
       localStorage.setItem('db_endings_v1', JSON.stringify(endings));
       GameState.ENDINGS_DISCOVERED = endings;
+      if (this.recordCinematicUnlock) {
+        if (type === 'hero') this.recordCinematicUnlock('ending_hero');
+        else if (type === 'betrayal') this.recordCinematicUnlock('ending_betrayal');
+        else if (type === 'rampage') this.recordCinematicUnlock('ending_rampage');
+      }
     } catch (e) {}
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // Dedicated Cinematic Archive Persistence & Historical Recovery
+  // ─────────────────────────────────────────────────────────────
+  loadUnlockedCinematics() {
+    try {
+      let stored = JSON.parse(localStorage.getItem('db_unlocked_cinematics_v1') || '{}');
+      if (typeof stored !== 'object' || stored === null) stored = {};
+
+      // 1. Prologue descent is unlocked for any player who has played or started
+      stored['the_descent'] = true;
+
+      // 2. Authoritative historical unlock recovery from verified records only
+      const ach = GameState.ACHIEVEMENTS || {};
+      const ms = GameState.COMPLETION_MILESTONES || {};
+      const end = GameState.ENDINGS_DISCOVERED || {};
+
+      // Gorgaroth F3
+      if ((ach.jailbreaker && ach.jailbreaker.unlocked) || ms.death_gorgaroth) {
+        stored['boss_intro_gorgaroth'] = true;
+        stored['boss_defeat_gorgaroth'] = true;
+      }
+
+      // Malakor F6
+      if ((ach.void_shifter && ach.void_shifter.unlocked) || ms.death_malakor) {
+        stored['boss_intro_malakor'] = true;
+        stored['boss_defeat_malakor'] = true;
+      }
+
+      // Abyss Warden F10
+      if ((ach.warden_slayer && ach.warden_slayer.unlocked) || (ach.boss_slayer && ach.boss_slayer.unlocked) || ms.death_warden) {
+        stored['boss_intro_warden'] = true;
+        stored['boss_defeat_warden'] = true;
+      }
+
+      // Shattered Mind (Sanity-0)
+      if ((ach.lost_mind && ach.lost_mind.unlocked) || ms.death_shattered_mind) {
+        stored['shattered_mind'] = true;
+      }
+
+      // Hero Ending
+      if (end.hero || ms.ending_hero || (ach.hero && ach.hero.unlocked)) {
+        stored['ending_hero'] = true;
+        stored['boss_intro_warden'] = true;
+        stored['boss_defeat_warden'] = true;
+      }
+
+      // Betrayal Ending
+      if (end.betrayal || ms.ending_betrayal || (ach.betrayal && ach.betrayal.unlocked)) {
+        stored['ending_betrayal'] = true;
+        stored['boss_intro_warden'] = true;
+        stored['boss_defeat_warden'] = true;
+      }
+
+      // Rampage Ending
+      if (end.rampage || ms.ending_rampage || (ach.rampage && ach.rampage.unlocked)) {
+        stored['ending_rampage'] = true;
+        stored['boss_intro_warden'] = true;
+        stored['boss_defeat_warden'] = true;
+      }
+
+      // The Unmeasured Hour Epilogue (Unlocked when any of the 3 Warden endings is completed)
+      if (end.hero || end.betrayal || end.rampage || ms.ending_hero || ms.ending_betrayal || ms.ending_rampage || ms.epilogue_unmeasured_hour) {
+        stored['epilogue_unmeasured_hour'] = true;
+      }
+
+      // The Last Ember Secret Gift
+      if (this.isPhase3GiftEligible() || (ach.the_last_witness && ach.the_last_witness.unlocked)) {
+        stored['the_last_ember'] = true;
+      }
+
+      GameState.UNLOCKED_CINEMATICS = stored;
+      localStorage.setItem('db_unlocked_cinematics_v1', JSON.stringify(stored));
+      return stored;
+    } catch (e) {
+      GameState.UNLOCKED_CINEMATICS = { 'the_descent': true };
+      return GameState.UNLOCKED_CINEMATICS;
+    }
+  },
+
+  recordCinematicUnlock(id) {
+    if (!id || typeof id !== 'string') return false;
+    if (!GameState.UNLOCKED_CINEMATICS) this.loadUnlockedCinematics();
+    if (!GameState.UNLOCKED_CINEMATICS[id]) {
+      GameState.UNLOCKED_CINEMATICS[id] = true;
+      try {
+        localStorage.setItem('db_unlocked_cinematics_v1', JSON.stringify(GameState.UNLOCKED_CINEMATICS));
+      } catch (e) {}
+      console.log(`[SaveSystem] Cinematic genuinely unlocked: ${id}`);
+      return true;
+    }
+    return false;
+  },
+
+  unlockCinematic(id) {
+    return this.recordCinematicUnlock(id);
+  },
+
+  isCinematicUnlocked(id) {
+    if (!GameState.UNLOCKED_CINEMATICS) this.loadUnlockedCinematics();
+    return !!(GameState.UNLOCKED_CINEMATICS && GameState.UNLOCKED_CINEMATICS[id]);
   },
 
   // Secret Bestiary Entries (e.g. 'absolute' unlocked via Shattered Mind)
@@ -396,8 +681,8 @@ export const SaveSystem = {
       return false;
     }
 
-    if (GameState.IS_DEBUG_ENDING) {
-      console.log(`[SaveSystem] Debug mode active, milestone ignored: ${id}`);
+    if (GameState.IS_DEBUG_ENDING || GameState.IS_DEVELOPER_EXPEDITION) {
+      console.log(`[SaveSystem] Debug / developer expedition active, milestone ignored: ${id}`);
       return false;
     }
 
@@ -489,6 +774,72 @@ export const SaveSystem = {
     GameState.PHASE3_INVITATION_DISMISSED = true;
     try {
       localStorage.setItem('db_phase3_invitation_dismissed', 'true');
+    } catch (e) {}
+  },
+
+  // ── Developer Sanctum Persistence & Verification ──
+  isSanctumFallbackConsumed() {
+    try {
+      return localStorage.getItem('db_sanctum_fallback_consumed') === 'true';
+    } catch (e) {
+      return false;
+    }
+  },
+
+  consumeSanctumFallback() {
+    try {
+      localStorage.setItem('db_sanctum_fallback_consumed', 'true');
+      console.log('[SaveSystem] Developer Sanctum one-time fallback consumed upon deployment.');
+    } catch (e) {}
+  },
+
+  isGiftCinematicCompleted() {
+    try {
+      return localStorage.getItem('db_gift_cinematic_completed') === 'true';
+    } catch (e) {
+      return false;
+    }
+  },
+
+  recordGiftCinematicCompleted() {
+    try {
+      localStorage.setItem('db_gift_cinematic_completed', 'true');
+      console.log('[SaveSystem] The Last Ember gift cinematic watched completely through final frame.');
+    } catch (e) {}
+  },
+
+  isTheLastWitnessUnlocked() {
+    if (ACHIEVEMENTS.last_witness && ACHIEVEMENTS.last_witness.unlocked) return true;
+    const m = GameState.COMPLETION_MILESTONES || {};
+    const VALID_MILESTONES = [
+      'death_normal_enemy',
+      'death_gorgaroth',
+      'death_malakor',
+      'death_warden',
+      'death_shattered_mind',
+      'ending_hero',
+      'ending_betrayal',
+      'ending_rampage'
+    ];
+    return VALID_MILESTONES.every(k => !!m[k]);
+  },
+
+  isSanctumPermanentEligible() {
+    return this.isTheLastWitnessUnlocked() && this.isGiftCinematicCompleted();
+  },
+
+  isSanctumPermanentUnlocked() {
+    try {
+      return localStorage.getItem('db_sanctum_permanent_unlocked') === 'true' && this.isSanctumPermanentEligible();
+    } catch (e) {
+      return false;
+    }
+  },
+
+  unlockSanctumPermanently() {
+    try {
+      localStorage.setItem('db_sanctum_permanent_unlocked', 'true');
+      console.log('[SaveSystem] Developer Sanctum permanent access consecrated.');
     } catch (e) {}
   },
 

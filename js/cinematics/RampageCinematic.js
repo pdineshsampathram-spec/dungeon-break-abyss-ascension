@@ -26,8 +26,10 @@ import { SoundManager } from '../audio/AudioManager.js';
 import { EventBus } from '../core/EventBus.js';
 import { MusicManager } from '../audio/MusicManager.js';
 import { Credits } from './Credits.js';
+import { EpilogueCinematic } from './EpilogueCinematic.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
+import { CinematicSafety } from './CinematicSafety.js';
 
 let _activeRampageCinematic = null;
 let _rampageFastForwarding = false;
@@ -2188,11 +2190,49 @@ export const RampageCinematic = {
   },
 
   canSkip() {
-    return this.active && !this.finished;
+    return this.active && !this.finished && CinematicSafety.canSkip();
+  },
+
+  handleClick(mx, my) {
+    if (!this.active) return false;
+    if (CinematicSafety.isReplay()) {
+      if (CinematicSafety.isValidSkipClick()) {
+        this.reset();
+        CinematicSafety.finishReplay();
+      }
+      return true;
+    }
+    if (CinematicSafety.isValidSkipClick()) {
+      this.skip();
+    }
+    return true;
+  },
+
+  handleKey(key) {
+    if (!this.active) return false;
+    if (CinematicSafety.isReplay()) {
+      if (key === 'Escape' || key === ' ' || key === 'Enter') {
+        this.reset();
+        CinematicSafety.finishReplay();
+      }
+      return true;
+    }
+    if (key === ' ' || key === 'Enter' || key === 'Escape') {
+      if (CinematicSafety.isValidSkipKey(key)) {
+        this.skip();
+      }
+      return true;
+    }
+    return true; // Consume keys
   },
 
   skip() {
     if (!this.active || this.finished) return;
+    if (CinematicSafety.isReplay()) {
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
     this.seek(RAMPAGE_TIMELINE.BLACK_HOLD - 0.2);
   },
 
@@ -2234,6 +2274,13 @@ export const RampageCinematic = {
 
   start(opts = {}) {
     if (this.active) return;
+    const isReplay = !!opts.isReplay;
+    CinematicSafety.startCinematic('ending_rampage', typeof opts === 'object' ? opts : { isReplay });
+
+    if (!isReplay && SaveSystem && SaveSystem.recordCinematicUnlock) {
+      SaveSystem.recordCinematicUnlock('ending_rampage');
+    }
+
     this.active = true;
     this.finished = false;
     _rampageFinished = false;
@@ -2255,12 +2302,6 @@ export const RampageCinematic = {
     GameState.setState(GameStates.CINEMATIC);
     GameState.CINEMATIC_ACTIVE = true;
     GameState.ACTIVE_CINEMATIC_TYPE = 'rampage';
-
-    // Hide dev triggers and touch overlay during cinematic
-    const devBar = document.getElementById('rampage-cutscene-trigger-bar');
-    if (devBar) devBar.style.display = 'none';
-    const touchOv = document.getElementById('touch-overlay');
-    if (touchOv) touchOv.style.display = 'none';
 
     // Grid centers
     const isFromTitle = !GameState.P || GameState.STATE === GameStates.TITLE || GameState.P.x < 10;
@@ -2589,12 +2630,18 @@ export const RampageCinematic = {
 
   proceedToCredits() {
     this.reset();
+    if (CinematicSafety.isReplay()) {
+      CinematicSafety.finishReplay();
+      return;
+    }
     SaveSystem.recordEnding('rampage');
     AchievementSystem.unlock('rampage');
     AchievementSystem.unlock('boss_slayer');
-    if (typeof Credits !== 'undefined' && Credits.start) {
-      Credits.start('rampage');
-    }
+    EpilogueCinematic.start('rampage', () => {
+      if (typeof Credits !== 'undefined' && Credits.start) {
+        Credits.start('rampage');
+      }
+    });
   },
 
   // ─────────────────────────────────────────────────────────────
@@ -2779,7 +2826,15 @@ export const RampageCinematic = {
       ctx.restore();
     }
 
-    // 6. Fast-Forward Indicator (Only in Debug)
+    // 6. Subtle Skip Prompt
+    if (this.canSkip() && CinematicSafety.shouldShowSkipHint() && t < RAMPAGE_TIMELINE.EMPTY_THRONE_HOLD) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.font = '10px Cinzel, serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(CinematicSafety.isReplay() ? '[ Esc / Click to Exit Archive ]' : '[ Space / Enter / Click to Skip ]', LW - 20, LH - 16);
+    }
+
+    // 7. Fast-Forward Indicator (Only in Debug)
     if (this.paused) {
       ctx.save();
       ctx.fillStyle = 'rgba(234, 179, 8, 0.85)';

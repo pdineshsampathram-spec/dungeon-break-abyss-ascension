@@ -43,6 +43,8 @@ import { BossArenaGenerator } from '../world/BossArenaGenerator.js';
 import { WeaponFactory } from '../weapons/WeaponFactory.js';
 import { getTheme, THEMES } from '../data/floors.js';
 import { AbyssDissolution } from '../systems/AbyssDissolution.js';
+import { CinematicSafety } from './CinematicSafety.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 
 export const LastEmberCinematic = {
   active: false,
@@ -260,7 +262,14 @@ export const LastEmberCinematic = {
   // ─────────────────────────────────────────────────────────────
   // Start Cinematic
   // ─────────────────────────────────────────────────────────────
-  start(source = 'menu') {
+  start(source = 'menu', opts = {}) {
+    const isReplay = (source === 'archive') || !!opts.isReplay;
+    CinematicSafety.startCinematic('the_last_ember', { isReplay, source });
+
+    if (!isReplay && SaveSystem && SaveSystem.recordCinematicUnlock) {
+      SaveSystem.recordCinematicUnlock('the_last_ember');
+    }
+
     this.active = true;
     this.sourceContext = source;
     this._stage = 'SHOT_1_LIGHT';
@@ -799,6 +808,7 @@ export const LastEmberCinematic = {
       }
 
       case 'SHOT_9_SUNRISE':
+      case 'STAGE_PASSWORD_REVEAL':
       case 'GOLDEN_FLASH': {
         GameState.P.cinematicPose = 'hidden';
         break;
@@ -1267,6 +1277,15 @@ export const LastEmberCinematic = {
         this.dawnProgress = Math.min(1.0, 0.65 + (t / 10.0) * 0.35);
 
         if (this.stageTimer >= 14.5) {
+          this.transitionToStage('STAGE_PASSWORD_REVEAL', 1.0);
+        }
+        break;
+      }
+
+      // FINAL SECRET PASSWORD REVEAL BEAT (duration: 6.5s)
+      case 'STAGE_PASSWORD_REVEAL': {
+        this.dawnProgress = 1.0;
+        if (this.stageTimer >= 6.5) {
           this.transitionToStage('GOLDEN_FLASH', 1.2);
         }
         break;
@@ -1334,6 +1353,7 @@ export const LastEmberCinematic = {
         this.drawShot8Exit(ctx, this.stageTimer, isReducedMotion);
         break;
       case 'SHOT_9_SUNRISE':
+      case 'STAGE_PASSWORD_REVEAL':
       case 'GOLDEN_FLASH':
         this.drawShot9Sunrise(ctx, this.stageTimer, isReducedMotion);
         break;
@@ -2105,6 +2125,15 @@ export const LastEmberCinematic = {
       return;
     }
 
+    // Secret Sanctum Password Reveal Phase (after creator credit)
+    if (this._stage === 'STAGE_PASSWORD_REVEAL') {
+      const alpha = this._computeSmoothAlpha(t, 0.4, 1.0, 4.8);
+      if (alpha > 0.005) {
+        this.drawPasswordRevealBeat(ctx, alpha);
+      }
+      return;
+    }
+
     const gratitude = this.gratitudeMessages.find(m => m.shot === this._stage);
     const chronicle = this.narrativeChronicles[this._stage];
     if (!chronicle && !gratitude) return;
@@ -2282,17 +2311,80 @@ export const LastEmberCinematic = {
   },
 
   // ─────────────────────────────────────────────────────────────
+  // Final Secret Beat: Permanent Developer Sanctum Password Reveal
+  // ─────────────────────────────────────────────────────────────
+  drawPasswordRevealBeat(ctx, alpha = 1.0) {
+    if (alpha <= 0.01) return;
+
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+    ctx.textAlign = 'center';
+
+    const cx = LW / 2;
+    const cy = Math.round(LH * 0.48);
+
+    // Center radial vignette
+    const vig = ctx.createRadialGradient(cx, cy, 20, cx, cy, 380);
+    vig.addColorStop(0, `rgba(4, 6, 14, ${0.85 * alpha})`);
+    vig.addColorStop(0.55, `rgba(4, 6, 14, ${0.50 * alpha})`);
+    vig.addColorStop(1, 'rgba(4, 6, 14, 0)');
+    ctx.fillStyle = vig;
+    ctx.fillRect(cx - 400, cy - 140, 800, 280);
+
+    // Decorative chamfered plaque
+    const pw = 420, ph = 110;
+    const px = Math.round(cx - pw / 2), py = Math.round(cy - ph / 2);
+    ctx.fillStyle = 'rgba(7, 10, 22, 0.94)';
+    ctx.strokeStyle = 'rgba(217, 119, 6, 0.85)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.rect(px, py, pw, ph);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(253, 230, 138, 0.35)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(px + 4, py + 4, pw - 8, ph - 8);
+
+    // Header line
+    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.fillStyle = '#fde68a';
+    ctx.shadowColor = '#d97706';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetY = 1;
+    ctx.fillText('◈ SEALED SANCTUM CIPHER ◈', cx, cy - 26);
+    ctx.shadowBlur = 0;
+
+    // The Authoritative Permanent Password
+    ctx.font = 'bold 24px monospace';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(217, 119, 6, 0.9)';
+    ctx.shadowBlur = 12;
+    ctx.fillText('SANCTUM10', cx, cy + 8);
+    ctx.shadowBlur = 0;
+
+    // Subtitle note
+    ctx.font = 'italic 12px "Crimson Text", Georgia, serif';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('The threshold recognizes the Last Witness. Note this cipher for the Sealed Sanctum.', cx, cy + 34);
+
+    ctx.restore();
+  },
+
+  // ─────────────────────────────────────────────────────────────
   // Skip Prompt
   // ─────────────────────────────────────────────────────────────
   drawSkipPrompt(ctx) {
     if (this._stage === 'GOLDEN_FLASH' || this.isExiting) return;
+    if (!CinematicSafety.canSkip() || !CinematicSafety.shouldShowSkipHint()) return;
 
     ctx.save();
     ctx.globalAlpha = 0.50;
     ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.fillStyle = '#94a3b8';
     ctx.textAlign = 'right';
-    ctx.fillText('ESC TO SKIP', LW - 24, LH - 20);
+    ctx.fillText(CinematicSafety.isReplay() ? 'ESC / CLICK TO EXIT ARCHIVE' : 'ESC TO SKIP', LW - 24, LH - 20);
     ctx.restore();
   },
 
@@ -2304,30 +2396,45 @@ export const LastEmberCinematic = {
     const key = (typeof e === 'string') ? e : (e.key || e.code);
 
     if (key === 'Escape' || key === 'Esc') {
-      this.finish();
+      if (CinematicSafety.isReplay()) {
+        this.cleanupAndReturn(false);
+        return true;
+      }
+      if (CinematicSafety.isValidSkipKey(key)) {
+        this.finish();
+      }
       return true;
     }
 
     if (key === ' ' || key === 'Enter') {
-      if (this._stage === 'SHOT_9_SUNRISE') {
+      if (this._stage === 'SHOT_9_SUNRISE' || this._stage === 'STAGE_PASSWORD_REVEAL') {
         this.finishWithGoldenWash();
         return true;
       }
     }
 
-    return false;
+    return true; // Consume inputs during cinematic
   },
 
   handleClick(mx, my) {
     if (!this.active) return false;
 
-    if (this._stage === 'SHOT_9_SUNRISE') {
+    if (this._stage === 'SHOT_9_SUNRISE' || this._stage === 'STAGE_PASSWORD_REVEAL') {
       this.finishWithGoldenWash();
       return true;
     }
 
+    if (CinematicSafety.isReplay()) {
+      if (CinematicSafety.isValidSkipClick()) {
+        this.cleanupAndReturn(false);
+      }
+      return true;
+    }
+
     if (my >= LH - 44) {
-      this.finish();
+      if (CinematicSafety.isValidSkipClick()) {
+        this.finish();
+      }
       return true;
     }
 
@@ -2338,6 +2445,8 @@ export const LastEmberCinematic = {
     if (this.isExiting) return;
     this.isExiting = true;
     this.stopAudio();
+    // Record genuine completion of gift cinematic through its actual final frame
+    SaveSystem.recordGiftCinematicCompleted();
     this.cleanupAndReturn(true);
   },
 
@@ -2351,6 +2460,7 @@ export const LastEmberCinematic = {
   },
 
   cleanupAndReturn(useGoldenWash = false) {
+    const isReplay = CinematicSafety.isReplay();
     this.active = false;
     this._stage = 'INACTIVE';
     this.isExiting = false;
@@ -2361,6 +2471,11 @@ export const LastEmberCinematic = {
 
     // Restore debug overlay for developer visibility upon return
     this.setDebugOverlayVisible(true);
+
+    if (isReplay) {
+      CinematicSafety.finishReplay();
+      return;
+    }
 
     // If finishing naturally via sunrise, trigger golden wash in title
     if (useGoldenWash && typeof MainMenu !== 'undefined' && MainMenu.triggerGoldenWash) {

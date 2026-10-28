@@ -1,89 +1,144 @@
 // =====================================================================
 //  DUNGEON BREAK — js/rendering/AchievementIconRenderer.js
 //  Authoritative Pixel-Art Icon Renderer & Living Idle Animations
-//  Authentic Canvas 2D Dark-Fantasy Aesthetics (No Stock Icons / No Emojis)
+//  Authentic Canvas 2D Dark-Fantasy Aesthetics (Zero Stock Icons, Zero Emojis)
+//  Covers ALL 40 Canonical Deeds in the Dungeon Break Registry
 // =====================================================================
 
 import { drawPixelEye } from '../cinematics/ShatteredMindCinematic.js';
 
 /**
- * Draws a living, authentic dark-fantasy pixel-art icon for any achievement.
+ * Draws an authentic dark-fantasy pixel-art icon for any achievement.
  * 
  * @param {CanvasRenderingContext2D} ctx 
  * @param {string} id Achievement ID
  * @param {number} cx Center X coordinate
  * @param {number} cy Center Y coordinate
- * @param {number} size Box dimension (e.g. 32 for list, 72 for detail)
+ * @param {number} size Box dimension (30 for list cards, 56-64 for detail stele)
  * @param {boolean} isUnlocked Whether the achievement is unlocked
  * @param {boolean} isSelected Whether the achievement row is currently selected
  * @param {number} timer Global ambient timer
  * @param {boolean} isReducedMotion Whether prefers-reduced-motion is active
  */
 export function drawAchievementIcon(ctx, id, cx, cy, size, isUnlocked, isSelected, timer, isReducedMotion = false) {
-  const isLarge = size >= 50;
-  const scale = isLarge ? size / 32 : size / 32;
-  const t = isReducedMotion ? 0 : timer;
+  const isLarge = size >= 48;
+  const scale = size / 32;
+  const t = isReducedMotion ? 0 : (timer || 0);
 
   ctx.save();
-  ctx.translate(cx, cy);
+  ctx.translate(Math.round(cx), Math.round(cy));
 
-  // 1. Dark obsidian backing plate
   const half = Math.round(size / 2);
-  const r = Math.max(3, Math.round(size * 0.12));
+  const rad = Math.max(2, Math.round(size * 0.12));
 
-  // Backing shadow / aura
+  // 1. Backing Outer Aura
   if (isUnlocked) {
     ctx.shadowColor = id === 'last_witness'
-      ? 'rgba(245, 158, 11, 0.45)'
-      : 'rgba(201, 168, 76, 0.35)';
-    ctx.shadowBlur = isLarge ? 14 : 6;
+      ? 'rgba(239, 68, 68, 0.55)'
+      : (isSelected ? 'rgba(245, 158, 11, 0.45)' : 'rgba(217, 119, 6, 0.25)');
+    ctx.shadowBlur = isLarge ? (isSelected ? 14 : 10) : (isSelected ? 6 : 4);
   } else {
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-    ctx.shadowBlur = isLarge ? 8 : 4;
+    ctx.shadowColor = 'rgba(1, 2, 6, 0.6)';
+    ctx.shadowBlur = 4;
   }
 
-  // Base Plate
-  ctx.fillStyle = isUnlocked
-    ? (isSelected ? '#0c1222' : '#080d1a')
-    : (isSelected ? '#0f131d' : '#06080e');
-  ctx.strokeStyle = isUnlocked
-    ? (isSelected ? '#fde68a' : 'rgba(201, 168, 76, 0.75)')
-    : (isSelected ? 'rgba(148, 163, 184, 0.65)' : 'rgba(51, 65, 85, 0.45)');
-  ctx.lineWidth = isLarge ? (isSelected ? 2.0 : 1.5) : (isSelected ? 1.5 : 1.0);
+  // 2. Base Carved Obsidian Plate
+  const plateGrad = ctx.createLinearGradient(-half, -half, -half, half);
+  if (isUnlocked) {
+    if (isSelected) {
+      plateGrad.addColorStop(0, '#2e2048');
+      plateGrad.addColorStop(0.5, '#1e1434');
+      plateGrad.addColorStop(1, '#120c22');
+    } else {
+      plateGrad.addColorStop(0, '#24183c');
+      plateGrad.addColorStop(0.5, '#18102a');
+      plateGrad.addColorStop(1, '#0e091c');
+    }
+  } else {
+    plateGrad.addColorStop(0, '#161324');
+    plateGrad.addColorStop(0.5, '#0e0c18');
+    plateGrad.addColorStop(1, '#07060e');
+  }
 
-  // Draw rounded rectangular plate
+  ctx.fillStyle = plateGrad;
   ctx.beginPath();
-  const rad = isLarge ? 8 : 4;
-  ctx.roundRect ? ctx.roundRect(-half, -half, size, size, rad) : ctx.rect(-half, -half, size, size);
+  if (ctx.roundRect) ctx.roundRect(-half, -half, size, size, rad);
+  else ctx.rect(-half, -half, size, size);
   ctx.fill();
+
+  // 3. Plate Framing
+  if (isUnlocked) {
+    ctx.strokeStyle = isSelected ? '#fde68a' : 'rgba(217, 119, 6, 0.85)';
+    ctx.lineWidth = isLarge ? 1.6 : 1.2;
+  } else {
+    ctx.strokeStyle = isSelected ? 'rgba(148, 163, 184, 0.65)' : 'rgba(71, 85, 105, 0.45)';
+    ctx.lineWidth = 1.0;
+  }
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // Subtle interior vignette / accent
-  if (isUnlocked && isLarge) {
-    const radial = ctx.createRadialGradient(0, 0, 2, 0, 0, half);
-    radial.addColorStop(0, id === 'last_witness' ? 'rgba(239, 68, 68, 0.18)' : 'rgba(245, 158, 11, 0.15)');
-    radial.addColorStop(1, 'rgba(0, 0, 0, 0)');
-    ctx.fillStyle = radial;
-    ctx.fill();
-  }
-
-  // Clip content inside the plate so effects stay clean
+  // 4. Clip inside plate for artwork
   ctx.save();
   ctx.beginPath();
-  ctx.roundRect ? ctx.roundRect(-half + 1, -half + 1, size - 2, size - 2, rad - 1) : ctx.rect(-half + 1, -half + 1, size - 2, size - 2);
+  if (ctx.roundRect) ctx.roundRect(-half + 1, -half + 1, size - 2, size - 2, rad - 1);
+  else ctx.rect(-half + 1, -half + 1, size - 2, size - 2);
   ctx.clip();
 
-  // Desaturate / dim locked icons slightly while keeping their distinct silhouette readable
-  if (!isUnlocked) {
-    ctx.globalAlpha = 0.55;
+  // 5. Directional 1px Top Specular Highlight
+  ctx.fillStyle = isUnlocked ? 'rgba(254, 240, 138, 0.25)' : 'rgba(255, 255, 255, 0.08)';
+  ctx.fillRect(-half + 2, -half + 1, size - 4, 1);
+
+  // Subtle interior radial glow for unlocked icons
+  if (isUnlocked) {
+    const radGlow = ctx.createRadialGradient(0, 0, 1, 0, 0, half);
+    radGlow.addColorStop(0, id === 'last_witness' ? 'rgba(239, 68, 68, 0.22)' : 'rgba(245, 158, 11, 0.16)');
+    radGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = radGlow;
+    ctx.fillRect(-half, -half, size, size);
   }
 
-  // 2. Specialized Icon Drawing by ID
+  // Desaturate locked icons slightly while keeping their silhouette readable
+  if (!isUnlocked) {
+    ctx.globalAlpha = 0.72;
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // 6. SPECIALIZED PIXEL-ART ICON DRAWING BY ID
+  // ─────────────────────────────────────────────────────────────────
   switch (id) {
+    // Combat
     case 'first_blood':
       _drawFirstBlood(ctx, scale, t, isUnlocked, isLarge);
       break;
+    case 'shield_bearer':
+      _drawShieldBearer(ctx, scale, t, isUnlocked, isLarge);
+      break;
+    case 'sharpshooter':
+      _drawSharpshooter(ctx, scale, t, isUnlocked, isLarge);
+      break;
+    case 'untouchable':
+      _drawUntouchable(ctx, scale, t, isUnlocked, isLarge);
+      break;
+    case 'jailbreaker':
+      _drawJailbreaker(ctx, scale, t, isUnlocked, isLarge);
+      break;
+    case 'gorgaroth_nemesis':
+      _drawGorgarothNemesis(ctx, scale, t, isUnlocked, isLarge);
+      break;
+    case 'void_conqueror':
+      _drawVoidConqueror(ctx, scale, t, isUnlocked, isLarge);
+      break;
+    case 'malakor_nemesis':
+      _drawMalakorNemesis(ctx, scale, t, isUnlocked, isLarge);
+      break;
+    case 'boss_slayer':
+      _drawBossSlayer(ctx, scale, t, isUnlocked, isLarge);
+      break;
+    case 'warden_nemesis':
+      _drawWardenNemesis(ctx, scale, t, isUnlocked, isLarge);
+      break;
+
+    // Survival
     case 'overwhelmed':
       _drawOverwhelmed(ctx, scale, t, isUnlocked, isLarge);
       break;
@@ -96,42 +151,45 @@ export function drawAchievementIcon(ctx, id, cx, cy, size, isUnlocked, isSelecte
     case 'mind_break':
       _drawMindBreak(ctx, scale, t, isUnlocked, isLarge);
       break;
-    case 'shield_bearer':
-      _drawShieldBearer(ctx, scale, t, isUnlocked, isLarge);
+    case 'deaths_5':
+      _drawDeaths(ctx, scale, t, isUnlocked, isLarge, 5);
       break;
-    case 'sharpshooter':
-      _drawSharpshooter(ctx, scale, t, isUnlocked, isLarge);
+    case 'deaths_10':
+      _drawDeaths(ctx, scale, t, isUnlocked, isLarge, 10);
       break;
-    case 'untouchable':
-      _drawUntouchable(ctx, scale, t, isUnlocked, isLarge);
-      break;
-    case 'speed_runner':
-      _drawSpeedRunner(ctx, scale, t, isUnlocked, isLarge);
-      break;
-    case 'jailbreaker':
-      _drawJailbreaker(ctx, scale, t, isUnlocked, isLarge);
-      break;
-    case 'void_conqueror':
-      _drawVoidConqueror(ctx, scale, t, isUnlocked, isLarge);
+    case 'deaths_25':
+      _drawDeaths(ctx, scale, t, isUnlocked, isLarge, 25);
       break;
     case 'executed':
       _drawExecuted(ctx, scale, t, isUnlocked, isLarge);
       break;
-    case 'boss_slayer':
-      _drawBossSlayer(ctx, scale, t, isUnlocked, isLarge);
-      break;
+
+    // Discovery & Savior
     case 'savior':
-      _drawSavior(ctx, scale, t, isUnlocked, isLarge);
+      _drawSavior(ctx, scale, t, isUnlocked, isLarge, 1);
+      break;
+    case 'savior_2':
+      _drawSavior(ctx, scale, t, isUnlocked, isLarge, 2);
+      break;
+    case 'savior_3':
+      _drawSavior(ctx, scale, t, isUnlocked, isLarge, 3);
+      break;
+    case 'perfect_rescue':
+      _drawPerfectRescue(ctx, scale, t, isUnlocked, isLarge);
       break;
     case 'lore_master':
       _drawLoreMaster(ctx, scale, t, isUnlocked, isLarge);
       break;
+
+    // Ascension & Talents
     case 'soul_ascendant':
       _drawSoulAscendant(ctx, scale, t, isUnlocked, isLarge);
       break;
     case 'maxed_talent':
       _drawMaxedTalent(ctx, scale, t, isUnlocked, isLarge);
       break;
+
+    // The Three Fates (Endings)
     case 'true_hero':
       _drawTrueHero(ctx, scale, t, isUnlocked, isLarge);
       break;
@@ -141,9 +199,31 @@ export function drawAchievementIcon(ctx, id, cx, cy, size, isUnlocked, isSelecte
     case 'rampage':
       _drawRampage(ctx, scale, t, isUnlocked, isLarge);
       break;
+
+    // Speedrun
+    case 'speed_runner':
+      _drawSpeedRunner(ctx, scale, t, isUnlocked, isLarge);
+      break;
+    case 'speed_floor_1':
+    case 'speed_floor_2':
+    case 'speed_floor_3':
+    case 'speed_floor_4':
+    case 'speed_floor_5':
+    case 'speed_floor_6':
+    case 'speed_floor_7':
+    case 'speed_floor_8':
+    case 'speed_floor_9':
+    case 'speed_floor_10': {
+      const fNum = parseInt(id.replace('speed_floor_', ''), 10) || 1;
+      _drawSpeedFloor(ctx, scale, t, isUnlocked, isLarge, fNum);
+      break;
+    }
+
+    // Absolute Mastery
     case 'last_witness':
       _drawLastWitness(ctx, scale, t, isUnlocked, isLarge);
       break;
+
     default:
       _drawGenericSeal(ctx, scale, t, isUnlocked);
       break;
@@ -157,12 +237,12 @@ export function drawAchievementIcon(ctx, id, cx, cy, size, isUnlocked, isSelecte
 // INDIVIDUAL PIXEL-ART ICON IMPLEMENTATIONS
 // ─────────────────────────────────────────────────────────────────────
 
-// 1. FIRST BLOOD — Crimson Gladius with dripping blood droplet
+// 1. FIRST BLOOD — Forged gladius blade with dripping blood droplet
 function _drawFirstBlood(ctx, s, t, unl, isLg) {
   ctx.save();
   ctx.scale(s, s);
 
-  // Diagonal Gladius Blade
+  // Slanted gladius blade
   ctx.strokeStyle = unl ? '#e2e8f0' : '#94a3b8';
   ctx.lineWidth = 2.4;
   ctx.beginPath();
@@ -170,784 +250,1085 @@ function _drawFirstBlood(ctx, s, t, unl, isLg) {
   ctx.lineTo(4, 4);
   ctx.stroke();
 
-  // Pommel & Guard
-  ctx.strokeStyle = unl ? '#fbbf24' : '#64748b';
-  ctx.lineWidth = 1.6;
+  // Full-tang golden pommel & crossguard
+  ctx.fillStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.fillRect(-9, -9, 3, 3);
+  ctx.strokeStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.lineWidth = 2.0;
   ctx.beginPath();
-  ctx.moveTo(-9, -5);
-  ctx.lineTo(-5, -9);
+  ctx.moveTo(-7, -4);
+  ctx.lineTo(-4, -7);
   ctx.stroke();
 
-  // Blood on tip
-  ctx.fillStyle = '#ef4444';
-  ctx.fillRect(4, 4, 2.5, 2.5);
-
-  // Dripping blood droplet cycle (every 2.2s)
-  const dropCycle = (t % 2.2) / 2.2;
-  const dropY = 4 + dropCycle * 9;
-  const dropAlpha = Math.max(0, 1 - dropCycle);
-  ctx.fillStyle = `rgba(239, 68, 68, ${dropAlpha})`;
-  ctx.fillRect(4.5, dropY, 2, 2.5);
-
-  // Blade glint pulse
-  if (unl && isLg) {
-    const glint = (Math.sin(t * 3.0) + 1) * 0.5;
-    ctx.fillStyle = `rgba(255, 255, 255, ${glint * 0.8})`;
-    ctx.fillRect(-2, -2, 2, 2);
-  }
-  ctx.restore();
-}
-
-// 2. OVERWHELMED — Cracked ivory skull with creeping void tendrils
-function _drawOverwhelmed(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Skull cranium
-  ctx.fillStyle = unl ? '#f1f5f9' : '#94a3b8';
-  ctx.fillRect(-6, -7, 12, 8);
-  ctx.fillRect(-5, 1, 10, 4); // jaw
-
-  // Eye sockets
-  ctx.fillStyle = '#0f172a';
-  ctx.fillRect(-4, -4, 3, 3);
-  ctx.fillRect(1, -4, 3, 3);
-
-  // Eerie purple eye fire
-  const fireGlow = (Math.sin(t * 4.0) + 1) * 0.5;
-  ctx.fillStyle = `rgba(168, 85, 247, ${0.4 + fireGlow * 0.6})`;
-  ctx.fillRect(-3, -3, 1.5, 1.5);
-  ctx.fillRect(2, -3, 1.5, 1.5);
-
-  // Creeping shadow tendrils at bottom
-  ctx.strokeStyle = '#581c87';
-  ctx.lineWidth = 1.2;
-  const tendrilWave = Math.sin(t * 2.5) * 2;
+  // Dripping crimson blood droplet from tip
+  const dropY = 6 + (unl ? (Math.sin(t * 4.0) + 1) * 1.2 : 0);
+  ctx.fillStyle = unl ? '#ef4444' : '#7f1d1d';
   ctx.beginPath();
-  ctx.moveTo(-8, 8);
-  ctx.quadraticCurveTo(-4 + tendrilWave, 4, -2, 6);
-  ctx.moveTo(8, 8);
-  ctx.quadraticCurveTo(4 - tendrilWave, 4, 2, 6);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-// 3. CONSUMED — Abyssal void singularity with rotating accretion
-function _drawConsumed(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Deep void sphere
-  ctx.fillStyle = '#020617';
-  ctx.beginPath();
-  ctx.arc(0, 0, 6, 0, Math.PI * 2);
+  ctx.arc(6, dropY, 2.2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Accretion disk rings
-  const rot = t * 1.8;
-  ctx.strokeStyle = unl ? '#818cf8' : '#475569';
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 9, 3.5, rot * 0.3, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // Secondary counter-rotating ring
-  ctx.strokeStyle = unl ? 'rgba(56, 189, 248, 0.7)' : 'rgba(71, 85, 105, 0.4)';
-  ctx.lineWidth = 1.0;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 11, 4.5, -rot * 0.25, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // Center void core pulse
-  const p = (Math.sin(t * 3.0) + 1) * 0.5;
-  ctx.fillStyle = `rgba(129, 140, 248, ${0.3 + p * 0.5})`;
-  ctx.fillRect(-1.5, -1.5, 3, 3);
+  // Blood splash droplet on blade
+  ctx.fillStyle = unl ? '#dc2626' : '#991b1b';
+  ctx.fillRect(2, 2, 2, 2);
 
   ctx.restore();
 }
 
-// 4. SANITY KEEPER — Mind sanctuary crystal lantern with warm amber flame
-function _drawSanityKeeper(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Lantern bronze frame
-  ctx.strokeStyle = unl ? '#d97706' : '#64748b';
-  ctx.lineWidth = 1.4;
-  ctx.strokeRect(-5, -7, 10, 13);
-  // Cap and loop
-  ctx.beginPath();
-  ctx.moveTo(-6, -7);
-  ctx.lineTo(0, -10);
-  ctx.lineTo(6, -7);
-  ctx.stroke();
-
-  // Warm amber flame inside
-  const flamePulse = Math.sin(t * 4.5) * 1.5;
-  ctx.fillStyle = unl ? '#fbbf24' : '#94a3b8';
-  ctx.fillRect(-2, -3 + flamePulse * 0.3, 4, 6);
-  ctx.fillStyle = unl ? '#fef08a' : '#cbd5e1';
-  ctx.fillRect(-1, -2 + flamePulse * 0.3, 2, 3);
-
-  // Ambient aura
-  if (unl) {
-    ctx.fillStyle = `rgba(251, 191, 36, ${0.15 + (Math.sin(t * 3) + 1) * 0.1})`;
-    ctx.beginPath();
-    ctx.arc(0, 0, 9, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.restore();
-}
-
-// 5. MIND BREAK — Fractured brain with crackling psychic lightning
-function _drawMindBreak(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Left & right brain hemispheres
-  ctx.fillStyle = unl ? '#c084fc' : '#64748b';
-  ctx.fillRect(-7, -6, 5, 10);
-  ctx.fillRect(2, -6, 5, 10);
-  ctx.fillRect(-6, -8, 12, 3);
-
-  // Central jagged fissure
-  ctx.fillStyle = '#090d16';
-  ctx.beginPath();
-  ctx.moveTo(0, -9);
-  ctx.lineTo(-2, -3);
-  ctx.lineTo(2, 1);
-  ctx.lineTo(-1, 6);
-  ctx.lineTo(0, 6);
-  ctx.stroke();
-
-  // Synaptic spark flash
-  const sparkPhase = (Math.sin(t * 6.0) + 1) * 0.5;
-  if (sparkPhase > 0.6) {
-    ctx.fillStyle = unl ? '#f472b6' : '#cbd5e1';
-    ctx.fillRect(-1.5, -2, 3, 3);
-    ctx.fillRect(1, 2, 2, 2);
-  }
-
-  ctx.restore();
-}
-
-// 6. SHIELD BEARER — Azure Aegis kite shield with barrier pulse
+// 2. SHIELD BEARER — Iron tower kiteshield with bronze boss & barrier aura
 function _drawShieldBearer(ctx, s, t, unl, isLg) {
   ctx.save();
   ctx.scale(s, s);
 
-  // Kite shield body
-  ctx.fillStyle = unl ? '#1e3a8a' : '#1e293b';
-  ctx.strokeStyle = unl ? '#60a5fa' : '#64748b';
-  ctx.lineWidth = 1.4;
+  // Outer radiant barrier pulse
+  if (unl) {
+    const pulse = Math.sin(t * 3.0) * 0.2 + 0.8;
+    ctx.strokeStyle = `rgba(56, 189, 248, ${0.45 * pulse})`;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.arc(0, 0, 11, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Kiteshield body
+  ctx.fillStyle = unl ? '#1e2436' : '#111420';
+  ctx.strokeStyle = unl ? '#38bdf8' : '#64748b';
+  ctx.lineWidth = 1.6;
+
   ctx.beginPath();
-  ctx.moveTo(0, -9);
-  ctx.lineTo(7, -6);
-  ctx.lineTo(5, 4);
-  ctx.lineTo(0, 10);
-  ctx.lineTo(-5, 4);
-  ctx.lineTo(-7, -6);
+  ctx.moveTo(-7, -9);
+  ctx.lineTo(7, -9);
+  ctx.lineTo(7, 1);
+  ctx.lineTo(0, 9);
+  ctx.lineTo(-7, 1);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  // Central diamond rune
-  ctx.fillStyle = unl ? '#93c5fd' : '#94a3b8';
+  // Bronze central boss
+  ctx.fillStyle = unl ? '#f59e0b' : '#64748b';
   ctx.beginPath();
-  ctx.moveTo(0, -4);
-  ctx.lineTo(3, 0);
-  ctx.lineTo(0, 4);
-  ctx.lineTo(-3, 0);
-  ctx.closePath();
+  ctx.arc(0, -1, 3.2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Expanding barrier pulse
-  if (unl) {
-    const pulseProg = (t % 2.0) / 2.0;
-    ctx.strokeStyle = `rgba(96, 165, 250, ${1 - pulseProg})`;
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.arc(0, 0, 8 + pulseProg * 6, 0, Math.PI * 2);
-    ctx.stroke();
-  }
+  // Specular core on boss
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-0.5, -1.5, 1, 1);
 
   ctx.restore();
 }
 
-// 7. SHARPSHOOTER — Composite recurve bow with glowing arrow and glint
+// 3. SHARPSHOOTER — Ornate recurve bow with nocked glowing arrow
 function _drawSharpshooter(ctx, s, t, unl, isLg) {
   ctx.save();
   ctx.scale(s, s);
 
-  // Recurve bow wood
+  // Recurve bow arc
   ctx.strokeStyle = unl ? '#d97706' : '#64748b';
-  ctx.lineWidth = 2.0;
+  ctx.lineWidth = 1.8;
   ctx.beginPath();
-  ctx.arc(-2, 0, 9, -0.45 * Math.PI, 0.45 * Math.PI);
+  ctx.arc(-2, 0, 9, -Math.PI * 0.45, Math.PI * 0.45);
   ctx.stroke();
 
-  // Taut bowstring
-  ctx.strokeStyle = unl ? 'rgba(254, 240, 138, 0.8)' : '#475569';
-  ctx.lineWidth = 1.0;
+  // Bowstring
+  ctx.strokeStyle = unl ? 'rgba(254, 240, 138, 0.7)' : 'rgba(148, 163, 184, 0.4)';
+  ctx.lineWidth = 0.8;
   ctx.beginPath();
-  ctx.moveTo(4, -8);
-  ctx.lineTo(-1, 0);
-  ctx.lineTo(4, 8);
+  ctx.moveTo(-2 + 9 * Math.cos(-Math.PI * 0.45), 9 * Math.sin(-Math.PI * 0.45));
+  ctx.lineTo(-5, 0); // Drawn string
+  ctx.lineTo(-2 + 9 * Math.cos(Math.PI * 0.45), 9 * Math.sin(Math.PI * 0.45));
   ctx.stroke();
 
-  // Arrow
-  ctx.strokeStyle = unl ? '#fef08a' : '#94a3b8';
+  // Nocked piercing arrow
+  ctx.strokeStyle = unl ? '#e2e8f0' : '#94a3b8';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(-5, 0);
+  ctx.lineTo(8, 0);
+  ctx.stroke();
+
+  // Glowing arrow head
+  ctx.fillStyle = unl ? '#38bdf8' : '#94a3b8';
+  ctx.beginPath();
+  ctx.moveTo(8, -2.5);
+  ctx.lineTo(11, 0);
+  ctx.lineTo(8, 2.5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Fletching
+  ctx.fillStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.fillRect(-6, -1.5, 2, 3);
+
+  ctx.restore();
+}
+
+// 4. UNTOUCHABLE — Ethereal shadow cloak with wind gusts & evasion ripples
+function _drawUntouchable(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Evasion wind swirls
+  const windOffset = (t * 5.0) % 8;
+  ctx.strokeStyle = unl ? 'rgba(56, 189, 248, 0.65)' : 'rgba(71, 85, 105, 0.45)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(-9 + windOffset * 0.4, -6);
+  ctx.quadraticCurveTo(-2, -8, 6 + windOffset * 0.4, -6);
+  ctx.moveTo(-8 + windOffset * 0.4, 6);
+  ctx.quadraticCurveTo(0, 8, 8 + windOffset * 0.4, 6);
+  ctx.stroke();
+
+  // Flowing silken shadow cloak silhouette
+  ctx.fillStyle = unl ? '#1e283d' : '#101520';
+  ctx.strokeStyle = unl ? '#38bdf8' : '#64748b';
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.quadraticCurveTo(8, -2, 7, 7);
+  ctx.lineTo(2, 5);
+  ctx.lineTo(-2, 8);
+  ctx.lineTo(-6, 4);
+  ctx.quadraticCurveTo(-7, -2, 0, -8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Silver clasp brooch
+  ctx.fillStyle = unl ? '#ffffff' : '#94a3b8';
+  ctx.beginPath();
+  ctx.arc(0, -6, 1.8, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// 5. JAILBREAKER — Gorgaroth's shattered spiked collar & snapped chain links
+function _drawJailbreaker(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Spiked heavy iron collar arc
+  ctx.strokeStyle = unl ? '#b45309' : '#475569';
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.arc(0, 0, 8, Math.PI * 0.2, Math.PI * 1.8);
+  ctx.stroke();
+
+  // Collar spikes
+  ctx.fillStyle = unl ? '#f59e0b' : '#64748b';
+  const angles = [Math.PI * 0.5, Math.PI * 0.9, Math.PI * 1.3, Math.PI * 1.7];
+  angles.forEach(ang => {
+    const ox = Math.cos(ang) * 8;
+    const oy = Math.sin(ang) * 8;
+    ctx.fillRect(ox - 1, oy - 1, 2, 2);
+  });
+
+  // Snapped broken chain links bursting apart
+  ctx.strokeStyle = unl ? '#f97316' : '#64748b';
+  ctx.lineWidth = 1.6;
+  // Broken link 1 (left)
+  ctx.strokeRect(-9, -2, 4, 4);
+  // Broken link 2 (right flying)
+  ctx.strokeRect(6, -4, 4, 4);
+
+  // Molten break spark
+  ctx.fillStyle = unl ? '#fef08a' : '#94a3b8';
+  ctx.fillRect(7, -1, 2, 2);
+
+  ctx.restore();
+}
+
+// 6. GORGAROTH NEMESIS — Minotaur horned skull with burning amber eye
+function _drawGorgarothNemesis(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Horns curving upward
+  ctx.strokeStyle = unl ? '#ea580c' : '#94a3b8';
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(-5, -3); ctx.quadraticCurveTo(-10, -7, -8, -10);
+  ctx.moveTo(5, -3); ctx.quadraticCurveTo(10, -7, 8, -10);
+  ctx.stroke();
+
+  // Heavy cranium
+  ctx.fillStyle = unl ? '#3b1c16' : '#221919';
+  ctx.strokeStyle = unl ? '#f97316' : '#94a3b8';
   ctx.lineWidth = 1.6;
   ctx.beginPath();
-  ctx.moveTo(-4, 0);
-  ctx.lineTo(9, 0);
+  ctx.moveTo(-6, -3);
+  ctx.lineTo(6, -3);
+  ctx.lineTo(5, 5);
+  ctx.lineTo(-5, 5);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Burning amber eye sockets
+  ctx.fillStyle = unl ? '#fef08a' : '#f59e0b';
+  ctx.fillRect(-3, 0, 2, 2);
+  ctx.fillRect(1, 0, 2, 2);
+
+  // Iron nose ring
+  ctx.strokeStyle = unl ? '#f59e0b' : '#cbd5e1';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.arc(0, 6, 2.8, 0, Math.PI);
   ctx.stroke();
 
-  // Arrowhead glint star
-  ctx.fillStyle = unl ? '#ffffff' : '#cbd5e1';
-  const glint = (Math.sin(t * 4.0) + 1) * 0.5;
-  ctx.fillRect(8, -1, 3, 2);
-  if (unl && glint > 0.5) {
-    ctx.fillRect(9, -2, 1, 4);
+  ctx.restore();
+}
+
+// 7. VOID CONQUEROR — Malakor's abyssal void rift & crescent scythe blade
+function _drawVoidConqueror(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Swirling void rift corona
+  if (unl) {
+    const r = 8 + Math.sin(t * 3.5) * 1.5;
+    ctx.strokeStyle = 'rgba(192, 132, 252, 0.45)';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Dark matter crescent scythe blade
+  ctx.strokeStyle = unl ? '#c084fc' : '#64748b';
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.arc(0, 0, 7.5, -Math.PI * 0.7, Math.PI * 0.3);
+  ctx.stroke();
+
+  // Scythe staff shaft
+  ctx.strokeStyle = unl ? '#7e22ce' : '#475569';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(-6, 8);
+  ctx.lineTo(6, -6);
+  ctx.stroke();
+
+  // Central void singularity core
+  ctx.fillStyle = unl ? '#a855f7' : '#475569';
+  ctx.beginPath();
+  ctx.arc(0, 0, 2.8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-0.5, -0.5, 1, 1);
+
+  ctx.restore();
+}
+
+// 8. MALAKOR NEMESIS — Malakor's winged void crest & occult core
+function _drawMalakorNemesis(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Winged void appendages
+  ctx.fillStyle = unl ? '#2e1244' : '#140a1e';
+  ctx.strokeStyle = unl ? '#c084fc' : '#64748b';
+  ctx.lineWidth = 1.4;
+
+  ctx.beginPath();
+  ctx.moveTo(0, -2);
+  ctx.lineTo(-9, -7);
+  ctx.lineTo(-6, 2);
+  ctx.lineTo(0, 6);
+  ctx.lineTo(6, 2);
+  ctx.lineTo(9, -7);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Ethereal vertical void eye
+  ctx.fillStyle = unl ? '#f3e8ff' : '#94a3b8';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 2, 4.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = unl ? '#7e22ce' : '#334155';
+  ctx.beginPath();
+  ctx.arc(0, 0, 1.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// 9. BOSS SLAYER — Warden's spiked obsidian iron crown & crossed swords
+function _drawBossSlayer(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Crossed execution swords
+  ctx.strokeStyle = unl ? '#94a3b8' : '#475569';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(-8, 8); ctx.lineTo(8, -8);
+  ctx.moveTo(8, 8); ctx.lineTo(-8, -8);
+  ctx.stroke();
+
+  // Spired Obsidian Crown
+  ctx.fillStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.strokeStyle = unl ? '#b45309' : '#475569';
+  ctx.lineWidth = 1.2;
+
+  ctx.beginPath();
+  ctx.moveTo(-8, 4);
+  ctx.lineTo(8, 4);
+  ctx.lineTo(7, -5);
+  ctx.lineTo(3.5, 0);
+  ctx.lineTo(0, -8);
+  ctx.lineTo(-3.5, 0);
+  ctx.lineTo(-7, -5);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Crown ruby jewel
+  ctx.fillStyle = unl ? '#ef4444' : '#7f1d1d';
+  ctx.fillRect(-1, 0, 2, 2);
+
+  ctx.restore();
+}
+
+// 10. WARDEN NEMESIS — The Abyss Warden's crowned visage with flame eyes
+function _drawWardenNemesis(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Spiked great-helm visage
+  ctx.fillStyle = unl ? '#241a34' : '#110c1c';
+  ctx.strokeStyle = unl ? '#ef4444' : '#64748b';
+  ctx.lineWidth = 1.6;
+
+  ctx.beginPath();
+  ctx.moveTo(-6, -6);
+  ctx.lineTo(6, -6);
+  ctx.lineTo(7, 3);
+  ctx.lineTo(0, 8);
+  ctx.lineTo(-7, 3);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Triple crown spires
+  ctx.fillStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.fillRect(-6, -9, 2, 3);
+  ctx.fillRect(-1, -10, 2, 4);
+  ctx.fillRect(5, -9, 2, 3);
+
+  // Burning purple/red visor slit
+  ctx.fillStyle = unl ? '#f87171' : '#64748b';
+  ctx.fillRect(-4, -1, 8, 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-2, -0.5, 4, 1);
+
+  ctx.restore();
+}
+
+// 11. OVERWHELMED — Swarm of chittering subterranean crawler claws & pincers
+function _drawOverwhelmed(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Crawling insectoid beetle bodies emerging from shadows
+  ctx.fillStyle = unl ? '#7f1d1d' : '#33181c';
+  ctx.strokeStyle = unl ? '#ef4444' : '#94a3b8';
+  ctx.lineWidth = 1.4;
+
+  // Left pincer claw
+  ctx.beginPath();
+  ctx.moveTo(-8, 8);
+  ctx.quadraticCurveTo(-10, 0, -6, -4);
+  ctx.lineTo(-4, -1);
+  ctx.lineTo(-6, 3);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Right pincer claw
+  ctx.beginPath();
+  ctx.moveTo(8, 8);
+  ctx.quadraticCurveTo(10, 0, 6, -4);
+  ctx.lineTo(4, -1);
+  ctx.lineTo(6, 3);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Center arachnid mandible head
+  ctx.beginPath();
+  ctx.moveTo(-4, 5);
+  ctx.lineTo(4, 5);
+  ctx.lineTo(3, -5);
+  ctx.lineTo(-3, -5);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Razor pincer tips
+  ctx.strokeStyle = unl ? '#fca5a5' : '#cbd5e1';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(-6, -4); ctx.lineTo(-2, -7);
+  ctx.moveTo(6, -4); ctx.lineTo(2, -7);
+  ctx.stroke();
+
+  // Multiple glowing red eyes in cluster
+  ctx.fillStyle = unl ? '#f87171' : '#ef4444';
+  ctx.fillRect(-3, -2, 2, 2);
+  ctx.fillRect(1, -2, 2, 2);
+  ctx.fillRect(-1, 1, 2, 2);
+
+  ctx.restore();
+}
+
+// 12. CONSUMED — Skeletal ribcage with fading life spark inside
+function _drawConsumed(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Skeletal vertebral spine
+  ctx.strokeStyle = unl ? '#cbd5e1' : '#64748b';
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.lineTo(0, 8);
+  ctx.stroke();
+
+  // Curved ribs (3 pairs)
+  ctx.lineWidth = 1.3;
+  const ribYs = [-5, -1, 3];
+  ribYs.forEach(ry => {
+    ctx.beginPath();
+    ctx.moveTo(-7, ry + 2);
+    ctx.quadraticCurveTo(-4, ry - 2, 0, ry);
+    ctx.quadraticCurveTo(4, ry - 2, 7, ry + 2);
+    ctx.stroke();
+  });
+
+  // Fading soul spark in center
+  const sparkPulse = unl ? (Math.sin(t * 3.0) + 1) * 0.5 : 0;
+  ctx.fillStyle = unl ? `rgba(239, 68, 68, ${0.6 + sparkPulse * 0.4})` : '#64748b';
+  ctx.beginPath();
+  ctx.arc(0, -1, 2.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// 13. SANITY KEEPER — Ornate brass sanity lantern emitting protective radiance
+function _drawSanityKeeper(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Lantern hanging ring
+  ctx.strokeStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  ctx.arc(0, -8, 2.5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Lantern roof canopy
+  ctx.fillStyle = unl ? '#b45309' : '#475569';
+  ctx.beginPath();
+  ctx.moveTo(-6, -5);
+  ctx.lineTo(6, -5);
+  ctx.lineTo(4, -7);
+  ctx.lineTo(-4, -7);
+  ctx.closePath();
+  ctx.fill();
+
+  // Glass chamber
+  ctx.fillStyle = unl ? 'rgba(168, 85, 247, 0.25)' : 'rgba(71, 85, 105, 0.2)';
+  ctx.strokeStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.lineWidth = 1.2;
+  ctx.strokeRect(-5, -5, 10, 10);
+  ctx.fillRect(-5, -5, 10, 10);
+
+  // Radiant amethyst/violet inner flame
+  const flamePulse = unl ? Math.sin(t * 4.0) * 0.5 : 0;
+  ctx.fillStyle = unl ? '#d8b4fe' : '#64748b';
+  ctx.beginPath();
+  ctx.arc(0, 0 + flamePulse, 2.8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-0.5, -0.5 + flamePulse, 1, 1);
+
+  // Base plinth
+  ctx.fillStyle = unl ? '#b45309' : '#475569';
+  ctx.fillRect(-6, 5, 12, 2.5);
+
+  ctx.restore();
+}
+
+// 14. MIND BREAK — Fractured obsidian skull with void lightning (Shattered Mind)
+function _drawMindBreak(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Obsidian skull silhouette
+  ctx.fillStyle = unl ? '#241634' : '#120b1c';
+  ctx.strokeStyle = unl ? '#c084fc' : '#64748b';
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.arc(0, -2, 7, Math.PI * 0.8, Math.PI * 0.2);
+  ctx.lineTo(4, 5);
+  ctx.lineTo(-4, 5);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Jagged fracture crack down center
+  ctx.strokeStyle = unl ? '#f43f5e' : '#64748b';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(0, -9);
+  ctx.lineTo(2, -5);
+  ctx.lineTo(-2, -2);
+  ctx.lineTo(1, 2);
+  ctx.stroke();
+
+  // Hollow void eye sockets
+  ctx.fillStyle = unl ? '#a855f7' : '#475569';
+  ctx.fillRect(-4, -2, 2.5, 2.5);
+  ctx.fillRect(1.5, -2, 2.5, 2.5);
+
+  ctx.restore();
+}
+
+// 15. DEATHS (5, 10, 25) — Basalt tombstone with Roman numeral
+function _drawDeaths(ctx, s, t, unl, isLg, count) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  const roman = count === 5 ? 'V' : (count === 10 ? 'X' : 'XXV');
+
+  // Arched headstone
+  ctx.fillStyle = unl ? '#1e2436' : '#101420';
+  ctx.strokeStyle = unl ? '#94a3b8' : '#64748b';
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.moveTo(-7, 7);
+  ctx.lineTo(-7, -3);
+  ctx.quadraticCurveTo(-7, -8, 0, -8);
+  ctx.quadraticCurveTo(7, -8, 7, -3);
+  ctx.lineTo(7, 7);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Ground earth line
+  ctx.strokeStyle = unl ? '#64748b' : '#334155';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-9, 7); ctx.lineTo(9, 7); ctx.stroke();
+
+  // Inscribed Roman Numeral
+  ctx.fillStyle = unl ? '#fca5a5' : '#94a3b8';
+  ctx.font = 'bold 7px Cinzel, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(roman, 0, -1);
+
+  // Skull icon beneath numeral
+  ctx.fillStyle = unl ? '#e2e8f0' : '#64748b';
+  ctx.fillRect(-2, 3, 4, 3);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(-1.5, 3.5, 1, 1);
+  ctx.fillRect(0.5, 3.5, 1, 1);
+
+  ctx.restore();
+}
+
+// 16. EXECUTED — Colossal broadsword plunging vertically into execution stone
+function _drawExecuted(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Execution stone plinth
+  ctx.fillStyle = unl ? '#1e1c24' : '#100e16';
+  ctx.strokeStyle = unl ? '#78350f' : '#475569';
+  ctx.lineWidth = 1.4;
+  ctx.strokeRect(-8, 3, 16, 5);
+  ctx.fillRect(-8, 3, 16, 5);
+
+  // Impaled vertical sword
+  ctx.strokeStyle = unl ? '#e2e8f0' : '#94a3b8';
+  ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  ctx.moveTo(0, -9);
+  ctx.lineTo(0, 4);
+  ctx.stroke();
+
+  // Crossguard
+  ctx.strokeStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.lineWidth = 2.0;
+  ctx.beginPath();
+  ctx.moveTo(-5, -6);
+  ctx.lineTo(5, -6);
+  ctx.stroke();
+
+  // Pommel
+  ctx.fillStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.fillRect(-1.5, -10, 3, 2);
+
+  // Blood on plinth
+  ctx.fillStyle = unl ? '#ef4444' : '#7f1d1d';
+  ctx.fillRect(-3, 3, 6, 2);
+
+  ctx.restore();
+}
+
+// 17. SAVIOR (1, 2, 3) — Rescued hooded survivor(s) reaching to light
+function _drawSavior(ctx, s, t, unl, isLg, tier = 1) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Golden halo of salvation
+  if (unl) {
+    ctx.strokeStyle = 'rgba(254, 240, 138, 0.65)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, -7, 4.5, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Survivor 1 (Center)
+  ctx.fillStyle = unl ? '#22c55e' : '#475569';
+  ctx.beginPath();
+  ctx.arc(0, -4, 2.8, 0, Math.PI * 2); // Head
+  ctx.fill();
+
+  // Cloaked body
+  ctx.fillStyle = unl ? '#15803d' : '#334155';
+  ctx.beginPath();
+  ctx.moveTo(-4, 7);
+  ctx.lineTo(-3, 0);
+  ctx.lineTo(3, 0);
+  ctx.lineTo(4, 7);
+  ctx.closePath();
+  ctx.fill();
+
+  // Multi-tier survivor companions
+  if (tier >= 2) {
+    // Left companion
+    ctx.fillStyle = unl ? '#16a34a' : '#334155';
+    ctx.beginPath();
+    ctx.arc(-6, -2, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(-8, 1, 4, 6);
+  }
+  if (tier >= 3) {
+    // Right companion
+    ctx.fillStyle = unl ? '#16a34a' : '#334155';
+    ctx.beginPath();
+    ctx.arc(6, -2, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(4, 1, 4, 6);
   }
 
   ctx.restore();
 }
 
-// 8. UNTOUCHABLE — Celestial diamond prism with orbiting deflection shields
-function _drawUntouchable(ctx, s, t, unl, isLg) {
+// 18. PERFECT RESCUE — Golden laurel wreath around pristine living ember
+function _drawPerfectRescue(ctx, s, t, unl, isLg) {
   ctx.save();
   ctx.scale(s, s);
 
-  // Diamond octahedron
-  ctx.fillStyle = unl ? '#06b6d4' : '#334155';
-  ctx.strokeStyle = unl ? '#a5f3fc' : '#64748b';
-  ctx.lineWidth = 1.4;
+  // Golden laurel wreath ring
+  ctx.strokeStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.lineWidth = 1.8;
   ctx.beginPath();
-  ctx.moveTo(0, -9);
-  ctx.lineTo(6, 0);
-  ctx.lineTo(0, 9);
-  ctx.lineTo(-6, 0);
-  ctx.closePath();
+  ctx.arc(0, 0, 8.5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Laurel leaves
+  ctx.fillStyle = unl ? '#fde68a' : '#94a3b8';
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3;
+    const lx = Math.cos(a) * 8.5;
+    const ly = Math.sin(a) * 8.5;
+    ctx.fillRect(lx - 1, ly - 1, 2, 2);
+  }
+
+  // Living Ember Heart Core
+  ctx.fillStyle = unl ? '#ef4444' : '#64748b';
+  ctx.beginPath();
+  ctx.arc(0, -0.5, 3.5, 0, Math.PI * 2);
   ctx.fill();
-  ctx.stroke();
 
-  // Internal facet line
-  ctx.strokeStyle = unl ? '#ffffff' : '#94a3b8';
-  ctx.beginPath();
-  ctx.moveTo(-6, 0);
-  ctx.lineTo(6, 0);
-  ctx.moveTo(0, -9);
-  ctx.lineTo(0, 9);
-  ctx.stroke();
-
-  // Orbiting twin deflection shields
-  const orbRot = t * 2.5;
-  const ox1 = Math.cos(orbRot) * 10;
-  const oy1 = Math.sin(orbRot) * 5;
-  const ox2 = Math.cos(orbRot + Math.PI) * 10;
-  const oy2 = Math.sin(orbRot + Math.PI) * 5;
-
-  ctx.fillStyle = unl ? '#ffffff' : '#cbd5e1';
-  ctx.fillRect(ox1 - 1.5, oy1 - 1.5, 3, 3);
-  ctx.fillRect(ox2 - 1.5, oy2 - 1.5, 3, 3);
+  ctx.fillStyle = unl ? '#fef08a' : '#cbd5e1';
+  ctx.fillRect(-1, -1.5, 2, 2);
 
   ctx.restore();
 }
 
-// 9. SPEED RUNNER — Winged lightning feather with electric speed trail
-function _drawSpeedRunner(ctx, s, t, unl, isLg) {
+// 19. LORE MASTER — Ancient illuminated parchment scroll with golden seal
+function _drawLoreMaster(ctx, s, t, unl, isLg) {
   ctx.save();
   ctx.scale(s, s);
 
-  // Speed streaks behind
-  const streakShift = (t * 8) % 6;
-  ctx.strokeStyle = unl ? 'rgba(56, 189, 248, 0.6)' : 'rgba(71, 85, 105, 0.4)';
-  ctx.lineWidth = 1.2;
-  ctx.beginPath();
-  ctx.moveTo(-11 + streakShift, -4);
-  ctx.lineTo(-3 + streakShift, -4);
-  ctx.moveTo(-9 + streakShift, 3);
-  ctx.lineTo(-1 + streakShift, 3);
-  ctx.stroke();
+  // Rolled parchment parchment body
+  ctx.fillStyle = unl ? '#fef3c7' : '#94a3b8';
+  ctx.strokeStyle = unl ? '#b45309' : '#475569';
+  ctx.lineWidth = 1.3;
 
-  // Central lightning bolt
-  ctx.fillStyle = unl ? '#facc15' : '#64748b';
   ctx.beginPath();
-  ctx.moveTo(2, -9);
-  ctx.lineTo(-4, 0);
-  ctx.lineTo(0, 0);
-  ctx.lineTo(-3, 9);
-  ctx.lineTo(6, -1);
-  ctx.lineTo(1, -1);
+  ctx.moveTo(-6, -7);
+  ctx.lineTo(6, -7);
+  ctx.lineTo(6, 6);
+  ctx.lineTo(-6, 6);
   ctx.closePath();
-  ctx.fill();
+  ctx.fill(); ctx.stroke();
 
-  // Wing feather accent
-  ctx.strokeStyle = unl ? '#fef08a' : '#94a3b8';
-  ctx.lineWidth = 1.2;
+  // Scroll wooden rollers
+  ctx.fillStyle = unl ? '#78350f' : '#334155';
+  ctx.fillRect(-8, -8, 16, 2.5);
+  ctx.fillRect(-8, 6, 16, 2.5);
+
+  // Runic inscription lines
+  ctx.fillStyle = unl ? '#92400e' : '#475569';
+  ctx.fillRect(-4, -4, 8, 1);
+  ctx.fillRect(-4, -1, 6, 1);
+  ctx.fillRect(-4, 2, 7, 1);
+
+  // Golden wax ribbon seal
+  ctx.fillStyle = unl ? '#dc2626' : '#64748b';
   ctx.beginPath();
-  ctx.moveTo(1, -6);
-  ctx.quadraticCurveTo(8, -8, 9, -2);
-  ctx.stroke();
+  ctx.arc(4, 3, 2.4, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.restore();
 }
 
-// 10. JAILBREAKER — Gorgaroth's broken iron chains with molten sparks
-function _drawJailbreaker(ctx, s, t, unl, isLg) {
+// 20. SOUL ASCENDANT — Faceted violet abyss soul crystal with ascending rays
+function _drawSoulAscendant(ctx, s, t, unl, isLg) {
   ctx.save();
   ctx.scale(s, s);
 
-  // Central heavy iron collar
-  ctx.strokeStyle = unl ? '#94a3b8' : '#475569';
-  ctx.lineWidth = 2.4;
-  ctx.strokeRect(-5, -5, 10, 10);
+  // Ascending celestial rays
+  if (unl) {
+    ctx.strokeStyle = 'rgba(192, 132, 252, 0.55)';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(0, -6); ctx.lineTo(0, -10);
+    ctx.moveTo(-5, -4); ctx.lineTo(-8, -8);
+    ctx.moveTo(5, -4); ctx.lineTo(8, -8);
+    ctx.stroke();
+  }
 
-  // Broken chain link on left
-  ctx.beginPath();
-  ctx.ellipse(-9, 0, 3.5, 2, 0, 0, Math.PI * 2);
-  ctx.stroke();
-
-  // Snapped link on right with gap
-  ctx.beginPath();
-  ctx.arc(9, 0, 3.5, 0.3 * Math.PI, 1.7 * Math.PI);
-  ctx.stroke();
-
-  // Molten sparks at snap point
-  const sparkY = Math.sin(t * 6) * 3;
-  ctx.fillStyle = unl ? '#f97316' : '#94a3b8';
-  ctx.fillRect(8.5, sparkY - 1, 2, 2);
-  ctx.fillStyle = unl ? '#fde68a' : '#cbd5e1';
-  ctx.fillRect(10.5, -sparkY + 1, 1.5, 1.5);
-
-  ctx.restore();
-}
-
-// 11. VOID CONQUEROR — Malakor's jagged void core with orbiting shards
-function _drawVoidConqueror(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Jagged core
-  ctx.fillStyle = unl ? '#581c87' : '#1e1b4b';
-  ctx.strokeStyle = unl ? '#c084fc' : '#64748b';
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.moveTo(0, -7);
-  ctx.lineTo(5, -2);
-  ctx.lineTo(3, 6);
-  ctx.lineTo(-4, 5);
-  ctx.lineTo(-6, -1);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // Three orbiting void shards
-  const angles = [t * 2.0, t * 2.0 + (2 * Math.PI / 3), t * 2.0 + (4 * Math.PI / 3)];
+  // Faceted crystal diamond
   ctx.fillStyle = unl ? '#a855f7' : '#475569';
-  angles.forEach(ang => {
-    const sx = Math.cos(ang) * 9.5;
-    const sy = Math.sin(ang) * 9.5;
-    ctx.fillRect(sx - 1.5, sy - 1.5, 3, 3);
+  ctx.strokeStyle = unl ? '#f3e8ff' : '#94a3b8';
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.moveTo(0, -8);
+  ctx.lineTo(6, -2);
+  ctx.lineTo(0, 8);
+  ctx.lineTo(-6, -2);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Internal facet lines
+  ctx.strokeStyle = unl ? '#e9d5ff' : '#64748b';
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.moveTo(-6, -2); ctx.lineTo(6, -2);
+  ctx.moveTo(0, -8); ctx.lineTo(0, 8);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// 21. MAXED TALENT — Gilded talent constellation tree with ablaze nodes
+function _drawMaxedTalent(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Connecting golden ley lines
+  ctx.strokeStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  ctx.moveTo(0, 6);
+  ctx.lineTo(-5, 0);
+  ctx.lineTo(0, -6);
+  ctx.lineTo(5, 0);
+  ctx.closePath();
+  ctx.moveTo(0, 6); ctx.lineTo(0, -6);
+  ctx.stroke();
+
+  // 5 Star Nodes
+  const nodes = [
+    [0, -6], [-5, 0], [5, 0], [0, 6], [0, 0]
+  ];
+  nodes.forEach(([nx, ny]) => {
+    ctx.fillStyle = unl ? '#fde68a' : '#94a3b8';
+    ctx.beginPath();
+    ctx.arc(nx, ny, 2.2, 0, Math.PI * 2);
+    ctx.fill();
   });
 
   ctx.restore();
 }
 
-// 12. EXECUTED — Horned Warden executioner blade plunged through shadow
-function _drawExecuted(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Downward plunged greatsword
-  ctx.strokeStyle = unl ? '#cbd5e1' : '#64748b';
-  ctx.lineWidth = 2.4;
-  ctx.beginPath();
-  ctx.moveTo(0, -9);
-  ctx.lineTo(0, 7);
-  ctx.stroke();
-
-  // Crossguard
-  ctx.strokeStyle = unl ? '#991b1b' : '#334155';
-  ctx.lineWidth = 2.0;
-  ctx.beginPath();
-  ctx.moveTo(-6, -4);
-  ctx.lineTo(6, -4);
-  ctx.stroke();
-
-  // Blood fuller groove pulse
-  const bGlow = (Math.sin(t * 3.5) + 1) * 0.5;
-  ctx.strokeStyle = `rgba(220, 38, 38, ${0.4 + bGlow * 0.6})`;
-  ctx.lineWidth = 1.0;
-  ctx.beginPath();
-  ctx.moveTo(0, -3);
-  ctx.lineTo(0, 5);
-  ctx.stroke();
-
-  // Warden horn silhouette in background
-  ctx.strokeStyle = unl ? '#7f1d1d' : '#334155';
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.moveTo(-8, -6);
-  ctx.quadraticCurveTo(-4, -9, 0, -5);
-  ctx.moveTo(8, -6);
-  ctx.quadraticCurveTo(4, -9, 0, -5);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-// 13. BOSS SLAYER — Shattered Warden arch-demon crown with golden triumph dust
-function _drawBossSlayer(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Shattered crown
-  ctx.fillStyle = unl ? '#eab308' : '#64748b';
-  ctx.strokeStyle = unl ? '#fde68a' : '#94a3b8';
-  ctx.lineWidth = 1.2;
-  // Left fragment
-  ctx.beginPath();
-  ctx.moveTo(-8, 3);
-  ctx.lineTo(-8, -4);
-  ctx.lineTo(-4, -1);
-  ctx.lineTo(-1, -6);
-  ctx.lineTo(0, 3);
-  ctx.closePath();
-  ctx.fill(); ctx.stroke();
-
-  // Right fragment (slightly detached/cracked)
-  ctx.beginPath();
-  ctx.moveTo(2, 4);
-  ctx.lineTo(2, -4);
-  ctx.lineTo(5, -1);
-  ctx.lineTo(8, -4);
-  ctx.lineTo(8, 4);
-  ctx.closePath();
-  ctx.fill(); ctx.stroke();
-
-  // Central red gem
-  ctx.fillStyle = '#ef4444';
-  ctx.fillRect(-1, 0, 2.5, 2.5);
-
-  // Ascending triumph motes
-  if (unl) {
-    const moteY = ((t * 4) % 12);
-    ctx.fillStyle = '#fef08a';
-    ctx.fillRect(-3, 6 - moteY, 1.5, 1.5);
-    ctx.fillRect(4, 8 - ((moteY + 4) % 12), 1.5, 1.5);
-  }
-
-  ctx.restore();
-}
-
-// 14. SAVIOR — Broken shackle with radiant emerald aura of freedom
-function _drawSavior(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Shackle split open
-  ctx.strokeStyle = unl ? '#cbd5e1' : '#64748b';
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  ctx.arc(-3, 0, 6, 0.4 * Math.PI, 1.6 * Math.PI);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(4, 0, 6, 1.4 * Math.PI, 0.6 * Math.PI);
-  ctx.stroke();
-
-  // Radiant emerald rescue light
-  ctx.fillStyle = unl ? '#10b981' : '#475569';
-  ctx.fillRect(-1.5, -2, 3, 4);
-
-  // Radial emerald rays
-  if (unl) {
-    const rayRot = t * 1.5;
-    ctx.strokeStyle = 'rgba(52, 211, 153, 0.5)';
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.moveTo(-8, -8); ctx.lineTo(8, 8);
-    ctx.moveTo(-8, 8); ctx.lineTo(8, -8);
-    ctx.stroke();
-  }
-
-  ctx.restore();
-}
-
-// 15. LORE MASTER — Ancient parchment scroll with living glowing runes
-function _drawLoreMaster(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Parchment body
-  ctx.fillStyle = unl ? '#fef3c7' : '#94a3b8';
-  ctx.strokeStyle = unl ? '#b45309' : '#475569';
-  ctx.lineWidth = 1.2;
-  ctx.strokeRect(-7, -8, 14, 16);
-  ctx.fillRect(-7, -8, 14, 16);
-
-  // Parchment curled ends
-  ctx.fillStyle = unl ? '#fde68a' : '#cbd5e1';
-  ctx.fillRect(-8, -9, 16, 2.5);
-  ctx.fillRect(-8, 7, 16, 2.5);
-
-  // Sequential glowing runes (4 runes)
-  const activeRune = Math.floor((t * 2.0) % 4);
-  const runeColors = ['#0284c7', '#0284c7', '#0284c7', '#0284c7'];
-  for (let i = 0; i < 4; i++) {
-    const ry = -5 + i * 3.2;
-    ctx.fillStyle = (unl && i === activeRune) ? '#38bdf8' : (unl ? '#64748b' : '#334155');
-    ctx.fillRect(-4, ry, 8, 1.5);
-  }
-
-  ctx.restore();
-}
-
-// 16. SOUL ASCENDANT — Crystal vessel with swirling Abyss Soul flame
-function _drawSoulAscendant(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Crystal urn outline
-  ctx.strokeStyle = unl ? '#c084fc' : '#64748b';
-  ctx.lineWidth = 1.4;
-  ctx.beginPath();
-  ctx.moveTo(-6, -7);
-  ctx.lineTo(6, -7);
-  ctx.lineTo(4, 7);
-  ctx.lineTo(-4, 7);
-  ctx.closePath();
-  ctx.stroke();
-
-  // Base & lid
-  ctx.strokeRect(-7, -9, 14, 2);
-  ctx.strokeRect(-5, 7, 10, 2);
-
-  // Swirling soul flame (figure eight)
-  const fx = Math.sin(t * 3.0) * 2.5;
-  const fy = Math.cos(t * 6.0) * 1.8;
-  ctx.fillStyle = unl ? '#67e8f9' : '#94a3b8';
-  ctx.beginPath();
-  ctx.arc(fx, fy, 2.5, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Violet flame wisp aura
-  if (unl) {
-    ctx.fillStyle = 'rgba(192, 132, 252, 0.35)';
-    ctx.beginPath();
-    ctx.arc(fx, fy, 5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  ctx.restore();
-}
-
-// 17. MAXED TALENT — Sanctum 8-pointed star with fully awakened power nodes
-function _drawMaxedTalent(ctx, s, t, unl, isLg) {
-  ctx.save();
-  ctx.scale(s, s);
-
-  // Star points
-  ctx.fillStyle = unl ? '#f59e0b' : '#475569';
-  ctx.strokeStyle = unl ? '#fef08a' : '#94a3b8';
-  ctx.lineWidth = 1.2;
-
-  // Cross 1
-  ctx.beginPath();
-  ctx.moveTo(0, -9); ctx.lineTo(2, -2);
-  ctx.lineTo(9, 0);  ctx.lineTo(2, 2);
-  ctx.lineTo(0, 9);  ctx.lineTo(-2, 2);
-  ctx.lineTo(-9, 0); ctx.lineTo(-2, -2);
-  ctx.closePath();
-  ctx.fill(); ctx.stroke();
-
-  // Central radiant core
-  const coreGlow = (Math.sin(t * 4.0) + 1) * 0.5;
-  ctx.fillStyle = unl ? `rgba(255, 255, 255, ${0.7 + coreGlow * 0.3})` : '#cbd5e1';
-  ctx.fillRect(-2, -2, 4, 4);
-
-  // 4 corner nodes
-  ctx.fillStyle = unl ? '#fde68a' : '#64748b';
-  ctx.fillRect(-6, -6, 2, 2);
-  ctx.fillRect(5, -6, 2, 2);
-  ctx.fillRect(-6, 5, 2, 2);
-  ctx.fillRect(5, 5, 2, 2);
-
-  ctx.restore();
-}
-
-// 18. TRUE HERO — Sunburst halo behind luminous sword (Hero Ending)
+// 22. TRUE HERO (ENDING 1) — Rowan with raised shining sword at dawn
 function _drawTrueHero(ctx, s, t, unl, isLg) {
   ctx.save();
   ctx.scale(s, s);
 
-  // Sunburst halo rays
-  const sunRot = t * 0.8;
-  ctx.strokeStyle = unl ? 'rgba(251, 191, 36, 0.45)' : 'rgba(71, 85, 105, 0.3)';
-  ctx.lineWidth = 1.0;
-  for (let i = 0; i < 8; i++) {
-    const ang = sunRot + i * (Math.PI / 4);
+  // Radiant dawn halo
+  if (unl) {
+    const sunGrad = ctx.createRadialGradient(0, -2, 2, 0, -2, 10);
+    sunGrad.addColorStop(0, 'rgba(254, 240, 138, 0.45)');
+    sunGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+    ctx.fillStyle = sunGrad;
     ctx.beginPath();
-    ctx.moveTo(Math.cos(ang) * 4, Math.sin(ang) * 4);
-    ctx.lineTo(Math.cos(ang) * 9.5, Math.sin(ang) * 9.5);
-    ctx.stroke();
+    ctx.arc(0, -2, 10, 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  // Upright luminous blade
-  ctx.strokeStyle = unl ? '#ffffff' : '#cbd5e1';
-  ctx.lineWidth = 2.0;
-  ctx.beginPath();
-  ctx.moveTo(0, -9);
-  ctx.lineTo(0, 5);
-  ctx.stroke();
+  // Rowan heroic helm & cloak
+  ctx.fillStyle = unl ? '#3b82f6' : '#475569';
+  ctx.fillRect(-2, -3, 4, 4); // Helmet
+  ctx.fillStyle = unl ? '#dc2626' : '#7f1d1d';
+  ctx.fillRect(-4, 1, 8, 7); // Cloak
 
-  // Golden crossguard
-  ctx.strokeStyle = unl ? '#fbbf24' : '#64748b';
+  // Raised broadsword in right hand
+  ctx.strokeStyle = unl ? '#ffffff' : '#cbd5e1';
   ctx.lineWidth = 1.8;
   ctx.beginPath();
-  ctx.moveTo(-5, 4);
-  ctx.lineTo(5, 4);
+  ctx.moveTo(3, 1);
+  ctx.lineTo(7, -8);
   ctx.stroke();
 
-  // Pommel
-  ctx.fillStyle = unl ? '#fde68a' : '#94a3b8';
-  ctx.fillRect(-1, 7, 2, 2);
+  // Sword glint
+  ctx.fillStyle = '#fde68a';
+  ctx.fillRect(6, -9, 2, 2);
 
   ctx.restore();
 }
 
-// 19. BETRAYED — Poisoned stiletto piercing royal circlet (Betrayal Ending)
+// 23. BETRAYED (ENDING 2) — Daggers impaling back with dark void mist
 function _drawBetrayed(ctx, s, t, unl, isLg) {
   ctx.save();
   ctx.scale(s, s);
 
-  // Pierced circlet
-  ctx.strokeStyle = unl ? '#ca8a04' : '#64748b';
+  // Rowan wounded silhouette
+  ctx.fillStyle = unl ? '#1e293b' : '#0f172a';
+  ctx.fillRect(-3, -4, 6, 12);
+
+  // Shadowy daggers piercing back
+  ctx.strokeStyle = unl ? '#c084fc' : '#64748b';
   ctx.lineWidth = 1.8;
+
+  // Dagger 1 (top left)
   ctx.beginPath();
-  ctx.ellipse(0, 3, 8, 3.5, 0, 0, Math.PI * 2);
+  ctx.moveTo(-9, -6); ctx.lineTo(-1, -1);
   ctx.stroke();
 
-  // Downward angled stiletto
-  ctx.strokeStyle = unl ? '#e2e8f0' : '#475569';
-  ctx.lineWidth = 2.0;
+  // Dagger 2 (mid left)
   ctx.beginPath();
-  ctx.moveTo(4, -8);
-  ctx.lineTo(-2, 4);
+  ctx.moveTo(-8, 2); ctx.lineTo(0, 3);
   ctx.stroke();
 
-  // Poison violet dripping drop
-  const poisonCycle = (t % 2.0) / 2.0;
+  // Void blood spatter
   ctx.fillStyle = unl ? '#a855f7' : '#64748b';
-  ctx.fillRect(-2, 4 + poisonCycle * 5, 2, 2.5);
+  ctx.fillRect(0, -1, 3, 2);
+  ctx.fillRect(1, 3, 3, 2);
 
   ctx.restore();
 }
 
-// 20. RAMPAGE — Burning twin battleaxe & abyssal inferno (Rampage Ending)
+// 24. RAMPAGE (ENDING 3) — Berserker bloodfire aura & twin war axes
 function _drawRampage(ctx, s, t, unl, isLg) {
   ctx.save();
   ctx.scale(s, s);
 
-  // Crossed battleaxe shafts
-  ctx.strokeStyle = unl ? '#b45309' : '#475569';
-  ctx.lineWidth = 2.0;
+  // Bloodfire aura
+  if (unl) {
+    const auraPulse = Math.sin(t * 4.0) * 0.2 + 0.8;
+    ctx.strokeStyle = `rgba(239, 68, 68, ${0.55 * auraPulse})`;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // Crossed double-bitted war axes
+  ctx.strokeStyle = unl ? '#78350f' : '#475569';
+  ctx.lineWidth = 1.6;
   ctx.beginPath();
-  ctx.moveTo(-7, -7); ctx.lineTo(7, 7);
-  ctx.moveTo(7, -7);  ctx.lineTo(-7, 7);
+  ctx.moveTo(-7, 7); ctx.lineTo(7, -7);
+  ctx.moveTo(7, 7); ctx.lineTo(-7, -7);
   ctx.stroke();
 
-  // Axe blades
-  ctx.fillStyle = unl ? '#dc2626' : '#64748b';
-  ctx.fillRect(-8, -9, 4, 3);
-  ctx.fillRect(4, -9, 4, 3);
-
-  // Animated flickering flame tongues
-  const flameStep = Math.floor((t * 6.0) % 3);
-  ctx.fillStyle = unl ? (flameStep === 0 ? '#ef4444' : flameStep === 1 ? '#f97316' : '#fde68a') : '#94a3b8';
-  ctx.beginPath();
-  ctx.moveTo(0, -9);
-  ctx.lineTo(-3, 0);
-  ctx.lineTo(3, 0);
-  ctx.closePath();
-  ctx.fill();
+  // Jagged axe blades
+  ctx.fillStyle = unl ? '#ef4444' : '#64748b';
+  ctx.fillRect(-8, -8, 4, 3);
+  ctx.fillRect(4, -8, 4, 3);
+  ctx.fillRect(-8, 5, 4, 3);
+  ctx.fillRect(4, 5, 4, 3);
 
   ctx.restore();
 }
 
-// 21. THE LAST WITNESS — Approved Absolute Red Eye & Three Broken Outer Rings
-function _drawLastWitness(ctx, scale, timer, isUnlocked, isLarge) {
+// 25. SPEED RUNNER — Antique winged chronometer with ticking second hand
+function _drawSpeedRunner(ctx, s, t, unl, isLg) {
   ctx.save();
-
-  // Base scale calculation
-  const s = isLarge ? 1.0 : 0.44;
   ctx.scale(s, s);
 
-  const cx = 0, cy = 0;
-  const r = 24;
-
-  // Dark backing aura
-  ctx.shadowColor = isUnlocked ? 'rgba(239, 68, 68, 0.55)' : 'rgba(0, 0, 0, 0.5)';
-  ctx.shadowBlur = isLarge ? 12 : 5;
-  ctx.fillStyle = '#050308';
+  // Swift speed wings on sides
+  ctx.strokeStyle = unl ? '#38bdf8' : '#64748b';
+  ctx.lineWidth = 1.3;
   ctx.beginPath();
-  ctx.arc(cx, cy, r + 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // Ring 1: Hero (Top-Right Arc, Gold)
-  ctx.strokeStyle = isUnlocked ? '#fbbf24' : 'rgba(251, 191, 36, 0.55)';
-  ctx.lineWidth = isLarge ? 2.2 : 1.8;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0.00 * Math.PI, 0.45 * Math.PI);
+  ctx.moveTo(-7, -1); ctx.lineTo(-10, -5); ctx.lineTo(-6, -6);
+  ctx.moveTo(7, -1); ctx.lineTo(10, -5); ctx.lineTo(6, -6);
   ctx.stroke();
 
-  // Ring 2: Betrayal (Bottom Arc, Amethyst/Violet)
-  ctx.strokeStyle = isUnlocked ? '#c084fc' : 'rgba(192, 132, 252, 0.55)';
-  ctx.lineWidth = isLarge ? 2.2 : 1.8;
+  // Pocket watch case
+  ctx.fillStyle = unl ? '#1e2436' : '#101422';
+  ctx.strokeStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.lineWidth = 1.6;
   ctx.beginPath();
-  ctx.arc(cx, cy, r, 0.55 * Math.PI, 1.15 * Math.PI);
+  ctx.arc(0, 1, 7.5, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
+
+  // Top stem & crown
+  ctx.fillRect(-1.5, -8, 3, 2);
+
+  // Ticking second hand
+  const handAngle = unl ? (t * 8.0) % (Math.PI * 2) : 0;
+  ctx.strokeStyle = unl ? '#ef4444' : '#94a3b8';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(0, 1);
+  ctx.lineTo(Math.cos(handAngle) * 5, 1 + Math.sin(handAngle) * 5);
   ctx.stroke();
 
-  // Ring 3: Rampage (Top-Left Arc, Crimson)
-  ctx.strokeStyle = isUnlocked ? '#ef4444' : 'rgba(239, 68, 68, 0.55)';
-  ctx.lineWidth = isLarge ? 2.2 : 1.8;
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 1.30 * Math.PI, 1.95 * Math.PI);
-  ctx.stroke();
-
-  // Small muted-gold pixel notches at gap breaks
-  ctx.fillStyle = '#fde68a';
-  ctx.fillRect(Math.round(cx + 17), Math.round(cy + 15), 2, 2);
-  ctx.fillRect(Math.round(cx - 17), Math.round(cy + 15), 2, 2);
-  ctx.fillRect(Math.round(cx), Math.round(cy - 22), 2, 2);
-
-  // Exact Approved Absolute Red Pixel Eye at Center
-  ctx.save();
-  ctx.translate(cx, cy);
-  // Scale down 80x44 eye to fit nicely inside the ring
-  ctx.scale(0.38, 0.38);
-  drawPixelEye(ctx, 0, 0, 1.0, 0, timer);
-  ctx.restore();
-
-  // Central golden ember / light representing the player's journey
-  const emberPulse = (Math.sin(timer * 3.5) + 1) * 0.5;
-  ctx.fillStyle = isUnlocked ? (emberPulse > 0.5 ? '#fef08a' : '#f59e0b') : '#94a3b8';
-  ctx.fillRect(Math.round(cx - 1.5), Math.round(cy - 1.5), 3, 3);
+  // Center axle pin
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(-0.5, 0.5, 1, 1);
 
   ctx.restore();
 }
 
-// Fallback generic seal
+// 26-35. SPEED FLOORS 1-10 — Architectural waypoint stele with inscribed Roman numeral
+function _drawSpeedFloor(ctx, s, t, unl, isLg, floorNum) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  const romanNumerals = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+  const rText = romanNumerals[floorNum] || String(floorNum);
+
+  // Stone milestone waypoint stele
+  ctx.fillStyle = unl ? '#1e2436' : '#0f1422';
+  ctx.strokeStyle = unl ? (floorNum % 3 === 0 ? '#f59e0b' : '#38bdf8') : '#64748b';
+  ctx.lineWidth = 1.4;
+
+  ctx.beginPath();
+  ctx.moveTo(-6, -9);
+  ctx.lineTo(6, -9);
+  ctx.lineTo(7, 8);
+  ctx.lineTo(-7, 8);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Speed wind streaks across stele
+  const windShift = (t * 6.0) % 6;
+  ctx.strokeStyle = unl ? 'rgba(56, 189, 248, 0.65)' : 'rgba(71, 85, 105, 0.4)';
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.moveTo(-10 + windShift, -6); ctx.lineTo(-4 + windShift, -6);
+  ctx.moveTo(-9 + windShift, 5); ctx.lineTo(-3 + windShift, 5);
+  ctx.stroke();
+
+  // Boss floor distinctive emblems
+  if (floorNum === 3) {
+    // Gorgaroth cleaver notch
+    ctx.fillStyle = unl ? '#f97316' : '#64748b';
+    ctx.fillRect(-3, -7, 6, 2);
+  } else if (floorNum === 6) {
+    // Malakor void eye dot
+    ctx.fillStyle = unl ? '#c084fc' : '#64748b';
+    ctx.beginPath();
+    ctx.arc(0, -6, 2, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (floorNum === 10) {
+    // Warden crown spire
+    ctx.fillStyle = unl ? '#ef4444' : '#64748b';
+    ctx.beginPath();
+    ctx.moveTo(0, -8); ctx.lineTo(3, -5); ctx.lineTo(-3, -5);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Inscribed Roman Numeral
+  ctx.fillStyle = unl ? '#ffffff' : '#94a3b8';
+  ctx.font = 'bold 8.5px Cinzel, monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(rText, 0, 1);
+
+  ctx.restore();
+}
+
+// 40. THE LAST WITNESS — The Eye of the Absolute (Cyclopean red eye with 8 milestone stars)
+function _drawLastWitness(ctx, s, t, unl, isLg) {
+  ctx.save();
+  ctx.scale(s, s);
+
+  // Outer astral milestone ring
+  ctx.strokeStyle = unl ? 'rgba(245, 158, 11, 0.55)' : 'rgba(71, 85, 105, 0.35)';
+  ctx.lineWidth = 1.0;
+  ctx.beginPath();
+  ctx.arc(0, 0, 10.5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // 8 Milestone Astral Stars orbiting
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4 + t * 0.4;
+    const sx = Math.cos(a) * 10.5;
+    const sy = Math.sin(a) * 10.5;
+    ctx.fillStyle = unl ? (i >= 5 ? '#c084fc' : '#fde68a') : '#475569';
+    ctx.fillRect(sx - 1, sy - 1, 2, 2);
+  }
+
+  // Living Red Sclera
+  ctx.fillStyle = unl ? '#200508' : '#0a0305';
+  ctx.strokeStyle = unl ? '#dc2626' : '#7f1d1d';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 7.5, 5, 0, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
+
+  // Golden iris with fiery radial fibers
+  const irisPulse = (Math.sin(t * 3.5) + 1) * 0.5;
+  ctx.fillStyle = unl ? `rgba(245, 158, 11, ${0.85 + irisPulse * 0.15})` : '#78350f';
+  ctx.beginPath();
+  ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Vertical slit pupil (dilates breathing)
+  const slitW = 1.0 + (Math.sin(t * 2.0) + 1) * 0.4;
+  ctx.fillStyle = '#010204';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, slitW, 3.8, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Specular gleam pinhead
+  if (unl) {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(-1.5, -1.5, 1.2, 1.2);
+  }
+
+  ctx.restore();
+}
+
+// Fallback Generic Citadel Seal
 function _drawGenericSeal(ctx, s, t, unl) {
   ctx.save();
   ctx.scale(s, s);
-  ctx.fillStyle = unl ? '#fbbf24' : '#64748b';
-  ctx.beginPath();
-  ctx.arc(0, 0, 6, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.strokeStyle = unl ? '#f59e0b' : '#64748b';
+  ctx.lineWidth = 1.4;
+  ctx.strokeRect(-6, -6, 12, 12);
+  ctx.fillStyle = unl ? '#fde68a' : '#475569';
+  ctx.fillRect(-2, -2, 4, 4);
   ctx.restore();
 }

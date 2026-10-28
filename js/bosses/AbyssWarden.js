@@ -173,7 +173,7 @@ export const AbyssWarden = {
 
         // Counterplay check: Safe within inner sanctuary ring (dist <= 2.4)
         if (dist > boss.cataclysmSafeRadius && dist < 12.0) {
-          dealDamage({ isBoss: true, attackId: boss.cataclysmAttackId, x: boss.x, y: boss.y }, P, 3, 'heavy');
+          dealDamage({ isBoss: true, attackId: boss.cataclysmAttackId, x: boss.x, y: boss.y }, P, 10, 'heavy');
         }
 
         // Guaranteed punish window for the player
@@ -214,7 +214,7 @@ export const AbyssWarden = {
         const onFissureLine = (pRelX < 0.9 && pRelY < 7.5) || (pRelY < 0.9 && pRelX < 7.5);
 
         if (onFissureLine) {
-          dealDamage({ isBoss: true, attackId: boss.quadFissureAttackId, x: boss.x, y: boss.y }, P, 2, 'heavy');
+          dealDamage({ isBoss: true, attackId: boss.quadFissureAttackId, x: boss.x, y: boss.y }, P, 5, 'heavy');
         }
 
         // Brief punishable recovery after quad fissure
@@ -256,7 +256,7 @@ export const AbyssWarden = {
         // Hazard collision (damage tick with internal cooldown)
         if (Math.hypot(P.x - rz.x, P.y - rz.y) < rz.r && (rz.tickCooldown || 0) <= 0) {
           rz.tickCooldown = 1.0;
-          dealDamage({ isBoss: true, attackId: rz.attackId, x: rz.x, y: rz.y }, P, 1, 'magic');
+          dealDamage({ isBoss: true, attackId: rz.attackId, x: rz.x, y: rz.y }, P, 2, 'magic');
         }
         if (rz.tickCooldown > 0) rz.tickCooldown -= dt;
         if (rz.life <= 0) {
@@ -317,7 +317,7 @@ export const AbyssWarden = {
           vy: Math.sin(spreadAng) * 8.2,
           life: 0,
           maxLife: 4.0,
-          damage: 1,
+          damage: 3,
           fromPlayer: false,
           hit: false,
           isBoss: true,
@@ -378,7 +378,7 @@ export const AbyssWarden = {
         const angDiff = Math.abs(Math.atan2(dy, dx) - boss.cleaveAngle);
         const normAngDiff = Math.min(angDiff, 6.28 - angDiff);
         if (dist <= 3.4 && normAngDiff < 0.65) {
-          dealDamage({ isBoss: true, attackId: boss.cleaveAttackId, x: boss.x, y: boss.y }, P, 2, 'heavy');
+          dealDamage({ isBoss: true, attackId: boss.cleaveAttackId, x: boss.x, y: boss.y }, P, 5, 'heavy');
         }
 
         ParticleRenderer.spawnRing(boss.x + Math.cos(boss.cleaveAngle) * 1.5, boss.y + Math.sin(boss.cleaveAngle) * 1.5, '#ef4444');
@@ -401,7 +401,7 @@ export const AbyssWarden = {
         SoundManager.snd('melee_hit');
 
         if (dist <= 2.6) {
-          dealDamage({ isBoss: true, attackId: boss.sweepAttackId, x: boss.x, y: boss.y }, P, 2, 'heavy');
+          dealDamage({ isBoss: true, attackId: boss.sweepAttackId, x: boss.x, y: boss.y }, P, 3, 'melee');
         }
 
         ParticleRenderer.spawnRing(boss.x, boss.y, '#dc2626');

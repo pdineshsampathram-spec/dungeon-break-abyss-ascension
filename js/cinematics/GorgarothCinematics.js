@@ -15,6 +15,8 @@ import { FloorManager } from '../world/FloorManager.js';
 import { DeathCinematics } from './DeathCinematics.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
 import { PortalTransition, PORTAL_CONTEXTS } from './PortalTransition.js';
+import { CinematicSafety } from './CinematicSafety.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 
 // ─────────────────────────────────────────────────────────────
 // Timeline Durations (Seconds)
@@ -104,13 +106,18 @@ export const GorgarothCinematics = {
     return _activePlayerDeath;
   },
   canSkip() {
-    return !!_activeDefeat && (_activeDefeat.timer >= 0.25 || !_activeDefeat.hitStopActive);
+    return !!_activeDefeat && CinematicSafety.canSkip();
   },
   skip() {
     if (!this.canSkip()) return;
+    if (CinematicSafety.isReplay()) {
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
     const cine = _activeDefeat;
-    console.log('[GORGAROTH] Defeat cinematic skipped by player');
-    if (cine.boss) {
+    console.log('[GORGAROTH] Defeat cinematic fast-forwarded to portal formation');
+    if (cine && cine.boss) {
       cine.boss.weaponDropped = true;
       cine.boss.collapseProg = 1.0;
       cine.boss.vaporizeProg = 1.0;
@@ -119,13 +126,24 @@ export const GorgarothCinematics = {
       cine.boss.alive = false;
     }
     AchievementSystem.unlock('jailbreaker');
-    this.finishPortalFormation();
+    // Fast forward directly to portal formation so the formation visibly animates to completion
+    if (cine && cine.timer < GORGAROTH_DEFEAT_TIMELINE.HOLD_EMPTY) {
+      cine.timer = GORGAROTH_DEFEAT_TIMELINE.HOLD_EMPTY;
+    }
   },
 
   // ═════════════════════════════════════════════════════════════
   // PART 1: GORGAROTH DEFEAT TRIGGER
   // ═════════════════════════════════════════════════════════════
-  startDefeat(boss, hitInfo = {}) {
+  startDefeat(boss, hitInfo = {}, options = {}) {
+    boss = boss || GameState.BOSS;
+    const isReplay = (typeof options === 'boolean') ? options : !!(options.isReplay || hitInfo.isReplay);
+    CinematicSafety.startCinematic('boss_defeat_gorgaroth', typeof options === 'object' ? options : { isReplay });
+
+    if (!isReplay && SaveSystem && SaveSystem.recordCinematicUnlock) {
+      SaveSystem.recordCinematicUnlock('boss_defeat_gorgaroth');
+    }
+
     // 1. One-Shot Trigger Guard (Only triggers once when confirmed HP <= 0)
     if (_defeatTriggered || _defeatCompleted || _playerDeathTriggered) return false;
     _defeatTriggered = true;
@@ -1164,7 +1182,17 @@ export const GorgarothCinematics = {
 
     // Authoritative delegation to PortalTransition with Gorgaroth Iron Gate profile
     if (PortalTransition && PortalTransition.drawWorldPortal) {
+      ctx.save();
+      const alpha = portal.alpha !== undefined ? portal.alpha : 1.0;
+      ctx.globalAlpha = Math.max(0.0, Math.min(1.0, alpha));
+      if (portal.radius < portal.targetRadius && portal.targetRadius > 0) {
+        const s = Math.max(0.01, portal.radius / portal.targetRadius);
+        ctx.translate(ppx + T / 2, ppy + T / 2);
+        ctx.scale(s, s);
+        ctx.translate(-(ppx + T / 2), -(ppy + T / 2));
+      }
       PortalTransition.drawWorldPortal(ctx, ppx, ppy, T, PORTAL_CONTEXTS.GORGAROTH_DEATH_PORTAL);
+      ctx.restore();
     }
   },
 
@@ -1177,8 +1205,8 @@ export const GorgarothCinematics = {
     const pX = Math.round(cine.portal.x);
     const pY = Math.round(cine.portal.y);
 
-    // Register active world portal tile on Floor 3 map
-    if (GameState.MAP) {
+    // Register active world portal tile on Floor 3 map (live gameplay only)
+    if (!CinematicSafety.isReplay() && GameState.MAP) {
       // Clear obstacle tiles in 3x3 radius around portal
       for (let dr = -1; dr <= 1; dr++) {
         for (let dc = -1; dc <= 1; dc++) {
@@ -1192,6 +1220,16 @@ export const GorgarothCinematics = {
       if (GameState.MAP[pY]) {
         GameState.MAP[pY][pX] = 2;
       }
+    }
+
+    if (CinematicSafety.isReplay()) {
+      _defeatCompleted = true;
+      _activeDefeat = null;
+      GameState.CINEMATIC_ACTIVE = false;
+      GameState.ACTIVE_CINEMATIC_TYPE = null;
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
     }
 
     _defeatCompleted = true;
@@ -1272,8 +1310,8 @@ export const GorgarothCinematics = {
         ctx.fillRect(0, LH - barH, LW, 1);
       }
 
-      // Skip prompt
-      if (this.canSkip()) {
+      // Skip prompt (Shown only after 3.0s unskippable window)
+      if (this.canSkip() && CinematicSafety.shouldShowSkipHint()) {
         const skipAlpha = Math.min(0.60, (cine.timer - 0.5) / 0.8);
         ctx.fillStyle = `rgba(251, 146, 60, ${skipAlpha})`;
         ctx.font = 'bold 9px "Cinzel", Georgia, serif';
@@ -1338,9 +1376,16 @@ export const GorgarothCinematics = {
     ARENA_DUST_MOTES = [];
     LETTERBOX.amount = 0;
 
+    if (CinematicSafety.isReplay()) {
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
+
     // Load Floor 4 directly
     FloorManager.loadLevel(4);
     GameState.setState(GameStates.PLAYING);
+    CinematicSafety.reset();
 
     // Camera reset
     if (GameState.P && GameState.CAM) {

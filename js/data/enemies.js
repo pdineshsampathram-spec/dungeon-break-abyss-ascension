@@ -9,7 +9,7 @@ export const ENEMY_TYPES = {
     name: 'Skeleton Warrior',
     floors: 'Floors 1 – 4',
     col: '#94a3b8',
-    baseHp: 16,
+    baseHp: 10,
     poise: 15,
     armor: 0.0,
     speed: 1.15,
@@ -22,7 +22,7 @@ export const ENEMY_TYPES = {
     name: 'Crypt Ghoul',
     floors: 'Floors 2 – 6',
     col: '#4ade80',
-    baseHp: 26,
+    baseHp: 22,
     poise: 25,
     armor: 0.05,
     speed: 1.45,
@@ -35,7 +35,7 @@ export const ENEMY_TYPES = {
     name: 'Infernal Demon',
     floors: 'Floors 4 – 8',
     col: '#f87171',
-    baseHp: 48,
+    baseHp: 40,
     poise: 45,
     armor: 0.10,
     speed: 1.05,
@@ -48,7 +48,7 @@ export const ENEMY_TYPES = {
     name: 'Shadow Wraith',
     floors: 'Floors 6 – 9',
     col: '#c084fc',
-    baseHp: 55,
+    baseHp: 50,
     poise: 35,
     armor: 0.15,
     speed: 1.35,
@@ -145,13 +145,13 @@ export const BESTIARY_INFO = [
   {
     id: 'absolute',
     name: 'The Absolute',
-    category: 'Unrecorded Entity',
+    category: 'Unclassified Anomaly',
     floors: 'Fractured Sanity (Sanity Zero)',
     col: '#ef4444',
     threat: 'Observation Incomplete',
     isSecret: true,
-    desc: 'No origin is recorded. No age is known. The form observed during the collapse of sanity is the only surviving account.',
-    tactics: ''
+    desc: 'No origin is recorded. No age is known. The colossal crimson eye observed during the total collapse of sanity remains the sole recurring testimony across all shattered expeditions. Its gaze precedes oblivion.',
+    tactics: 'No combat engagement has ever succeeded. The entity does not strike with steel or pyre; it simply observes as reality dissolves. Any tactical doctrine regarding this presence is conjecture born of delirium.'
   }
 ];
 

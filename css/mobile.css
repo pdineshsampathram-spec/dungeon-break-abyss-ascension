@@ -10,68 +10,236 @@
   position: absolute;
   pointer-events: all;
   touch-action: none;
+  user-select: none;
 }
 
-#joy-bg {
+#dpad-cross {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  background: rgba(201, 168, 76, 0.1);
-  border: 2px solid rgba(201, 168, 76, 0.22);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 2px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
 }
 
-#joy-knob {
+.dpad-arrow {
+  image-rendering: pixelated;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  transition: transform 0.06s ease, filter 0.06s ease;
+  pointer-events: none;
+}
+
+#dpad-up {
+  grid-column: 2;
+  grid-row: 1;
+  background-image: url('../assets/ui/dpad_up.png');
+}
+
+#dpad-left {
+  grid-column: 1;
+  grid-row: 2;
+  background-image: url('../assets/ui/dpad_left.png');
+}
+
+#dpad-center {
+  grid-column: 2;
+  grid-row: 2;
+  background: #141024;
+  border: 1px solid #3c2a5c;
+  border-radius: 3px;
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+#dpad-right {
+  grid-column: 3;
+  grid-row: 2;
+  background-image: url('../assets/ui/dpad_right.png');
+}
+
+#dpad-down {
+  grid-column: 2;
+  grid-row: 3;
+  background-image: url('../assets/ui/dpad_down.png');
+}
+
+.dpad-arrow.active {
+  filter: brightness(1.4) drop-shadow(0 0 8px rgba(245, 158, 11, 0.95));
+  transform: scale(0.92);
+}
+
+.combat-touch-btn {
   position: absolute;
-  border-radius: 50%;
-  background: rgba(201, 168, 76, 0.4);
-  border: 2px solid rgba(201, 168, 76, 0.65);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  pointer-events: all;
+  touch-action: none;
+  user-select: none;
+  image-rendering: pixelated;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
+  transition: transform 0.06s ease, filter 0.06s ease;
+  cursor: pointer;
 }
 
 #atk-btn {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(239, 68, 68, 0.18);
-  border: 2px solid rgba(239, 68, 68, 0.55);
-  pointer-events: all;
-  touch-action: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(239, 68, 68, 0.9);
-  user-select: none;
-  font-family: 'Cinzel', serif;
+  background-image: url('../assets/ui/btn_attack.png');
+}
+
+#atk-btn.active, #atk-btn:active {
+  filter: brightness(1.3) drop-shadow(0 0 10px rgba(239, 68, 68, 0.95));
+  transform: scale(0.92);
 }
 
 #shoot-btn {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(52, 211, 153, 0.18);
-  border: 2px solid rgba(52, 211, 153, 0.55);
-  pointer-events: all;
-  touch-action: none;
   display: none;
-  align-items: center;
-  justify-content: center;
-  color: rgba(52, 211, 153, 0.9);
-  user-select: none;
+  background-image: url('../assets/ui/btn_shoot.png');
+}
+
+#shoot-btn.active, #shoot-btn:active {
+  filter: brightness(1.3) drop-shadow(0 0 10px rgba(52, 211, 153, 0.95));
+  transform: scale(0.92);
 }
 
 #special-btn {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 215, 0, 0.25);
-  border: 2px solid gold;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-  pointer-events: all;
-  touch-action: none;
   display: none;
+  background-image: url('../assets/ui/btn_ability.png');
+  position: absolute;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+#special-cd-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0%;
+  background: rgba(10, 6, 20, 0.78);
+  pointer-events: none;
+  transition: height 0.05s linear;
+}
+
+#special-cd-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
   align-items: center;
   justify-content: center;
+  color: #fde68a;
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 900;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.95), 0 2px 4px #000;
+  pointer-events: none;
+}
+
+#special-btn.on-cooldown {
+  filter: grayscale(0.7) brightness(0.75);
+}
+
+#special-btn:not(.on-cooldown) {
+  filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.7));
+}
+
+#special-btn.active, #special-btn:active {
+  filter: brightness(1.35) drop-shadow(0 0 12px rgba(255, 215, 0, 0.95));
+  transform: scale(0.92);
+}
+
+/* Dedicated Mobile 3-Slot Weapon Switcher Dock */
+.mobile-weapon-dock {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  padding: 6px 12px;
+  background: rgba(14, 11, 24, 0.94);
+  border: 1.5px solid #4a3b69;
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.85), inset 0 0 10px rgba(168, 85, 247, 0.25);
+  pointer-events: all;
+  touch-action: manipulation;
+  z-index: 60;
   user-select: none;
-  font-size: 20px;
+}
+
+.m-wep-slot {
+  position: relative;
+  width: 58px;
+  height: 56px;
+  background: #110f1c;
+  border: 1.5px solid #334155;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  touch-action: manipulation;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+.m-wep-slot:active {
+  transform: scale(0.94);
+}
+
+.m-wep-slot.active {
+  border-color: #ffd700;
+  background: rgba(217, 119, 6, 0.22);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.7), inset 0 0 8px rgba(254, 240, 138, 0.35);
+}
+
+.m-wep-slot.empty {
+  opacity: 0.45;
+  border-style: dashed;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.m-wep-num {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+}
+
+.m-wep-slot.active .m-wep-num {
+  color: #ffd700;
+  text-shadow: 0 0 4px rgba(255, 215, 0, 0.6);
+}
+
+.m-wep-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+}
+
+.m-wep-name {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #cbd5e1;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.m-wep-slot.active .m-wep-name {
+  color: #fef08a;
+  text-shadow: 0 0 4px rgba(254, 240, 138, 0.4);
 }
 
 .ctrl-edit-mode #joy-zone,
@@ -134,4 +302,23 @@
 
 .ctrl-edit-mode .ctrl-resize-handle {
   display: flex;
+}
+
+/* Responsive Safe Area and Orientation Adaptations */
+@media (orientation: portrait) {
+  .mobile-weapon-dock {
+    bottom: max(116px, calc(116px + env(safe-area-inset-bottom, 0px)));
+  }
+}
+
+@media (orientation: landscape) {
+  .mobile-weapon-dock {
+    bottom: max(14px, env(safe-area-inset-bottom, 14px));
+  }
+}
+
+#touch-overlay {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }

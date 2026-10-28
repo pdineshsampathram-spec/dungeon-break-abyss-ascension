@@ -81,12 +81,21 @@ export const ParticleRenderer = {
   tick(dt) {
     // Tick particles
     const prt = GameState.PRT;
+    const isDeepFloor = (GameState.LV || 1) >= 4;
     for (let i = prt.length - 1; i >= 0; i--) {
       const p = prt[i];
-      p.wx += p.vx * dt;
-      p.wy += p.vy * dt;
-      p.vx *= Math.pow(0.88, dt * TARGET_FPS);
-      p.vy = p.vy * Math.pow(0.90, dt * TARGET_FPS) + p.gv * dt;
+      // Subtle temporal storytelling: isolated ambient/spark particles exhibit momentary micro-pause before resuming
+      let stepDt = dt;
+      if (isDeepFloor && (p.isTemporal || (i % 23 === 0 && p.r >= 2))) {
+        const pausePhase = Math.sin((p.ml - p.life) * 5.2);
+        if (pausePhase > 0.91) {
+          stepDt = dt * 0.08;
+        }
+      }
+      p.wx += p.vx * stepDt;
+      p.wy += p.vy * stepDt;
+      p.vx *= Math.pow(0.88, stepDt * TARGET_FPS);
+      p.vy = p.vy * Math.pow(0.90, stepDt * TARGET_FPS) + p.gv * stepDt;
       p.life -= dt;
       if (p.life <= 0) prt.splice(i, 1);
     }

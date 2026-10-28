@@ -5,10 +5,12 @@
 
 import { GameState, GameStates } from '../core/GameState.js';
 import { getFloorBoss, isBossFloor } from '../data/floors.js';
+import { getBossConfig } from '../data/bosses.js';
 import { COLS, ROWS, TARGET_FPS } from '../core/Constants.js';
 import { solidAt } from '../world/PathValidator.js';
 import { SoundManager } from '../audio/AudioManager.js';
 import { AchievementSystem } from '../systems/AchievementSystem.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 import { ParticleRenderer } from '../rendering/ParticleRenderer.js';
 import { BossIntros } from '../cinematics/BossIntros.js';
 import { triggerCinematicBanner } from '../ui/HUD.js';
@@ -20,9 +22,10 @@ import { AbyssWarden } from './AbyssWarden.js';
 import { EndingCinematics, EndingDispatcher } from '../cinematics/EndingCinematics.js';
 import { WardenDefeatCinematic } from '../cinematics/WardenDefeatCinematic.js';
 import { GorgarothCinematics } from '../cinematics/GorgarothCinematics.js';
+import { CinematicSafety } from '../cinematics/CinematicSafety.js';
 
 export const BossManager = {
-  spawnBoss(bossIdOverride = null) {
+  spawnBoss(bossIdOverride = null, options = {}) {
     const { LV } = GameState;
     const bossId = bossIdOverride || getFloorBoss(LV);
     if (!bossId) {
@@ -31,30 +34,23 @@ export const BossManager = {
       return;
     }
 
+    const cfg = getBossConfig(bossId) || {};
     const cx = (COLS / 2) | 0;
     const cy = (ROWS / 2) | 0;
 
-    let name = 'THE ABYSS WARDEN';
-    let title = 'Scourge of the Sunken Citadel';
-    let type = 'abyss_warden';
-    let hp = 2600;
-    let armor = 0.25; // 25% damage mitigation
-    let poise = 220;
+    let name = cfg.name || 'THE ABYSS WARDEN';
+    let title = cfg.title || 'Scourge of the Sunken Citadel';
+    let type = cfg.type || 'abyss_warden';
+    let hp = cfg.hp || 1100;
+    let armor = 0.20; // 20% damage mitigation
+    let poise = 350;
 
     if (bossId === 'gorgaroth') {
-      name = 'GORGAROTH';
-      title = 'The Iron Jailer';
-      type = 'iron_warden';
-      hp = 680;
-      armor = 0.15; // 15% damage mitigation
-      poise = 130;
+      armor = 0.15; // 15% physical mitigation
+      poise = 250;
     } else if (bossId === 'malakor') {
-      name = 'MALAKOR';
-      title = 'The Void Sorcerer';
-      type = 'void_reaver';
-      hp = 1250;
-      armor = 0.20; // 20% void mitigation
-      poise = 160;
+      armor = 0.15; // 15% void mitigation
+      poise = 220;
     }
 
     const spawnY = (bossId === 'abyss_warden') ? cy - 6 : (bossId === 'malakor' ? cy - 3 : cy - 2);
@@ -105,7 +101,9 @@ export const BossManager = {
       GorgarothCinematics.reset();
     }
 
-    BossIntros.start(bossId);
+    if (!options.skipIntro && !options.isReplay && !CinematicSafety.isReplay()) {
+      BossIntros.start(bossId);
+    }
     EventBus.emit('boss:spawned', GameState.BOSS);
   },
 
@@ -118,6 +116,13 @@ export const BossManager = {
         if (BOSS.alive && !WardenDefeatCinematic.isActive() && !WardenDefeatCinematic.isDefeated() && !EndingDispatcher.isDispatched()) {
           BOSS.alive = false;
           GameState.BOSS_DEAD = true;
+          if (!BOSS._phase6Recorded) {
+            BOSS._phase6Recorded = true;
+            SaveSystem.recordBossDefeat('warden');
+            if ((GameState.FLOOR_ACTIVE_TIME || 0) <= 180) {
+              AchievementSystem.unlock('speed_floor_10');
+            }
+          }
           WardenDefeatCinematic.start(BOSS);
         }
         return;
@@ -134,6 +139,13 @@ export const BossManager = {
           GameState.BOSS_DEAD = true;
           GameState.BOSS_PORTAL_UNLOCKED = false;
           GameState.BOSS_AI_ACTIVE = false;
+          if (!BOSS._phase6Recorded) {
+            BOSS._phase6Recorded = true;
+            SaveSystem.recordBossDefeat('gorgaroth');
+            if ((GameState.FLOOR_ACTIVE_TIME || 0) <= 90) {
+              AchievementSystem.unlock('speed_floor_3');
+            }
+          }
           EventBus.emit('boss:defeated', BOSS);
           GorgarothCinematics.startDefeat(BOSS);
         }
@@ -150,6 +162,13 @@ export const BossManager = {
         GameState.BOSS_DEAD = true;
         GameState.BOSS_PORTAL_UNLOCKED = false;
         GameState.BOSS_AI_ACTIVE = false;
+        if (!BOSS._phase6Recorded) {
+          BOSS._phase6Recorded = true;
+          SaveSystem.recordBossDefeat(BOSS.id || 'malakor');
+          if ((GameState.FLOOR_ACTIVE_TIME || 0) <= 120) {
+            AchievementSystem.unlock('speed_floor_6');
+          }
+        }
         EventBus.emit('boss:defeated', BOSS);
         BossIntros.startDefeat(BOSS);
         return;
@@ -225,4 +244,5 @@ if (typeof window !== 'undefined') {
     set: (v) => { GameState.BOSS_AI_ACTIVE = v; },
     configurable: true
   });
+  window.BossManager = BossManager;
 }

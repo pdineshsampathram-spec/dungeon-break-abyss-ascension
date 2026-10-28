@@ -17,6 +17,8 @@ import { Camera } from '../rendering/Camera.js';
 import { CharacterDefinitions } from '../rendering/CharacterDefinitions.js';
 import { triggerCinematicBanner } from '../ui/HUD.js';
 import { CINEMATIC_W, CINEMATIC_H } from './CinematicRenderer.js';
+import { CinematicSafety } from './CinematicSafety.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 
 export let THE_DESCENT = null;
 
@@ -148,7 +150,14 @@ export const CinematicDirector = {
     return GameState.STATE === GameStates.CINEMATIC && !!THE_DESCENT && !THE_DESCENT.done;
   },
 
-  startIntro() {
+  startIntro(options = {}) {
+    const isReplay = (typeof options === 'boolean') ? options : !!options.isReplay;
+    CinematicSafety.startCinematic('the_descent', typeof options === 'object' ? options : { isReplay });
+
+    if (!isReplay && SaveSystem && SaveSystem.recordCinematicUnlock) {
+      SaveSystem.recordCinematicUnlock('the_descent');
+    }
+
     GameState.setState(GameStates.CINEMATIC);
     GameState.CINEMATIC_ACTIVE = true;
 
@@ -393,8 +402,21 @@ export const CinematicDirector = {
     GameState.CINEMATIC_ACTIVE = false;
   },
 
+  canSkip() {
+    return CinematicSafety.canSkip();
+  },
+
   endIntro() {
     if (!THE_DESCENT && CI.done) return;
+
+    if (CinematicSafety.isReplay()) {
+      if (THE_DESCENT) THE_DESCENT.done = true;
+      CI.done = true;
+      this.reset();
+      CinematicSafety.finishReplay();
+      return;
+    }
+
     if (THE_DESCENT) THE_DESCENT.done = true;
     CI.done = true;
 
@@ -430,11 +452,13 @@ export const CinematicDirector = {
     }
 
     GameState.setState(GameStates.PLAYING);
+    CinematicSafety.reset();
     EventBus.emit('cinematic:intro_ended');
     triggerCinematicBanner('FLOOR 1 — THE SUNKEN CRYPTS', 'Trapped in the deep. Ascend or perish.');
   },
 
   skip() {
+    if (!this.canSkip()) return;
     this.endIntro();
   },
 
@@ -444,7 +468,7 @@ export const CinematicDirector = {
 
   handleClick(mx, my) {
     if (!this.isActive()) return false;
-    if (THE_DESCENT && THE_DESCENT.timer > 0.8) {
+    if (CinematicSafety.isValidSkipClick()) {
       this.skip();
       return true;
     }
@@ -1438,8 +1462,8 @@ export const CinematicDirector = {
       ctx.restore();
     }
 
-    // 8. Skip Prompt in bottom-right corner
-    if (t > 1.5 && t < 41.0) {
+    // 8. Skip Prompt in bottom-right corner (Shown only after 3.0s unskippable window)
+    if (CinematicSafety.shouldShowSkipHint() && t < 41.0) {
       ctx.save();
       ctx.textAlign = 'right';
       ctx.font = '600 11px sans-serif';
