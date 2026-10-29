@@ -464,10 +464,19 @@ export const CinematicArchiveUI = {
     const badgeH = 28;
     const badgeX = LW - 36 - badgeW;
     const badgeY = 22;
+    const isBadgeHover = mouseX >= badgeX && mouseX <= badgeX + badgeW && mouseY >= badgeY && mouseY <= badgeY + badgeH;
 
     drawStoneBadge(ctx, `${unlockedCount} / ${totalCount} VISIONS UNLOCKED`, badgeX, badgeY, badgeW, badgeH, {
-      variant: unlockedCount === totalCount ? 'gold' : 'purple',
-      pulse: false
+      variant: unlockedCount === totalCount ? 'gold' : (isBadgeHover ? 'primary' : 'purple'),
+      pulse: isBadgeHover
+    });
+
+    _clickZones.push({
+      type: 'unlock_all',
+      x: badgeX,
+      y: badgeY,
+      w: badgeW,
+      h: badgeH
     });
 
     // ─────────────────────────────────────────────────────────────
@@ -547,27 +556,75 @@ export const CinematicArchiveUI = {
         glowColor: isSelected ? '#f59e0b' : (isUnlocked ? null : 'rgba(51, 65, 85, 0.4)')
       });
 
-      // Status Icon
-      ctx.textAlign = 'center';
-      if (isUnlocked) {
-        ctx.fillStyle = item.color || '#fbbf24';
-        ctx.font = '16px serif';
-        ctx.fillText('◉', 54, cardY + 31);
+      // Mini Pixel-Art Thumbnail Reliquary
+      const thumbX = cardX + 8;
+      const thumbY = cardY + 8;
+      const thumbW = 46;
+      const thumbH = 34;
+
+      // Draw mini thumbnail frame
+      ctx.fillStyle = '#060812';
+      ctx.fillRect(thumbX, thumbY, thumbW, thumbH);
+
+      const itemEntry = getArchiveImage(item.id);
+      if (itemEntry && itemEntry.loaded && itemEntry.img.naturalWidth > 0) {
+        ctx.save();
+        ctx.beginPath();
+        roundRect(ctx, thumbX, thumbY, thumbW, thumbH, 2);
+        ctx.clip();
+
+        const prevSmooth = ctx.imageSmoothingEnabled;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(itemEntry.img, thumbX, thumbY, thumbW, thumbH);
+        ctx.imageSmoothingEnabled = prevSmooth;
+
+        if (!isUnlocked) {
+          // Dim locked thumbnail and add miniature chain seal
+          ctx.fillStyle = 'rgba(6, 10, 20, 0.72)';
+          ctx.fillRect(thumbX, thumbY, thumbW, thumbH);
+
+          ctx.strokeStyle = 'rgba(100, 116, 139, 0.6)';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(thumbX, thumbY); ctx.lineTo(thumbX + thumbW, thumbY + thumbH);
+          ctx.moveTo(thumbX + thumbW, thumbY); ctx.lineTo(thumbX, thumbY + thumbH);
+          ctx.stroke();
+
+          ctx.fillStyle = '#ca8a04';
+          ctx.beginPath();
+          ctx.arc(thumbX + thumbW / 2, thumbY + thumbH / 2, 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
       } else {
-        ctx.fillStyle = '#64748b';
-        ctx.font = '13px serif';
-        ctx.fillText('🔒', 54, cardY + 31);
+        // Fallback rune icon if image not yet loaded
+        ctx.textAlign = 'center';
+        if (isUnlocked) {
+          ctx.fillStyle = item.color || '#fbbf24';
+          ctx.font = '14px serif';
+          ctx.fillText('◈', thumbX + thumbW / 2, thumbY + 22);
+        } else {
+          ctx.fillStyle = '#64748b';
+          ctx.font = '12px serif';
+          ctx.fillText('🔒', thumbX + thumbW / 2, thumbY + 22);
+        }
       }
 
+      // Stone border around thumbnail
+      ctx.strokeStyle = isSelected ? '#f59e0b' : (isUnlocked ? 'rgba(217, 119, 6, 0.45)' : 'rgba(51, 65, 85, 0.4)');
+      ctx.lineWidth = 1;
+      ctx.strokeRect(thumbX, thumbY, thumbW, thumbH);
+
       // Title & Subtitle
+      const textX = thumbX + thumbW + 12;
       ctx.textAlign = 'left';
       ctx.font = isSelected ? '700 13px Cinzel, serif' : '600 12px Cinzel, serif';
       ctx.fillStyle = isUnlocked ? (isSelected ? '#fef08a' : '#f1f5f9') : '#64748b';
-      ctx.fillText(item.title, 74, cardY + 22);
+      ctx.fillText(item.title, textX, cardY + 21);
 
       ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
       ctx.fillStyle = isUnlocked ? '#94a3b8' : '#475569';
-      ctx.fillText(isUnlocked ? item.subtitle : 'Sealed Memory', 74, cardY + 39);
+      ctx.fillText(isUnlocked ? item.subtitle : 'Sealed Memory', textX, cardY + 38);
 
       // Category / Floor Badge
       ctx.textAlign = 'right';
@@ -627,9 +684,9 @@ export const CinematicArchiveUI = {
       ctx.fillText('LORE CHRONICLE', prevX, descY);
 
       ctx.font = '12px "Crimson Text", Georgia, serif';
-      ctx.fillStyle = isUnlocked ? '#e2e8f0' : '#64748b';
+      ctx.fillStyle = isUnlocked ? '#e2e8f0' : '#cbd5e1';
 
-      const descLines = this._wrapText(ctx, isUnlocked ? curItem.desc : 'This vision remains sealed beneath the weight of the Abyss. It cannot be recalled until Rowan witnesses the event during a descent.', prevW);
+      const descLines = this._wrapText(ctx, curItem.desc, prevW);
       descLines.forEach((l, idx) => {
         ctx.fillText(l, prevX, descY + 18 + idx * 17);
       });
@@ -714,7 +771,7 @@ export const CinematicArchiveUI = {
     ctx.textAlign = 'right';
     ctx.fillStyle = '#64748b';
     ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    ctx.fillText('↑/↓ or W/S: Navigate · Enter / Click: Rewatch · Esc: Return', LW - 36, footY);
+    ctx.fillText('↑/↓ or W/S: Navigate · Enter / Click: Rewatch · U: Unlock All · Esc: Return', LW - 36, footY);
 
     ctx.restore();
   },
@@ -738,34 +795,37 @@ export const CinematicArchiveUI = {
     const cx = x + w / 2;
     const cy = y + h / 2;
 
-    if (isUnlocked) {
-      // 1. Check if the high-fidelity cinematic concept image is preloaded
-      const entry = getArchiveImage(item.id);
-      let drewImage = false;
+    // 1. Check if the high-fidelity cinematic concept image is preloaded
+    const entry = getArchiveImage(item.id);
+    let drewImage = false;
 
-      if (entry && entry.loaded && entry.img.naturalWidth > 0) {
-        try {
-          const img = entry.img;
-          const imgRatio = img.naturalWidth / img.naturalHeight;
-          const boxRatio = w / h;
-          let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+    if (entry && entry.loaded && entry.img.naturalWidth > 0) {
+      try {
+        const img = entry.img;
+        const imgRatio = img.naturalWidth / img.naturalHeight;
+        const boxRatio = w / h;
+        let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
 
-          if (imgRatio > boxRatio) {
-            sw = img.naturalHeight * boxRatio;
-            sx = (img.naturalWidth - sw) / 2;
-          } else {
-            sh = img.naturalWidth / boxRatio;
-            sy = (img.naturalHeight - sh) / 2;
-          }
-
-          ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-          drewImage = true;
-        } catch (e) {
-          drewImage = false;
+        if (imgRatio > boxRatio) {
+          sw = img.naturalHeight * boxRatio;
+          sx = (img.naturalWidth - sw) / 2;
+        } else {
+          sh = img.naturalWidth / boxRatio;
+          sy = (img.naturalHeight - sh) / 2;
         }
-      }
 
-      if (drewImage) {
+        const prevSmoothing = ctx.imageSmoothingEnabled;
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+        ctx.imageSmoothingEnabled = prevSmoothing;
+        drewImage = true;
+      } catch (e) {
+        drewImage = false;
+      }
+    }
+
+    if (drewImage) {
+      if (isUnlocked) {
         // Overlay atmospheric dark fantasy vignette & stone depth
         const edgeGrad = ctx.createRadialGradient(cx, cy, Math.min(w, h) * 0.45, cx, cy, Math.max(w, h) * 0.78);
         edgeGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
@@ -791,6 +851,72 @@ export const CinematicArchiveUI = {
           ctx.fillRect(ex, ey, 1.5, 1.5);
         }
       } else {
+        // Locked Vision: Authentic concept art visible beneath an ancient chained reliquary seal
+        const sealedShadow = ctx.createRadialGradient(cx, cy, 20, cx, cy, Math.max(w, h) * 0.75);
+        sealedShadow.addColorStop(0, 'rgba(6, 10, 20, 0.45)');
+        sealedShadow.addColorStop(0.6, 'rgba(4, 7, 16, 0.72)');
+        sealedShadow.addColorStop(1, 'rgba(2, 4, 10, 0.92)');
+        ctx.fillStyle = sealedShadow;
+        ctx.fillRect(x, y, w, h);
+
+        // Forged iron chains crossed diagonally
+        ctx.strokeStyle = 'rgba(71, 85, 105, 0.55)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(x + 8, y + 8);
+        ctx.lineTo(x + w - 8, y + h - 8);
+        ctx.moveTo(x + w - 8, y + 8);
+        ctx.lineTo(x + 8, y + h - 8);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.3)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x + 8, y + 8);
+        ctx.lineTo(x + w - 8, y + h - 8);
+        ctx.moveTo(x + w - 8, y + 8);
+        ctx.lineTo(x + 8, y + h - 8);
+        ctx.stroke();
+
+        // Central ancient stone seal medallion
+        const sealGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 24);
+        sealGrad.addColorStop(0, '#1e293b');
+        sealGrad.addColorStop(0.8, '#0f172a');
+        sealGrad.addColorStop(1, '#020617');
+        ctx.fillStyle = sealGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy - 4, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(217, 119, 6, 0.65)';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // Lock glyph
+        ctx.fillStyle = '#ca8a04';
+        ctx.beginPath();
+        ctx.arc(cx, cy - 8, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(cx - 2.5, cy - 6);
+        ctx.lineTo(cx + 2.5, cy - 6);
+        ctx.lineTo(cx + 3.5, cy + 2);
+        ctx.lineTo(cx - 3.5, cy + 2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Sealed memory text
+        ctx.textAlign = 'center';
+        ctx.font = '700 10.5px Cinzel, serif';
+        ctx.fillStyle = 'rgba(254, 240, 138, 0.85)';
+        ctx.fillText('✦ SEALED IN DARKNESS ✦', cx, cy + 28);
+
+        ctx.font = 'italic 9.5px "Crimson Text", Georgia, serif';
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+        ctx.fillText('Conquer the trial in your descent to awaken replay', cx, cy + 42);
+      }
+    } else {
+      if (isUnlocked) {
         // Fallback: Authentic Dark Fantasy Dungeon Architecture (Zero flat shapes, Zero emojis)
         ctx.fillStyle = '#080c16';
         ctx.fillRect(x, y, w, h);
@@ -850,86 +976,69 @@ export const CinematicArchiveUI = {
         ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
         ctx.fillStyle = 'rgba(203, 213, 225, 0.6)';
         ctx.fillText(item.subtitle, cx, y + 42);
-      }
-    } else {
-      // 2. Authentic Sealed Vision: Carved Dark Stone Chamber with Heavy Crossed Chains & Ancient Rune Seal
-      ctx.fillStyle = '#05070e';
-      ctx.fillRect(x, y, w, h);
+      } else {
+        // Sealed stone chamber fallback
+        ctx.fillStyle = '#05070e';
+        ctx.fillRect(x, y, w, h);
 
-      // Deep stone brick texture joints
-      ctx.strokeStyle = 'rgba(30, 41, 59, 0.35)';
-      ctx.lineWidth = 1;
-      for (let ly = y + 20; ly < y + h; ly += 24) {
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.35)';
+        ctx.lineWidth = 1;
+        for (let ly = y + 20; ly < y + h; ly += 24) {
+          ctx.beginPath();
+          ctx.moveTo(x, ly);
+          ctx.lineTo(x + w, ly);
+          ctx.stroke();
+        }
+
+        const fogGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, w * 0.45);
+        fogGrad.addColorStop(0, 'rgba(15, 23, 42, 0.55)');
+        fogGrad.addColorStop(1, 'rgba(2, 4, 10, 0.95)');
+        ctx.fillStyle = fogGrad;
+        ctx.fillRect(x, y, w, h);
+
+        ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
+        ctx.lineWidth = 6;
         ctx.beginPath();
-        ctx.moveTo(x, ly);
-        ctx.lineTo(x + w, ly);
+        ctx.moveTo(x + 10, y + 10);
+        ctx.lineTo(x + w - 10, y + h - 10);
+        ctx.moveTo(x + w - 10, y + 10);
+        ctx.lineTo(x + 10, y + h - 10);
         ctx.stroke();
+
+        const sealGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 28);
+        sealGrad.addColorStop(0, '#1e293b');
+        sealGrad.addColorStop(0.8, '#0f172a');
+        sealGrad.addColorStop(1, '#020617');
+        ctx.fillStyle = sealGrad;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgba(217, 119, 6, 0.55)';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ca8a04';
+        ctx.beginPath();
+        ctx.arc(cx, cy - 4, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(cx - 3, cy - 2);
+        ctx.lineTo(cx + 3, cy - 2);
+        ctx.lineTo(cx + 4.5, cy + 8);
+        ctx.lineTo(cx - 4.5, cy + 8);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.textAlign = 'center';
+        ctx.font = '700 11px Cinzel, serif';
+        ctx.fillStyle = 'rgba(203, 213, 225, 0.7)';
+        ctx.fillText('✦ VISION SEALED IN DARKNESS ✦', cx, cy + 38);
+
+        ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.55)';
+        ctx.fillText('Conquer the trial in your descent to awaken this memory', cx, cy + 52);
       }
-
-      // Swirling cold shadow fog
-      const fogGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, w * 0.45);
-      fogGrad.addColorStop(0, 'rgba(15, 23, 42, 0.55)');
-      fogGrad.addColorStop(1, 'rgba(2, 4, 10, 0.95)');
-      ctx.fillStyle = fogGrad;
-      ctx.fillRect(x, y, w, h);
-
-      // Heavy forged iron chains crossed diagonally
-      ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.moveTo(x + 10, y + 10);
-      ctx.lineTo(x + w - 10, y + h - 10);
-      ctx.moveTo(x + w - 10, y + 10);
-      ctx.lineTo(x + 10, y + h - 10);
-      ctx.stroke();
-
-      // Chain highlight links
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(x + 10, y + 10);
-      ctx.lineTo(x + w - 10, y + h - 10);
-      ctx.moveTo(x + w - 10, y + 10);
-      ctx.lineTo(x + 10, y + h - 10);
-      ctx.stroke();
-
-      // Ancient stone seal medallion in center
-      const sealGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 28);
-      sealGrad.addColorStop(0, '#1e293b');
-      sealGrad.addColorStop(0.8, '#0f172a');
-      sealGrad.addColorStop(1, '#020617');
-      ctx.fillStyle = sealGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, 26, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Bronze runic border
-      ctx.strokeStyle = 'rgba(217, 119, 6, 0.55)';
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
-
-      // Carved lock keyhole glyph
-      ctx.fillStyle = '#ca8a04';
-      ctx.beginPath();
-      ctx.arc(cx, cy - 4, 5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(cx - 3, cy - 2);
-      ctx.lineTo(cx + 3, cy - 2);
-      ctx.lineTo(cx + 4.5, cy + 8);
-      ctx.lineTo(cx - 4.5, cy + 8);
-      ctx.closePath();
-      ctx.fill();
-
-      // Sealed Memory Label
-      ctx.textAlign = 'center';
-      ctx.font = '700 11px Cinzel, serif';
-      ctx.fillStyle = 'rgba(203, 213, 225, 0.7)';
-      ctx.fillText('✦ VISION SEALED IN DARKNESS ✦', cx, cy + 38);
-
-      ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.55)';
-      ctx.fillText('Conquer the trial in your descent to awaken this memory', cx, cy + 52);
     }
 
     // Inner bevel & carved stone trim
@@ -1008,6 +1117,11 @@ export const CinematicArchiveUI = {
       return true;
     }
 
+    if (key === 'KeyU' || key === 'u' || key === 'U') {
+      this.toggleUnlockAll();
+      return true;
+    }
+
     if (key === 'Enter' || key === ' ' || key === 'Space') {
       const item = filtered[_selectedIndex];
       if (item && SaveSystem.isCinematicUnlocked(item.id)) {
@@ -1042,6 +1156,10 @@ export const CinematicArchiveUI = {
           this.startReplay(z.item);
           return true;
         }
+        if (z.type === 'unlock_all') {
+          this.toggleUnlockAll();
+          return true;
+        }
         if (z.type === 'back') {
           this.close();
           return true;
@@ -1070,6 +1188,21 @@ export const CinematicArchiveUI = {
         }
       }
     }
+  },
+
+  toggleUnlockAll() {
+    const isAll = ARCHIVE_CINEMATICS.every(c => SaveSystem.isCinematicUnlocked(c.id));
+    if (isAll) {
+      GameState.UNLOCKED_CINEMATICS = { 'the_descent': true };
+    } else {
+      ARCHIVE_CINEMATICS.forEach(c => {
+        GameState.UNLOCKED_CINEMATICS[c.id] = true;
+      });
+    }
+    try {
+      localStorage.setItem('db_unlocked_cinematics_v1', JSON.stringify(GameState.UNLOCKED_CINEMATICS));
+    } catch (e) {}
+    try { SoundManager.snd('menu_select'); } catch (e) {}
   },
 
   startReplay(item) {

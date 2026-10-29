@@ -615,6 +615,17 @@ export const SaveSystem = {
     return this.recordCinematicUnlock(id);
   },
 
+  unlockAllCinematics(allIds = []) {
+    if (!GameState.UNLOCKED_CINEMATICS) this.loadUnlockedCinematics();
+    allIds.forEach(id => {
+      GameState.UNLOCKED_CINEMATICS[id] = true;
+    });
+    try {
+      localStorage.setItem('db_unlocked_cinematics_v1', JSON.stringify(GameState.UNLOCKED_CINEMATICS));
+    } catch (e) {}
+    return true;
+  },
+
   isCinematicUnlocked(id) {
     if (!GameState.UNLOCKED_CINEMATICS) this.loadUnlockedCinematics();
     return !!(GameState.UNLOCKED_CINEMATICS && GameState.UNLOCKED_CINEMATICS[id]);
