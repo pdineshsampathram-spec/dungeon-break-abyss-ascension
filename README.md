@@ -1,198 +1,207 @@
-# Dungeon Break — Abyss Ascension Edition
+# Dungeon Break: Abyss Ascension
 
 <p align="center">
-  <img src="screenshots/showcase/01-main-menu.png" alt="Dungeon Break — Abyss Ascension Edition Main Menu" width="100%" />
+  <img src="screenshots/showcase/01-main-menu.png" alt="Dungeon Break: Abyss Ascension — Title Sanctuary" width="100%" />
 </p>
 
 <p align="center">
-  <strong>A dark-fantasy 2D roguelite action dungeon crawler built with pure Canvas 2D and modular ES6 architecture.</strong>
+  <a href="https://dungeon-break.vercel.app/"><img src="https://img.shields.io/badge/PLAY_NOW-Vercel_Production-7c3aed?style=for-the-badge&logo=vercel&logoColor=white" alt="Play Online (Vercel)" /></a>
+  <a href="https://pdineshsampathram-spec.github.io/dungeon-break-abyss-ascension/"><img src="https://img.shields.io/badge/PLAY_NOW-GitHub_Pages-2563eb?style=for-the-badge&logo=github&logoColor=white" alt="Play Online (GitHub Pages)" /></a>
+  <img src="https://img.shields.io/badge/ENGINE-Pure_HTML5_Canvas_2D-f59e0b?style=for-the-badge" alt="Canvas 2D Engine" />
+  <img src="https://img.shields.io/badge/ARCHITECTURE-Modular_ES6-10b981?style=for-the-badge" alt="Modular ES6" />
+  <img src="https://img.shields.io/badge/PERFORMANCE-60_FPS_Fixed_Tick-dc2626?style=for-the-badge" alt="60 FPS" />
 </p>
 
 <p align="center">
-  <a href="https://dungeon-break.vercel.app/"><strong>▶ PLAY ONLINE (Vercel)</strong></a> •
-  <a href="https://pdineshsampathram-spec.github.io/dungeon-break-abyss-ascension/"><strong>▶ PLAY ONLINE (GitHub Pages)</strong></a> •
-  <a href="#gameplay-features">Features</a> •
-  <a href="#screenshots-gallery">Showcase</a> •
-  <a href="#controls--how-to-play">Controls</a> •
-  <a href="#running-locally">Local Setup</a> •
-  <a href="#technology--architecture">Architecture</a>
+  <strong>An atmospheric dark-fantasy 2D action roguelite dungeon crawler engineered with pure Canvas 2D and zero external runtime dependencies.</strong>
+</p>
+
+<p align="center">
+  <a href="#-about-the-crucible">The Lore</a> •
+  <a href="#-core-gameplay-features">Features</a> •
+  <a href="#-visual-showcase--screenshots">Showcase</a> •
+  <a href="#-controls--combat-guide">Controls</a> •
+  <a href="#-running-locally">Local Run</a> •
+  <a href="#-technical-architecture">Architecture</a>
 </p>
 
 ---
 
-## About the Game
+## ⚡ Quick Play: Descend Immediately
 
-Cast into the subterranean depths after a cruel betrayal at the citadel gate, **Lord Rowan** must survive a descent through ten treacherous dungeon floors. What begins as a desperate struggle to reach the surface transforms into an ancient crucible—a deliberate gauntlet testing strength, resolve, and the limits of human sanity.
+No installs, no plugins, no loading screens. Click to play directly in any modern browser:
 
-Face monstrous jailers, unearth sacred boss bloodlines forged into forgotten weaponry, rescue terrified survivors scattered through the dark, and uncover the truth behind the enigmatic gaze of **The Absolute**.
-
-> *"The descent is not an escape. It is an awakening."*
+| Primary Production Node | High-Availability Mirror |
+|:---:|:---:|
+| [**▶ PLAY ON VERCEL (Fastest)**](https://dungeon-break.vercel.app/) | [**▶ PLAY ON GITHUB PAGES**](https://pdineshsampathram-spec.github.io/dungeon-break-abyss-ascension/) |
+| *Edge CDN · Zero Latency · Instant Boot* | *Global GitHub Pages Static Mirror* |
 
 ---
 
-## Gameplay Features
+## 📜 About the Crucible
 
-### ⚔️ Ten-Floor Descent & Colossal Boss Trials
-- **Floor 1–2 (The Upper Dungeons):** Skeleton vanguards, archers, spike traps, and crumbling masonry.
-- **Floor 3 (The Iron Keep — Gorgaroth):** Confront Gorgaroth, the Iron Jailer, wielding a massive war pillar amidst magma channels and shattered chains.
-- **Floor 4–5 (The Sunken Crypts):** Shadow stalkers, void wraiths, pressure plates, and dark sanctum chambers.
-- **Floor 6 (The Void Sanctum — Arch-Lich Malakor):** Face Malakor as he weaves nether rifts and teleports through non-Euclidean space.
-- **Floor 7–9 (The Abyssal Foundations):** Deep elite sentinels, temporal echoes, and fractured reality.
-- **Floor 10 (The Throne of Ruin — The Abyss Warden):** Confront the immortal four-winged Warden and his dreaded blade at the heart of the world.
+> *"The gate slammed shut. The cohorts fled. The torch dies here."*
 
-### 🗡️ Weapon Arsenal & Forged Rarities
-- **5 Authentic Weapon Archetypes:**
-  - **Sword:** Balanced slashing sweep with moderate poise damage.
-  - **Axe:** Heavy cleaving arc with ground-shattering burst damage.
-  - **Dagger:** Rapid thrusts with tactical shadow step teleportation.
-  - **Bow:** Long-range precision piercing arrows.
-  - **Spear / Trident:** Thrusting reach with multi-target knockback.
-- **Rarity Tiers:** Common, Rare, Epic, and Legendary with deterministic stat scaling and visual glow accents.
-- **Active Weapon Dock:** Equip and cycle up to 3 weapons in real time with instant numerical hotkeys or mobile tap docks.
+Cast into the subterranean abyss after a brutal betrayal at the citadel portcullis, **Lord Rowan**, Vanguard Knight of the Sunken Citadel, must fight his way down through ten treacherous strata of stone, magma, void, and shadow.
+
+What begins as an instinctual fight for survival quickly unmasks itself as an ancient, empirical crucible—a subterranean gauntlet engineered eons ago by an unknowable cosmic entity known as **The Absolute** to test the limits of human strength, cadence, and sanity.
+
+Survive monstrous jailers, unearth pre-forged blood weaponry caches, maintain your flickering sanity against creeping madness, rescue trapped survivors, and decide the fate of the world beyond the 10th floor.
+
+---
+
+## ⚔️ Core Gameplay Features
+
+### 🌋 Ten Subterranean Strata & Three Epic Boss Trials
+- **Floor 1–2 (The Upper Dungeons & Forgotten Crypts):** Skeletons, ghouls, crumbling arches, pressure plates, and spike traps.
+- **Floor 3 (The Iron Keep — Gorgaroth the Iron Jailer):** Face the chained horned behemoth wielding a colossal granite war pillar amidst bubbling lava canals.
+- **Floor 4–5 (The Sunken Crypts & Infernal Catacombs):** Non-Euclidean corridors, shifting traps, demonic wraiths, and suffocating ambient heat.
+- **Floor 6 (The Void Sanctum — Arch-Lich Malakor):** Confront the hovering arch-lich as he weaves dimensional rifts and spatial tears through reality.
+- **Floor 7–9 (The Molten Core & Threshold of Oblivion):** Magma aqueducts, ancient runic stelae, and the darkening threshold of apotheosis.
+- **Floor 10 (Throne of Ruin — The Abyss Warden):** Duel the immortal four-winged Warden brandishing the Dreadblade at the floor of the world.
 
 <p align="center">
-  <img src="screenshots/showcase/02-floor-gameplay.png" alt="Floor Gameplay" width="85%" />
+  <img src="screenshots/showcase/02-floor-gameplay.png" alt="Active Combat in the Sunken Dungeons" width="90%" />
 </p>
 
-### 🧠 Sanity System & The Shattered Mind
-- Rowan's sanity drains under darkness, enemy proximity, and supernatural terror.
-- Maintain your mind through light sources, restorative shrines, and combat triumphs.
-- Depleting sanity to zero fractures perception, erasing dungeon walls and triggering the psychological **Shattered Mind** outcome.
+### 🗡️ Five Legendary Weapon Archetypes & Dynamic Hotkey Docking
+Rowan does not craft weapons from slain foes—he discovers caches of primeval weapons pre-forged eons ago from ancient titan bloodlines:
+- **Broadsword (Balanced Vanguard):** Wide sweeping arc with high stagger poise and reliable defensive recovery.
+- **War Axe (Heavy Cleave):** Massive damage radius with ground-shattering impact.
+- **Shadow Dagger (Agility & Flash):** Rapid thrusting strikes paired with evasive phantom shadow steps.
+- **Longbow (Precision Piercing):** High-velocity ranged arrows that pierce through enemy lines.
+- **Vanguard Spear / Trident (Spearhead Reach):** Linear thrusting reach with heavy knockback.
+- **Active 3-Slot Weapon Dock:** Instantly swap equipped weapons on the fly using `1`, `2`, `3`, mouse wheel, or mobile tap docks.
+
+### 🧠 The Sanity System & The Shattered Mind
+- Light is your lifeline. Darkness, proximity to eldritch horrors, and trauma continuously drain Rowan's **Sanity Meter**.
+- Maintain sanity by staying near torches, drinking from blessed light shrines, and executing swift combat victories.
+- **Sanity Zero Collapse:** If sanity drains completely, Rowan's perception of reality fractures. Dungeon walls dissolve into cosmic dust, shadowy duplicates arise, and the giant red eye of The Absolute awakens in the psychological **Shattered Mind** sequence.
+
+<p align="center">
+  <img src="screenshots/showcase/07-memories-and-codex.png" alt="Grand Codex, Illustrated Chronicles & Bestiary" width="90%" />
+</p>
 
 ### 📜 Codex, Bestiary & Illustrated Chronicles
-- **Dungeon Chronicles:** Ten illustrated scrolls detailing the lore, architecture, and history of each subterranean floor.
-- **Living Bestiary:** Interactive anatomical dossiers, attack patterns, and weakness logs for every monster and boss.
-- **Archive of Memories:** Replay unlocked narrative cutscenes, boss confrontations, and distinct ending visions safely with zero progression loss.
+- **Dungeon Chronicles:** Ten illustrated scrolls detailing the canonical lore, architectural origins, and secrets of each subterranean floor.
+- **Living Bestiary:** Interactive anatomical dossiers, attack patterns, and tactical weakness matrices for every monster and boss.
+- **Story Memory Echoes:** Reconstruct forgotten memories of Lord Rowan, his cohort, and the surface kingdom.
+
+### 🎬 Dedicated Archive of Memories
+- **18 Authentic 16-Bit / 32-Bit Dark Fantasy Pixel Art Visions:** Rewatch story cutscenes, boss introductions, boss defeats, and multiple branching endings safely with zero progression loss.
+- **Nearest-Neighbor Pixel Rendering:** Rendered with integer-scaled pixel quantization, Floyd-Steinberg dithering, and custom Canvas 2D atmospheric shaders.
+- **Mini Pixel Thumbnail Reliquaries:** Beautifully framed miniature preview cards on every entry in the archive.
 
 <p align="center">
-  <img src="screenshots/showcase/07-memories-and-codex.png" alt="Codex and Bestiary" width="85%" />
+  <img src="screenshots/showcase/09-cinematic-archive.png" alt="Archive of Memories with Authentic Dark Fantasy Pixel Art" width="90%" />
 </p>
+
+### 📱 Responsive Mobile Ergonomics & Live Game Speed Regulator
+- **Ergonomic Virtual Touch Controls:** Floating directional D-pad, dedicated combat cluster (Attack, Bow, Special Ability), and tap-to-swap weapon dock.
+- **Live Speed Regulator:** Dynamically shift game speed on the fly between `0.50×` (tactical slow-motion), `1.00×` (standard), `1.50×` (accelerated), and `2.00×` (blitzkrieg).
 
 ### 🏆 Achievements Wall & Speedrun Chronometer
-- **50+ Hand-Crafted Achievements:** Combat masteries, survival feats, flawless boss victories, secret discoveries, and the ultimate 8-milestone **The Last Witness**.
-- **Integrated Speedrun Timer:** Precise frame-accurate run chronometer displaying split times, floor milestones, and personal records.
-
-### 📱 Ergonomic Mobile Controls & Live Speed Adjustment
-- **Tactile Touch Controls:** Dedicated floating D-pad, primary attack, special consecrated ability, ranged bow shot, and a 3-slot mobile weapon dock.
-- **Live Speed Regulator:** Seamlessly shift game execution speed in real time between `0.50×`, `1.00×`, `1.50×`, and `2.00×`.
-
-<p align="center">
-  <img src="screenshots/showcase/03-mobile-controls.png" alt="Mobile Controls Layout" width="85%" />
-</p>
+- **50+ Hand-Crafted Achievements:** Combat masteries, no-damage boss runs, survival challenges, and the ultimate 8-milestone **The Last Witness**.
+- **Integrated Speedrun Chronometer:** Millisecond-accurate split timers, personal best trackers, and floor milestone splits.
 
 ---
 
-## Screenshots Gallery
+## 🖼️ Visual Showcase & Screenshots
 
-| 01. The Title Sanctuary | 02. Active Descent Gameplay |
+| 01. Title Sanctuary & Abyssal Gate | 02. Active Descent Dungeon Combat |
 |:---:|:---:|
-| ![Main Menu](screenshots/showcase/01-main-menu.png) | ![Floor Gameplay](screenshots/showcase/02-floor-gameplay.png) |
-| *Sculpted stone plaque, portal effects, and relic buttons* | *Real-time combat HUD, dynamic lighting, and dungeon masonry* |
+| <img src="screenshots/showcase/01-main-menu.png" width="100%" /> | <img src="screenshots/showcase/02-floor-gameplay.png" width="100%" /> |
+| *Concentric abyss accretion dial, brazier embers, and relic buttons* | *Real-time combat HUD, dynamic torch lighting, and stone masonry* |
 
-| 03. Mobile Responsive Controls | 04. Gorgaroth (Floor 3 Boss) |
+| 03. Mobile Responsive Controls | 04. Gorgaroth (Floor 3 Boss Trial) |
 |:---:|:---:|
-| ![Mobile Controls](screenshots/showcase/03-mobile-controls.png) | ![Gorgaroth Boss](screenshots/showcase/04-gorgaroth-boss.png) |
-| *Ergonomic D-pad, weapon dock, and combat action cluster* | *The Iron Jailer slams his pillar in the magma chamber* |
+| <img src="screenshots/showcase/03-mobile-controls.png" width="100%" /> | <img src="screenshots/showcase/04-gorgaroth-boss.png" width="100%" /> |
+| *Virtual D-pad, tap weapon dock, and combat action cluster* | *The Iron Jailer slams his colossal war pillar in the magma forge* |
 
-| 05. Arch-Lich Malakor (Floor 6 Boss) | 06. The Abyss Warden (Floor 10 Apex) |
+| 05. Arch-Lich Malakor (Floor 6 Boss Trial) | 06. The Abyss Warden (Floor 10 Apex) |
 |:---:|:---:|
-| ![Malakor Boss](screenshots/showcase/05-malakor-boss.png) | ![Abyss Warden](screenshots/showcase/06-abyss-warden.png) |
-| *Spatial rifts and spectral robes inside the Void Sanctum* | *Four-winged sentinel brandishing the Dreadblade on the Sunken Throne* |
+| <img src="screenshots/showcase/05-malakor-boss.png" width="100%" /> | <img src="screenshots/showcase/06-abyss-warden.png" width="100%" /> |
+| *Nether rifts, detached shard claws, and non-Euclidean space* | *Immortal four-winged sentinel brandishing the Dreadblade* |
 
-| 07. Codex & Illustrated Chronicles | 08. Achievements Archive |
+| 07. Grand Codex & Bestiary | 08. Achievements & Progression Wall |
 |:---:|:---:|
-| ![Codex](screenshots/showcase/07-memories-and-codex.png) | ![Achievements](screenshots/showcase/08-achievements.png) |
-| *Deep lore archives, floor chronicles, and enemy bestiaries* | *Milestone tracking, categorized badges, and progression wall* |
+| <img src="screenshots/showcase/07-memories-and-codex.png" width="100%" /> | <img src="screenshots/showcase/08-achievements.png" width="100%" /> |
+| *Deep subterranean lore archives, chronicles, and monster anatomies* | *50+ categorized badges, completion meters, and milestone feats* |
 
-| 09. Cinematic Archive of Memories | 10. Living Ending Credits |
+| 09. Archive of Memories (16-Bit Pixel Art) | 10. Living Ending Credits Suite |
 |:---:|:---:|
-| ![Cinematic Archive](screenshots/showcase/09-cinematic-archive.png) | ![Ending Credits](screenshots/showcase/10-ending-credits.png) |
-| *Safe presentation rewatch for all major narrative visions* | *Living ending credits suite with branch-specific conclusions* |
+| <img src="screenshots/showcase/09-cinematic-archive.png" width="100%" /> | <img src="screenshots/showcase/10-ending-credits.png" width="100%" /> |
+| *Safe presentation rewatch for all 18 authentic pixel-art visions* | *Multi-layer particle engine, custom credits, and branch conclusions* |
 
 ---
 
-## Controls & How to Play
+## 🎮 Controls & Combat Guide
 
 ### 💻 Desktop Keyboard & Mouse
 
 | Action | Primary Key | Secondary Key |
 |:---|:---:|:---:|
-| **Move Up / Down / Left / Right** | `W` `A` `S` `D` | `↑` `←` `↓` `→` |
-| **Primary Attack** | `Left Mouse Click` | `J` |
+| **Move Up / Left / Down / Right** | `W` `A` `S` `D` | `↑` `←` `↓` `→` |
+| **Primary Melee / Ranged Attack** | `Left Mouse Click` | `J` |
 | **Special Consecrated Ability** | `Q` | `K` |
-| **Dodge / Dash** | `Spacebar` | `Shift` |
-| **Switch Weapon (Slots 1, 2, 3)** | `1`, `2`, `3` | `Mouse Wheel` |
-| **Toggle Minimap / Full Map** | `M` | `Tab` |
-| **Pause Menu / Settings** | `Escape` | `P` |
-| **Adjust Game Speed** | `[` / `]` | `Numpad 1–4` |
+| **Evasive Dodge Roll** | `Spacebar` | `Shift` |
+| **Switch Weapon (Slot 1, 2, 3)** | `1`, `2`, `3` | `Mouse Wheel` |
+| **Toggle Map / Full Minimap** | `M` | `Tab` |
+| **Pause Menu / Settings / Codex** | `Escape` | `P` |
+| **Adjust Game Speed (0.5×–2.0×)** | `[` / `]` | `Numpad 1–4` |
 
 ### 📱 Mobile Touch Ergonomics
-- **Directional D-Pad (Left):** Smooth 8-directional player traversal.
-- **Combat Cluster (Right):** Primary attack button (`⚔`), Bow shot (`🏹`), and Special skill (`✦`).
-- **Weapon Dock (Bottom Center):** Tap any unlocked weapon slot (`1`, `2`, `3`) to swap weapons instantly.
-- **In-Game HUD Buttons (Top Corners):** Top-left map button (`🗺️`), top-right pause/speed button (`⏸`).
+- **Directional D-Pad (Bottom-Left):** Smooth 8-way directional navigation.
+- **Combat Cluster (Bottom-Right):** Attack (`⚔`), Longbow (`🏹`), and Consecrated Special (`✦`).
+- **Weapon Dock (Bottom-Center):** Instant tap-to-equip between unlocked weapon slots.
+- **Top Bar Controls:** Minimap (`🗺️`), Pause (`⏸`), and Speed (`⚡`).
 
 ---
 
-## Running Locally
+## 🛠️ Running Locally
 
-Because Dungeon Break uses modern **ES6 Modules** and procedural audio assets, running it directly via `file://` will be blocked by browser CORS security policies. A lightweight local HTTP server is required.
+Because Dungeon Break uses modern **ES6 Modules** and procedural Web Audio, run it via a lightweight local HTTP server:
 
-### Option 1: Node.js (Recommended)
+### Option 1: Node.js (Quickest)
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/pdineshsampathram-spec/dungeon-break-abyss-ascension.git
 cd dungeon-break-abyss-ascension
 
-# Start the built-in development server
+# 2. Launch local dev server
 npm start
 ```
-Then navigate to:  
-`http://localhost:8080`
+Open **`http://localhost:8080`** in your browser.
 
 ### Option 2: Python 3
 ```bash
 python3 -m http.server 8080
 ```
-Then navigate to:  
-`http://localhost:8080`
+Open **`http://localhost:8080`** in your browser.
 
 ### Option 3: VS Code Live Server
 Right-click `index.html` in VS Code and select **Open with Live Server**.
 
 ---
 
-## Technology & Architecture
+## 🏛️ Technical Architecture
 
 Dungeon Break is engineered with a strict **no-runtime-framework** philosophy:
 
-- **Rendering Engine:** Hand-crafted HTML5 Canvas 2D engine rendering at a fixed virtual coordinate space (`960 × 540` / `896 × 640`), dynamically upscaled to fit any display without distortion.
-- **Modular ES6 Architecture:** Clean separation of concerns across core loops, combat math, procedural world generation, audio mixing, UI state machines, and particle rendering.
+- **Native HTML5 Canvas 2D Pipeline:** Fixed virtual coordinate viewport (`960 × 540` / `896 × 640`), dynamically letterboxed and integer-scaled to fit any resolution without visual distortion.
 - **Procedural Character & Boss Art:** Characters, animations, particle effects, and bosses are rendered entirely in code via mathematical Canvas 2D pathing (zero heavy 3D assets or bloated sprite sheets).
-- **Audio Engine:** Dual-pipeline Web Audio API procedural sound synthesizer for dynamic hit impacts, sub-bass rumbles, and chimes, paired with an ambient streaming music manager with linear crossfading.
-- **Persistence:** LocalStorage serialization with corrupt-data fallback, cross-run milestone tracking, and deterministic run configurations.
+- **Dual-Pipeline Web Audio Engine:** Procedural sound synthesizer for dynamic hit impacts, sub-bass rumbles, and chimes, paired with an ambient streaming music manager with linear crossfading.
+- **Safe Persistence:** LocalStorage serialization with corrupt-data fallback, cross-run milestone tracking, and deterministic run configurations.
 
 ---
 
-## Credits
+## 📜 Credits & License
 
-**Created by Dinesh Polimera**
-
+**Created by Dinesh Polimera**  
 *Special thanks to all playtesters and adventurers who dared to venture into the Abyss.*
 
----
-
-## Release Status & Notes
-
-- **Version:** v8.0.0 — Abyss Ascension Edition
-- **Target Platform:** Modern Web Browsers (Chrome, Edge, Firefox, Safari on Desktop & Mobile)
-- **Deployment Status:** Static hosting verified for GitHub Pages.
-- **Known Limitations:**
-  - Web Audio requires a user gesture (click or tap) to initialize audio context in accordance with browser autoplay policies.
-  - Very old mobile browsers without ES6 module support are not supported.
-
----
+Distributed under the **MIT License**. See `LICENSE` for details.
 
 <p align="center">
-  <sub>Dungeon Break: Abyss Ascension Edition © 2026. All rights reserved.</sub>
+  <sub>Dungeon Break: Abyss Ascension © 2026. Built with pure code, mathematics, and pixel art.</sub>
 </p>
