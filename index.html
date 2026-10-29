@@ -16,6 +16,20 @@
 <body>
   <canvas id="c"></canvas>
 
+  <!-- Mobile Landscape Required Prompt Overlay -->
+  <div id="rotate-overlay" aria-live="polite">
+    <div class="rotate-phone-anim">
+      <svg viewBox="0 0 64 64" width="72" height="72" fill="none" stroke="#fde68a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="18" y="8" width="28" height="48" rx="4" />
+        <circle cx="32" cy="48" r="1.5" fill="#fde68a" />
+        <path d="M48 24 L56 32 L48 40" />
+        <path d="M54 32 A20 20 0 0 0 32 12" stroke-dasharray="3 3" />
+      </svg>
+    </div>
+    <div class="rotate-title">LANDSCAPE MODE REQUIRED</div>
+    <div class="rotate-desc">Dungeon Break is forged for horizontal combat.<br/>Please rotate your device to landscape to enter the Abyss.</div>
+  </div>
+
   <!-- Mobile Touch Overlay Controls -->
   <div id="touch-overlay">
     <div id="joy-zone" class="dpad-container" aria-label="Directional Movement Pad">

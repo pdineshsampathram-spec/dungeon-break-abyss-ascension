@@ -62,22 +62,16 @@ function bootstrap() {
   canvas.width = LW;
   canvas.height = LH;
 
-  // Responsive edge-to-edge full viewport scaling without black gutters
+  // Responsive edge-to-edge full viewport scaling enforcing horizontal gaming proportions
   function resizeCanvas() {
     const sw = window.innerWidth;
     const sh = window.innerHeight;
     const aspect = sw / sh;
 
-    let targetLW, targetLH;
-    if (aspect >= 1.4) {
-      // Landscape: keep logical height 640, expand width to fill screen edge-to-edge
-      targetLH = 640;
-      targetLW = Math.round(640 * aspect);
-    } else {
-      // Portrait / Narrow: keep logical width 896, expand height to fill screen edge-to-edge
-      targetLW = 896;
-      targetLH = Math.round(896 / aspect);
-    }
+    // Enforce horizontal game proportions (minimum 1.4 aspect, never awkward vertical stretch)
+    const horizontalAspect = Math.max(1.4, aspect);
+    const targetLH = 640;
+    const targetLW = Math.round(640 * horizontalAspect);
 
     setLogicalDimensions(targetLW, targetLH);
 
@@ -95,6 +89,16 @@ function bootstrap() {
       MobileControls.updateTouchVis();
     }
   }
+
+  function tryLockOrientation() {
+    if (typeof screen !== 'undefined' && screen.orientation && screen.orientation.lock) {
+      try {
+        screen.orientation.lock('landscape').catch(() => {});
+      } catch (e) {}
+    }
+  }
+  window.addEventListener('touchstart', tryLockOrientation, { passive: true });
+  window.addEventListener('pointerdown', tryLockOrientation, { passive: true });
   window.addEventListener('resize', resizeCanvas);
   window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
   resizeCanvas();

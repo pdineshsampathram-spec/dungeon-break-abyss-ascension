@@ -73,8 +73,8 @@ body {
 #rotate-overlay {
   position: fixed;
   inset: 0;
-  background: #000;
-  z-index: 9999;
+  background: radial-gradient(circle at center, #130d22 0%, #06030b 100%);
+  z-index: 99999;
   display: none;
   flex-direction: column;
   align-items: center;
@@ -82,11 +82,46 @@ body {
   color: #fde68a;
   font-family: 'Cinzel', serif;
   text-align: center;
+  padding: 24px;
   gap: 16px;
+  pointer-events: all;
+  user-select: none;
+}
+
+.rotate-phone-anim {
+  animation: rotSpin 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.6));
 }
 
 @keyframes rotSpin {
-  0% { transform: rotate(0deg); }
-  50% { transform: rotate(90deg); }
-  100% { transform: rotate(90deg); }
+  0%, 15% { transform: rotate(0deg); }
+  50%, 65% { transform: rotate(90deg); }
+  90%, 100% { transform: rotate(0deg); }
+}
+
+.rotate-title {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #fde68a;
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.8), 0 2px 4px #000;
+}
+
+.rotate-desc {
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  color: #cbd5e1;
+  max-width: 320px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+/* Enforce landscape orientation on mobile/tablet viewports */
+@media screen and (orientation: portrait) and (max-width: 1024px) {
+  #rotate-overlay {
+    display: flex !important;
+  }
+  #touch-overlay {
+    display: none !important;
+  }
 }

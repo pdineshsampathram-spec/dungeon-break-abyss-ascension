@@ -129,6 +129,8 @@ export const GorgarothCinematics = {
     // Fast forward directly to portal formation so the formation visibly animates to completion
     if (cine && cine.timer < GORGAROTH_DEFEAT_TIMELINE.HOLD_EMPTY) {
       cine.timer = GORGAROTH_DEFEAT_TIMELINE.HOLD_EMPTY;
+    } else {
+      this.finishPortalFormation();
     }
   },
 
@@ -245,9 +247,9 @@ export const GorgarothCinematics = {
       });
     }
 
-    // Portal location: Directly in the north dais center of the boss arena
-    const portalX = defaultCx;
-    const portalY = room.y + 2.0;
+    // Portal location: Directly where Gorgaroth fell in battle
+    const portalX = bx;
+    const portalY = by;
 
     _activeDefeat = {
       timer: 0,
@@ -269,7 +271,7 @@ export const GorgarothCinematics = {
         x: portalX,
         y: portalY,
         radius: 0,
-        targetRadius: 30,
+        targetRadius: 28,
         swirl: 0,
         pulse: 0,
         alpha: 0,
@@ -281,8 +283,8 @@ export const GorgarothCinematics = {
         targetY: (py + by) / 2,
         currentX: (px + bx) / 2,
         currentY: (py + by) / 2,
-        zoom: 1.22,
-        targetZoom: 1.22
+        zoom: 1.18,
+        targetZoom: 1.18
       },
       flashAlpha: 0.45,
       soundCues: {}

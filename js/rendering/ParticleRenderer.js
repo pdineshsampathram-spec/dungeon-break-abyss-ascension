@@ -28,6 +28,9 @@ export const ParticleRenderer = {
         star: !!o.star
       });
     }
+    if (GameState.PRT.length > 250) {
+      GameState.PRT.splice(0, GameState.PRT.length - 250);
+    }
   },
 
   spawnRing(wx, wy, col) {

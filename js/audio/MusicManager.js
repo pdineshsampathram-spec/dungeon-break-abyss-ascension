@@ -261,6 +261,13 @@ export const MusicManager = {
       return;
     }
 
+    if (state === GameStates.CINEMATIC_ARCHIVE || state === 'cinematic_archive') {
+      if (_currentTrackKey !== 'menu' && !_isFading) {
+        this.fadeIn('menu', 1.5, 0.70);
+      }
+      return;
+    }
+
     if (state === GameStates.CINEMATIC || state === GameStates.BOSS_DEFEAT_CINEMATIC || state === 'boss_defeat_cinematic') {
       // Handled explicitly by CinematicDirector / WardenDefeatCinematic / EndingCinematics
       return;

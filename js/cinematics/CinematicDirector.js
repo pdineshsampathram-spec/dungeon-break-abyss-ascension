@@ -19,6 +19,7 @@ import { triggerCinematicBanner } from '../ui/HUD.js';
 import { CINEMATIC_W, CINEMATIC_H } from './CinematicRenderer.js';
 import { CinematicSafety } from './CinematicSafety.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
+import { MusicManager } from '../audio/MusicManager.js';
 
 export let THE_DESCENT = null;
 
@@ -160,6 +161,11 @@ export const CinematicDirector = {
 
     GameState.setState(GameStates.CINEMATIC);
     GameState.CINEMATIC_ACTIVE = true;
+
+    // Atmospheric cathedral title theme plays throughout The Descent
+    try {
+      MusicManager.fadeIn('menu', 1.2, 0.72);
+    } catch (e) {}
 
     const P = GameState.P;
     const px = P ? P.x : 10;
@@ -455,10 +461,22 @@ export const CinematicDirector = {
     CinematicSafety.reset();
     EventBus.emit('cinematic:intro_ended');
     triggerCinematicBanner('FLOOR 1 — THE SUNKEN CRYPTS', 'Trapped in the deep. Ascend or perish.');
+
+    // Transition smoothly to exploration music upon beginning Floor 1
+    try {
+      if (!CinematicSafety.isReplay()) {
+        MusicManager.crossfade('exploration', 1.8, 0.65);
+      }
+    } catch (e) {}
   },
 
   skip() {
     if (!this.canSkip()) return;
+    try {
+      if (!CinematicSafety.isReplay()) {
+        MusicManager.crossfade('exploration', 1.8, 0.65);
+      }
+    } catch (e) {}
     this.endIntro();
   },
 

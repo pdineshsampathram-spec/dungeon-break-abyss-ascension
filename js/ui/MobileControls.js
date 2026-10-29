@@ -13,16 +13,16 @@ import { pauseGame, resumeGame } from './PauseMenu.js';
 import { HUD } from './HUD.js';
 
 const CTRL_DEFAULTS = {
-  joySize: 110,
-  joyX: 24,
-  joyYBot: 24,
-  atkSize: 72,
+  joySize: 118,
+  joyX: 28,
+  joyYBot: 28,
+  atkSize: 76,
   atkX: null,
-  atkYBot: 24,
-  shootSize: 62,
+  atkYBot: 28,
+  shootSize: 66,
   shootX: null,
   shootYBot: 0,
-  specialSize: 60,
+  specialSize: 66,
   specialX: null,
   specialYBot: 0
 };
@@ -367,37 +367,53 @@ export const MobileControls = {
     const dpadLeft = document.getElementById('dpad-left');
     const dpadRight = document.getElementById('dpad-right');
 
+    const dpadCenter = document.getElementById('dpad-center');
+
     const updateDpadVisuals = (dx, dy) => {
-      if (dpadUp) dpadUp.classList.toggle('active', dy < 0);
-      if (dpadDown) dpadDown.classList.toggle('active', dy > 0);
-      if (dpadLeft) dpadLeft.classList.toggle('active', dx < 0);
-      if (dpadRight) dpadRight.classList.toggle('active', dx > 0);
+      if (dpadUp) dpadUp.classList.toggle('active', dy < -0.3);
+      if (dpadDown) dpadDown.classList.toggle('active', dy > 0.3);
+      if (dpadLeft) dpadLeft.classList.toggle('active', dx < -0.3);
+      if (dpadRight) dpadRight.classList.toggle('active', dx > 0.3);
     };
 
     const handleDpadMove = (clientX, clientY) => {
       const dx = clientX - JOY_ORIGIN.x;
       const dy = clientY - JOY_ORIGIN.y;
       const dist = Math.hypot(dx, dy);
-      const deadzone = 8;
+      const deadzone = 6;
+      const maxR = (CTRL.joySize || 118) * 0.45;
+
       if (dist < deadzone) {
         InputManager.TOUCH_DIR.x = 0;
         InputManager.TOUCH_DIR.y = 0;
+        if (dpadCenter) dpadCenter.style.transform = 'translate(0px, 0px)';
         updateDpadVisuals(0, 0);
         return;
       }
+
       const normX = dx / dist;
       const normY = dy / dist;
-      // Allow diagonal movement when between axes (|norm| > 0.38)
-      const dirX = Math.abs(normX) > 0.38 ? (normX > 0 ? 1 : -1) : 0;
-      const dirY = Math.abs(normY) > 0.38 ? (normY > 0 ? 1 : -1) : 0;
-      InputManager.TOUCH_DIR.x = dirX;
-      InputManager.TOUCH_DIR.y = dirY;
-      updateDpadVisuals(dirX, dirY);
+      const factor = Math.min(1.0, (dist - deadzone) / (maxR - deadzone));
+
+      // True 360-degree analog floating movement
+      InputManager.TOUCH_DIR.x = normX * factor;
+      InputManager.TOUCH_DIR.y = normY * factor;
+
+      // Smooth visual knob displacement inside joystick
+      if (dpadCenter) {
+        const clampDist = Math.min(dist, maxR);
+        const shiftX = normX * clampDist * 0.35;
+        const shiftY = normY * clampDist * 0.35;
+        dpadCenter.style.transform = `translate(${shiftX.toFixed(1)}px, ${shiftY.toFixed(1)}px)`;
+      }
+
+      updateDpadVisuals(normX, normY);
     };
 
     const joyRelease = () => {
       InputManager.TOUCH_DIR.x = 0;
       InputManager.TOUCH_DIR.y = 0;
+      if (dpadCenter) dpadCenter.style.transform = 'translate(0px, 0px)';
       updateDpadVisuals(0, 0);
       JOY_ID = null;
     };

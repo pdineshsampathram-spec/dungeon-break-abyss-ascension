@@ -382,6 +382,7 @@ export const CinematicArchiveUI = {
     preloadArchiveImages();
     GameState.setState(GameStates.CINEMATIC_ARCHIVE);
     try { SoundManager.snd('panel_open'); } catch (e) {}
+    try { MusicManager.fadeIn('menu', 1.5, 0.70); } catch (e) {}
   },
 
   close() {

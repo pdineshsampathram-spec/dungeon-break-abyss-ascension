@@ -86,7 +86,13 @@ export const Renderer = {
     const isRampageActive = typeof window !== 'undefined' &&
                            window.RampageCinematic &&
                            window.RampageCinematic.isActive();
-    const isAnyCinematic = isIntroCinematic || isEndingCinematic || isWardenDefeatCinematic || isBossCinematic || isDeathCinematic || isShatteredMindActive || isHeroActive || isBetrayalActive || isRampageActive;
+    const isGorgarothDefeat = typeof window !== 'undefined' &&
+                              window.GorgarothCinematics &&
+                              window.GorgarothCinematics.isActive();
+    const isReplayMode = (typeof window !== 'undefined') &&
+                         ((window.CinematicSafety && window.CinematicSafety.isReplay()) ||
+                          (window.CinematicReplayContext && window.CinematicReplayContext.isReplaying()));
+    const isAnyCinematic = isIntroCinematic || isEndingCinematic || isWardenDefeatCinematic || isBossCinematic || isGorgarothDefeat || isDeathCinematic || isShatteredMindActive || isHeroActive || isBetrayalActive || isRampageActive || isReplayMode;
     const suppressDungeonWorld = (isShatteredMindActive && window.ShatteredMindCinematic.suppressRealWorld()) ||
                                  (isHeroActive && window.HeroCinematic.suppressRealWorld()) ||
                                  (isBetrayalActive && window.BetrayalCinematic.suppressRealWorld()) ||
@@ -104,7 +110,9 @@ export const Renderer = {
       WorldRenderer.drawTorches(ctx);
       WorldRenderer.drawShrines(ctx);
       WorldRenderer.drawVoidArenaEffects(ctx);
-      WorldRenderer.drawItems(ctx);
+      if (!isReplayMode && !isIntroCinematic && !isGorgarothDefeat && !isWardenDefeatCinematic && !isEndingCinematic) {
+        WorldRenderer.drawItems(ctx);
+      }
       WorldRenderer.drawAllies(ctx);
     }
 
@@ -112,7 +120,7 @@ export const Renderer = {
     // world-space darkness actually reaches them.
     const showShatteredMindEntities = isShatteredMindActive &&
       window.ShatteredMindCinematic.shouldRenderRealWorldEntities();
-    if (!isIntroCinematic && (!isShatteredMindActive || showShatteredMindEntities) && !isHeroActive && !isBetrayalActive && !isRampageActive && GameState.ENE) {
+    if (!isIntroCinematic && !isBossCinematic && !isWardenDefeatCinematic && !isGorgarothDefeat && !isEndingCinematic && !isReplayMode && (!isShatteredMindActive || showShatteredMindEntities) && !isHeroActive && !isBetrayalActive && !isRampageActive && GameState.ENE) {
       GameState.ENE.forEach(e => {
         CharacterRenderer.drawEnemy(ctx, e);
       });

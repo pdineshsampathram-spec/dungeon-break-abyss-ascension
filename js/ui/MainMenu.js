@@ -1753,7 +1753,12 @@ function drawPersonalRecords(ctx, alpha, F) {
 
 export function startGame(playIntro = true) {
   AudioManager.init();
-  MusicManager.fadeOut(1.2);
+  if (!playIntro) {
+    MusicManager.crossfade('exploration', 1.2, 0.65);
+  } else {
+    // Keep/fadeIn the majestic cathedral title theme across the descent cinematic
+    MusicManager.fadeIn('menu', 1.2, 0.72);
+  }
   SoundManager.snd('menu_select');
   _howToPlayActive = false;
   _loadoutModalOpen = false;
@@ -1779,7 +1784,7 @@ export function resumeSavedRun() {
   const sv = SaveSystem.loadRun();
   if (sv && sv.lv) {
     AudioManager.init();
-    MusicManager.fadeOut(1.2);
+    MusicManager.crossfade('exploration', 1.5, 0.65);
     SoundManager.snd('menu_select');
     _howToPlayActive = false;
 
@@ -2295,15 +2300,17 @@ export const MainMenu = {
       });
     }
 
-    const btnW = 292;
+    const isTouchMobile = (typeof window !== 'undefined') &&
+      (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || window.innerWidth <= 1024);
+    const btnW = isTouchMobile ? 318 : 292;
     const count = btnConfigs.length;
-    const btnStartY = count >= 10 ? 168 : (count >= 9 ? 172 : 176);
+    const btnStartY = count >= 10 ? (isTouchMobile ? 154 : 168) : (count >= 9 ? 164 : 176);
     const btnGap = count >= 10 ? 4.0 : (count >= 9 ? 4.5 : 5.0);
 
     // Precalculate precise physical geometry per button
     let currentY = btnStartY;
     const buttonLayouts = btnConfigs.map((cfg, idx) => {
-      const bh = cfg.primary ? (count >= 10 ? 38 : (count >= 9 ? 40 : 42)) : (count >= 10 ? 30 : (count >= 9 ? 31 : 32));
+      const bh = cfg.primary ? 44 : (isTouchMobile ? 35 : (count >= 10 ? 30 : (count >= 9 ? 31 : 32)));
       const layout = {
         cfg,
         idx,

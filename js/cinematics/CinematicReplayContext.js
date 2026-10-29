@@ -21,6 +21,7 @@ import { DungeonGenerator } from '../world/DungeonGenerator.js';
 import { BossManager } from '../bosses/BossManager.js';
 import { Camera } from '../rendering/Camera.js';
 import { SoundManager } from '../audio/AudioManager.js';
+import { MusicManager } from '../audio/MusicManager.js';
 
 import { CinematicDirector } from './CinematicDirector.js';
 import { BossIntros } from './BossIntros.js';
@@ -71,6 +72,7 @@ export const CinematicReplayContext = {
       boss: GameState.BOSS ? { ...GameState.BOSS } : null,
       miniboss: GameState.ACTIVE_MINIBOSS ? { ...GameState.ACTIVE_MINIBOSS } : null,
       enemies: GameState.ENE ? [...GameState.ENE] : [],
+      items: GameState.ITEMS ? [...GameState.ITEMS] : [],
       player: GameState.P ? { ...GameState.P } : null,
       floor: GameState.LV || 1,
       camera: { ...GameState.CAM },
@@ -86,9 +88,35 @@ export const CinematicReplayContext = {
 
     // 2. Clear any stray level entities for clean visual staging
     GameState.clearLevelEntities();
+    GameState.ENE = [];
+    GameState.ITEMS = [];
+    GameState.TRAPS = [];
     GameState.FADE = 0;
     GameState.FADEIN = false;
     GameState.BOSS_PORTAL_UNLOCKED = false;
+
+    // Start authentic thematic music for this vision
+    try {
+      if (cinematicId === 'the_descent') {
+        MusicManager.fadeIn('menu', 1.2, 0.72);
+      } else if (cinematicId.includes('gorgaroth')) {
+        MusicManager.crossfade('gorgaroth', 1.2, 0.78);
+      } else if (cinematicId.includes('malakor')) {
+        MusicManager.crossfade('malakor', 1.2, 0.78);
+      } else if (cinematicId.includes('warden')) {
+        MusicManager.crossfade('warden', 1.2, 0.78);
+      } else if (cinematicId === 'ending_hero') {
+        MusicManager.crossfade('hero', 1.5, 0.75);
+      } else if (cinematicId === 'ending_betrayal') {
+        MusicManager.crossfade('betrayal', 1.5, 0.75);
+      } else if (cinematicId === 'ending_rampage') {
+        MusicManager.crossfade('rampage', 1.5, 0.75);
+      } else if (cinematicId === 'the_last_ember') {
+        MusicManager.crossfade('exploration', 1.5, 0.70);
+      } else if (cinematicId.startsWith('credits_')) {
+        MusicManager.crossfade('credits', 1.5, 0.70);
+      }
+    } catch (e) {}
 
     // Ensure player entity exists and is in pristine visual state
     if (!GameState.P) {
@@ -136,6 +164,9 @@ export const CinematicReplayContext = {
       case 'the_descent': {
         GameState.LV = 1;
         DungeonGenerator.build();
+        GameState.ENE = [];
+        GameState.ITEMS = [];
+        GameState.TRAPS = [];
         GameState.EXPLORED_ROOMS = new Set([0]);
 
         const rm0 = (GameState.ROOMS && GameState.ROOMS[0]) || { x: 4, y: 10, w: 14, h: 10, cx: 10, cy: 15 };
@@ -550,7 +581,8 @@ export const CinematicReplayContext = {
       GameState.GATE = _snapshot.gate;
       GameState.BOSS = _snapshot.boss;
       GameState.ACTIVE_MINIBOSS = _snapshot.miniboss;
-      GameState.ENE = _snapshot.enemies;
+      GameState.ENE = _snapshot.enemies || [];
+      GameState.ITEMS = _snapshot.items || [];
       GameState.P = _snapshot.player;
       GameState.LV = _snapshot.floor;
       GameState.CAM = _snapshot.camera;
@@ -573,6 +605,9 @@ export const CinematicReplayContext = {
 
     // 3. Return cleanly to Cinematic Archive
     GameState.setState(GameStates.CINEMATIC_ARCHIVE);
+    try {
+      MusicManager.crossfade('menu', 1.5, 0.70);
+    } catch (e) {}
 
     if (typeof _onReplayComplete === 'function') {
       const cb = _onReplayComplete;

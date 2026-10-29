@@ -307,6 +307,10 @@ export const GameState = {
 
   // Clear level transient entities
   clearLevelEntities() {
+    this.ENE = [];
+    this.ITEMS = [];
+    this.TORCHES = [];
+    this.TRAPS = [];
     this.PRT = [];
     this.BLOOD = [];
     this.SLASH_TRAILS = [];
