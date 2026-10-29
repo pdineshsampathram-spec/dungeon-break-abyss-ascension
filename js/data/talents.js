@@ -22,7 +22,7 @@ export const TALENT_DEFS = {
     icon: '🩸',
     desc: '+2 Max HP per rank.',
     max: 5,
-    costs: [5, 12, 25, 45, 75]
+    costs: [10, 25, 50, 100, 200]
   },
   iron_skin: {
     id: 'iron_skin',
@@ -31,7 +31,7 @@ export const TALENT_DEFS = {
     icon: '🛡️',
     desc: '-5% incoming damage from all enemy attacks per rank.',
     max: 5,
-    costs: [10, 22, 45, 80, 130]
+    costs: [12, 28, 60, 120, 225]
   },
   resilience: {
     id: 'resilience',
@@ -40,7 +40,7 @@ export const TALENT_DEFS = {
     icon: '🌿',
     desc: '-15% trap & hazard damage and +10 starting sanity per rank.',
     max: 3,
-    costs: [15, 35, 70]
+    costs: [20, 50, 110]
   },
 
   // ─────────────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ export const TALENT_DEFS = {
     icon: '🏹',
     desc: '+12% Arcane Bow damage and +15% arrow velocity per rank.',
     max: 5,
-    costs: [8, 20, 40, 70, 115]
+    costs: [10, 25, 55, 110, 220]
   },
   rift_discipline: {
     id: 'rift_discipline',
@@ -62,25 +62,25 @@ export const TALENT_DEFS = {
     icon: '🗡️',
     desc: '-10% Dagger attack cooldown and +15% shadow lunge distance per rank.',
     max: 5,
-    costs: [8, 20, 40, 70, 115]
+    costs: [10, 25, 55, 110, 220]
   },
   explosive_might: {
     id: 'explosive_might',
     category: 'weapons',
     name: 'Explosive Mastery',
     icon: '🪓',
-    desc: '+15% Heavy War Axe shockwave radius and +12% heavy damage per rank.',
+    desc: '+15% Heavy War Axe shockwave radius and +15% heavy damage per rank.',
     max: 5,
-    costs: [10, 24, 48, 85, 135]
+    costs: [12, 28, 60, 120, 230]
   },
   lance_precision: {
     id: 'lance_precision',
     category: 'weapons',
     name: 'Reach and Precision',
     icon: '🔱',
-    desc: '+15% Spear linear reach and +10% penetrating corridor damage per rank.',
+    desc: '+15% Spear linear reach and +12% penetrating corridor damage per rank.',
     max: 5,
-    costs: [8, 20, 40, 70, 115]
+    costs: [10, 25, 55, 110, 220]
   },
 
   // ─────────────────────────────────────────────────────────────
@@ -93,7 +93,7 @@ export const TALENT_DEFS = {
     icon: '⚔️',
     desc: '+15% Attack damage and +8% critical strike chance per rank.',
     max: 5,
-    costs: [8, 18, 35, 60, 100]
+    costs: [12, 30, 65, 130, 240]
   },
   haste: {
     id: 'haste',
@@ -102,7 +102,7 @@ export const TALENT_DEFS = {
     icon: '⚡',
     desc: '+8% Movement speed and rapid attack recovery per rank.',
     max: 5,
-    costs: [8, 18, 35, 60, 100]
+    costs: [10, 25, 55, 110, 220]
   },
   technique_mastery: {
     id: 'technique_mastery',
@@ -111,7 +111,7 @@ export const TALENT_DEFS = {
     icon: '🌀',
     desc: 'Reduces Weapon Special (Q) cooldown by 0.4s per rank (5.0s down to 3.0s).',
     max: 5,
-    costs: [12, 28, 55, 95, 150]
+    costs: [15, 35, 75, 140, 250]
   },
 
   // ─────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ export const TALENT_DEFS = {
     icon: '🧠',
     desc: '-12% Sanity drain rate in the deep floors per rank.',
     max: 5,
-    costs: [5, 12, 25, 45, 75]
+    costs: [10, 25, 50, 95, 180]
   },
   siphon: {
     id: 'siphon',
@@ -133,7 +133,7 @@ export const TALENT_DEFS = {
     icon: '👁️',
     desc: '5% chance on hit to restore 1 HP per rank.',
     max: 5,
-    costs: [10, 25, 50, 85, 140]
+    costs: [15, 35, 70, 130, 230]
   },
   soul_harvest: {
     id: 'soul_harvest',
@@ -142,7 +142,7 @@ export const TALENT_DEFS = {
     icon: '🔮',
     desc: '+12% bonus Abyss Souls gained from all enemy and boss kills per rank.',
     max: 5,
-    costs: [10, 25, 50, 90, 145]
+    costs: [12, 30, 65, 125, 220]
   }
 };
 

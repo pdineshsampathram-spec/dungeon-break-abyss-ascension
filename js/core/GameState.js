@@ -63,6 +63,15 @@ export const GameState = {
   SANCTUM_TEMP_AUTHORIZED: false,
   CUSTOM_STARTING_WEAPON: null,
   CUSTOM_STARTING_MAX_HP: null,
+  DEV_MODS: {
+    enabled: false,
+    weaponLevel: 1,
+    bowDamageBonus: 0,
+    meleeDamageBonus: 0,
+    specialCooldownSec: null,
+    bonusMaxHp: 0,
+    damageResistanceBonus: 0
+  },
 
   // Camera
   CAM: {
@@ -215,7 +224,11 @@ export const GameState = {
     const baseHp = 10;
     const vitHp = (this.TALENTS.vitality || 0) * 2;
     const legHp = (this.LEGACY_TALENTS.legacy_defense || 0) * 15;
-    this.P.hp = baseHp + vitHp + legHp;
+    let initialHp = baseHp + vitHp + legHp;
+    if (this.IS_DEVELOPER_EXPEDITION && this.DEV_MODS && this.DEV_MODS.enabled) {
+      initialHp += (this.DEV_MODS.bonusMaxHp || 0);
+    }
+    this.P.hp = Math.min(50, initialHp);
     this.P.maxHp = this.P.hp;
     this.P.displayHp = this.P.hp;
     this.P.ghostHp = this.P.hp;
@@ -224,7 +237,9 @@ export const GameState = {
     this.P.san = this.P.maxSan;
     this.P._defianceUsed = false;
     this.P.qCooldown = 0;
-    this.P.qMaxCooldown = Math.max(2.5, 5.0 - (this.TALENTS.technique_mastery || 0) * 0.4 - (this.LEGACY_TALENTS.legacy_mastery || 0) * 1.0);
+    this.P.qMaxCooldown = (typeof window !== 'undefined' && window.PlayerStats)
+      ? window.PlayerStats.getSpecialCooldown()
+      : Math.max(2.5, 5.0 - (this.TALENTS.technique_mastery || 0) * 0.4 - (this.LEGACY_TALENTS.legacy_mastery || 0) * 1.0);
     this.P.furyBuffTimer = 0;
     this.P.mindShieldTimer = 0;
     this.P.hasteBuffTimer = 0;
@@ -257,9 +272,10 @@ export const GameState = {
     this.P.fy = 0;
 
     // Reset 3 weapon slots: Slot 1 Sword, Slot 2 Hunter's Bow, Slot 3 Empty
+    const baseWepLevel = (this.IS_DEVELOPER_EXPEDITION && this.DEV_MODS && this.DEV_MODS.enabled && this.DEV_MODS.weaponLevel) ? this.DEV_MODS.weaponLevel : 1;
     this.weaponSlots = [
-      { id: 'sword', name: '⚔️ Sword', damage: 3.5, dmg: 3.5, range: 1.5, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false },
-      { id: 'bow', name: "🏹 Hunter's Bow", damage: 3.5, dmg: 3.5, range: 12.0, cooldown: 0.42, cd: 0.42, projectile: true, projSpd: 9.5, projDmg: 3.5, projRange: 14, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 5 },
+      { id: 'sword', name: '⚔️ Steel Sword', damage: 4.0, dmg: 4.0, range: 1.5, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false, level: baseWepLevel },
+      { id: 'bow', name: "🏹 Hunter's Bow", damage: 4.0, dmg: 4.0, range: 12.0, cooldown: 0.42, cd: 0.42, projectile: true, projSpd: 9.5, projDmg: 4.0, projRange: 14, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 5, level: baseWepLevel },
       null
     ];
     this.activeWeaponSlot = 0;
@@ -281,7 +297,7 @@ export const GameState = {
 
       if (this.CUSTOM_STARTING_WEAPON && this.CUSTOM_STARTING_WEAPON.id) {
         try {
-          const customWep = WeaponFactory.create(this.CUSTOM_STARTING_WEAPON.id, this.CUSTOM_STARTING_WEAPON.rarity || 'Common');
+          const customWep = WeaponFactory.create(this.CUSTOM_STARTING_WEAPON.id, this.CUSTOM_STARTING_WEAPON.rarity || 'Common', null, baseWepLevel);
           if (customWep) {
             this.weaponSlots[0] = customWep;
             this.P.wep = customWep.id;
@@ -291,9 +307,15 @@ export const GameState = {
           console.warn('[GameState] Failed to apply custom starting weapon:', err);
         }
       }
+      if (this.weaponSlots[1] && this.weaponSlots[1].id === 'bow') {
+        this.weaponSlots[1] = WeaponFactory.create('bow', 'Common', null, baseWepLevel);
+      }
     } else {
       this.CUSTOM_STARTING_WEAPON = null;
       this.CUSTOM_STARTING_MAX_HP = null;
+      if (this.DEV_MODS) {
+        this.DEV_MODS.enabled = false;
+      }
     }
   },
 

@@ -16,6 +16,7 @@ import { WardenDefeatCinematic } from '../cinematics/WardenDefeatCinematic.js';
 import { GorgarothCinematics } from '../cinematics/GorgarothCinematics.js';
 import { ShatteredMindCinematic } from '../cinematics/ShatteredMindCinematic.js';
 import { BossIntros } from '../cinematics/BossIntros.js';
+import { CinematicSafety } from '../cinematics/CinematicSafety.js';
 import { MusicManager } from '../audio/MusicManager.js';
 import { SoundManager } from '../audio/AudioManager.js';
 import { triggerCinematicBanner } from '../ui/HUD.js';
@@ -53,6 +54,7 @@ export const RunResetManager = {
     if (!isAuthorizedDev) {
       GameState.CUSTOM_STARTING_WEAPON = null;
       GameState.CUSTOM_STARTING_MAX_HP = null;
+      if (GameState.DEV_MODS) GameState.DEV_MODS.enabled = false;
     }
     GameState.RUN_ACTIVE_TIME = 0;
     GameState.FLOOR_ACTIVE_TIME = 0;
@@ -83,6 +85,7 @@ export const RunResetManager = {
     MusicManager.stopImmediate();
 
     // 5. Reset all cinematics, cutscenes, and ending dispatchers
+    CinematicSafety.reset();
     EndingDispatcher.reset();
     if (WardenDefeatCinematic && WardenDefeatCinematic.reset) WardenDefeatCinematic.reset();
     if (GorgarothCinematics && GorgarothCinematics.reset) GorgarothCinematics.reset();

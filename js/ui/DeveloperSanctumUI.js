@@ -16,6 +16,7 @@ import { FLOOR_CONFIG, isBossFloor } from '../data/floors.js';
 import { WEAPON_TYPES, WEAPON_KEYS } from '../weapons/WeaponRegistry.js';
 import { RARITIES } from '../data/weapons.js';
 import { WeaponFactory } from '../weapons/WeaponFactory.js';
+import { PlayerStats } from '../player/PlayerStats.js';
 import { ARCHIVE_CINEMATICS } from './CinematicArchiveUI.js';
 import { CinematicReplayContext } from '../cinematics/CinematicReplayContext.js';
 import { InputManager } from '../core/InputManager.js';
@@ -47,11 +48,22 @@ let _gateFeedbackColor = '#94a3b8';
 let _cursorTimer = 0;
 
 // Sanctum Navigation State
-let _activeTab = 'floors'; // 'floors' | 'cinematics' | 'loadout' | 'config' | 'status'
+let _activeTab = 'floors'; // 'floors' | 'cinematics' | 'loadout' | 'modifications' | 'config' | 'status'
 let _selectedFloor = 1;
 let _selectedWeaponId = 'sword';
 let _selectedRarity = 'Common';
 let _selectedMaxHp = 50; // Range: 1 <= maxHp <= 50, default 50
+
+// Abyss Sanctum Modifications Sandbox State (Free, Temporary, Strictly Isolated to Dev Runs)
+let _devMods = {
+  enabled: false,
+  weaponLevel: 1, // 1 to 5
+  bowDamageBonus: 0, // 0 to 1.50 (+0% to +150%)
+  meleeDamageBonus: 0, // 0 to 1.50 (+0% to +150%)
+  specialCooldownSec: null, // null (use talent) or 1.0 - 5.0
+  bonusMaxHp: 0, // 0 to 50
+  damageResistanceBonus: 0 // 0 to 0.50
+};
 let _selectedCinematicIdx = 0;
 let _cinematicCategory = 'all';
 let _cinematicScrollOffset = 0;
@@ -74,8 +86,9 @@ function _getFilteredCinematics() {
 // Cached preview weapon to avoid 60fps object allocations and name rolling
 let _cachedPreviewWep = null;
 function _getPreviewWeapon() {
-  if (!_cachedPreviewWep || _cachedPreviewWep.id !== _selectedWeaponId || _cachedPreviewWep.rarity.name !== _selectedRarity) {
-    _cachedPreviewWep = WeaponFactory.create(_selectedWeaponId, _selectedRarity);
+  const lvl = (_devMods && _devMods.enabled) ? (_devMods.weaponLevel || 1) : 1;
+  if (!_cachedPreviewWep || _cachedPreviewWep.id !== _selectedWeaponId || _cachedPreviewWep.rarity.name !== _selectedRarity || _cachedPreviewWep.level !== lvl) {
+    _cachedPreviewWep = WeaponFactory.create(_selectedWeaponId, _selectedRarity, null, lvl);
   }
   return _cachedPreviewWep;
 }
@@ -388,7 +401,18 @@ export const DeveloperSanctumUI = {
       rarity: _selectedRarity || 'Common'
     };
 
-    // 3. Close UI and deploy
+    // 3. Configure developer modifications state
+    GameState.DEV_MODS = {
+      enabled: !!_devMods.enabled,
+      weaponLevel: _devMods.weaponLevel || 1,
+      bowDamageBonus: _devMods.bowDamageBonus || 0,
+      meleeDamageBonus: _devMods.meleeDamageBonus || 0,
+      specialCooldownSec: _devMods.specialCooldownSec,
+      bonusMaxHp: _devMods.bonusMaxHp || 0,
+      damageResistanceBonus: _devMods.damageResistanceBonus || 0
+    };
+
+    // 4. Close UI and deploy
     _sanctumOpen = false;
     _deployConfirmOpen = false;
     SoundManager.snd('menu_press');
@@ -453,8 +477,9 @@ export const DeveloperSanctumUI = {
       if (key === '1') { _activeTab = 'floors'; SoundManager.snd('menu_hover'); return true; }
       if (key === '2') { _activeTab = 'cinematics'; SoundManager.snd('menu_hover'); return true; }
       if (key === '3') { _activeTab = 'loadout'; SoundManager.snd('menu_hover'); return true; }
-      if (key === '4') { _activeTab = 'config'; SoundManager.snd('menu_hover'); return true; }
-      if (key === '5') { _activeTab = 'status'; SoundManager.snd('menu_hover'); return true; }
+      if (key === '4') { _activeTab = 'modifications'; SoundManager.snd('menu_hover'); return true; }
+      if (key === '5') { _activeTab = 'config'; SoundManager.snd('menu_hover'); return true; }
+      if (key === '6') { _activeTab = 'status'; SoundManager.snd('menu_hover'); return true; }
 
       // Tab-specific keyboard navigation
       if (_activeTab === 'cinematics') {
@@ -571,33 +596,66 @@ export const DeveloperSanctumUI = {
   handleClick(mx, my) {
     if (!_gateOpen && !_sanctumOpen) return false;
 
+    // 1. Strict Modal Hit-Testing: Sealed Sanctum Access Gate
+    if (_gateOpen) {
+      const mw = 480, mh = 270;
+      const gx = Math.round((LW - mw) / 2), gy = Math.round((LH - mh) / 2);
+      for (const z of _clickZones) {
+        if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) {
+          if (typeof z.action === 'function') {
+            z.action();
+            return true;
+          }
+        }
+      }
+      if (mx < gx || mx > gx + mw || my < gy || my > gy + mh) {
+        this.closeGate();
+        return true;
+      }
+      return true; // Absorb any click inside gate modal
+    }
+
+    // 2. Strict Modal Hit-Testing: Deploy Confirmation Modal
+    // Ensures Deploy Now & Cancel receive clicks and background floor cards never swallow them!
+    if (_sanctumOpen && _deployConfirmOpen) {
+      const mw = 520, mh = 290;
+      const dx = Math.round((LW - mw) / 2);
+      const dy = Math.round((LH - mh) / 2);
+
+      const btnW = 140, btnH = 34;
+      const depX = dx + mw / 2 - btnW - 10;
+      const canX = dx + mw / 2 + 10;
+      const btnY = dy + mh - 50;
+
+      // Deploy Now Button Click
+      if (mx >= depX && mx <= depX + btnW && my >= btnY && my <= btnY + btnH) {
+        this.deploy();
+        return true;
+      }
+
+      // Cancel Button Click
+      if (mx >= canX && mx <= canX + btnW && my >= btnY && my <= btnY + btnH) {
+        this.closeDeployConfirm();
+        return true;
+      }
+
+      // Backdrop Click Outside Modal Dialog Rect -> Dismiss Modal
+      if (mx < dx || mx > dx + mw || my < dy || my > dy + mh) {
+        this.closeDeployConfirm();
+        return true;
+      }
+
+      // Click inside modal dialog area: absorb click so background tab buttons don't fire
+      return true;
+    }
+
+    // 3. Normal Sanctum Chamber Hit-Testing
     for (const z of _clickZones) {
       if (mx >= z.x && mx <= z.x + z.w && my >= z.y && my <= z.y + z.h) {
         if (typeof z.action === 'function') {
           z.action();
           return true;
         }
-      }
-    }
-
-    // Modal background click out for Gate
-    if (_gateOpen) {
-      const mw = 480, mh = 270;
-      const gx = (LW - mw) / 2, gy = (LH - mh) / 2;
-      if (mx < gx || mx > gx + mw || my < gy || my > gy + mh) {
-        this.closeGate();
-        return true;
-      }
-    }
-
-    // Modal background click out for Deploy Confirm
-    if (_sanctumOpen && _deployConfirmOpen) {
-      const mw = 520, mh = 290;
-      const dx = (LW - mw) / 2, dy = (LH - mh) / 2;
-      if (mx < dx || mx > dx + mw || my < dy || my > dy + mh) {
-        _deployConfirmOpen = false;
-        SoundManager.snd('panel_close');
-        return true;
       }
     }
 
@@ -801,22 +859,24 @@ export const DeveloperSanctumUI = {
     ctx.textBaseline = 'middle';
     ctx.fillText(`❤️ ${_selectedMaxHp} / 50 HP CALIBRATION`, p3X + pillW / 2, pillBarY + pillH / 2);
 
-    // Pill 4: Developer Expedition Badge
+    // Pill 4: Developer Expedition Badge / Sandbox Status
     const p4X = p3X + pillW + pillGap;
-    drawStoneCard(ctx, p4X, pillBarY, pillW, pillH, { accentColor: 'crimson', chamfer: 4 });
+    const isModsArmed = _devMods && _devMods.enabled;
+    drawStoneCard(ctx, p4X, pillBarY, pillW, pillH, { accentColor: isModsArmed ? 'emerald' : 'crimson', chamfer: 4 });
     ctx.font = 'bold 9px Cinzel, serif';
-    ctx.fillStyle = '#fca5a5';
+    ctx.fillStyle = isModsArmed ? '#4ade80' : '#fca5a5';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('⚔️ DEV EXPEDITION · ISOLATED', p4X + pillW / 2, pillBarY + pillH / 2);
+    ctx.fillText(isModsArmed ? '⚡ ABYSS SANCTUM · MODS ARMED' : '⚔️ DEV EXPEDITION · ISOLATED', p4X + pillW / 2, pillBarY + pillH / 2);
 
     // 4. Tab Navigation Bar (Y: 80 to 108)
     const tabs = [
       { id: 'floors', label: '1. FLOOR TARGET' },
       { id: 'cinematics', label: '2. CINEMATICS' },
       { id: 'loadout', label: '3. STARTING LOADOUT' },
-      { id: 'config', label: '4. EXPEDITION CONFIG' },
-      { id: 'status', label: '5. ACCESS STATUS' }
+      { id: 'modifications', label: '4. ABYSS SANCTUM' },
+      { id: 'config', label: '5. EXPEDITION CONFIG' },
+      { id: 'status', label: '6. ACCESS STATUS' }
     ];
     const tabY = 80;
     const tabW = Math.round((LW - 40 - (tabs.length - 1) * 6) / tabs.length);
@@ -831,7 +891,7 @@ export const DeveloperSanctumUI = {
         label: tab.label,
         isActive,
         isHover,
-        accentColor: 'gold'
+        accentColor: tab.id === 'modifications' ? 'emerald' : 'gold'
       });
 
       _clickZones.push({
@@ -864,6 +924,9 @@ export const DeveloperSanctumUI = {
       case 'loadout':
         this._drawTabLoadout(ctx, contX, contY, contW, contH, mouseX, mouseY);
         break;
+      case 'modifications':
+        this._drawTabModifications(ctx, contX, contY, contW, contH, mouseX, mouseY);
+        break;
       case 'config':
         this._drawTabConfig(ctx, contX, contY, contW, contH, mouseX, mouseY);
         break;
@@ -881,7 +944,8 @@ export const DeveloperSanctumUI = {
     ctx.fillStyle = '#fde68a';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`DEPLOY TARGET: FLOOR ${_selectedFloor} (${curCfg.name.toUpperCase()})  ·  ${previewWep.icon} ${previewWep.name.toUpperCase()}  ·  ${_selectedMaxHp} HP`, contX + 16, bBarY + bBarH / 2);
+    const activeModsStr = (_devMods && _devMods.enabled) ? `  ·  MODS: ARMED (Lv ${_devMods.weaponLevel})` : '';
+    ctx.fillText(`DEPLOY TARGET: FLOOR ${_selectedFloor} (${curCfg.name.toUpperCase()})  ·  ${previewWep.icon} ${previewWep.name.toUpperCase()}  ·  ${_selectedMaxHp} HP${activeModsStr}`, contX + 16, bBarY + bBarH / 2);
 
     const depBtnW = 200, depBtnH = 28;
     const depBtnX = contX + contW - depBtnW - 4, depBtnY = bBarY + 3;
@@ -1453,7 +1517,541 @@ export const DeveloperSanctumUI = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // TAB 4: EXPEDITION CONFIG (Starting Max Health Slider 1 - 50)
+  // TAB 4: ABYSS SANCTUM (Live Gameplay Modifications Sandbox)
+  // Free, temporary sandbox modifications strictly isolated to developer runs
+  // ─────────────────────────────────────────────────────────────
+  _drawTabModifications(ctx, x, y, w, h, mouseX, mouseY) {
+    ctx.save();
+    const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
+
+    // Header Guidance
+    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.fillStyle = '#fde68a';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('◈ ABYSS SANCTUM · LIVE GAMEPLAY MODIFICATIONS SANDBOX ◈', x + 18, y + 10);
+
+    ctx.font = 'italic 9.5px "Crimson Text", Georgia, serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Non-destructive temporary sandbox. Configures live combat formulas for developer expeditions without altering normal save progression or soul balances.', x + 18, y + 25);
+
+    // Grid Layout (3 columns x 2 rows of interactive stone cards)
+    const cardGapX = 14;
+    const cardGapY = 8;
+    const cardW = Math.floor((w - 36 - 2 * cardGapX) / 3);
+    const cardH = 132;
+    const gridX = x + 18;
+    const gridY = y + 42;
+
+    const c0X = gridX;
+    const c1X = gridX + cardW + cardGapX;
+    const c2X = gridX + 2 * (cardW + cardGapX);
+    const r0Y = gridY;
+    const r1Y = gridY + cardH + cardGapY;
+
+    // ───────────────────────────────────────────────────────────
+    // CARD 1: WEAPON TIER & LEVEL (1 to 5)
+    // ───────────────────────────────────────────────────────────
+    drawStoneCard(ctx, c0X, r0Y, cardW, cardH, { accentColor: 'gold', chamfer: 5 });
+    ctx.font = 'bold 10.5px Cinzel, serif';
+    ctx.fillStyle = '#fde68a';
+    ctx.fillText(`⚔️ WEAPON LEVEL: Lv ${_devMods.weaponLevel} / 5`, c0X + 12, r0Y + 8);
+
+    const scalePct = Math.round((_devMods.weaponLevel - 1) * 18);
+    ctx.font = '9.5px monospace';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`Damage Scale: +${scalePct}% base power`, c0X + 12, r0Y + 24);
+
+    const sampleWep = WeaponFactory.create(_selectedWeaponId, _selectedRarity, null, _devMods.weaponLevel);
+    ctx.fillStyle = sampleWep.rarity.col || '#cbd5e1';
+    ctx.fillText(`• ${sampleWep.name.split(' ')[0]}: ${sampleWep.damage.toFixed(1)} DMG (${(sampleWep.cooldown * 1000).toFixed(0)}ms)`, c0X + 12, r0Y + 42);
+
+    // Steppers: [- LVL] and [+ LVL]
+    const sBtnH = 22;
+    const s1W = 54;
+    const s1X = c0X + 12, s2X = s1X + s1W + 8;
+    const s1Y = r0Y + 64;
+
+    const isHovLvlDec = mouseX >= s1X && mouseX <= s1X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
+    drawStoneButton(ctx, s1X, s1Y, s1W, sBtnH, { text: '- LVL', isHover: isHovLvlDec, isPressed: isHovLvlDec && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: s1X, y: s1Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.weaponLevel = Math.max(1, _devMods.weaponLevel - 1);
+        _cachedPreviewWep = null;
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    const isHovLvlInc = mouseX >= s2X && mouseX <= s2X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
+    drawStoneButton(ctx, s2X, s1Y, s1W, sBtnH, { text: '+ LVL', isHover: isHovLvlInc, isPressed: isHovLvlInc && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: s2X, y: s1Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.weaponLevel = Math.min(5, _devMods.weaponLevel + 1);
+        _cachedPreviewWep = null;
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    // Preset pills: Lv 1, Lv 3, Lv 5
+    const pLvlY = r0Y + 96;
+    const pLvls = [
+      { label: 'Lv 1', val: 1, w: 48 },
+      { label: 'Lv 3', val: 3, w: 48 },
+      { label: 'Lv 5 (Max)', val: 5, w: 72 }
+    ];
+    let curPLX = c0X + 12;
+    pLvls.forEach(pl => {
+      const isSel = _devMods.weaponLevel === pl.val;
+      const isHov = mouseX >= curPLX && mouseX <= curPLX + pl.w && mouseY >= pLvlY && mouseY <= pLvlY + sBtnH;
+      drawStoneButton(ctx, curPLX, pLvlY, pl.w, sBtnH, {
+        text: pl.label,
+        isSelected: isSel,
+        isPrimary: isSel,
+        isHover: isHov,
+        isPressed: isHov && isMouseDown,
+        fontSize: 9
+      });
+      const thisVal = pl.val;
+      _clickZones.push({
+        x: curPLX, y: pLvlY, w: pl.w, h: sBtnH,
+        action: () => {
+          _devMods.weaponLevel = thisVal;
+          _cachedPreviewWep = null;
+          SoundManager.snd('menu_select');
+        }
+      });
+      curPLX += pl.w + 6;
+    });
+
+    // ───────────────────────────────────────────────────────────
+    // CARD 2: ARCANE BOW DAMAGE (+0% to +150%)
+    // ───────────────────────────────────────────────────────────
+    drawStoneCard(ctx, c1X, r0Y, cardW, cardH, { accentColor: 'emerald', chamfer: 5 });
+    ctx.font = 'bold 10.5px Cinzel, serif';
+    ctx.fillStyle = '#4ade80';
+    ctx.fillText(`🏹 BOW DAMAGE: +${Math.round(_devMods.bowDamageBonus * 100)}%`, c1X + 12, r0Y + 8);
+
+    ctx.font = '9.5px monospace';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('Real Projectile Damage Multiplier', c1X + 12, r0Y + 24);
+
+    const bowBase = WeaponFactory.create('bow', 'Common', null, _devMods.weaponLevel).damage;
+    const hRank = (GameState.TALENTS && GameState.TALENTS.hunters_focus) || 0;
+    const fRank = (GameState.TALENTS && GameState.TALENTS.fury) || 0;
+    const bowEffMult = 1 + (fRank * 0.15) + (hRank * 0.12) + (_devMods.bowDamageBonus || 0);
+    const bowHitDmg = Math.max(1, Math.round(bowBase * bowEffMult));
+    const skelHits = Math.ceil(10 / bowHitDmg);
+
+    ctx.fillText(`• Arrow Strike: ${bowHitDmg} DMG`, c1X + 12, r0Y + 42);
+    ctx.fillText(`• Skeleton (10 HP): ${skelHits} hit${skelHits === 1 ? ' (1-SHOT!)' : 's'}`, c1X + 12, r0Y + 54);
+
+    // Steppers: [-25%] and [+25%]
+    const b1X = c1X + 12, b2X = b1X + s1W + 8;
+    const isHovBowDec = mouseX >= b1X && mouseX <= b1X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
+    drawStoneButton(ctx, b1X, s1Y, s1W, sBtnH, { text: '-25%', isHover: isHovBowDec, isPressed: isHovBowDec && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: b1X, y: s1Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.bowDamageBonus = Math.max(0, Math.round((_devMods.bowDamageBonus - 0.25) * 100) / 100);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    const isHovBowInc = mouseX >= b2X && mouseX <= b2X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
+    drawStoneButton(ctx, b2X, s1Y, s1W, sBtnH, { text: '+25%', isHover: isHovBowInc, isPressed: isHovBowInc && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: b2X, y: s1Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.bowDamageBonus = Math.min(1.50, Math.round((_devMods.bowDamageBonus + 0.25) * 100) / 100);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    // Presets: +0%, +50%, +100%, +150%
+    const bowPresets = [
+      { label: '+0%', val: 0.0, w: 42 },
+      { label: '+50%', val: 0.50, w: 48 },
+      { label: '+100%', val: 1.00, w: 54 },
+      { label: '+150%', val: 1.50, w: 54 }
+    ];
+    let curPBX = c1X + 12;
+    bowPresets.forEach(bp => {
+      const isSel = Math.abs(_devMods.bowDamageBonus - bp.val) < 0.01;
+      const isHov = mouseX >= curPBX && mouseX <= curPBX + bp.w && mouseY >= pLvlY && mouseY <= pLvlY + sBtnH;
+      drawStoneButton(ctx, curPBX, pLvlY, bp.w, sBtnH, {
+        text: bp.label,
+        isSelected: isSel,
+        isPrimary: isSel,
+        isHover: isHov,
+        isPressed: isHov && isMouseDown,
+        fontSize: 9
+      });
+      const thisVal = bp.val;
+      _clickZones.push({
+        x: curPBX, y: pLvlY, w: bp.w, h: sBtnH,
+        action: () => {
+          _devMods.bowDamageBonus = thisVal;
+          SoundManager.snd('menu_select');
+        }
+      });
+      curPBX += bp.w + 5;
+    });
+
+    // ───────────────────────────────────────────────────────────
+    // CARD 3: MELEE ATTACK DAMAGE (+0% to +150%)
+    // ───────────────────────────────────────────────────────────
+    drawStoneCard(ctx, c2X, r0Y, cardW, cardH, { accentColor: 'violet', chamfer: 5 });
+    ctx.font = 'bold 10.5px Cinzel, serif';
+    ctx.fillStyle = '#c084fc';
+    ctx.fillText(`🗡️ MELEE DAMAGE: +${Math.round(_devMods.meleeDamageBonus * 100)}%`, c2X + 12, r0Y + 8);
+
+    ctx.font = '9.5px monospace';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('Blade & Melee Impact Multiplier', c2X + 12, r0Y + 24);
+
+    const mBase = WeaponFactory.create(_selectedWeaponId, _selectedRarity, null, _devMods.weaponLevel).damage;
+    let wBonus = 0;
+    if (_selectedWeaponId === 'dagger') wBonus = ((GameState.TALENTS && GameState.TALENTS.rift_discipline) || 0) * 0.10;
+    else if (_selectedWeaponId === 'axe') wBonus = ((GameState.TALENTS && GameState.TALENTS.explosive_might) || 0) * 0.15;
+    else if (_selectedWeaponId === 'spear') wBonus = ((GameState.TALENTS && GameState.TALENTS.lance_precision) || 0) * 0.12;
+    const mEffMult = 1 + (fRank * 0.15) + wBonus + (_devMods.meleeDamageBonus || 0);
+    const mHitDmg = Math.max(1, Math.round(mBase * mEffMult));
+    const mCritDmg = Math.round(mHitDmg * 1.75);
+
+    ctx.fillText(`• Swing Damage: ${mHitDmg} DMG`, c2X + 12, r0Y + 42);
+    ctx.fillText(`• Critical Strike: ${mCritDmg} DMG`, c2X + 12, r0Y + 54);
+
+    // Steppers: [-25%] and [+25%]
+    const m1X = c2X + 12, m2X = m1X + s1W + 8;
+    const isHovMelDec = mouseX >= m1X && mouseX <= m1X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
+    drawStoneButton(ctx, m1X, s1Y, s1W, sBtnH, { text: '-25%', isHover: isHovMelDec, isPressed: isHovMelDec && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: m1X, y: s1Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.meleeDamageBonus = Math.max(0, Math.round((_devMods.meleeDamageBonus - 0.25) * 100) / 100);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    const isHovMelInc = mouseX >= m2X && mouseX <= m2X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
+    drawStoneButton(ctx, m2X, s1Y, s1W, sBtnH, { text: '+25%', isHover: isHovMelInc, isPressed: isHovMelInc && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: m2X, y: s1Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.meleeDamageBonus = Math.min(1.50, Math.round((_devMods.meleeDamageBonus + 0.25) * 100) / 100);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    // Presets: +0%, +50%, +100%, +150%
+    let curPMX = c2X + 12;
+    bowPresets.forEach(bp => {
+      const isSel = Math.abs(_devMods.meleeDamageBonus - bp.val) < 0.01;
+      const isHov = mouseX >= curPMX && mouseX <= curPMX + bp.w && mouseY >= pLvlY && mouseY <= pLvlY + sBtnH;
+      drawStoneButton(ctx, curPMX, pLvlY, bp.w, sBtnH, {
+        text: bp.label,
+        isSelected: isSel,
+        isPrimary: isSel,
+        isHover: isHov,
+        isPressed: isHov && isMouseDown,
+        fontSize: 9
+      });
+      const thisVal = bp.val;
+      _clickZones.push({
+        x: curPMX, y: pLvlY, w: bp.w, h: sBtnH,
+        action: () => {
+          _devMods.meleeDamageBonus = thisVal;
+          SoundManager.snd('menu_select');
+        }
+      });
+      curPMX += bp.w + 5;
+    });
+
+    // ───────────────────────────────────────────────────────────
+    // CARD 4: SPECIAL ABILITY COOLDOWN (1.0s to 5.0s)
+    // ───────────────────────────────────────────────────────────
+    drawStoneCard(ctx, c0X, r1Y, cardW, cardH, { accentColor: 'azure', chamfer: 5 });
+    const currentCd = _devMods.specialCooldownSec !== null ? _devMods.specialCooldownSec : PlayerStats.getSpecialCooldown();
+    ctx.font = 'bold 10.5px Cinzel, serif';
+    ctx.fillStyle = '#38bdf8';
+    ctx.fillText(`🌀 SPECIAL COOLDOWN: ${currentCd.toFixed(1)}s`, c0X + 12, r1Y + 8);
+
+    ctx.font = '9.5px monospace';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('Weapon Special (Q) Recovery Rate', c0X + 12, r1Y + 24);
+    ctx.fillText(`• Effective Cadence: ${currentCd.toFixed(1)}s`, c0X + 12, r1Y + 42);
+    ctx.fillText(`• Status: ${currentCd <= 1.5 ? '⚡ RAPID RECOVERY' : (currentCd <= 3.0 ? 'Accelerated Rate' : 'Standard Rate')}`, c0X + 12, r1Y + 54);
+
+    const s2Y = r1Y + 64;
+    const pCdY = r1Y + 96;
+
+    // Steppers: [-0.5s] and [+0.5s]
+    const cd1X = c0X + 12, cd2X = cd1X + s1W + 8;
+    const isHovCdDec = mouseX >= cd1X && mouseX <= cd1X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
+    drawStoneButton(ctx, cd1X, s2Y, s1W, sBtnH, { text: '-0.5s', isHover: isHovCdDec, isPressed: isHovCdDec && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: cd1X, y: s2Y, w: s1W, h: sBtnH,
+      action: () => {
+        const cur = _devMods.specialCooldownSec !== null ? _devMods.specialCooldownSec : PlayerStats.getSpecialCooldown();
+        _devMods.specialCooldownSec = Math.max(1.0, Math.round((cur - 0.5) * 10) / 10);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    const isHovCdInc = mouseX >= cd2X && mouseX <= cd2X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
+    drawStoneButton(ctx, cd2X, s2Y, s1W, sBtnH, { text: '+0.5s', isHover: isHovCdInc, isPressed: isHovCdInc && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: cd2X, y: s2Y, w: s1W, h: sBtnH,
+      action: () => {
+        const cur = _devMods.specialCooldownSec !== null ? _devMods.specialCooldownSec : PlayerStats.getSpecialCooldown();
+        _devMods.specialCooldownSec = Math.min(5.0, Math.round((cur + 0.5) * 10) / 10);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    // Presets: 5.0s, 3.0s, 1.5s, 1.0s
+    const cdPresets = [
+      { label: '5.0s', val: 5.0, w: 42 },
+      { label: '3.0s', val: 3.0, w: 42 },
+      { label: '1.5s', val: 1.5, w: 44 },
+      { label: '1.0s (Min)', val: 1.0, w: 68 }
+    ];
+    let curPCDX = c0X + 12;
+    cdPresets.forEach(cp => {
+      const isSel = _devMods.specialCooldownSec !== null && Math.abs(_devMods.specialCooldownSec - cp.val) < 0.05;
+      const isHov = mouseX >= curPCDX && mouseX <= curPCDX + cp.w && mouseY >= pCdY && mouseY <= pCdY + sBtnH;
+      drawStoneButton(ctx, curPCDX, pCdY, cp.w, sBtnH, {
+        text: cp.label,
+        isSelected: isSel,
+        isPrimary: isSel,
+        isHover: isHov,
+        isPressed: isHov && isMouseDown,
+        fontSize: 9
+      });
+      const thisVal = cp.val;
+      _clickZones.push({
+        x: curPCDX, y: pCdY, w: cp.w, h: sBtnH,
+        action: () => {
+          _devMods.specialCooldownSec = thisVal;
+          SoundManager.snd('menu_select');
+        }
+      });
+      curPCDX += cp.w + 5;
+    });
+
+    // ───────────────────────────────────────────────────────────
+    // CARD 5: BONUS MAX HEALTH BUFFER (+0 to +40 HP)
+    // ───────────────────────────────────────────────────────────
+    drawStoneCard(ctx, c1X, r1Y, cardW, cardH, { accentColor: 'crimson', chamfer: 5 });
+    ctx.font = 'bold 10.5px Cinzel, serif';
+    ctx.fillStyle = '#fca5a5';
+    ctx.fillText(`❤️ BONUS MAX HP: +${_devMods.bonusMaxHp} HP`, c1X + 12, r1Y + 8);
+
+    ctx.font = '9.5px monospace';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('Sandbox Survivability Vitality Buffer', c1X + 12, r1Y + 24);
+
+    const effHp = Math.min(50, PlayerStats.getEffectiveMaxHp() + (_devMods.bonusMaxHp || 0));
+    ctx.fillText(`• Effective Health: ${effHp} / 50 HP`, c1X + 12, r1Y + 42);
+    ctx.fillText(`• Vitality Buffer: +${_devMods.bonusMaxHp} HP`, c1X + 12, r1Y + 54);
+
+    // Steppers: [-10 HP] and [+10 HP]
+    const hp1X = c1X + 12, hp2X = hp1X + s1W + 8;
+    const isHovHpDec = mouseX >= hp1X && mouseX <= hp1X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
+    drawStoneButton(ctx, hp1X, s2Y, s1W, sBtnH, { text: '-10 HP', isHover: isHovHpDec, isPressed: isHovHpDec && isMouseDown, fontSize: 8.5 });
+    _clickZones.push({
+      x: hp1X, y: s2Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.bonusMaxHp = Math.max(0, _devMods.bonusMaxHp - 10);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    const isHovHpInc = mouseX >= hp2X && mouseX <= hp2X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
+    drawStoneButton(ctx, hp2X, s2Y, s1W, sBtnH, { text: '+10 HP', isHover: isHovHpInc, isPressed: isHovHpInc && isMouseDown, fontSize: 8.5 });
+    _clickZones.push({
+      x: hp2X, y: s2Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.bonusMaxHp = Math.min(40, _devMods.bonusMaxHp + 10);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    // Presets: +0, +10, +25, +40
+    const hpPresets = [
+      { label: '+0', val: 0, w: 42 },
+      { label: '+10', val: 10, w: 46 },
+      { label: '+25', val: 25, w: 48 },
+      { label: '+40', val: 40, w: 48 }
+    ];
+    let curPHPX = c1X + 12;
+    hpPresets.forEach(hpP => {
+      const isSel = _devMods.bonusMaxHp === hpP.val;
+      const isHov = mouseX >= curPHPX && mouseX <= curPHPX + hpP.w && mouseY >= pCdY && mouseY <= pCdY + sBtnH;
+      drawStoneButton(ctx, curPHPX, pCdY, hpP.w, sBtnH, {
+        text: hpP.label,
+        isSelected: isSel,
+        isPrimary: isSel,
+        isHover: isHov,
+        isPressed: isHov && isMouseDown,
+        fontSize: 9
+      });
+      const thisVal = hpP.val;
+      _clickZones.push({
+        x: curPHPX, y: pCdY, w: hpP.w, h: sBtnH,
+        action: () => {
+          _devMods.bonusMaxHp = thisVal;
+          SoundManager.snd('menu_select');
+        }
+      });
+      curPHPX += hpP.w + 5;
+    });
+
+    // ───────────────────────────────────────────────────────────
+    // CARD 6: DAMAGE RESISTANCE (+0% to +45%)
+    // ───────────────────────────────────────────────────────────
+    drawStoneCard(ctx, c2X, r1Y, cardW, cardH, { accentColor: 'gold', chamfer: 5 });
+    ctx.font = 'bold 10.5px Cinzel, serif';
+    ctx.fillStyle = '#fde68a';
+    ctx.fillText(`🛡️ RESISTANCE: +${Math.round(_devMods.damageResistanceBonus * 100)}%`, c2X + 12, r1Y + 8);
+
+    ctx.font = '9.5px monospace';
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText('Flat Incoming Damage Mitigation', c2X + 12, r1Y + 24);
+
+    const normalRes = PlayerStats.getDamageResistance();
+    const effRes = Math.min(0.60, normalRes + (_devMods.damageResistanceBonus || 0));
+    ctx.fillText(`• Total Mitigation: ${Math.round(effRes * 100)}% (Max 60%)`, c2X + 12, r1Y + 42);
+    ctx.fillText(`• 10 DMG Strike -> Deals ${Math.max(1, Math.round(10 * (1 - effRes)))} DMG`, c2X + 12, r1Y + 54);
+
+    // Steppers: [-10%] and [+10%]
+    const res1X = c2X + 12, res2X = res1X + s1W + 8;
+    const isHovResDec = mouseX >= res1X && mouseX <= res1X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
+    drawStoneButton(ctx, res1X, s2Y, s1W, sBtnH, { text: '-10%', isHover: isHovResDec, isPressed: isHovResDec && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: res1X, y: s2Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.damageResistanceBonus = Math.max(0, Math.round((_devMods.damageResistanceBonus - 0.10) * 100) / 100);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    const isHovResInc = mouseX >= res2X && mouseX <= res2X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
+    drawStoneButton(ctx, res2X, s2Y, s1W, sBtnH, { text: '+10%', isHover: isHovResInc, isPressed: isHovResInc && isMouseDown, fontSize: 9 });
+    _clickZones.push({
+      x: res2X, y: s2Y, w: s1W, h: sBtnH,
+      action: () => {
+        _devMods.damageResistanceBonus = Math.min(0.45, Math.round((_devMods.damageResistanceBonus + 0.10) * 100) / 100);
+        SoundManager.snd('menu_hover');
+      }
+    });
+
+    // Presets: +0%, +15%, +30%, +45%
+    const resPresets = [
+      { label: '+0%', val: 0.0, w: 42 },
+      { label: '+15%', val: 0.15, w: 46 },
+      { label: '+30%', val: 0.30, w: 48 },
+      { label: '+45%', val: 0.45, w: 48 }
+    ];
+    let curPRESX = c2X + 12;
+    resPresets.forEach(rp => {
+      const isSel = Math.abs(_devMods.damageResistanceBonus - rp.val) < 0.01;
+      const isHov = mouseX >= curPRESX && mouseX <= curPRESX + rp.w && mouseY >= pCdY && mouseY <= pCdY + sBtnH;
+      drawStoneButton(ctx, curPRESX, pCdY, rp.w, sBtnH, {
+        text: rp.label,
+        isSelected: isSel,
+        isPrimary: isSel,
+        isHover: isHov,
+        isPressed: isHov && isMouseDown,
+        fontSize: 9
+      });
+      const thisVal = rp.val;
+      _clickZones.push({
+        x: curPRESX, y: pCdY, w: rp.w, h: sBtnH,
+        action: () => {
+          _devMods.damageResistanceBonus = thisVal;
+          SoundManager.snd('menu_select');
+        }
+      });
+      curPRESX += rp.w + 5;
+    });
+
+    // ───────────────────────────────────────────────────────────
+    // BOTTOM ACTION ROW (Reset, Toggle Arm, Deploy Sandbox)
+    // ───────────────────────────────────────────────────────────
+    const actY = y + 328;
+    const actH = 32;
+
+    // Button 1: Reset All Modifiers
+    const rstW = 180;
+    const isHovRst = mouseX >= gridX && mouseX <= gridX + rstW && mouseY >= actY && mouseY <= actY + actH;
+    drawStoneButton(ctx, gridX, actY, rstW, actH, {
+      text: '↺ RESET MODIFIERS',
+      isHover: isHovRst,
+      isPressed: isHovRst && isMouseDown,
+      fontSize: 10
+    });
+    _clickZones.push({
+      x: gridX, y: actY, w: rstW, h: actH,
+      action: () => {
+        _devMods.enabled = false;
+        _devMods.weaponLevel = 1;
+        _devMods.bowDamageBonus = 0;
+        _devMods.meleeDamageBonus = 0;
+        _devMods.specialCooldownSec = null;
+        _devMods.bonusMaxHp = 0;
+        _devMods.damageResistanceBonus = 0;
+        _cachedPreviewWep = null;
+        SoundManager.snd('panel_close');
+      }
+    });
+
+    // Button 2: Toggle Armed Status
+    const armW = 230;
+    const armX = gridX + rstW + 14;
+    const isHovArm = mouseX >= armX && mouseX <= armX + armW && mouseY >= actY && mouseY <= actY + actH;
+    drawStoneButton(ctx, armX, actY, armW, actH, {
+      text: _devMods.enabled ? '✓ SANDBOX MODS ARMED' : 'ENABLE SANDBOX MODS',
+      isPrimary: _devMods.enabled,
+      isSelected: _devMods.enabled,
+      isHover: isHovArm,
+      isPressed: isHovArm && isMouseDown,
+      fontSize: 10
+    });
+    _clickZones.push({
+      x: armX, y: actY, w: armW, h: actH,
+      action: () => {
+        _devMods.enabled = !_devMods.enabled;
+        SoundManager.snd(_devMods.enabled ? 'achievement' : 'menu_hover');
+      }
+    });
+
+    // Button 3: Deploy in Sandbox
+    const depW = w - 36 - (rstW + 14 + armW + 14);
+    const depX = armX + armW + 14;
+    const isHovDepTab = mouseX >= depX && mouseX <= depX + depW && mouseY >= actY && mouseY <= actY + actH;
+    drawStoneButton(ctx, depX, actY, depW, actH, {
+      text: '⚔ APPLY & DEPLOY IN SANDBOX',
+      isPrimary: true,
+      isHover: isHovDepTab,
+      isPressed: isHovDepTab && isMouseDown,
+      fontSize: 10.5
+    });
+    _clickZones.push({
+      x: depX, y: actY, w: depW, h: actH,
+      action: () => {
+        _devMods.enabled = true;
+        this.openDeployConfirm();
+      }
+    });
+
+    ctx.restore();
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // TAB 5: EXPEDITION CONFIG (Starting Max Health Slider 1 - 50)
   // ─────────────────────────────────────────────────────────────
   _drawTabConfig(ctx, x, y, w, h, mouseX, mouseY) {
     ctx.save();
@@ -1694,12 +2292,18 @@ export const DeveloperSanctumUI = {
     ctx.fillStyle = '#cbd5e1';
     const lineStartX = mx + 40;
     ctx.fillText(`• Target Floor: Floor ${_selectedFloor} — ${cfg.name.toUpperCase()}`, lineStartX, my + 54);
-    ctx.fillText(`• Starting Weapon: ${wep.icon} ${wep.name} (${wep.damage.toFixed(1)} DMG)`, lineStartX, my + 76);
-    ctx.fillText(`• Weapon Rarity: ${wep.rarity.name.toUpperCase()}`, lineStartX, my + 98);
-    ctx.fillText(`• Starting Health: ${_selectedMaxHp} / 50 HP`, lineStartX, my + 120);
+    ctx.fillText(`• Starting Weapon: ${wep.icon} ${wep.name} (${wep.damage.toFixed(1)} DMG)`, lineStartX, my + 74);
+    ctx.fillText(`• Weapon Rarity: ${wep.rarity.name.toUpperCase()}  ·  Weapon Level: Lv ${_devMods && _devMods.enabled ? _devMods.weaponLevel : 1}`, lineStartX, my + 94);
+    ctx.fillText(`• Starting Health: ${_selectedMaxHp} / 50 HP`, lineStartX, my + 114);
+
+    if (_devMods && _devMods.enabled) {
+      ctx.font = 'bold 9.5px monospace';
+      ctx.fillStyle = '#4ade80';
+      ctx.fillText(`• Sandbox Modifiers: Bow +${Math.round(_devMods.bowDamageBonus * 100)}% | Melee +${Math.round(_devMods.meleeDamageBonus * 100)}% | Res +${Math.round(_devMods.damageResistanceBonus * 100)}%`, lineStartX, my + 132);
+    }
 
     // Speedrun warning badge
-    drawStoneCard(ctx, lineStartX, my + 144, mw - 80, 26, {
+    drawStoneCard(ctx, lineStartX, my + 146, mw - 80, 24, {
       accentColor: 'crimson',
       chamfer: 3
     });
@@ -1708,7 +2312,7 @@ export const DeveloperSanctumUI = {
     ctx.fillStyle = '#fca5a5';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('DEVELOPER EXPEDITION — OFFICIAL SPEEDRUN RECORDS DISABLED', mx + mw / 2, my + 157);
+    ctx.fillText('DEVELOPER EXPEDITION — OFFICIAL SPEEDRUN RECORDS DISABLED', mx + mw / 2, my + 158);
 
     if (GameState.SANCTUM_TEMP_AUTHORIZED && !SaveSystem.isSanctumPermanentUnlocked()) {
       ctx.font = 'italic 10.5px "Crimson Text", Georgia, serif';
@@ -1746,6 +2350,32 @@ export const DeveloperSanctumUI = {
     _clickZones.push({ x: canX, y: btnY, w: btnW, h: btnH, action: () => { _deployConfirmOpen = false; SoundManager.snd('panel_close'); } });
 
     ctx.restore();
+  },
+
+  getDevMods() {
+    return { ..._devMods };
+  },
+
+  setDevMods(mods = {}) {
+    if (typeof mods.enabled === 'boolean') _devMods.enabled = mods.enabled;
+    if (typeof mods.weaponLevel === 'number') _devMods.weaponLevel = Math.max(1, Math.min(5, mods.weaponLevel));
+    if (typeof mods.bowDamageBonus === 'number') _devMods.bowDamageBonus = Math.max(0, Math.min(1.5, mods.bowDamageBonus));
+    if (typeof mods.meleeDamageBonus === 'number') _devMods.meleeDamageBonus = Math.max(0, Math.min(1.5, mods.meleeDamageBonus));
+    if (mods.specialCooldownSec !== undefined) _devMods.specialCooldownSec = mods.specialCooldownSec;
+    if (typeof mods.bonusMaxHp === 'number') _devMods.bonusMaxHp = Math.max(0, Math.min(50, mods.bonusMaxHp));
+    if (typeof mods.damageResistanceBonus === 'number') _devMods.damageResistanceBonus = Math.max(0, Math.min(0.5, mods.damageResistanceBonus));
+    _cachedPreviewWep = null;
+  },
+
+  resetDevMods() {
+    _devMods.enabled = false;
+    _devMods.weaponLevel = 1;
+    _devMods.bowDamageBonus = 0;
+    _devMods.meleeDamageBonus = 0;
+    _devMods.specialCooldownSec = null;
+    _devMods.bonusMaxHp = 0;
+    _devMods.damageResistanceBonus = 0;
+    _cachedPreviewWep = null;
   }
 };
 

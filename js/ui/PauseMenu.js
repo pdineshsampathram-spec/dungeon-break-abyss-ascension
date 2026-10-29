@@ -84,10 +84,13 @@ export function quitToMainMenu() {
   _abandonConfirmedOnce = false;
   _confirmQuitTimer = 0;
 
-  // If player is alive and in an active healthy run, save state before exiting
-  if (GameState.P && !GameState.P.dead && !GameState.P.dying && GameState.P.hp > 0 && GameState.P.san > 0) {
+  // If player is alive and in an active healthy run, save state before exiting (strictly non-developer runs)
+  if (!GameState.IS_DEVELOPER_EXPEDITION && GameState.P && !GameState.P.dead && !GameState.P.dying && GameState.P.hp > 0 && GameState.P.san > 0) {
     SaveSystem.saveRun();
   }
+
+  GameState.IS_DEVELOPER_EXPEDITION = false;
+  if (GameState.DEV_MODS) GameState.DEV_MODS.enabled = false;
 
   GameState.setState(GameStates.TITLE);
   if (typeof document !== 'undefined') {
@@ -469,6 +472,8 @@ export const PauseMenu = {
             SoundManager.snd('menu_hover');
           } else {
             SaveSystem.clearRun();
+            GameState.IS_DEVELOPER_EXPEDITION = false;
+            if (GameState.DEV_MODS) GameState.DEV_MODS.enabled = false;
             _abandonConfirmedOnce = false;
             _confirmQuitTimer = 0;
             GameState.setState(GameStates.TITLE);

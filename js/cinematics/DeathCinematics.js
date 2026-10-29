@@ -1364,10 +1364,12 @@ export const DeathCinematics = {
   reset() {
     ACTIVE_DEATH_CINEMATIC = null;
     GameState.ACTIVE_DEATH_CINEMATIC = null;
+    GameState.CINEMATIC_ACTIVE = false;
     _deathRequested = false;
     this.selectedButtonIndex = 0;
     this.hoveredIndex = -1;
     this._actionTriggered = false;
+    CinematicSafety.reset();
     if (GorgarothCinematics && GorgarothCinematics.reset) {
       GorgarothCinematics.reset();
     }
@@ -1436,6 +1438,7 @@ export const DeathCinematics = {
 
     // 1. Debounce and stop current death cinematic & audio
     this.reset();
+    CinematicSafety.reset();
     ShatteredMindCinematic.reset();
     EndingDispatcher.reset();
     if (typeof window !== 'undefined' && window.WardenDefeatCinematic && window.WardenDefeatCinematic.reset) {
@@ -1447,7 +1450,7 @@ export const DeathCinematics = {
     // 2. Smooth single transition into fresh Floor 1 run via RunResetManager
     UITransitionManager.transitionTo(() => {
       this._actionTriggered = false;
-      RunResetManager.resetRun({ playIntro: false });
+      RunResetManager.resetRun({ playIntro: false, isDeveloperExpedition: !!GameState.IS_DEVELOPER_EXPEDITION });
     }, 0.35);
   },
 
@@ -1465,6 +1468,7 @@ export const DeathCinematics = {
       this.startNewRun(true);
     } else if (idx === 1) {
       this.reset();
+      CinematicSafety.reset();
       this._actionTriggered = true;
       UITransitionManager.transitionTo(() => {
         this._actionTriggered = false;
@@ -1473,6 +1477,7 @@ export const DeathCinematics = {
       }, 0.35);
     } else {
       this.reset();
+      CinematicSafety.reset();
       this._actionTriggered = true;
       UITransitionManager.transitionTo(() => {
         this._actionTriggered = false;
