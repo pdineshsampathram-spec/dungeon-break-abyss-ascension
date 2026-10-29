@@ -7,27 +7,36 @@
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚔️</text></svg>"/>
-  <link rel="stylesheet" href="css/main.css?v=2.3"/>
-  <link rel="stylesheet" href="css/mobile.css?v=2.3"/>
-  <link rel="stylesheet" href="css/hud.css?v=2.3"/>
-  <link rel="stylesheet" href="css/menus.css?v=2.3"/>
-  <link rel="stylesheet" href="css/overlays.css?v=2.3"/>
+  <link rel="stylesheet" href="css/main.css?v=2.4"/>
+  <link rel="stylesheet" href="css/mobile.css?v=2.4"/>
+  <link rel="stylesheet" href="css/hud.css?v=2.4"/>
+  <link rel="stylesheet" href="css/menus.css?v=2.4"/>
+  <link rel="stylesheet" href="css/overlays.css?v=2.4"/>
 </head>
 <body>
   <canvas id="c"></canvas>
 
   <!-- Mobile Landscape Required Prompt Overlay -->
   <div id="rotate-overlay" aria-live="polite">
-    <div class="rotate-phone-anim">
-      <svg viewBox="0 0 64 64" width="72" height="72" fill="none" stroke="#fde68a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="18" y="8" width="28" height="48" rx="4" />
-        <circle cx="32" cy="48" r="1.5" fill="#fde68a" />
-        <path d="M48 24 L56 32 L48 40" />
-        <path d="M54 32 A20 20 0 0 0 32 12" stroke-dasharray="3 3" />
-      </svg>
+    <div class="rotate-chassis">
+      <div class="rotate-phone-anim" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="76" height="76" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Outer Phone Chassis with Gold Inset -->
+          <rect x="18" y="7" width="28" height="50" rx="5" fill="#150f24" stroke="#d97706" stroke-width="2.5" />
+          <rect x="21" y="12" width="22" height="38" rx="2" fill="#090514" stroke="#4a3568" stroke-width="1.2" />
+          <!-- Speaker Earpiece -->
+          <line x1="28" y1="9.5" x2="36" y2="9.5" stroke="#fde68a" stroke-width="1.8" />
+          <!-- Amethyst Home Jewel -->
+          <circle cx="32" cy="53" r="1.8" fill="#ffd700" stroke="#f59e0b" stroke-width="0.8" />
+          <!-- Dynamic Directional Rotation Trajectory -->
+          <path d="M52 24 L58 32 L52 40" fill="none" stroke="#fde68a" stroke-width="2.5" />
+          <path d="M56 32 A22 22 0 0 0 32 10" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 3" />
+        </svg>
+      </div>
+      <div class="rotate-title">ROTATE YOUR DEVICE</div>
+      <div class="rotate-desc">Dungeon Break is best experienced in landscape mode.</div>
+      <div class="rotate-sub">Turn your device horizontally to enter the Abyss.</div>
     </div>
-    <div class="rotate-title">LANDSCAPE MODE REQUIRED</div>
-    <div class="rotate-desc">Dungeon Break is forged for horizontal combat.<br/>Please rotate your device to landscape to enter the Abyss.</div>
   </div>
 
   <!-- Mobile Touch Overlay Controls -->
@@ -98,6 +107,6 @@
   </div>
 
   <!-- Modular Application Bootstrap -->
-  <script type="module" src="./js/main.js?v=3.2"></script>
+  <script type="module" src="./js/main.js?v=3.3"></script>
 </body>
 </html>

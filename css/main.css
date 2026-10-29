@@ -73,7 +73,7 @@ body {
 #rotate-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at center, #130d22 0%, #06030b 100%);
+  background: radial-gradient(circle at center, #150f26 0%, #080410 80%, #020106 100%);
   z-index: 99999;
   display: none;
   flex-direction: column;
@@ -82,38 +82,74 @@ body {
   color: #fde68a;
   font-family: 'Cinzel', serif;
   text-align: center;
-  padding: 24px;
-  gap: 16px;
+  padding: max(24px, env(safe-area-inset-top, 24px)) max(24px, env(safe-area-inset-right, 24px)) max(24px, env(safe-area-inset-bottom, 24px)) max(24px, env(safe-area-inset-left, 24px));
+  box-sizing: border-box;
   pointer-events: all;
   user-select: none;
 }
 
+.rotate-chassis {
+  background: rgba(12, 10, 22, 0.95);
+  border: 2px solid #ca8a04;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.9), 0 0 24px rgba(168, 85, 247, 0.25), inset 0 0 16px rgba(245, 158, 11, 0.15);
+  padding: 32px 28px;
+  max-width: 340px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  box-sizing: border-box;
+}
+
 .rotate-phone-anim {
-  animation: rotSpin 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.6));
+  animation: rotSpin 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.7));
 }
 
 @keyframes rotSpin {
-  0%, 15% { transform: rotate(0deg); }
-  50%, 65% { transform: rotate(90deg); }
-  90%, 100% { transform: rotate(0deg); }
+  0%, 20% {
+    transform: rotate(0deg);
+  }
+  50%, 75% {
+    transform: rotate(90deg);
+  }
+  95%, 100% {
+    transform: rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rotate-phone-anim {
+    animation: none !important;
+    transform: rotate(90deg) !important;
+  }
 }
 
 .rotate-title {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   color: #fde68a;
-  text-shadow: 0 0 12px rgba(245, 158, 11, 0.8), 0 2px 4px #000;
+  text-shadow: 0 0 14px rgba(245, 158, 11, 0.85), 0 2px 4px #000;
 }
 
 .rotate-desc {
   font-family: 'Crimson Text', serif;
-  font-size: 15px;
-  color: #cbd5e1;
-  max-width: 320px;
-  line-height: 1.4;
+  font-size: 16px;
+  color: #e2e8f0;
+  max-width: 290px;
+  line-height: 1.45;
   letter-spacing: 0.02em;
+}
+
+.rotate-sub {
+  font-family: 'Cinzel', serif;
+  font-size: 10.5px;
+  color: #c084fc;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
 }
 
 /* Enforce landscape orientation on mobile/tablet viewports */

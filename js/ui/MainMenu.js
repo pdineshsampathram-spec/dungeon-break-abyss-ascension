@@ -32,6 +32,7 @@ import { DeveloperSanctumUI } from './DeveloperSanctumUI.js';
 import { WEAPON_TYPES, WEAPON_KEYS } from '../weapons/WeaponRegistry.js';
 import { RARITIES } from '../data/weapons.js';
 import { WeaponFactory } from '../weapons/WeaponFactory.js';
+import { FullscreenHelper } from './FullscreenHelper.js';
 
 let _titleBtns = [];
 let _focusedIndex = 0;
@@ -42,6 +43,8 @@ let _lastInputMode = 'mouse';
 
 // Secret Developer Sanctum Relic Button
 let _relicBtnRect = { x: 0, y: 0, w: 44, h: 38 };
+// Immersive Fullscreen Mode Button
+let _fullscreenBtnRect = { x: 0, y: 0, w: 126, h: 34 };
 
 // Standard Run Pre-Descent Loadout Modal State
 let _loadoutModalOpen = false;
@@ -1747,6 +1750,77 @@ function drawPersonalRecords(ctx, alpha, F) {
   ctx.shadowBlur = 5;
   ctx.fillText(deathsText, p2X + 30, p2Y + 28);
   ctx.shadowBlur = 0;
+
+  // ─────────────────────────────────────────────────────────────
+  // PLAQUE 3: IMMERSIVE / FULLSCREEN TOGGLE
+  // ─────────────────────────────────────────────────────────────
+  const p3W = 126;
+  const p3H = plaqueH;
+  const p3X = (p1X - p3W - gap >= 400) ? (p1X - p3W - gap) : p1X;
+  const p3Y = (p1X - p3W - gap >= 400) ? topY : (topY + plaqueH + gap);
+
+  _fullscreenBtnRect = { x: p3X, y: p3Y, w: p3W, h: p3H };
+
+  const isFull = FullscreenHelper.isFullscreen();
+  const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
+  const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
+  const isHovered = mouseX >= p3X && mouseX <= p3X + p3W && mouseY >= p3Y && mouseY <= p3Y + p3H;
+
+  // Drop Shadow
+  ctx.fillStyle = 'rgba(1, 2, 6, 0.70)';
+  drawChamferedPanel(ctx, p3X, p3Y + 2, p3W, p3H, 3);
+  ctx.fill();
+
+  // Dark Obsidian/Amber Backing
+  const p3Grad = ctx.createLinearGradient(p3X, p3Y, p3X, p3Y + p3H);
+  p3Grad.addColorStop(0, isHovered ? '#261e38' : '#1a1426');
+  p3Grad.addColorStop(0.5, isHovered ? '#1a102a' : '#100a1c');
+  p3Grad.addColorStop(1, '#08050e');
+  ctx.fillStyle = p3Grad;
+  drawChamferedPanel(ctx, p3X, p3Y, p3W, p3H, 3);
+  ctx.fill();
+
+  // Antique Gold / Amethyst Border
+  ctx.strokeStyle = isFull ? 'rgba(245, 158, 11, 0.9)' : (isHovered ? 'rgba(217, 119, 6, 0.8)' : 'rgba(168, 85, 247, 0.55)');
+  ctx.lineWidth = isHovered ? 1.4 : 1.0;
+  drawChamferedPanel(ctx, p3X, p3Y, p3W, p3H, 3);
+  ctx.stroke();
+
+  // Corner Rivets
+  ctx.fillStyle = isFull ? '#ffd700' : '#ca8a04';
+  for (const [rx, ry] of [
+    [p3X + 4, p3Y + 4],
+    [p3X + p3W - 4, p3Y + 4],
+    [p3X + 4, p3Y + p3H - 4],
+    [p3X + p3W - 4, p3Y + p3H - 4]
+  ]) {
+    ctx.fillRect(rx - 0.7, ry - 0.7, 1.4, 1.4);
+  }
+
+  // Fullscreen Expand Icon
+  const fsIconX = p3X + 17;
+  const fsIconY = p3Y + p3H / 2;
+  ctx.save();
+  ctx.strokeStyle = isFull ? '#ffd700' : '#fde68a';
+  ctx.lineWidth = 1.4;
+  ctx.strokeRect(fsIconX - 6, fsIconY - 6, 12, 12);
+  ctx.fillStyle = isFull ? '#ffd700' : '#ca8a04';
+  ctx.fillRect(fsIconX - 6, fsIconY - 6, 3, 3);
+  ctx.fillRect(fsIconX + 3, fsIconY - 6, 3, 3);
+  ctx.fillRect(fsIconX - 6, fsIconY + 3, 3, 3);
+  ctx.fillRect(fsIconX + 3, fsIconY + 3, 3, 3);
+  ctx.restore();
+
+  // Label & Subtitle
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.font = 'bold 8px Cinzel, serif';
+  ctx.fillStyle = isFull ? '#ffd700' : '#c084fc';
+  ctx.fillText(isFull ? 'FULLSCREEN ACTIVE' : 'IMMERSIVE MODE', p3X + 30, p3Y + 13);
+
+  ctx.font = 'bold 10.5px Cinzel, serif';
+  ctx.fillStyle = isFull ? '#fef08a' : '#fde68a';
+  ctx.fillText(isFull ? '⛶ WINDOWED' : '⛶ EXPAND', p3X + 30, p3Y + 27);
 
   ctx.restore();
 }
@@ -4023,9 +4097,17 @@ export const MainMenu = {
       return true;
     }
 
+    // Immersive Mode Fullscreen Plaque
+    if (_fullscreenBtnRect && mx >= _fullscreenBtnRect.x && mx <= _fullscreenBtnRect.x + _fullscreenBtnRect.w &&
+        my >= _fullscreenBtnRect.y && my <= _fullscreenBtnRect.y + _fullscreenBtnRect.h) {
+      FullscreenHelper.toggle();
+      SoundManager.snd('menu_select');
+      return true;
+    }
+
     // Check text-first buttons with comfortable hit box
     for (const b of _titleBtns) {
-      if (mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h) {
+      if (mx >= b.x && mx <= b.x + b.w && my >= b.y - 4 && my <= b.y + b.h + 4) {
         if (typeof b.idx === 'number') {
           _focusedIndex = b.idx;
         }

@@ -73,8 +73,8 @@
 
 .combat-touch-btn {
   position: absolute;
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   pointer-events: all;
   touch-action: none;
   user-select: none;
@@ -82,9 +82,17 @@
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.75));
   transition: transform 0.06s ease, filter 0.06s ease;
   cursor: pointer;
+}
+
+/* Generous transparent hit-padding to ensure >= 48px reliable touch target */
+.combat-touch-btn::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  pointer-events: all;
 }
 
 #atk-btn {
@@ -98,8 +106,8 @@
 
 #shoot-btn {
   display: none;
-  width: 62px;
-  height: 62px;
+  width: 54px;
+  height: 54px;
   background-image: url('../assets/ui/btn_shoot.png');
 }
 
@@ -110,8 +118,8 @@
 
 #special-btn {
   display: none;
-  width: 60px;
-  height: 60px;
+  width: 54px;
+  height: 54px;
   background-image: url('../assets/ui/btn_ability.png');
   position: absolute;
   overflow: hidden;
@@ -124,7 +132,7 @@
   left: 0;
   right: 0;
   height: 0%;
-  background: rgba(10, 6, 20, 0.78);
+  background: rgba(10, 6, 20, 0.82);
   pointer-events: none;
   transition: height 0.05s linear;
 }
@@ -137,7 +145,7 @@
   justify-content: center;
   color: #fde68a;
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
   text-shadow: 0 0 6px rgba(0, 0, 0, 0.95), 0 2px 4px #000;
   pointer-events: none;
@@ -156,19 +164,19 @@
   transform: scale(0.92);
 }
 
-/* Dedicated Mobile 3-Slot Weapon Switcher Dock */
+/* Dedicated Mobile 3-Slot Weapon Switcher Dock (Compact & Ergonomic) */
 .mobile-weapon-dock {
   position: absolute;
-  bottom: 14px;
+  bottom: max(10px, env(safe-area-inset-bottom, 10px));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 10px;
-  padding: 6px 12px;
-  background: rgba(14, 11, 24, 0.94);
+  gap: 8px;
+  padding: 4px 8px;
+  background: rgba(14, 11, 24, 0.92);
   border: 1.5px solid #4a3b69;
   border-radius: 8px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.85), inset 0 0 10px rgba(168, 85, 247, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.85), inset 0 0 8px rgba(168, 85, 247, 0.25);
   pointer-events: all;
   touch-action: manipulation;
   z-index: 60;
@@ -177,8 +185,8 @@
 
 .m-wep-slot {
   position: relative;
-  width: 58px;
-  height: 56px;
+  width: 48px;
+  height: 46px;
   background: #110f1c;
   border: 1.5px solid #334155;
   border-radius: 6px;
@@ -198,8 +206,8 @@
 
 .m-wep-slot.active {
   border-color: #ffd700;
-  background: rgba(217, 119, 6, 0.22);
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.7), inset 0 0 8px rgba(254, 240, 138, 0.35);
+  background: rgba(217, 119, 6, 0.25);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.75), inset 0 0 8px rgba(254, 240, 138, 0.35);
 }
 
 .m-wep-slot.empty {
@@ -210,10 +218,10 @@
 
 .m-wep-num {
   position: absolute;
-  top: 2px;
-  left: 4px;
+  top: 1px;
+  left: 3px;
   font-family: 'Cinzel', serif;
-  font-size: 9px;
+  font-size: 8px;
   font-weight: 700;
   color: #94a3b8;
   letter-spacing: 0.5px;
@@ -228,18 +236,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  margin-top: 2px;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
 }
 
 .m-wep-name {
   font-family: 'Cinzel', serif;
-  font-size: 8px;
+  font-size: 7.5px;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: #cbd5e1;
-  margin-top: 2px;
+  margin-top: 1px;
   text-transform: uppercase;
 }
 
@@ -351,24 +359,24 @@
 
 .ctrl-resize-handle {
   position: absolute;
-  bottom: -4px;
-  right: -4px;
-  width: 22px;
-  height: 22px;
+  bottom: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: rgba(255, 215, 0, 0.95);
   border: 2px solid #ffffff;
   display: none;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: 13px;
   z-index: 220;
   touch-action: none;
   pointer-events: all;
   cursor: se-resize;
   color: #000;
   font-weight: 900;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
 }
 
 .ctrl-edit-mode .ctrl-resize-handle {

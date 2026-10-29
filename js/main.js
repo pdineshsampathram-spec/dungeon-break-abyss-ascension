@@ -50,6 +50,7 @@ import { ACHIEVEMENTS, ACHIEVEMENT_KEYS } from './data/achievements.js';
 import { BESTIARY_INFO } from './data/enemies.js';
 import { SaveSystem } from './systems/SaveSystem.js';
 import { drawPixelEye } from './cinematics/ShatteredMindCinematic.js';
+import { FullscreenHelper } from './ui/FullscreenHelper.js';
 
 function bootstrap() {
   const canvas = document.getElementById('c');
@@ -62,14 +63,44 @@ function bootstrap() {
   canvas.width = LW;
   canvas.height = LH;
 
+  // Orientation check and safe suspension lifecycle
+  function checkOrientationState() {
+    const sw = window.innerWidth;
+    const sh = window.innerHeight;
+    const isMobileDevice = typeof MobileControls !== 'undefined'
+      ? MobileControls.isMobile()
+      : (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || sw <= 1024);
+    const isPortrait = sh > sw;
+    const shouldSuspend = isMobileDevice && isPortrait;
+
+    const rotOverlay = document.getElementById('rotate-overlay');
+    const touchOv = document.getElementById('touch-overlay');
+
+    if (shouldSuspend) {
+      GameState.PORTRAIT_SUSPENDED = true;
+      if (rotOverlay) rotOverlay.style.display = 'flex';
+      if (canvas) canvas.style.display = 'none';
+      if (touchOv) touchOv.style.display = 'none';
+      return true;
+    } else {
+      GameState.PORTRAIT_SUSPENDED = false;
+      if (rotOverlay) rotOverlay.style.display = 'none';
+      if (canvas) canvas.style.display = 'block';
+      return false;
+    }
+  }
+
   // Responsive edge-to-edge full viewport scaling enforcing horizontal gaming proportions
   function resizeCanvas() {
+    const isSuspended = checkOrientationState();
+    if (isSuspended) return;
+
     const sw = window.innerWidth;
     const sh = window.innerHeight;
     const aspect = sw / sh;
 
-    // Enforce horizontal game proportions (minimum 1.4 aspect, never awkward vertical stretch)
-    const horizontalAspect = Math.max(1.4, aspect);
+    // Enforce horizontal game proportions (minimum 1.33 aspect for 4:3, expansive for ultra-wide)
+    const horizontalAspect = Math.max(1.33, aspect);
     const targetLH = 640;
     const targetLW = Math.round(640 * horizontalAspect);
 
@@ -100,7 +131,16 @@ function bootstrap() {
   window.addEventListener('touchstart', tryLockOrientation, { passive: true });
   window.addEventListener('pointerdown', tryLockOrientation, { passive: true });
   window.addEventListener('resize', resizeCanvas);
-  window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
+  window.addEventListener('orientationchange', () => {
+    setTimeout(resizeCanvas, 50);
+    setTimeout(resizeCanvas, 200);
+  });
+  document.addEventListener('fullscreenchange', () => {
+    setTimeout(resizeCanvas, 50);
+  });
+  document.addEventListener('webkitfullscreenchange', () => {
+    setTimeout(resizeCanvas, 50);
+  });
   resizeCanvas();
 
   // Keyboard shortcut dispatcher
@@ -515,6 +555,7 @@ function bootstrap() {
 
   // Global browser test bridge
   if (typeof window !== 'undefined') {
+    window.FullscreenHelper = FullscreenHelper;
     window.DB_GAME = Game;
     window.DB_LOOP = GameLoop;
     window.DB_STATE = GameState;

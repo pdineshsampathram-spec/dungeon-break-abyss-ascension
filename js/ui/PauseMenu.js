@@ -17,6 +17,7 @@ import { InputManager } from '../core/InputManager.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { ButtonArtManager } from './ButtonArtManager.js?v=1.0';
 import { DeveloperSanctumUI } from './DeveloperSanctumUI.js';
+import { FullscreenHelper } from './FullscreenHelper.js';
 
 let _pauseSlide = 0;
 let _ambientTimer = 0;
@@ -411,10 +412,10 @@ export const PauseMenu = {
     // ─────────────────────────────────────────────────────────────
     // 5. HANDCRAFTED FORGED REGALIA COMMAND BUTTONS
     // ─────────────────────────────────────────────────────────────
-    const btnStartY = telemY + telemH + 16;
+    const btnStartY = telemY + telemH + 12;
     const btnW = panW - 48;
-    const btnH = 34;
-    const btnGap = 8;
+    const btnH = 32;
+    const btnGap = 6;
 
     const buttonConfigs = [
       {
@@ -440,6 +441,16 @@ export const PauseMenu = {
         primary: false,
         isDanger: false,
         action: () => openAchievements()
+      },
+      {
+        id: 'fullscreen',
+        label: FullscreenHelper.isFullscreen() ? 'EXIT IMMERSIVE MODE (WINDOWED)' : 'ENTER IMMERSIVE MODE (FULLSCREEN)',
+        sub: FullscreenHelper.isFullscreen() ? 'Restore browser toolbars & margins  ·  [ F ]' : 'Expand display to edge-to-edge screen  ·  [ F ]',
+        primary: false,
+        isDanger: false,
+        action: () => {
+          FullscreenHelper.toggle();
+        }
       },
       {
         id: 'save_quit',
@@ -614,6 +625,10 @@ export const PauseMenu = {
     }
     if (key === 'a' || key === 'A') {
       openAchievements();
+      return true;
+    }
+    if (key === 'f' || key === 'F') {
+      FullscreenHelper.toggle();
       return true;
     }
     if ((key === 'd' || key === 'D') && (GameState.IS_DEVELOPER_EXPEDITION || DeveloperSanctumUI.isAuthorized())) {

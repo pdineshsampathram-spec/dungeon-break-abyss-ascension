@@ -75,6 +75,8 @@ export const GameLoop = {
   },
 
   update(dt) {
+    if (GameState.PORTRAIT_SUSPENDED) return;
+
     // Master frame counter
     GameState.F = (GameState.F || 0) + 1;
 
@@ -208,7 +210,7 @@ export const GameLoop = {
   },
 
   render(ctx, dt) {
-    if (!ctx) return;
+    if (!ctx || GameState.PORTRAIT_SUSPENDED) return;
     Renderer.render(ctx);
     UIManager.renderUI(ctx, dt);
   }

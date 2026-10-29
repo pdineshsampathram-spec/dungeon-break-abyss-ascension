@@ -13,16 +13,27 @@ import { pauseGame, resumeGame } from './PauseMenu.js';
 import { HUD } from './HUD.js';
 
 const CTRL_DEFAULTS = {
-  joySize: 118,
-  joyX: 28,
-  joyYBot: 28,
-  atkSize: 76,
+  joySize: 96,
+  joyLeftRatio: 0.03,
+  joyBotRatio: 0.07,
+  joyX: 24,
+  joyYBot: 24,
+
+  atkSize: 64,
+  atkRightRatio: 0.035,
+  atkBotRatio: 0.07,
   atkX: null,
-  atkYBot: 28,
-  shootSize: 66,
+  atkYBot: 24,
+
+  shootSize: 54,
+  shootRightRatio: null,
+  shootBotRatio: null,
   shootX: null,
   shootYBot: 0,
-  specialSize: 66,
+
+  specialSize: 54,
+  specialRightRatio: null,
+  specialBotRatio: null,
   specialX: null,
   specialYBot: 0
 };
@@ -206,25 +217,74 @@ export const MobileControls = {
     this.updateWeaponIcons();
 
     const sw = window.innerWidth, sh = window.innerHeight;
-    const jx = Math.max(12, Math.min(sw - CTRL.joySize - 12, CTRL.joyX));
-    const jy = Math.max(12, Math.min(sh - CTRL.joySize - 12, sh - CTRL.joyYBot - CTRL.joySize));
+    const padMin = 14;
+
+    // Movement D-Pad (anchored to bottom-left thumb zone)
+    const joySize = Math.max(70, Math.min(124, CTRL.joySize || 96));
+    let jx, jy;
+    if (typeof CTRL.joyLeftRatio === 'number') {
+      jx = Math.round(sw * CTRL.joyLeftRatio);
+    } else if (typeof CTRL.joyX === 'number') {
+      jx = CTRL.joyX;
+    } else {
+      jx = 24;
+    }
+    if (typeof CTRL.joyBotRatio === 'number') {
+      jy = Math.round(sh - (sh * CTRL.joyBotRatio) - joySize);
+    } else {
+      jy = Math.round(sh - (CTRL.joyYBot || 24) - joySize);
+    }
+    jx = Math.max(padMin, Math.min(sw - joySize - padMin, jx));
+    jy = Math.max(padMin, Math.min(sh - joySize - padMin, jy));
+
     joyZone.style.left = `${jx}px`;
     joyZone.style.top = `${jy}px`;
-    joyZone.style.width = `${CTRL.joySize}px`;
-    joyZone.style.height = `${CTRL.joySize}px`;
+    joyZone.style.width = `${joySize}px`;
+    joyZone.style.height = `${joySize}px`;
 
-    const ax = CTRL.atkX !== null ? Math.max(12, Math.min(sw - CTRL.atkSize - 12, CTRL.atkX)) : sw - 28 - CTRL.atkSize;
-    const ay = Math.max(12, Math.min(sh - CTRL.atkSize - 12, sh - CTRL.atkYBot - CTRL.atkSize));
+    // Primary Attack Button (anchored to bottom-right thumb zone)
+    const atkSize = Math.max(48, Math.min(84, CTRL.atkSize || 64));
+    let ax, ay;
+    if (typeof CTRL.atkRightRatio === 'number') {
+      ax = Math.round(sw - (sw * CTRL.atkRightRatio) - atkSize);
+    } else if (CTRL.atkX !== null && typeof CTRL.atkX === 'number') {
+      ax = CTRL.atkX;
+    } else {
+      ax = sw - 28 - atkSize;
+    }
+    if (typeof CTRL.atkBotRatio === 'number') {
+      ay = Math.round(sh - (sh * CTRL.atkBotRatio) - atkSize);
+    } else {
+      ay = Math.round(sh - (CTRL.atkYBot || 24) - atkSize);
+    }
+    ax = Math.max(padMin, Math.min(sw - atkSize - padMin, ax));
+    ay = Math.max(padMin, Math.min(sh - atkSize - padMin, ay));
+
     atkBtn.style.left = `${ax}px`;
     atkBtn.style.top = `${ay}px`;
-    atkBtn.style.width = `${CTRL.atkSize}px`;
-    atkBtn.style.height = `${CTRL.atkSize}px`;
+    atkBtn.style.width = `${atkSize}px`;
+    atkBtn.style.height = `${atkSize}px`;
 
-    const shSz = CTRL.shootSize;
-    const defShootX = ax;
-    const defShootY = Math.max(12, ay - shSz - 14);
-    const shx = CTRL.shootX !== null ? Math.max(12, Math.min(sw - shSz - 12, CTRL.shootX)) : defShootX;
-    const shy = CTRL.shootYBot !== 0 ? Math.max(12, Math.min(sh - shSz - 12, sh - CTRL.shootYBot - shSz)) : defShootY;
+    // Bow / Shoot Button (ergonomically placed above Attack by default)
+    const shSz = Math.max(44, Math.min(76, CTRL.shootSize || 54));
+    let shx, shy;
+    if (typeof CTRL.shootRightRatio === 'number') {
+      shx = Math.round(sw - (sw * CTRL.shootRightRatio) - shSz);
+    } else if (CTRL.shootX !== null && typeof CTRL.shootX === 'number') {
+      shx = CTRL.shootX;
+    } else {
+      shx = ax;
+    }
+    if (typeof CTRL.shootBotRatio === 'number') {
+      shy = Math.round(sh - (sh * CTRL.shootBotRatio) - shSz);
+    } else if (CTRL.shootYBot !== 0 && typeof CTRL.shootYBot === 'number') {
+      shy = Math.round(sh - CTRL.shootYBot - shSz);
+    } else {
+      shy = Math.max(padMin, ay - shSz - 12);
+    }
+    shx = Math.max(padMin, Math.min(sw - shSz - padMin, shx));
+    shy = Math.max(padMin, Math.min(sh - shSz - padMin, shy));
+
     const hasBowInLoadout = GameState.weaponSlots && GameState.weaponSlots.some(w => w && w.id === 'bow');
     const isBowEquipped = GameState.P && GameState.P.wep === 'bow';
     const showShoot = CTRL_EDIT_MODE || (this.isMobile() && (hasBowInLoadout || isBowEquipped));
@@ -234,11 +294,26 @@ export const MobileControls = {
     shootBtn.style.height = `${shSz}px`;
     shootBtn.style.display = showShoot ? 'block' : 'none';
 
-    const spSz = CTRL.specialSize;
-    const defSpecialX = Math.max(12, ax - spSz - 14);
-    const defSpecialY = ay;
-    const spx = CTRL.specialX !== null ? Math.max(12, Math.min(sw - spSz - 12, CTRL.specialX)) : defSpecialX;
-    const spy = CTRL.specialYBot !== 0 ? Math.max(12, Math.min(sh - spSz - 12, sh - CTRL.specialYBot - spSz)) : defSpecialY;
+    // Special Consecrated Ability Button (ergonomically placed to left of Attack by default)
+    const spSz = Math.max(44, Math.min(76, CTRL.specialSize || 54));
+    let spx, spy;
+    if (typeof CTRL.specialRightRatio === 'number') {
+      spx = Math.round(sw - (sw * CTRL.specialRightRatio) - spSz);
+    } else if (CTRL.specialX !== null && typeof CTRL.specialX === 'number') {
+      spx = CTRL.specialX;
+    } else {
+      spx = Math.max(padMin, ax - spSz - 12);
+    }
+    if (typeof CTRL.specialBotRatio === 'number') {
+      spy = Math.round(sh - (sh * CTRL.specialBotRatio) - spSz);
+    } else if (CTRL.specialYBot !== 0 && typeof CTRL.specialYBot === 'number') {
+      spy = Math.round(sh - CTRL.specialYBot - spSz);
+    } else {
+      spy = ay;
+    }
+    spx = Math.max(padMin, Math.min(sw - spSz - padMin, spx));
+    spy = Math.max(padMin, Math.min(sh - spSz - padMin, spy));
+
     const showSpecial = CTRL_EDIT_MODE || this.isMobile();
     specialBtn.style.left = `${spx}px`;
     specialBtn.style.top = `${spy}px`;
@@ -247,9 +322,7 @@ export const MobileControls = {
     specialBtn.style.display = showSpecial ? 'block' : 'none';
 
     if (weaponDock) {
-      // Center weapon dock horizontally; adapt vertical position for portrait orientation
-      const isPortrait = sh > sw || (window.innerHeight > window.innerWidth);
-      weaponDock.style.bottom = isPortrait ? '116px' : 'max(14px, env(safe-area-inset-bottom, 14px))';
+      weaponDock.style.bottom = 'max(10px, env(safe-area-inset-bottom, 10px))';
       weaponDock.style.left = '50%';
       weaponDock.style.transform = 'translateX(-50%)';
     }
@@ -732,10 +805,21 @@ export const MobileControls = {
 
         if (isDragging) {
           const curSz = CTRL[`${keyPrefix}Size`];
-          const newLeft = Math.max(10, Math.min(sw() - curSz - 10, initialLeft + dx));
-          const newBottom = Math.max(10, Math.min(sh() - curSz - 10, initialBottom - dy));
-          CTRL[`${keyPrefix}X`] = Math.round(newLeft);
-          CTRL[`${keyPrefix}YBot`] = Math.round(newBottom);
+          const newLeft = Math.max(12, Math.min(sw() - curSz - 12, initialLeft + dx));
+          const newBottom = Math.max(12, Math.min(sh() - curSz - 12, initialBottom - dy));
+
+          if (keyPrefix === 'joy') {
+            CTRL.joyLeftRatio = newLeft / sw();
+            CTRL.joyBotRatio = newBottom / sh();
+            CTRL.joyX = Math.round(newLeft);
+            CTRL.joyYBot = Math.round(newBottom);
+          } else {
+            const rightDist = sw() - newLeft - curSz;
+            CTRL[`${keyPrefix}RightRatio`] = rightDist / sw();
+            CTRL[`${keyPrefix}BotRatio`] = newBottom / sh();
+            CTRL[`${keyPrefix}X`] = Math.round(newLeft);
+            CTRL[`${keyPrefix}YBot`] = Math.round(newBottom);
+          }
           this.applyJoyLayout();
         } else if (isResizing) {
           const delta = (dx + dy) / 2;
@@ -761,10 +845,10 @@ export const MobileControls = {
       window.addEventListener('touchcancel', onEnd);
     };
 
-    setupDragAndResize('joy-zone', 'joy-resize', 'joy', 70, 160);
-    setupDragAndResize('atk-btn', 'atk-resize', 'atk', 48, 110);
-    setupDragAndResize('shoot-btn', 'shoot-resize', 'shoot', 44, 96);
-    setupDragAndResize('special-btn', 'special-resize', 'special', 44, 96);
+    setupDragAndResize('joy-zone', 'joy-resize', 'joy', 70, 124);
+    setupDragAndResize('atk-btn', 'atk-resize', 'atk', 48, 84);
+    setupDragAndResize('shoot-btn', 'shoot-resize', 'shoot', 44, 76);
+    setupDragAndResize('special-btn', 'special-resize', 'special', 44, 76);
 
     // Done and Reset buttons in hint bar
     const doneBtn = document.getElementById('ctrl-done-btn');
