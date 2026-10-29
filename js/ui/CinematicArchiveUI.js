@@ -31,6 +31,38 @@ import {
 } from './ButtonArtManager.js?v=2.0';
 
 // ─────────────────────────────────────────────────────────────
+// Archive Cinematic Concept Illustrations Preload Cache
+// ─────────────────────────────────────────────────────────────
+const ARCHIVE_IMAGE_CACHE = {};
+
+export function getArchiveImage(id) {
+  if (typeof Image === 'undefined') return null;
+  if (!ARCHIVE_IMAGE_CACHE[id]) {
+    const img = new Image();
+    const entry = { img, loaded: false, error: false };
+    img.onload = () => { entry.loaded = true; };
+    img.onerror = () => {
+      entry.error = true;
+      if (id.startsWith('credits_')) {
+        const altImg = new Image();
+        altImg.onload = () => { entry.img = altImg; entry.loaded = true; entry.error = false; };
+        altImg.src = `assets/cinematics/credits/credits_bg_${id.replace('credits_', '')}.jpg`;
+      }
+    };
+    img.src = `assets/cinematics/archive/${id}.jpg`;
+    ARCHIVE_IMAGE_CACHE[id] = entry;
+  }
+  return ARCHIVE_IMAGE_CACHE[id];
+}
+
+export function preloadArchiveImages() {
+  if (typeof Image === 'undefined') return;
+  ARCHIVE_CINEMATICS.forEach(item => {
+    getArchiveImage(item.id);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
 // 12 GENUINE STORY CINEMATICS CATALOGUE
 // ─────────────────────────────────────────────────────────────
 export const ARCHIVE_CINEMATICS = [
@@ -347,6 +379,7 @@ export const CinematicArchiveUI = {
     _selectedIndex = 0;
     _scrollOffset = 0;
     _initParticles();
+    preloadArchiveImages();
     GameState.setState(GameStates.CINEMATIC_ARCHIVE);
     try { SoundManager.snd('panel_open'); } catch (e) {}
   },
@@ -686,164 +719,224 @@ export const CinematicArchiveUI = {
     ctx.restore();
   },
 
-  // Procedural Canvas 2D scene thumbnail for the inspection card
+  // Authentic Dark Fantasy Scene Thumbnail Vignette for the inspection card
   _drawThumbnailVignette(ctx, item, isUnlocked, x, y, w, h) {
     ctx.save();
     ctx.beginPath();
     ctx.rect(x, y, w, h);
     ctx.clip();
 
-    // Base background
+    // Base background: deep abyssal obsidian stone
     const bg = ctx.createLinearGradient(x, y, x, y + h);
-    bg.addColorStop(0, '#0a0f1d');
-    bg.addColorStop(1, '#020408');
+    bg.addColorStop(0, '#0a0d18');
+    bg.addColorStop(0.5, '#060810');
+    bg.addColorStop(1, '#020306');
     ctx.fillStyle = bg;
     ctx.fillRect(x, y, w, h);
 
+    const animTime = performance.now() * 0.001;
+    const cx = x + w / 2;
+    const cy = y + h / 2;
+
     if (isUnlocked) {
-      // Scene-specific evocative Canvas 2D art
-      const cx = x + w / 2;
-      const cy = y + h / 2;
+      // 1. Check if the high-fidelity cinematic concept image is preloaded
+      const entry = getArchiveImage(item.id);
+      let drewImage = false;
 
-      if (item.category === 'bosses') {
-        // Red / purple dungeon arena motif
-        const arenaGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, w * 0.5);
-        arenaGrad.addColorStop(0, item.color + '44');
-        arenaGrad.addColorStop(1, 'transparent');
-        ctx.fillStyle = arenaGrad;
+      if (entry && entry.loaded && entry.img.naturalWidth > 0) {
+        try {
+          const img = entry.img;
+          const imgRatio = img.naturalWidth / img.naturalHeight;
+          const boxRatio = w / h;
+          let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+
+          if (imgRatio > boxRatio) {
+            sw = img.naturalHeight * boxRatio;
+            sx = (img.naturalWidth - sw) / 2;
+          } else {
+            sh = img.naturalWidth / boxRatio;
+            sy = (img.naturalHeight - sh) / 2;
+          }
+
+          ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+          drewImage = true;
+        } catch (e) {
+          drewImage = false;
+        }
+      }
+
+      if (drewImage) {
+        // Overlay atmospheric dark fantasy vignette & stone depth
+        const edgeGrad = ctx.createRadialGradient(cx, cy, Math.min(w, h) * 0.45, cx, cy, Math.max(w, h) * 0.78);
+        edgeGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+        edgeGrad.addColorStop(0.65, 'rgba(3, 5, 12, 0.35)');
+        edgeGrad.addColorStop(1, 'rgba(2, 3, 8, 0.85)');
+        ctx.fillStyle = edgeGrad;
         ctx.fillRect(x, y, w, h);
 
-        // Stone pillars
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(x + 20, y + 20, 16, h - 20);
-        ctx.fillRect(x + w - 36, y + 20, 16, h - 20);
+        // Subtle color mood wash matching cinematic theme
+        if (item.color) {
+          ctx.fillStyle = item.color;
+          ctx.globalAlpha = 0.06;
+          ctx.fillRect(x, y, w, h);
+          ctx.globalAlpha = 1.0;
+        }
 
-        // Glowing boss symbol
-        ctx.textAlign = 'center';
-        ctx.fillStyle = item.color;
-        ctx.font = '36px serif';
-        ctx.fillText(item.icon === 'chains' ? '⛓' : '⚔', cx, cy + 12);
-      } else if (item.id === 'the_descent') {
-        // Shaft of light in darkness
-        const shaft = ctx.createLinearGradient(cx - 30, y, cx + 30, y + h);
-        shaft.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
-        shaft.addColorStop(1, 'transparent');
-        ctx.fillStyle = shaft;
-        ctx.fillRect(x, y, w, h);
-
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = '32px serif';
-        ctx.fillText('⬇', cx, cy + 10);
-      } else if (item.id === 'shattered_mind') {
-        // Void Eye
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(x, y, w, h);
-
-        const eyeGlow = ctx.createRadialGradient(cx, cy, 4, cx, cy, 45);
-        eyeGlow.addColorStop(0, 'rgba(239, 68, 68, 0.8)');
-        eyeGlow.addColorStop(1, 'transparent');
-        ctx.fillStyle = eyeGlow;
-        ctx.fillRect(x, y, w, h);
-
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, 28, 14, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(cx, cy, 6, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (item.id === 'ending_hero') {
-        // Golden sunrise sky
-        const sky = ctx.createLinearGradient(x, y, x, y + h);
-        sky.addColorStop(0, '#fef08a');
-        sky.addColorStop(0.5, '#f59e0b');
-        sky.addColorStop(1, '#0f172a');
-        ctx.fillStyle = sky;
-        ctx.fillRect(x, y, w, h);
-
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '36px serif';
-        ctx.fillText('☀', cx, cy + 14);
-      } else if (item.id === 'ending_betrayal') {
-        // Violet chamber & throne
-        const throne = ctx.createRadialGradient(cx, cy, 10, cx, cy, 60);
-        throne.addColorStop(0, '#9333ea');
-        throne.addColorStop(1, '#090514');
-        ctx.fillStyle = throne;
-        ctx.fillRect(x, y, w, h);
-
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#c084fc';
-        ctx.font = '32px serif';
-        ctx.fillText('👑', cx, cy + 10);
-      } else if (item.id === 'ending_rampage') {
-        // Burning crimson citadel
-        const fire = ctx.createLinearGradient(x, y + h, x, y);
-        fire.addColorStop(0, '#b91c1c');
-        fire.addColorStop(0.6, '#7f1d1d');
-        fire.addColorStop(1, '#050202');
-        ctx.fillStyle = fire;
-        ctx.fillRect(x, y, w, h);
-
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#fca5a5';
-        ctx.font = '34px serif';
-        ctx.fillText('⚔', cx, cy + 12);
-      } else if (item.id === 'epilogue_unmeasured_hour') {
-        // Ancient Vault & The Absolute's Gaze
-        const vault = ctx.createRadialGradient(cx, cy, 10, cx, cy, 65);
-        vault.addColorStop(0, '#1a1032');
-        vault.addColorStop(0.5, '#0c0618');
-        vault.addColorStop(1, '#020106');
-        ctx.fillStyle = vault;
-        ctx.fillRect(x, y, w, h);
-
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#ef4444';
-        ctx.font = '28px serif';
-        ctx.fillText('👁', cx, cy + 8);
+        // Drifting ember particles for living dungeon atmosphere
+        const emberPulse = Math.sin(animTime * 3.0) * 0.2 + 0.8;
+        ctx.fillStyle = `rgba(251, 191, 36, ${0.4 * emberPulse})`;
+        for (let i = 0; i < 4; i++) {
+          const ex = x + 20 + ((animTime * 25 + i * 90) % (w - 40));
+          const ey = y + h - 15 - ((animTime * 18 + i * 35) % (h - 30));
+          ctx.fillRect(ex, ey, 1.5, 1.5);
+        }
       } else {
-        // Ember spark
-        const ember = ctx.createRadialGradient(cx, cy, 5, cx, cy, 40);
-        ember.addColorStop(0, '#fbbf24');
-        ember.addColorStop(1, 'transparent');
-        ctx.fillStyle = ember;
+        // Fallback: Authentic Dark Fantasy Dungeon Architecture (Zero flat shapes, Zero emojis)
+        ctx.fillStyle = '#080c16';
         ctx.fillRect(x, y, w, h);
 
+        // Gothic stone arches
+        ctx.strokeStyle = 'rgba(30, 41, 59, 0.65)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, y + h, w * 0.42, Math.PI, 0);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+        ctx.beginPath();
+        ctx.arc(cx, y + h, w * 0.32, Math.PI, 0);
+        ctx.stroke();
+
+        // Warm torchlight glow from ancient wall sconce
+        const fPulse = Math.sin(animTime * 5.0) * 0.15 + 0.85;
+        const torchGrad = ctx.createRadialGradient(cx, cy - 10, 4, cx, cy - 10, w * 0.45);
+        torchGrad.addColorStop(0, `rgba(245, 158, 11, ${0.45 * fPulse})`);
+        torchGrad.addColorStop(0.5, `rgba(217, 119, 6, ${0.15 * fPulse})`);
+        torchGrad.addColorStop(1, 'transparent');
+        ctx.fillStyle = torchGrad;
+        ctx.fillRect(x, y, w, h);
+
+        // Rowan silhouette in reflection facing the abyss
+        ctx.fillStyle = '#020408';
+        ctx.fillRect(cx - 5, y + h - 34, 10, 24);
+        ctx.beginPath();
+        ctx.arc(cx, y + h - 38, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Billowing red cape in the dark
+        ctx.fillStyle = '#991b1b';
+        ctx.beginPath();
+        ctx.moveTo(cx - 3, y + h - 35);
+        ctx.lineTo(cx - 16, y + h - 18);
+        ctx.lineTo(cx - 12, y + h - 12);
+        ctx.lineTo(cx - 2, y + h - 22);
+        ctx.closePath();
+        ctx.fill();
+
+        // Drawn vanguard broadsword
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cx + 3, y + h - 28);
+        ctx.lineTo(cx + 18, y + h - 20);
+        ctx.stroke();
+
+        // Cinematic Vision Title Watermark
         ctx.textAlign = 'center';
-        ctx.fillStyle = '#fef08a';
-        ctx.font = '32px serif';
-        ctx.fillText('✦', cx, cy + 10);
+        ctx.fillStyle = 'rgba(254, 240, 138, 0.7)';
+        ctx.font = '700 12px Cinzel, serif';
+        ctx.fillText(item.title.toUpperCase(), cx, y + 26);
+
+        ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
+        ctx.fillStyle = 'rgba(203, 213, 225, 0.6)';
+        ctx.fillText(item.subtitle, cx, y + 42);
       }
     } else {
-      // Locked vignette: chains & brass lock
-      const cx = x + w / 2;
-      const cy = y + h / 2;
-
-      ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(x, y); ctx.lineTo(x + w, y + h);
-      ctx.moveTo(x + w, y); ctx.lineTo(x, y + h);
-      ctx.stroke();
-
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      // 2. Authentic Sealed Vision: Carved Dark Stone Chamber with Heavy Crossed Chains & Ancient Rune Seal
+      ctx.fillStyle = '#05070e';
       ctx.fillRect(x, y, w, h);
 
+      // Deep stone brick texture joints
+      ctx.strokeStyle = 'rgba(30, 41, 59, 0.35)';
+      ctx.lineWidth = 1;
+      for (let ly = y + 20; ly < y + h; ly += 24) {
+        ctx.beginPath();
+        ctx.moveTo(x, ly);
+        ctx.lineTo(x + w, ly);
+        ctx.stroke();
+      }
+
+      // Swirling cold shadow fog
+      const fogGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, w * 0.45);
+      fogGrad.addColorStop(0, 'rgba(15, 23, 42, 0.55)');
+      fogGrad.addColorStop(1, 'rgba(2, 4, 10, 0.95)');
+      ctx.fillStyle = fogGrad;
+      ctx.fillRect(x, y, w, h);
+
+      // Heavy forged iron chains crossed diagonally
+      ctx.strokeStyle = 'rgba(71, 85, 105, 0.45)';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(x + 10, y + 10);
+      ctx.lineTo(x + w - 10, y + h - 10);
+      ctx.moveTo(x + w - 10, y + 10);
+      ctx.lineTo(x + 10, y + h - 10);
+      ctx.stroke();
+
+      // Chain highlight links
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + 10, y + 10);
+      ctx.lineTo(x + w - 10, y + h - 10);
+      ctx.moveTo(x + w - 10, y + 10);
+      ctx.lineTo(x + 10, y + h - 10);
+      ctx.stroke();
+
+      // Ancient stone seal medallion in center
+      const sealGrad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 28);
+      sealGrad.addColorStop(0, '#1e293b');
+      sealGrad.addColorStop(0.8, '#0f172a');
+      sealGrad.addColorStop(1, '#020617');
+      ctx.fillStyle = sealGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Bronze runic border
+      ctx.strokeStyle = 'rgba(217, 119, 6, 0.55)';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Carved lock keyhole glyph
+      ctx.fillStyle = '#ca8a04';
+      ctx.beginPath();
+      ctx.arc(cx, cy - 4, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(cx - 3, cy - 2);
+      ctx.lineTo(cx + 3, cy - 2);
+      ctx.lineTo(cx + 4.5, cy + 8);
+      ctx.lineTo(cx - 4.5, cy + 8);
+      ctx.closePath();
+      ctx.fill();
+
+      // Sealed Memory Label
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#64748b';
-      ctx.font = '36px serif';
-      ctx.fillText('🔒', cx, cy + 14);
+      ctx.font = '700 11px Cinzel, serif';
+      ctx.fillStyle = 'rgba(203, 213, 225, 0.7)';
+      ctx.fillText('✦ VISION SEALED IN DARKNESS ✦', cx, cy + 38);
+
+      ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.55)';
+      ctx.fillText('Conquer the trial in your descent to awaken this memory', cx, cy + 52);
     }
 
-    // Vignette border
-    ctx.strokeStyle = '#ca8a04';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x, y, w, h);
+    // Inner bevel & carved stone trim
+    ctx.strokeStyle = isUnlocked ? 'rgba(217, 119, 6, 0.5)' : 'rgba(51, 65, 85, 0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+
     ctx.restore();
   },
 
