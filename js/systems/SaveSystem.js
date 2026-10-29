@@ -588,6 +588,48 @@ export const SaveSystem = {
         stored['the_last_ember'] = true;
       }
 
+      // 3. Sanitize accidental badge/cheat unlocks: ensure only legitimately earned visions remain unlocked
+      const kills = GameState.BESTIARY_KILLS || {};
+      const hasGorgaroth = (kills.gorgaroth > 0) || ms.death_gorgaroth || (ach.jailbreaker && ach.jailbreaker.unlocked);
+      const hasMalakor = (kills.malakor > 0) || ms.death_malakor || (ach.void_shifter && ach.void_shifter.unlocked);
+      const hasWarden = (kills.warden > 0) || ms.death_warden || (ach.warden_slayer && ach.warden_slayer.unlocked) || (ach.boss_slayer && ach.boss_slayer.unlocked) || end.hero || end.betrayal || end.rampage;
+
+      if (!hasGorgaroth) {
+        delete stored['boss_intro_gorgaroth'];
+        delete stored['boss_defeat_gorgaroth'];
+      }
+      if (!hasMalakor) {
+        delete stored['boss_intro_malakor'];
+        delete stored['boss_defeat_malakor'];
+      }
+      if (!hasWarden) {
+        delete stored['boss_intro_warden'];
+        delete stored['boss_defeat_warden'];
+      }
+      if (!end.hero && !ms.ending_hero && !(ach.hero && ach.hero.unlocked)) {
+        delete stored['ending_hero'];
+        delete stored['credits_hero'];
+      }
+      if (!end.betrayal && !ms.ending_betrayal && !(ach.betrayal && ach.betrayal.unlocked)) {
+        delete stored['ending_betrayal'];
+        delete stored['credits_betrayal'];
+      }
+      if (!end.rampage && !ms.ending_rampage && !(ach.rampage && ach.rampage.unlocked)) {
+        delete stored['ending_rampage'];
+        delete stored['credits_rampage'];
+      }
+      if (!end.hero && !end.betrayal && !end.rampage && !ms.epilogue_unmeasured_hour) {
+        delete stored['epilogue_unmeasured_hour'];
+        delete stored['credits_menu'];
+      }
+      if (!ms.death_shattered_mind && !(ach.lost_mind && ach.lost_mind.unlocked)) {
+        delete stored['shattered_mind'];
+        delete stored['credits_shattered_mind'];
+      }
+      if (!this.isPhase3GiftEligible() && !(ach.the_last_witness && ach.the_last_witness.unlocked)) {
+        delete stored['the_last_ember'];
+      }
+
       GameState.UNLOCKED_CINEMATICS = stored;
       localStorage.setItem('db_unlocked_cinematics_v1', JSON.stringify(stored));
       return stored;
@@ -613,17 +655,6 @@ export const SaveSystem = {
 
   unlockCinematic(id) {
     return this.recordCinematicUnlock(id);
-  },
-
-  unlockAllCinematics(allIds = []) {
-    if (!GameState.UNLOCKED_CINEMATICS) this.loadUnlockedCinematics();
-    allIds.forEach(id => {
-      GameState.UNLOCKED_CINEMATICS[id] = true;
-    });
-    try {
-      localStorage.setItem('db_unlocked_cinematics_v1', JSON.stringify(GameState.UNLOCKED_CINEMATICS));
-    } catch (e) {}
-    return true;
   },
 
   isCinematicUnlocked(id) {

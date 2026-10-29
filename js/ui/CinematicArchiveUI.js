@@ -459,24 +459,15 @@ export const CinematicArchiveUI = {
     ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
     ctx.fillText('Preserved Visions from the Deep Trials · Rewatch without altering run fate', 36, 52);
 
-    // Unlock counter badge
+    // Unlock counter badge (informational display only)
     const badgeW = 180;
     const badgeH = 28;
     const badgeX = LW - 36 - badgeW;
     const badgeY = 22;
-    const isBadgeHover = mouseX >= badgeX && mouseX <= badgeX + badgeW && mouseY >= badgeY && mouseY <= badgeY + badgeH;
 
     drawStoneBadge(ctx, `${unlockedCount} / ${totalCount} VISIONS UNLOCKED`, badgeX, badgeY, badgeW, badgeH, {
-      variant: unlockedCount === totalCount ? 'gold' : (isBadgeHover ? 'primary' : 'purple'),
-      pulse: isBadgeHover
-    });
-
-    _clickZones.push({
-      type: 'unlock_all',
-      x: badgeX,
-      y: badgeY,
-      w: badgeW,
-      h: badgeH
+      variant: unlockedCount === totalCount ? 'gold' : 'purple',
+      pulse: false
     });
 
     // ─────────────────────────────────────────────────────────────
@@ -771,7 +762,7 @@ export const CinematicArchiveUI = {
     ctx.textAlign = 'right';
     ctx.fillStyle = '#64748b';
     ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    ctx.fillText('↑/↓ or W/S: Navigate · Enter / Click: Rewatch · U: Unlock All · Esc: Return', LW - 36, footY);
+    ctx.fillText('↑/↓ or W/S: Navigate · Enter / Click: Rewatch · Esc: Return', LW - 36, footY);
 
     ctx.restore();
   },
@@ -1117,11 +1108,6 @@ export const CinematicArchiveUI = {
       return true;
     }
 
-    if (key === 'KeyU' || key === 'u' || key === 'U') {
-      this.toggleUnlockAll();
-      return true;
-    }
-
     if (key === 'Enter' || key === ' ' || key === 'Space') {
       const item = filtered[_selectedIndex];
       if (item && SaveSystem.isCinematicUnlocked(item.id)) {
@@ -1156,10 +1142,6 @@ export const CinematicArchiveUI = {
           this.startReplay(z.item);
           return true;
         }
-        if (z.type === 'unlock_all') {
-          this.toggleUnlockAll();
-          return true;
-        }
         if (z.type === 'back') {
           this.close();
           return true;
@@ -1188,21 +1170,6 @@ export const CinematicArchiveUI = {
         }
       }
     }
-  },
-
-  toggleUnlockAll() {
-    const isAll = ARCHIVE_CINEMATICS.every(c => SaveSystem.isCinematicUnlocked(c.id));
-    if (isAll) {
-      GameState.UNLOCKED_CINEMATICS = { 'the_descent': true };
-    } else {
-      ARCHIVE_CINEMATICS.forEach(c => {
-        GameState.UNLOCKED_CINEMATICS[c.id] = true;
-      });
-    }
-    try {
-      localStorage.setItem('db_unlocked_cinematics_v1', JSON.stringify(GameState.UNLOCKED_CINEMATICS));
-    } catch (e) {}
-    try { SoundManager.snd('menu_select'); } catch (e) {}
   },
 
   startReplay(item) {
