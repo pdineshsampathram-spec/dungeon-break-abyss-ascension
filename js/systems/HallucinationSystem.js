@@ -573,7 +573,7 @@ export const HallucinationSystem = {
       ctx.textBaseline = 'bottom';
       ctx.shadowColor = 'rgba(0,0,0,0.9)';
       ctx.shadowBlur = 6;
-      ctx.fillText(this.whisperText, LW / 2, LH - 90);
+      ctx.fillText(this.whisperText, LW / 2, LH - 142);
       ctx.restore();
     }
   },

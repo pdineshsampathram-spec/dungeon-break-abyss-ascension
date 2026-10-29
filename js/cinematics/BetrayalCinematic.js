@@ -3366,7 +3366,8 @@ export const BetrayalCinematic = {
       ctx.save();
       ctx.globalAlpha = Math.min(1.0, Math.max(0, cine.subtitles.alpha));
 
-      const subY = LH - Math.round(barH * 0.44);
+      // Floating comfortably above bottom weapon slots and HUD dock
+      const subY = LH - Math.max(barH + 46, 140);
       const isChamber = cine.subtitles.isSecret;
 
       ctx.font = 'italic 17px "Crimson Text", Georgia, serif';

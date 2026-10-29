@@ -726,7 +726,7 @@ export const DeathCinematics = {
   _drawCinematicSubtitle(ctx, text, col = '#fde68a') {
     if (!text) return;
     const cx = CINEMATIC_W / 2;
-    const cy = CINEMATIC_H - 85;
+    const cy = CINEMATIC_H - 140;
 
     ctx.save();
     ctx.font = 'italic 16px "Crimson Text", Georgia, serif';

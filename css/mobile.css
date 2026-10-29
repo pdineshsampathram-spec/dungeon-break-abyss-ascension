@@ -73,6 +73,8 @@
 
 .combat-touch-btn {
   position: absolute;
+  width: 72px;
+  height: 72px;
   pointer-events: all;
   touch-action: none;
   user-select: none;
@@ -96,6 +98,8 @@
 
 #shoot-btn {
   display: none;
+  width: 62px;
+  height: 62px;
   background-image: url('../assets/ui/btn_shoot.png');
 }
 
@@ -106,6 +110,8 @@
 
 #special-btn {
   display: none;
+  width: 60px;
+  height: 60px;
   background-image: url('../assets/ui/btn_ability.png');
   position: absolute;
   overflow: hidden;
@@ -249,10 +255,28 @@
   box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.9), 0 0 16px rgba(255, 215, 0, 0.5) !important;
   cursor: grab;
   animation: ctrlPulse 1.8s ease-in-out infinite;
+  touch-action: none;
 }
 
 .ctrl-edit-mode #joy-zone {
+  display: block !important;
   border-color: rgba(255, 215, 0, 0.9) !important;
+}
+
+.ctrl-edit-mode #atk-btn {
+  display: block !important;
+}
+
+.ctrl-edit-mode #shoot-btn {
+  display: block !important;
+}
+
+.ctrl-edit-mode #special-btn {
+  display: block !important;
+}
+
+.ctrl-edit-mode #mobile-weapon-dock {
+  display: flex !important;
 }
 
 @keyframes ctrlPulse {
@@ -265,43 +289,90 @@
   top: 0;
   left: 0;
   right: 0;
-  background: rgba(0, 0, 0, 0.82);
+  background: rgba(10, 14, 24, 0.96);
   color: #fde68a;
   font-family: 'Cinzel', serif;
   font-size: 11px;
   font-weight: 700;
-  text-align: center;
-  padding: 7px 4px;
-  z-index: 200;
-  letter-spacing: 0.06em;
   display: none;
-  pointer-events: none;
-  border-bottom: 1px solid rgba(201, 168, 76, 0.5);
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  z-index: 250;
+  letter-spacing: 0.05em;
+  border-bottom: 1.5px solid rgba(201, 168, 76, 0.65);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.85);
+  pointer-events: all;
+  user-select: none;
+}
+
+.ctrl-hint-text {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.ctrl-hint-actions {
+  display: flex;
+  gap: 8px;
+}
+
+#ctrl-done-btn, #ctrl-reset-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+#ctrl-done-btn {
+  background: #064e3b;
+  color: #a7f3d0;
+  border: 1.5px solid #10b981;
+}
+
+#ctrl-done-btn:active {
+  background: #047857;
+  transform: scale(0.94);
+}
+
+#ctrl-reset-btn {
+  background: #1e1b2e;
+  color: #fde68a;
+  border: 1.5px solid #ca8a04;
+}
+
+#ctrl-reset-btn:active {
+  background: #374151;
+  transform: scale(0.94);
 }
 
 .ctrl-resize-handle {
   position: absolute;
-  bottom: -3px;
-  right: -3px;
-  width: 18px;
-  height: 18px;
+  bottom: -4px;
+  right: -4px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: rgba(255, 215, 0, 0.85);
-  border: 1.5px solid #fff;
+  background: rgba(255, 215, 0, 0.95);
+  border: 2px solid #ffffff;
   display: none;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
-  z-index: 210;
+  font-size: 11px;
+  z-index: 220;
   touch-action: none;
   pointer-events: all;
   cursor: se-resize;
   color: #000;
   font-weight: 900;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
 }
 
 .ctrl-edit-mode .ctrl-resize-handle {
-  display: flex;
+  display: flex !important;
 }
 
 /* Responsive Safe Area and Orientation Adaptations */

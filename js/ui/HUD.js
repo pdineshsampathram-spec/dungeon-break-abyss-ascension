@@ -1569,9 +1569,9 @@ function _drawOriginalHUD(ctx) {
     const alpha = Math.min(1, GameState.GAME_MSG_TIMER / 0.6) * Math.min(1, GameState.GAME_MSG_TIMER);
     if (alpha > 0) {
       ctx.save(); ctx.globalAlpha = alpha;
-      ctx.fillStyle = 'rgba(0,0,0,.75)'; roundRect(ctx, LW / 2 - 240, LH - 130, 480, 30, 8); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,.75)'; roundRect(ctx, LW / 2 - 240, LH - 150, 480, 30, 8); ctx.fill();
       ctx.fillStyle = '#fde68a'; ctx.font = 'bold 12px Cinzel,serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(GameState.GAME_MSG, LW / 2, LH - 115);
+      ctx.fillText(GameState.GAME_MSG, LW / 2, LH - 135);
       ctx.restore();
     }
   }
@@ -1597,7 +1597,7 @@ function _drawOriginalHUD(ctx) {
       ctx.globalAlpha = pulse;
       const bw = 380, bh = 30;
       const bx = LW / 2 - bw / 2;
-      const by = LH - 130;
+      const by = LH - 150;
       ctx.fillStyle = 'rgba(5, 7, 20, 0.88)';
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 1.8;

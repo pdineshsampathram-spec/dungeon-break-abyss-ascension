@@ -2810,7 +2810,8 @@ export const RampageCinematic = {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.font = 'italic 16px "Crimson Text", Georgia, serif';
-      const subY = LH - Math.round(barH * 0.5);
+      // Floating comfortably above bottom weapon slots and HUD dock
+      const subY = LH - Math.max(barH + 46, 140);
 
       const textW = ctx.measureText(cine.subtitles.text).width;
       const bgGrad = ctx.createRadialGradient(LW / 2, subY, 6, LW / 2, subY, textW / 2 + 24);

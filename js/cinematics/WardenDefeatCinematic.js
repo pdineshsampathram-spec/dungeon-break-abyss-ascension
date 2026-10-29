@@ -996,7 +996,7 @@ export const WardenDefeatCinematic = {
   _drawCinematicSubtitle(ctx, text, col = '#fed7aa', barH = 0) {
     if (!text) return;
     const cx = LW / 2;
-    const cy = LH - Math.max(22, barH + 12);
+    const cy = LH - Math.max(barH + 46, 140);
 
     ctx.save();
     ctx.font = 'italic 10px "Crimson Text", Georgia, serif';

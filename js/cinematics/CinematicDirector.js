@@ -1458,7 +1458,7 @@ export const CinematicDirector = {
       ctx.fillStyle = '#f8fafc';
       ctx.shadowColor = '#000000';
       ctx.shadowBlur = 6;
-      ctx.fillText('WASD / ARROWS — MOVE   ·   SPACE / CLICK — ATTACK', cx, CINEMATIC_H - 95);
+      ctx.fillText('WASD / ARROWS — MOVE   ·   SPACE / CLICK — ATTACK', cx, CINEMATIC_H - 150);
       ctx.restore();
     }
 
@@ -1480,7 +1480,7 @@ export const CinematicDirector = {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const subY = CINEMATIC_H - 85;
+    const subY = CINEMATIC_H - 140;
 
     // Subtitle background pill
     ctx.font = 'italic 16px Georgia, serif';

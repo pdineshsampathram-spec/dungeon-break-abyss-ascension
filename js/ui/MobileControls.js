@@ -43,7 +43,9 @@ export const MobileControls = {
 
   isMobile() {
     if (typeof window === 'undefined') return false;
-    return window.matchMedia('(max-width:900px),(pointer:coarse)').matches;
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    const mediaCheck = window.matchMedia('(max-width:1024px), (pointer:coarse)').matches;
+    return isTouch || mediaCheck;
   },
 
   loadCtrlLayout() {
@@ -70,7 +72,11 @@ export const MobileControls = {
 
   shouldShowTouchControls() {
     if (typeof window === 'undefined') return false;
-    if (!this.isMobile() && !CTRL_EDIT_MODE) return false;
+
+    // Critical: When customizing controls, ALWAYS keep controls visible
+    if (CTRL_EDIT_MODE) return true;
+
+    if (!this.isMobile()) return false;
 
     // Strict rule: Gameplay touch controls must appear ONLY when gameplay is active
     if (GameState.STATE !== GameStates.PLAYING) return false;
@@ -200,23 +206,25 @@ export const MobileControls = {
     this.updateWeaponIcons();
 
     const sw = window.innerWidth, sh = window.innerHeight;
-    const jx = Math.max(16, Math.min(sw - CTRL.joySize, CTRL.joyX));
-    const jy = sh - CTRL.joyYBot - CTRL.joySize;
+    const jx = Math.max(12, Math.min(sw - CTRL.joySize - 12, CTRL.joyX));
+    const jy = Math.max(12, Math.min(sh - CTRL.joySize - 12, sh - CTRL.joyYBot - CTRL.joySize));
     joyZone.style.left = `${jx}px`;
     joyZone.style.top = `${jy}px`;
     joyZone.style.width = `${CTRL.joySize}px`;
     joyZone.style.height = `${CTRL.joySize}px`;
 
-    const ax = CTRL.atkX !== null ? Math.max(0, Math.min(sw - CTRL.atkSize, CTRL.atkX)) : sw - 28 - CTRL.atkSize;
-    const ay = sh - CTRL.atkYBot - CTRL.atkSize;
+    const ax = CTRL.atkX !== null ? Math.max(12, Math.min(sw - CTRL.atkSize - 12, CTRL.atkX)) : sw - 28 - CTRL.atkSize;
+    const ay = Math.max(12, Math.min(sh - CTRL.atkSize - 12, sh - CTRL.atkYBot - CTRL.atkSize));
     atkBtn.style.left = `${ax}px`;
     atkBtn.style.top = `${ay}px`;
     atkBtn.style.width = `${CTRL.atkSize}px`;
     atkBtn.style.height = `${CTRL.atkSize}px`;
 
     const shSz = CTRL.shootSize;
-    const shx = CTRL.shootX !== null ? Math.max(0, Math.min(sw - shSz, CTRL.shootX)) : sw - 28 - shSz;
-    const shy = CTRL.shootYBot !== 0 ? sh - CTRL.shootYBot - shSz : ay - shSz - 12;
+    const defShootX = ax;
+    const defShootY = Math.max(12, ay - shSz - 14);
+    const shx = CTRL.shootX !== null ? Math.max(12, Math.min(sw - shSz - 12, CTRL.shootX)) : defShootX;
+    const shy = CTRL.shootYBot !== 0 ? Math.max(12, Math.min(sh - shSz - 12, sh - CTRL.shootYBot - shSz)) : defShootY;
     const hasBowInLoadout = GameState.weaponSlots && GameState.weaponSlots.some(w => w && w.id === 'bow');
     const isBowEquipped = GameState.P && GameState.P.wep === 'bow';
     const showShoot = CTRL_EDIT_MODE || (this.isMobile() && (hasBowInLoadout || isBowEquipped));
@@ -227,10 +235,11 @@ export const MobileControls = {
     shootBtn.style.display = showShoot ? 'block' : 'none';
 
     const spSz = CTRL.specialSize;
-    const spx = CTRL.specialX !== null ? Math.max(0, Math.min(sw - spSz, CTRL.specialX)) : (showShoot ? shx - spSz - 12 : sw - 28 - spSz);
-    const spy = CTRL.specialYBot !== 0 ? sh - CTRL.specialYBot - spSz : (showShoot ? shy : ay - spSz - 12);
-    const hasWep = GameState.P && !!GameState.P.wep;
-    const showSpecial = CTRL_EDIT_MODE || (this.isMobile() && hasWep);
+    const defSpecialX = Math.max(12, ax - spSz - 14);
+    const defSpecialY = ay;
+    const spx = CTRL.specialX !== null ? Math.max(12, Math.min(sw - spSz - 12, CTRL.specialX)) : defSpecialX;
+    const spy = CTRL.specialYBot !== 0 ? Math.max(12, Math.min(sh - spSz - 12, sh - CTRL.specialYBot - spSz)) : defSpecialY;
+    const showSpecial = CTRL_EDIT_MODE || this.isMobile();
     specialBtn.style.left = `${spx}px`;
     specialBtn.style.top = `${spy}px`;
     specialBtn.style.width = `${spSz}px`;
@@ -303,13 +312,25 @@ export const MobileControls = {
     const ctrlEditHint = document.getElementById('ctrl-edit-hint');
     const shootBtn = document.getElementById('shoot-btn');
     const specialBtn = document.getElementById('special-btn');
+    const atkBtn = document.getElementById('atk-btn');
+    const joyZone = document.getElementById('joy-zone');
+    const weaponDock = document.getElementById('mobile-weapon-dock');
+
     if (touchOv) {
       touchOv.style.display = 'block';
       touchOv.classList.add('ctrl-edit-mode');
     }
-    if (ctrlEditHint) ctrlEditHint.style.display = 'block';
+    if (ctrlEditHint) {
+      ctrlEditHint.style.display = 'flex';
+    }
+    if (joyZone) joyZone.style.display = 'block';
+    if (atkBtn) atkBtn.style.display = 'block';
     if (shootBtn) shootBtn.style.display = 'block';
     if (specialBtn) specialBtn.style.display = 'block';
+    if (weaponDock) weaponDock.style.display = 'flex';
+
+    this.applyJoyLayout();
+    this.updateWeaponDock();
   },
 
   exitCtrlEditMode() {
@@ -613,7 +634,146 @@ export const MobileControls = {
     window.addEventListener('pointercancel', () => this.releaseAllInputs());
     window.addEventListener('touchcancel', () => this.releaseAllInputs());
 
+    this._setupControlCustomizer();
     this.updateTouchVis();
+  },
+
+  _setupControlCustomizer() {
+    if (typeof window === 'undefined') return;
+
+    const sw = () => window.innerWidth;
+    const sh = () => window.innerHeight;
+
+    const setupDragAndResize = (elId, resizeHandleId, keyPrefix, minSize, maxSize) => {
+      const el = document.getElementById(elId);
+      const handle = document.getElementById(resizeHandleId);
+      if (!el) return;
+
+      let isDragging = false;
+      let isResizing = false;
+      let startX = 0, startY = 0;
+      let initialLeft = 0, initialBottom = 0;
+      let initialSize = 0;
+      let trackedId = null;
+
+      const getPos = (e) => {
+        if (e.touches && e.touches.length > 0) {
+          if (trackedId !== null) {
+            for (let i = 0; i < e.touches.length; i++) {
+              if (e.touches[i].identifier === trackedId) {
+                return { x: e.touches[i].clientX, y: e.touches[i].clientY };
+              }
+            }
+          }
+          return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+        return { x: e.clientX, y: e.clientY };
+      };
+
+      // Resizing handle
+      if (handle) {
+        const startResize = (e) => {
+          if (!CTRL_EDIT_MODE) return;
+          e.preventDefault();
+          e.stopPropagation();
+          isResizing = true;
+          isDragging = false;
+          trackedId = (e.touches && e.touches.length > 0) ? e.touches[0].identifier : (e.pointerId ?? null);
+          const p = getPos(e);
+          startX = p.x;
+          startY = p.y;
+          initialSize = CTRL[`${keyPrefix}Size`];
+        };
+        handle.addEventListener('pointerdown', startResize);
+        handle.addEventListener('touchstart', startResize, { passive: false });
+      }
+
+      // Dragging element
+      const startDrag = (e) => {
+        if (!CTRL_EDIT_MODE || isResizing) return;
+        if (handle && (e.target === handle || handle.contains(e.target))) return;
+        e.preventDefault();
+        e.stopPropagation();
+        isDragging = true;
+        trackedId = (e.touches && e.touches.length > 0) ? e.touches[0].identifier : (e.pointerId ?? null);
+        const p = getPos(e);
+        startX = p.x;
+        startY = p.y;
+
+        const rect = el.getBoundingClientRect();
+        initialLeft = rect.left;
+        initialBottom = sh() - rect.bottom;
+      };
+      el.addEventListener('pointerdown', startDrag);
+      el.addEventListener('touchstart', startDrag, { passive: false });
+
+      const onMove = (e) => {
+        if (!CTRL_EDIT_MODE || (!isDragging && !isResizing)) return;
+        e.preventDefault();
+        const p = getPos(e);
+        const dx = p.x - startX;
+        const dy = p.y - startY;
+
+        if (isDragging) {
+          const curSz = CTRL[`${keyPrefix}Size`];
+          const newLeft = Math.max(10, Math.min(sw() - curSz - 10, initialLeft + dx));
+          const newBottom = Math.max(10, Math.min(sh() - curSz - 10, initialBottom - dy));
+          CTRL[`${keyPrefix}X`] = Math.round(newLeft);
+          CTRL[`${keyPrefix}YBot`] = Math.round(newBottom);
+          this.applyJoyLayout();
+        } else if (isResizing) {
+          const delta = (dx + dy) / 2;
+          const newSize = Math.max(minSize, Math.min(maxSize, Math.round(initialSize + delta)));
+          CTRL[`${keyPrefix}Size`] = newSize;
+          this.applyJoyLayout();
+        }
+      };
+
+      const onEnd = (e) => {
+        if (!isDragging && !isResizing) return;
+        isDragging = false;
+        isResizing = false;
+        trackedId = null;
+        this.saveCtrlLayout();
+      };
+
+      window.addEventListener('pointermove', onMove, { passive: false });
+      window.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('pointerup', onEnd);
+      window.addEventListener('touchend', onEnd);
+      window.addEventListener('pointercancel', onEnd);
+      window.addEventListener('touchcancel', onEnd);
+    };
+
+    setupDragAndResize('joy-zone', 'joy-resize', 'joy', 70, 160);
+    setupDragAndResize('atk-btn', 'atk-resize', 'atk', 48, 110);
+    setupDragAndResize('shoot-btn', 'shoot-resize', 'shoot', 44, 96);
+    setupDragAndResize('special-btn', 'special-resize', 'special', 44, 96);
+
+    // Done and Reset buttons in hint bar
+    const doneBtn = document.getElementById('ctrl-done-btn');
+    if (doneBtn) {
+      const handleDone = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.exitCtrlEditMode();
+        SoundManager.snd('menu_select');
+      };
+      doneBtn.addEventListener('click', handleDone);
+      doneBtn.addEventListener('touchstart', handleDone, { passive: false });
+    }
+
+    const resetBtn = document.getElementById('ctrl-reset-btn');
+    if (resetBtn) {
+      const handleReset = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.resetCtrlLayout();
+        SoundManager.snd('menu_select');
+      };
+      resetBtn.addEventListener('click', handleReset);
+      resetBtn.addEventListener('touchstart', handleReset, { passive: false });
+    }
   }
 };
 
