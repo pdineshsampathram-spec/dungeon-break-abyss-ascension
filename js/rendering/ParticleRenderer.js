@@ -28,8 +28,10 @@ export const ParticleRenderer = {
         star: !!o.star
       });
     }
-    if (GameState.PRT.length > 250) {
-      GameState.PRT.splice(0, GameState.PRT.length - 250);
+    const isMobile = (typeof window !== 'undefined' && window.MobileControls && window.MobileControls.isMobile && window.MobileControls.isMobile());
+    const maxParticles = isMobile ? 120 : 250;
+    if (GameState.PRT.length > maxParticles) {
+      GameState.PRT.splice(0, GameState.PRT.length - maxParticles);
     }
   },
 
@@ -208,33 +210,53 @@ export const ParticleRenderer = {
       ctx.restore();
     });
 
-    // Draw particles
-    GameState.PRT.forEach(p => {
-      const t2 = Math.max(0, p.life / p.ml);
-      ctx.save();
-      ctx.globalAlpha = t2 * 0.85;
-      ctx.fillStyle = p.col;
-      const sx = p.wx * T + T / 2;
-      const sy = p.wy * T + T / 2;
+    // Draw particles with viewport culling & zero save/restore churn on standard circles
+    const prt = GameState.PRT;
+    if (prt && prt.length > 0) {
+      const camX = GameState.CAM ? GameState.CAM.x : (GameState.P ? GameState.P.x : 0);
+      const camY = GameState.CAM ? GameState.CAM.y : (GameState.P ? GameState.P.y : 0);
+      const camZoom = GameState.CAM ? (GameState.CAM.z || 1.0) : 1.0;
+      const margin = 2.5;
+      const minWX = camX - (LW / 2) / (T * camZoom) - margin;
+      const maxWX = camX + (LW / 2) / (T * camZoom) + margin;
+      const minWY = camY - (LH / 2) / (T * camZoom) - margin;
+      const maxWY = camY + (LH / 2) / (T * camZoom) + margin;
 
-      if (p.star) {
-        ctx.translate(sx, sy);
-        ctx.rotate(GameState.F * 0.15 + p.ml);
-        const r2 = Math.max(0.5, p.r * t2);
-        ctx.beginPath();
-        for (let j = 0; j < 4; j++) {
-          ctx.lineTo(Math.cos(j * 1.57) * r2, Math.sin(j * 1.57) * r2);
-          ctx.lineTo(Math.cos(j * 1.57 + 0.785) * r2 * 0.35, Math.sin(j * 1.57 + 0.785) * r2 * 0.35);
+      for (let i = 0; i < prt.length; i++) {
+        const p = prt[i];
+        if (p.wx < minWX || p.wx > maxWX || p.wy < minWY || p.wy > maxWY) {
+          continue; // Viewport cull
         }
-        ctx.closePath();
-        ctx.fill();
-      } else {
-        ctx.beginPath();
-        ctx.arc(sx, sy, Math.max(0.4, p.r * t2), 0, 6.28);
-        ctx.fill();
+
+        const t2 = Math.max(0, p.life / p.ml);
+        const sx = p.wx * T + T / 2;
+        const sy = p.wy * T + T / 2;
+
+        if (p.star) {
+          ctx.save();
+          ctx.globalAlpha = t2 * 0.85;
+          ctx.fillStyle = p.col;
+          ctx.translate(sx, sy);
+          ctx.rotate(GameState.F * 0.15 + p.ml);
+          const r2 = Math.max(0.5, p.r * t2);
+          ctx.beginPath();
+          for (let j = 0; j < 4; j++) {
+            ctx.lineTo(Math.cos(j * 1.57) * r2, Math.sin(j * 1.57) * r2);
+            ctx.lineTo(Math.cos(j * 1.57 + 0.785) * r2 * 0.35, Math.sin(j * 1.57 + 0.785) * r2 * 0.35);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+        } else {
+          ctx.globalAlpha = t2 * 0.85;
+          ctx.fillStyle = p.col;
+          ctx.beginPath();
+          ctx.arc(sx, sy, Math.max(0.4, p.r * t2), 0, 6.28);
+          ctx.fill();
+        }
       }
-      ctx.restore();
-    });
+      ctx.globalAlpha = 1.0;
+    }
 
     // Draw floating texts
     FLOATING_TEXTS.forEach(ft => {

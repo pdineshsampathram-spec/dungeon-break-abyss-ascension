@@ -18,6 +18,8 @@ import { SaveSystem } from '../systems/SaveSystem.js';
 import { ButtonArtManager } from './ButtonArtManager.js?v=1.0';
 import { DeveloperSanctumUI } from './DeveloperSanctumUI.js';
 import { FullscreenHelper } from './FullscreenHelper.js';
+import { Typography } from '../rendering/Typography.js';
+import { PixelIconRenderer } from '../rendering/PixelIconRenderer.js';
 
 let _pauseSlide = 0;
 let _ambientTimer = 0;
@@ -210,6 +212,360 @@ export const PauseMenu = {
       }
     }
 
+    const isMobile = (typeof window !== 'undefined' && window.MobileControls && window.MobileControls.isMobile && window.MobileControls.isMobile());
+
+    if (isMobile) {
+      this.drawMobilePauseMenu(ctx, dt, eased);
+    } else {
+      this.drawDesktopPauseMenu(ctx, dt, eased);
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // RESPONSIVE MOBILE PAUSE MENU — NEAR FULL-SCREEN 94% CHASSIS
+  // ─────────────────────────────────────────────────────────────
+  drawMobilePauseMenu(ctx, dt, eased) {
+    ctx.save();
+    ctx.globalAlpha = eased;
+
+    // Atmospheric darkening vignette (no slow per-frame scanline loops)
+    ctx.fillStyle = 'rgba(2, 4, 10, 0.88)';
+    ctx.fillRect(0, 0, LW, LH);
+
+    // Near full-screen chassis occupying ~94% width and ~92% height
+    const panW = Math.round(LW * 0.94);
+    const panH = Math.round(LH * 0.92);
+    const panX = Math.round((LW - panW) / 2);
+    const panY = Math.round((LH - panH) / 2 - (1 - eased) * 15);
+
+    // Ambient gold & violet radiance behind chassis
+    const pulse = 0.5 + 0.5 * Math.sin(_ambientTimer * 2.2);
+    const bgGlow = ctx.createRadialGradient(panX + panW / 2, panY + 140, 30, panX + panW / 2, panY + 220, panW / 2);
+    bgGlow.addColorStop(0, `rgba(217, 119, 6, ${0.14 + pulse * 0.03})`);
+    bgGlow.addColorStop(0.5, 'rgba(147, 51, 234, 0.07)');
+    bgGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = bgGlow;
+    ctx.fillRect(panX - 20, panY - 20, panW + 40, panH + 40);
+
+    // Outer forged iron casing with chamfered profile
+    drawChamferedPanel(ctx, panX, panY, panW, panH, 12, 'rgba(7, 11, 24, 0.98)', 'rgba(217, 119, 6, 0.85)', 1.8);
+    // Inner etched bronze channel
+    drawChamferedPanel(ctx, panX + 5, panY + 5, panW - 10, panH - 10, 9, 'rgba(10, 15, 28, 0.95)', 'rgba(201, 168, 76, 0.35)', 1);
+
+    // Corner filigree brackets
+    drawCornerBrackets(ctx, panX + 8, panY + 8, panW - 16, panH - 16, 16, 'rgba(217, 119, 6, 0.9)');
+
+    _zones.length = 0;
+    const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
+    const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
+    const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
+
+    // ─── HEADER: CHISELED TITLE PLAQUE ───
+    const plW = Math.min(380, panW - 32);
+    const plH = 46;
+    const plX = Math.round(panX + (panW - plW) / 2);
+    const plY = panY + 10;
+
+    drawChamferedPanel(ctx, plX, plY, plW, plH, 7, 'rgba(12, 18, 36, 0.98)', 'rgba(217, 119, 6, 0.75)', 1.4);
+    drawCornerBrackets(ctx, plX + 3, plY + 3, plW - 6, plH - 6, 8, 'rgba(245, 158, 11, 0.6)');
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fde68a';
+    ctx.shadowColor = '#d97706';
+    ctx.shadowBlur = 6;
+    ctx.font = 'bold 18px Cinzel, serif';
+    ctx.fillText('◈ PAUSED ◈', plX + plW / 2, plY + 16);
+    ctx.shadowBlur = 0;
+
+    const lv = GameState.LV || 1;
+    const flCfg = FLOOR_CONFIG[lv] || { name: 'Cathedral of Deep Navy' };
+    ctx.fillStyle = '#c084fc';
+    ctx.font = 'italic 10px "Crimson Text", serif';
+    ctx.fillText(`FLOOR ${lv}: ${flCfg.name.toUpperCase()}  •  DESCENT SUSPENDED`, plX + plW / 2, plY + 33);
+
+    // ─── COMPACT LIVE PLAYER STATUS STRIP ───
+    const statY = plY + plH + 8;
+    const statH = 34;
+    const statW = panW - 36;
+    const statX = panX + 18;
+
+    drawChamferedPanel(ctx, statX, statY, statW, statH, 5, 'rgba(12, 17, 32, 0.92)', 'rgba(71, 85, 105, 0.5)', 1);
+
+    const P = GameState.P || { hp: 10, maxHp: 10, san: 100, maxSan: 100 };
+    const curHp = Math.max(0, P.hp || 0);
+    const maxHp = Math.max(1, P.maxHp || 10);
+    const curSan = Math.max(0, Math.min(100, P.san !== undefined ? P.san : 100));
+    const maxSan = P.maxSan || 100;
+
+    let activeWepName = 'Sword';
+    let activeWepDmg = '3.5';
+    let wepCol = '#94a3b8';
+    if (GameState.weaponSlots && GameState.weaponSlots[GameState.activeWeaponSlot]) {
+      const w = GameState.weaponSlots[GameState.activeWeaponSlot];
+      activeWepName = w.name || w.id || 'Blade';
+      activeWepDmg = (w.dmg || w.damage || 3.5).toFixed(1);
+      wepCol = (w.rarity && w.rarity.col) || '#94a3b8';
+    }
+
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 10px Cinzel, serif';
+
+    // 4 telemetry badges spaced horizontally
+    const segW = statW / 4;
+
+    // 1. Health
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fca5a5';
+    PixelIconRenderer.draw(ctx, 'heart', statX + 16, statY + statH / 2, 13);
+    ctx.font = Typography.getFont(Typography.ROLES.HUD_LABEL, { size: 10.5 });
+    ctx.fillText(`HP ${Math.round(curHp)}/${maxHp}`, statX + 26, statY + statH / 2);
+    const hpMiniW = 44, hpMiniH = 6;
+    const hpMiniX = statX + 26 + ctx.measureText(`HP ${Math.round(curHp)}/${maxHp}`).width + 8;
+    ctx.fillStyle = '#1e1014';
+    ctx.fillRect(hpMiniX, statY + (statH - hpMiniH) / 2, hpMiniW, hpMiniH);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(hpMiniX, statY + (statH - hpMiniH) / 2, Math.round(hpMiniW * (curHp / maxHp)), hpMiniH);
+
+    // 2. Sanity
+    ctx.fillStyle = '#d8b4fe';
+    PixelIconRenderer.draw(ctx, 'sanity', statX + segW + 14, statY + statH / 2, 13);
+    ctx.fillText(`SAN ${Math.round(curSan)}%`, statX + segW + 24, statY + statH / 2);
+    const sanMiniW = 44, sanMiniH = 6;
+    const sanMiniX = statX + segW + 24 + ctx.measureText(`SAN ${Math.round(curSan)}%`).width + 8;
+    ctx.fillStyle = '#171024';
+    ctx.fillRect(sanMiniX, statY + (statH - sanMiniH) / 2, sanMiniW, sanMiniH);
+    ctx.fillStyle = '#a855f7';
+    ctx.fillRect(sanMiniX, statY + (statH - sanMiniH) / 2, Math.round(sanMiniW * (curSan / maxSan)), sanMiniH);
+
+    // 3. Armament
+    ctx.fillStyle = wepCol;
+    PixelIconRenderer.draw(ctx, 'sword', statX + segW * 2 + 14, statY + statH / 2, 13);
+    ctx.fillText(`${activeWepName.toUpperCase()} (${activeWepDmg} DMG)`, statX + segW * 2 + 24, statY + statH / 2);
+
+    // 4. Abyss Harvest
+    ctx.fillStyle = '#f59e0b';
+    PixelIconRenderer.draw(ctx, 'soul_crystal', statX + segW * 3 + 14, statY + statH / 2, 13);
+    ctx.fillText(`${GameState.ABYSS_SOULS || 0} SOULS`, statX + segW * 3 + 24, statY + statH / 2);
+
+    // ─── MAIN BUTTON GRID: 2 COLUMNS, LARGE OBVIOUS BUTTONS ───
+    const btnStartY = statY + statH + 16;
+    const colW = Math.round((panW - 48 - 16) / 2);
+    const btnH = 60;
+    const btnGap = 12;
+
+    const isSanctumAvail = GameState.IS_DEVELOPER_EXPEDITION || DeveloperSanctumUI.isAuthorized();
+
+    // Standard player buttons (3x2 symmetrical grid)
+    // If sanctum available, Developer Panel is added to Col 2, Abandon Run spans bottom
+    const col1Btns = [
+      {
+        id: 'resume',
+        label: 'Resume',
+        sub: 'Return to gameplay',
+        primary: true,
+        isDanger: false,
+        icon: '▶',
+        action: () => resumeGame()
+      },
+      {
+        id: 'settings',
+        label: 'Settings',
+        sub: 'Audio, visuals & controls',
+        primary: false,
+        isDanger: false,
+        icon: 'settings',
+        action: () => openSettings()
+      },
+      {
+        id: 'achievements',
+        label: 'Achievements',
+        sub: 'Deeds & relic milestones',
+        primary: false,
+        isDanger: false,
+        icon: 'achievement_sigil',
+        action: () => openAchievements()
+      }
+    ];
+
+    const col2Btns = [
+      {
+        id: 'fullscreen',
+        label: FullscreenHelper.isFullscreen() ? 'Exit Fullscreen' : 'Fullscreen',
+        sub: 'Toggle display mode',
+        primary: false,
+        isDanger: false,
+        icon: 'fullscreen',
+        action: () => FullscreenHelper.toggle()
+      },
+      {
+        id: 'save_quit',
+        label: 'Save & Main Menu',
+        sub: 'Preserves current run',
+        primary: false,
+        isDanger: false,
+        icon: 'scroll_lore',
+        action: () => quitToMainMenu()
+      },
+      ...(isSanctumAvail ? [{
+        id: 'sanctum',
+        label: 'Developer Panel',
+        sub: 'Sanctum console',
+        primary: false,
+        isDanger: false,
+        icon: 'spark',
+        action: () => DeveloperSanctumUI.openFromGameplay()
+      }] : [{
+        id: 'abandon',
+        label: _abandonConfirmedOnce ? 'Confirm Abandon?' : 'Abandon Run',
+        sub: _abandonConfirmedOnce ? 'Tap again to forfeit run' : 'Surrender descent and exit',
+        primary: false,
+        isDanger: true,
+        icon: 'skull',
+        action: () => {
+          if (!_abandonConfirmedOnce) {
+            _abandonConfirmedOnce = true;
+            _confirmQuitTimer = 4.0;
+            SoundManager.snd('menu_hover');
+          } else {
+            SaveSystem.clearRun();
+            GameState.IS_DEVELOPER_EXPEDITION = false;
+            if (GameState.DEV_MODS) GameState.DEV_MODS.enabled = false;
+            _abandonConfirmedOnce = false;
+            _confirmQuitTimer = 0;
+            GameState.setState(GameStates.TITLE);
+            if (typeof document !== 'undefined') {
+              const sp = document.getElementById('ingame-speed-panel');
+              if (sp) sp.style.display = 'none';
+            }
+            AudioManager.updateMusicLayers(0);
+            SoundManager.snd('menu_select');
+          }
+        }
+      }])
+    ];
+
+    const drawGridBtn = (b, bx, by, bw, bh) => {
+      const isHovered = (mouseX >= bx && mouseX <= bx + bw && mouseY >= by && mouseY <= by + bh);
+      const isPressed = isHovered && isMouseDown;
+      const isDanger = b.isDanger;
+      const isPrimary = b.primary;
+
+      // Draw tactile stone button face
+      const btnGrad = ctx.createLinearGradient(bx, by, bx, by + bh);
+      if (isDanger) {
+        btnGrad.addColorStop(0, _abandonConfirmedOnce ? '#450a0a' : (isHovered ? '#2a0606' : '#1a0404'));
+        btnGrad.addColorStop(1, _abandonConfirmedOnce ? '#2a0505' : '#0d0202');
+      } else if (isPrimary) {
+        btnGrad.addColorStop(0, isHovered ? '#2d1806' : '#221204');
+        btnGrad.addColorStop(1, isHovered ? '#160a02' : '#0e0602');
+      } else {
+        btnGrad.addColorStop(0, isHovered ? '#161c2e' : '#0e1220');
+        btnGrad.addColorStop(1, isHovered ? '#0a0d16' : '#06080e');
+      }
+
+      const borderColor = isDanger ? (_abandonConfirmedOnce ? '#f87171' : '#ef4444')
+        : (isPrimary ? '#ffd700' : (isHovered ? '#fde68a' : 'rgba(201, 168, 76, 0.75)'));
+      const borderWidth = (isPrimary || isDanger) ? 1.8 : (isHovered ? 1.5 : 1.2);
+
+      drawChamferedPanel(ctx, bx, by, bw, bh, 6, btnGrad, borderColor, borderWidth);
+
+      // Gold / Red inner accent line
+      if (isPrimary) {
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.15)';
+        ctx.fillRect(bx + 6, by + 1, bw - 12, 1);
+      } else if (isDanger && _abandonConfirmedOnce) {
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.25)';
+        ctx.fillRect(bx + 6, by + 1, bw - 12, 1);
+      }
+
+      // Icon
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.font = isPrimary ? 'bold 18px Cinzel, serif' : '16px Cinzel, serif';
+      ctx.fillStyle = isDanger ? '#ef4444' : (isPrimary ? '#ffd700' : '#c9a84c');
+      ctx.fillText(b.icon || '◈', bx + 20, by + bh / 2 - 2);
+
+      // Plain English Main Label
+      ctx.font = isPrimary ? 'bold 14px Cinzel, serif' : 'bold 13px Cinzel, serif';
+      ctx.fillStyle = isDanger ? (_abandonConfirmedOnce ? '#ffffff' : '#fca5a5')
+        : (isHovered ? '#ffffff' : (isPrimary ? '#fde68a' : '#e2e8f0'));
+      ctx.fillText(b.label, bx + 48, by + bh / 2 - 8);
+
+      // Concise Subtitle
+      ctx.font = 'italic 11px "Crimson Text", serif';
+      ctx.fillStyle = isDanger ? 'rgba(252, 165, 165, 0.85)'
+        : (isHovered ? 'rgba(253, 230, 138, 0.9)' : 'rgba(148, 163, 184, 0.75)');
+      ctx.fillText(b.sub, bx + 48, by + bh / 2 + 12);
+
+      _zones.push({
+        id: b.id,
+        x: bx,
+        y: by,
+        w: bw,
+        h: bh,
+        action: b.action
+      });
+    };
+
+    // Render Column 1
+    col1Btns.forEach((b, idx) => {
+      const bx = panX + 24;
+      const by = btnStartY + idx * (btnH + btnGap);
+      drawGridBtn(b, bx, by, colW, btnH);
+    });
+
+    // Render Column 2
+    col2Btns.forEach((b, idx) => {
+      const bx = panX + 24 + colW + 16;
+      const by = btnStartY + idx * (btnH + btnGap);
+      drawGridBtn(b, bx, by, colW, btnH);
+    });
+
+    // If Developer Sanctum authorized, render Abandon Run spanning full bottom width
+    if (isSanctumAvail) {
+      const spanW = panW - 48;
+      const spanY = btnStartY + 3 * (btnH + btnGap);
+      const spanH = 50;
+      const abandonBtn = {
+        id: 'abandon',
+        label: _abandonConfirmedOnce ? 'Confirm Abandon Expedition?' : 'Abandon Run (Forfeit Descent)',
+        sub: _abandonConfirmedOnce ? 'Tap again to forfeit run and return to title' : 'Surrender current descent and clear run',
+        primary: false,
+        isDanger: true,
+        icon: 'skull',
+        action: () => {
+          if (!_abandonConfirmedOnce) {
+            _abandonConfirmedOnce = true;
+            _confirmQuitTimer = 4.0;
+            SoundManager.snd('menu_hover');
+          } else {
+            SaveSystem.clearRun();
+            GameState.IS_DEVELOPER_EXPEDITION = false;
+            if (GameState.DEV_MODS) GameState.DEV_MODS.enabled = false;
+            _abandonConfirmedOnce = false;
+            _confirmQuitTimer = 0;
+            GameState.setState(GameStates.TITLE);
+            if (typeof document !== 'undefined') {
+              const sp = document.getElementById('ingame-speed-panel');
+              if (sp) sp.style.display = 'none';
+            }
+            AudioManager.updateMusicLayers(0);
+            SoundManager.snd('menu_select');
+          }
+        }
+      };
+      drawGridBtn(abandonBtn, panX + 24, spanY, spanW, spanH);
+    }
+
+    ctx.restore();
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // DESKTOP PAUSE MENU — 100% PRESERVED FOR DESKTOP PLAYERS
+  // ─────────────────────────────────────────────────────────────
+  drawDesktopPauseMenu(ctx, dt, eased) {
     // ─────────────────────────────────────────────────────────────
     // 1. ATMOSPHERIC DARKENING VIGNETTE (PRESERVES VISIBLE DUNGEON)
     // ─────────────────────────────────────────────────────────────
@@ -472,7 +828,7 @@ export const PauseMenu = {
       }] : [] ),
       {
         id: 'abandon',
-        label: _abandonConfirmedOnce ? '⚠️ CONFIRM FORFEIT? CLICK AGAIN' : 'ABANDON EXPEDITION (FORFEIT DESCENT)',
+        label: _abandonConfirmedOnce ? 'CONFIRM FORFEIT? CLICK AGAIN' : 'ABANDON EXPEDITION (FORFEIT DESCENT)',
         sub: _abandonConfirmedOnce ? 'WILL RETURN TO SANCTUARY  ·  DESCENT STATE CLEARED' : 'Surrender current descent  ·  [ Q ]',
         primary: false,
         isDanger: true,
@@ -576,7 +932,6 @@ export const PauseMenu = {
     ctx.font = '9px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const isSanctumAvail = GameState.IS_DEVELOPER_EXPEDITION || DeveloperSanctumUI.isAuthorized();
     const rubricText = isSanctumAvail
       ? 'Hotkeys:  [ ESC / ENTER ] Resume   [ S ] Settings   [ A ] Deeds   [ D ] Sanctum   [ Q ] Forfeit'
       : 'Hotkeys:  [ ESC / ENTER ] Resume   [ S ] Settings   [ A ] Deeds   [ Q ] Forfeit';
@@ -596,10 +951,11 @@ export const PauseMenu = {
     }
 
     // Click outside modal chassis resumes descent
-    const panW = Math.min(620, LW - 32);
-    const panH = Math.min(510, LH - 32);
-    const panX = (LW - panW) / 2;
-    const panY = (LH - panH) / 2;
+    const isMobile = (typeof window !== 'undefined' && window.MobileControls && window.MobileControls.isMobile && window.MobileControls.isMobile());
+    const panW = isMobile ? Math.round(LW * 0.94) : Math.min(620, LW - 32);
+    const panH = isMobile ? Math.round(LH * 0.92) : Math.min(510, LH - 32);
+    const panX = Math.round((LW - panW) / 2);
+    const panY = Math.round((LH - panH) / 2);
     if (mx < panX || mx > panX + panW || my < panY || my > panY + panH) {
       resumeGame();
       return true;

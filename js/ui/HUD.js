@@ -12,6 +12,8 @@ import { WeaponInventory } from '../weapons/WeaponInventory.js';
 import { BossBar } from './BossBar.js';
 import { isBossFloor, FLOOR_CONFIG } from '../data/floors.js';
 import { MobileControls } from './MobileControls.js';
+import { Typography } from '../rendering/Typography.js';
+import { PixelIconRenderer } from '../rendering/PixelIconRenderer.js';
 
 export const CINEMATIC_BANNER = {
   active: false,
@@ -160,16 +162,16 @@ export function drawMinimap(ctx) {
 
   // Header tag with minimap toggle hint and floor stratum
   ctx.fillStyle = '#fde68a';
-  ctx.font = 'bold 8px Cinzel, serif';
+  ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10.5 });
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   ctx.fillText(`MAP [M] · FL ${GameState.LV || 1}`, mx + 8, my + 6);
 
   // Compact legend indicators in header
-  ctx.font = '7px sans-serif';
+  ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { size: 9.5 });
   ctx.textAlign = 'right';
-  ctx.fillStyle = '#cbd5e1';
-  ctx.fillText('🔷You 🟡Ally 🟢Exit', mx + mw - 7, my + 6);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText('Blue: Rowan · Gold: Ally · Green: Exit', mx + mw - 7, my + 6);
 
   // Map scale factors
   const scX = (mw - 16) / COLS;
@@ -566,16 +568,16 @@ export function drawExpandedFloorMap(ctx) {
 
   // Bottom Tactical Legend Bar
   ctx.fillStyle = '#c9a84c';
-  ctx.font = 'bold 8.5px Cinzel, serif';
+  ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { size: 11 });
   ctx.textAlign = 'left';
-  ctx.fillText('🔷 ROWAN (YOU)   ·   🟡 UNRESCUED SURVIVOR   ·   🟢 EXIT PORTAL   ·   🔴 HOSTILE BOSS   ·   ◻ EXPLORED ROOM   ·   ⬚ UNDISCOVERED', panX + 16, panY + panH - 22);
-
-  ctx.fillStyle = '#64748b';
-  ctx.font = '7.5px monospace';
-  ctx.fillText('Click anywhere / [M] to dismiss map', panX + 16, panY + panH - 9);
+  ctx.fillText('◈ ROWAN (YOU)   ·   ◈ SURVIVOR   ·   ◈ EXIT PORTAL   ·   ◈ HOSTILE BOSS   ·   ◻ EXPLORED   ·   ◇ UNDISCOVERED', panX + 16, panY + panH - 22);
 
   ctx.fillStyle = '#94a3b8';
-  ctx.font = 'bold 8px monospace';
+  ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { size: 10.5 });
+  ctx.fillText('Click anywhere / [M] to dismiss map', panX + 16, panY + panH - 9);
+
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 11 });
   ctx.textAlign = 'right';
   ctx.fillText('[ESC] CLOSE', panX + panW - 16, panY + panH - 12);
 

@@ -65,7 +65,9 @@ export function requestDeath(reason = 'dungeon_normal', source = null) {
   }
 
   // Authoritative Achievement Unlocks on Death
-  const isWardenDeath = (_deathReason === 'warden' || _deathSource === 'warden' || _deathReason === 'boss_warden' || _deathReason === 'boss_abyss_warden' || (GameState.LV === 10 && GameState.BOSS && GameState.BOSS.id === 'abyss_warden'));
+  const isWardenDeath = (_deathReason === 'warden' || _deathSource === 'warden' || _deathReason === 'boss_warden' || _deathReason === 'boss_abyss_warden' || (GameState.LV === 10 && GameState.BOSS && GameState.BOSS.id === 'abyss_warden' && GameState.BOSS.alive));
+  const isGorgarothDeath = (!isSanity && (_deathReason === 'boss_gorgaroth' || _deathSource === 'gorgaroth' || (GameState.LV === 3 && GameState.BOSS && GameState.BOSS.id === 'gorgaroth' && GameState.BOSS.alive)));
+  const isMalakorDeath = (!isSanity && (_deathReason === 'boss_malakor' || _deathSource === 'malakor' || (GameState.LV === 6 && GameState.BOSS && GameState.BOSS.id === 'malakor' && GameState.BOSS.alive)));
 
   const isTrapDeath = (typeof _deathReason === 'string' && (_deathReason.includes('trap') || _deathReason === 'spike' || _deathReason === 'fire')) ||
                       (typeof _deathSource === 'string' && (_deathSource.includes('trap') || _deathSource === 'spike' || _deathSource === 'fire')) ||
@@ -79,6 +81,8 @@ export function requestDeath(reason = 'dungeon_normal', source = null) {
     SaveSystem.unlockMemory('memory_shattered_mind');
   } else if (isWardenDeath) {
     AchievementSystem.unlock('executed');
+  } else if (isGorgarothDeath || isMalakorDeath) {
+    // Boss deaths record dedicated milestones (death_gorgaroth, death_malakor), not ordinary enemy swarming
   } else if (isTrapDeath || isVoidOrDarkness) {
     AchievementSystem.unlock('consumed');
   } else {
@@ -156,11 +160,13 @@ export const DeathCinematics = {
 
     // Authoritative Milestone Tracking for Physical Deaths (Group A Milestones 1-4)
     const isSanity = (_deathReason === 'shattered_mind' || _deathReason === 'sanity' || _deathSource === 'sanity');
-    if (!isSanity && !GameState.IS_DEBUG_ENDING) {
-      const isGorgaroth = (_deathReason === 'boss_gorgaroth' || _deathSource === 'gorgaroth' || (GameState.LV === 3 && GameState.BOSS && GameState.BOSS.id === 'gorgaroth'));
-      const isMalakor = (_deathReason === 'boss_malakor' || _deathSource === 'malakor' || (GameState.LV === 6 && GameState.BOSS && GameState.BOSS.id === 'malakor'));
-      const isWarden = (_deathReason === 'boss_abyss_warden' || _deathReason === 'warden' || _deathSource === 'warden' || (GameState.LV === 10 && GameState.BOSS && GameState.BOSS.id === 'abyss_warden'));
-      const isTrap = (typeof _deathReason === 'string' && (_deathReason.startsWith('trap_') || _deathReason === 'trap' || _deathReason === 'void' || _deathReason === 'darkness' || _deathReason === 'spike' || _deathReason === 'fire'));
+    if (!isSanity && !GameState.IS_DEBUG_ENDING && !GameState.IS_DEVELOPER_EXPEDITION) {
+      const isGorgaroth = (_deathReason === 'boss_gorgaroth' || _deathSource === 'gorgaroth' || (GameState.LV === 3 && GameState.BOSS && GameState.BOSS.id === 'gorgaroth' && GameState.BOSS.alive));
+      const isMalakor = (_deathReason === 'boss_malakor' || _deathSource === 'malakor' || (GameState.LV === 6 && GameState.BOSS && GameState.BOSS.id === 'malakor' && GameState.BOSS.alive));
+      const isWarden = (_deathReason === 'boss_abyss_warden' || _deathReason === 'warden' || _deathSource === 'warden' || (GameState.LV === 10 && GameState.BOSS && GameState.BOSS.id === 'abyss_warden' && GameState.BOSS.alive));
+      const isTrap = (typeof _deathReason === 'string' && (_deathReason.startsWith('trap_') || _deathReason.includes('trap') || _deathReason.includes('void') || _deathReason.includes('darkness') || _deathReason.includes('chasm') || _deathReason.includes('pit') || _deathReason.includes('spike') || _deathReason.includes('fire') || _deathReason === 'hazard')) ||
+                     (typeof _deathSource === 'string' && (_deathSource.startsWith('trap') || _deathSource.includes('trap') || _deathSource.includes('void') || _deathSource.includes('darkness') || _deathSource.includes('chasm') || _deathSource.includes('pit') || _deathSource.includes('spike') || _deathSource.includes('fire') || _deathSource === 'hazard')) ||
+                     (typeof _deathSource === 'object' && _deathSource && (_deathSource.isTrap || _deathSource.environmental || (_deathSource.type && ['spike', 'fire', 'pit', 'chasm'].includes(_deathSource.type))));
 
       if (isGorgaroth) {
         SaveSystem.recordCompletionMilestone('death_gorgaroth', { reason: _deathReason, floor: _deathFloor });

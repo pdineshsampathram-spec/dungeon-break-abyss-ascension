@@ -16,6 +16,8 @@ import { SoundManager } from '../audio/AudioManager.js';
 import { InputManager } from '../core/InputManager.js';
 import { SaveSystem } from '../systems/SaveSystem.js';
 import { drawAchievementIcon } from '../rendering/AchievementIconRenderer.js';
+import { Typography } from '../rendering/Typography.js';
+import { PixelIconRenderer } from '../rendering/PixelIconRenderer.js';
 import {
   drawStoneButton,
   drawStoneTab,
@@ -381,21 +383,21 @@ export const ACHIEVEMENT_METADATA = {
     progressMax: 8,
     getProgress: () => {
       const m = GameState.COMPLETION_MILESTONES || {};
-      return EIGHT_FATES.filter(f => !!m[f.key] || (ACHIEVEMENTS[f.achKey] && ACHIEVEMENTS[f.achKey].unlocked)).length;
+      return EIGHT_FATES.filter(f => !!m[f.key]).length;
     }
   }
 };
 
 // 8 Canonical Fates required for Last Witness milestone
 export const EIGHT_FATES = [
-  { key: 'death_normal_enemy',   label: 'Dungeon',    roman: 'I',    achKey: 'overwhelmed' },
-  { key: 'death_gorgaroth',       label: 'Gorgaroth',  roman: 'II',   achKey: 'jailbreaker' },
-  { key: 'death_malakor',         label: 'Malakor',    roman: 'III',  achKey: 'void_conqueror' },
-  { key: 'death_warden',          label: 'Warden',     roman: 'IV',   achKey: 'executed' },
-  { key: 'death_shattered_mind',  label: 'Insanity',   roman: 'V',    achKey: 'mind_break' },
-  { key: 'ending_hero',           label: 'Hero',       roman: 'VI',   achKey: 'true_hero' },
-  { key: 'ending_betrayal',       label: 'Betrayal',   roman: 'VII',  achKey: 'betrayed' },
-  { key: 'ending_rampage',        label: 'Rampage',    roman: 'VIII', achKey: 'rampage' }
+  { key: 'death_normal_enemy',   label: 'Dungeon Enemy',      roman: 'I',    shortLabel: 'Dungeon',    achKey: 'overwhelmed' },
+  { key: 'death_gorgaroth',       label: 'Gorgaroth Crucible', roman: 'II',   shortLabel: 'Gorgaroth',  achKey: null },
+  { key: 'death_malakor',         label: 'Malakor Crucible',   roman: 'III',  shortLabel: 'Malakor',    achKey: null },
+  { key: 'death_warden',          label: 'Warden Execution',   roman: 'IV',   shortLabel: 'Warden',     achKey: 'executed' },
+  { key: 'death_shattered_mind',  label: 'Shattered Mind',     roman: 'V',    shortLabel: 'Insanity',   achKey: 'mind_break' },
+  { key: 'ending_hero',           label: 'Hero Ending',        roman: 'VI',   shortLabel: 'Hero',       achKey: 'true_hero' },
+  { key: 'ending_betrayal',       label: 'Betrayal Ending',    roman: 'VII',  shortLabel: 'Betrayal',   achKey: 'betrayed' },
+  { key: 'ending_rampage',        label: 'Rampage Ending',     roman: 'VIII', shortLabel: 'Rampage',    achKey: 'rampage' }
 ];
 
 // ─────────────────────────────────────────────────────────────────────
@@ -443,6 +445,18 @@ export function closeAchievements() {
 
 export const AchievementsUI = {
   _zones,
+
+  openAchievements(fromState = null) {
+    return openAchievements(fromState);
+  },
+
+  closeAchievements() {
+    return closeAchievements();
+  },
+
+  getReturnState() {
+    return _returnState;
+  },
 
   getCategory() {
     return _activeCategory;
@@ -639,9 +653,8 @@ export const AchievementsUI = {
       const fx = isLeft ? (eyeCx - 32 - (3 - slot) * 25) : (eyeCx + 32 + slot * 25);
       const fy = eyeCy;
 
-      const fateUnlocked = !!(GameState.COMPLETION_MILESTONES && GameState.COMPLETION_MILESTONES[f.key]) ||
-                           (ACHIEVEMENTS[f.achKey] && ACHIEVEMENTS[f.achKey].unlocked);
-      const isSelFate = _selectedKey === f.achKey;
+      const fateUnlocked = !!(GameState.COMPLETION_MILESTONES && GameState.COMPLETION_MILESTONES[f.key]);
+      const isSelFate = _selectedKey === 'last_witness';
 
       ctx.beginPath();
       ctx.arc(fx, fy, fateOrbR, 0, Math.PI * 2);
@@ -662,7 +675,7 @@ export const AchievementsUI = {
       _zones.push({
         id: `fate_pip_${f.key}`,
         x: fx - fateOrbR - 3, y: fy - fateOrbR - 3, w: (fateOrbR + 3) * 2, h: (fateOrbR + 3) * 2,
-        action: () => this.selectKey(f.achKey)
+        action: () => this.selectKey('last_witness')
       });
     });
 
@@ -857,14 +870,14 @@ export const AchievementsUI = {
 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.font = 'bold 7.5px monospace';
+      ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10 });
 
       if (isUnlocked) {
         ctx.fillStyle = '#86efac';
-        ctx.fillText('✔ CONQUERED', pillX + pillW / 2, pillY + pillH / 2);
+        ctx.fillText('CONQUERED', pillX + pillW / 2, pillY + pillH / 2);
       } else if (isPrereqLocked) {
         ctx.fillStyle = '#fca5a5';
-        ctx.fillText('🔒 LOCKED TIER', pillX + pillW / 2, pillY + pillH / 2);
+        ctx.fillText('LOCKED TIER', pillX + pillW / 2, pillY + pillH / 2);
       } else if (meta.hasProgress) {
         const cur = meta.getProgress ? meta.getProgress() : 0;
         const max = meta.progressMax || 1;
@@ -983,12 +996,12 @@ export const AchievementsUI = {
     });
 
     ctx.fillStyle = isUnlocked ? '#86efac' : (isPrereqLocked ? '#fca5a5' : (meta.hasProgress ? '#fde68a' : '#94a3b8'));
-    ctx.font = 'bold 9px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 11 });
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const statusStr = isUnlocked
-      ? '✔ DEED CONSECRATED'
-      : (isPrereqLocked ? `🔒 SEQUENTIAL TRIAL LOCKED` : (meta.hasProgress ? '◇ TRIAL IN PROGRESS' : '◇ UNACCOMPLISHED TRIAL'));
+      ? 'DEED CONSECRATED'
+      : (isPrereqLocked ? `SEQUENTIAL TRIAL LOCKED` : (meta.hasProgress ? '◇ TRIAL IN PROGRESS' : '◇ UNACCOMPLISHED TRIAL'));
     ctx.fillText(statusStr, statusX + statusW / 2, statusY + statusH / 2);
 
     // Inscribed Requirements & Lore Box
@@ -1005,19 +1018,19 @@ export const AchievementsUI = {
       ctx.fill(); ctx.stroke();
 
       ctx.fillStyle = '#fca5a5';
-      ctx.font = 'bold 8px Cinzel, serif';
+      ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10.5 });
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText('⚠️ SEQUENTIAL PREREQUISITE REQUIRED', reqX + 8, reqY + 5);
+      ctx.fillText('[PREREQUISITE REQUIRED] SEQUENTIAL TRIAL', reqX + 8, reqY + 5);
 
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = 'italic 8px Crimson Text, serif';
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11 });
       ctx.fillText(`Must unlock ${meta.prereqLabel || 'preceding tier'} before this deed activates.`, reqX + 8, reqY + 18);
     }
 
     const loreY = isPrereqLocked ? reqY + 40 : reqY;
     ctx.fillStyle = 'rgba(201, 168, 76, 0.9)';
-    ctx.font = 'bold 8px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 11 });
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillText('INSCRIBED REQUIREMENT:', reqX, loreY);
@@ -1038,7 +1051,7 @@ export const AchievementsUI = {
     if (selKey === 'last_witness') {
       // Dedicated 8 Fates Matrix Breakdown
       const m = GameState.COMPLETION_MILESTONES || {};
-      const completedFates = EIGHT_FATES.filter(f => !!m[f.key] || (ACHIEVEMENTS[f.achKey] && ACHIEVEMENTS[f.achKey].unlocked)).length;
+      const completedFates = EIGHT_FATES.filter(f => !!m[f.key]).length;
 
       ctx.fillStyle = '#cbd5e1';
       ctx.font = 'bold 8px monospace';
@@ -1059,7 +1072,7 @@ export const AchievementsUI = {
         const fx = reqX + 8 + col * (fateColW + 8);
         const fy = progBoxY + 22 + row * fateRowH;
 
-        const isDone = !!m[f.key] || (ACHIEVEMENTS[f.achKey] && ACHIEVEMENTS[f.achKey].unlocked);
+        const isDone = !!m[f.key];
         ctx.fillStyle = isDone ? '#22c55e' : 'rgba(100, 116, 139, 0.4)';
         ctx.fillRect(fx, fy + 3, 6, 6);
 
@@ -1071,7 +1084,7 @@ export const AchievementsUI = {
 
         if (isDone) {
           ctx.fillStyle = '#86efac';
-          ctx.fillText('✔', fx + fateColW - 12, fy + 1);
+          ctx.fillText('DONE', fx + fateColW - 14, fy + 1);
         }
       });
     } else if (meta.hasProgress) {
@@ -1080,7 +1093,7 @@ export const AchievementsUI = {
       const progPct = Math.min(100, Math.round((curProg / maxProg) * 100));
 
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = 'bold 8.5px monospace';
+      ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10.5 });
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillText(`${meta.progressLabel || 'PROGRESS'}:`, reqX + 10, progBoxY + 8);
@@ -1105,12 +1118,12 @@ export const AchievementsUI = {
       ctx.fill();
 
       ctx.fillStyle = isPrereqLocked ? '#94a3b8' : 'rgba(148, 163, 184, 0.7)';
-      ctx.font = 'italic 7px Crimson Text, serif';
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11 });
       ctx.textAlign = 'left';
       ctx.fillText(isPrereqLocked ? 'Progress locked until prerequisite fulfilled.' : (isUnlocked ? 'Deed fully consecrated in stone.' : 'Progress actively recorded across descents.'), reqX + 10, progBoxY + 37);
     } else {
       ctx.fillStyle = '#cbd5e1';
-      ctx.font = 'bold 8.5px monospace';
+      ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10.5 });
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       ctx.fillText('CRUCIBLE RECORD:', reqX + 10, progBoxY + 10);
@@ -1120,7 +1133,7 @@ export const AchievementsUI = {
       ctx.fillText(isUnlocked ? '100% (CONSECRATED)' : '0% (UNMET)', reqX + reqW - 10, progBoxY + 10);
 
       ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
-      ctx.font = 'italic 8px Crimson Text, serif';
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11 });
       ctx.textAlign = 'left';
       ctx.fillText(isUnlocked ? 'Permanently etched in citadel memory.' : 'Fulfill trial conditions to record deed.', reqX + 10, progBoxY + 28);
     }
@@ -1137,11 +1150,11 @@ export const AchievementsUI = {
       isHover: isHoverRet,
       isSelected: false,
       variant: 'primary',
-      fontSize: '9px Cinzel, serif'
+      fontSize: '10.5px Cinzel, serif'
     });
 
     ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
-    ctx.font = '8px monospace';
+    ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { size: 11 });
     ctx.textAlign = 'left';
     ctx.fillText('↑/↓ — Select Deed   ·   Mouse Wheel — Scroll   ·   Tabs — Categories   ·   Esc — Close', panX + 20, botY + 12);
 

@@ -20,6 +20,18 @@ export const DEFAULT_SETTINGS = {
   gameSpeed: 1.0
 };
 
+// Authoritative Canonical Milestones for The Last Witness
+export const CANONICAL_MILESTONES = [
+  'death_normal_enemy',
+  'death_gorgaroth',
+  'death_malakor',
+  'death_warden',
+  'death_shattered_mind',
+  'ending_hero',
+  'ending_betrayal',
+  'ending_rampage'
+];
+
 export const SaveSystem = {
   // Load all persisted data on startup
   loadAll() {
@@ -204,6 +216,10 @@ export const SaveSystem = {
   },
 
   incrementLifetimeDeaths() {
+    if (GameState.IS_DEVELOPER_EXPEDITION) {
+      console.log('[SaveSystem] Developer expedition active; lifetime death recording bypassed.');
+      return GameState.LIFETIME_DEATHS || 0;
+    }
     GameState.LIFETIME_DEATHS = (GameState.LIFETIME_DEATHS || 0) + 1;
     this.saveLifetimeMetrics();
     const count = GameState.LIFETIME_DEATHS;
@@ -214,6 +230,10 @@ export const SaveSystem = {
   },
 
   recordBossDefeat(bossId) {
+    if (GameState.IS_DEVELOPER_EXPEDITION) {
+      console.log(`[SaveSystem] Developer expedition active; boss defeat (${bossId}) recording bypassed.`);
+      return;
+    }
     if (!GameState.LIFETIME_BOSS_KILLS) {
       GameState.LIFETIME_BOSS_KILLS = { gorgaroth: 0, malakor: 0, warden: 0 };
     }
@@ -240,6 +260,10 @@ export const SaveSystem = {
   },
 
   recordSurvivorRescue(count = 1) {
+    if (GameState.IS_DEVELOPER_EXPEDITION) {
+      console.log('[SaveSystem] Developer expedition active; survivor rescue recording bypassed.');
+      return GameState.CUMULATIVE_SURVIVORS || 0;
+    }
     GameState.CUMULATIVE_SURVIVORS = (GameState.CUMULATIVE_SURVIVORS || 0) + count;
     this.saveLifetimeMetrics();
     const total = GameState.CUMULATIVE_SURVIVORS;
@@ -505,6 +529,10 @@ export const SaveSystem = {
   },
 
   recordEnding(type) {
+    if (GameState.IS_DEBUG_ENDING || GameState.IS_DEVELOPER_EXPEDITION) {
+      console.log(`[SaveSystem] Debug ending or developer expedition active; ending (${type}) persistence bypassed.`);
+      return;
+    }
     try {
       const endings = JSON.parse(localStorage.getItem('db_endings_v1') || '{}');
       endings[type] = true;
@@ -541,7 +569,7 @@ export const SaveSystem = {
       }
 
       // Malakor F6
-      if ((ach.void_shifter && ach.void_shifter.unlocked) || ms.death_malakor) {
+      if ((ach.void_conqueror && ach.void_conqueror.unlocked) || ms.death_malakor) {
         stored['boss_intro_malakor'] = true;
         stored['boss_defeat_malakor'] = true;
       }
@@ -591,7 +619,7 @@ export const SaveSystem = {
       // 3. Sanitize accidental badge/cheat unlocks: ensure only legitimately earned visions remain unlocked
       const kills = GameState.BESTIARY_KILLS || {};
       const hasGorgaroth = (kills.gorgaroth > 0) || ms.death_gorgaroth || (ach.jailbreaker && ach.jailbreaker.unlocked);
-      const hasMalakor = (kills.malakor > 0) || ms.death_malakor || (ach.void_shifter && ach.void_shifter.unlocked);
+      const hasMalakor = (kills.malakor > 0) || ms.death_malakor || (ach.void_conqueror && ach.void_conqueror.unlocked);
       const hasWarden = (kills.warden > 0) || ms.death_warden || (ach.warden_slayer && ach.warden_slayer.unlocked) || (ach.boss_slayer && ach.boss_slayer.unlocked) || end.hero || end.betrayal || end.rampage;
 
       if (!hasGorgaroth) {
@@ -694,31 +722,39 @@ export const SaveSystem = {
   // Authoritative Completion Milestones (The 8 Fates required for The Last Witness)
   loadMilestones() {
     try {
-      GameState.COMPLETION_MILESTONES = JSON.parse(localStorage.getItem('db_milestones_v1') || '{}');
+      const raw = localStorage.getItem('db_milestones_v1');
+      const parsed = raw ? JSON.parse(raw) : {};
+      const clean = {};
+      if (parsed && typeof parsed === 'object') {
+        CANONICAL_MILESTONES.forEach(k => {
+          if (parsed[k] === true) clean[k] = true;
+        });
+      }
+      GameState.COMPLETION_MILESTONES = clean;
+      return clean;
     } catch (e) {
+      console.warn('[SaveSystem] Error parsing db_milestones_v1:', e);
       GameState.COMPLETION_MILESTONES = {};
+      return {};
     }
   },
 
   saveMilestones() {
     try {
-      localStorage.setItem('db_milestones_v1', JSON.stringify(GameState.COMPLETION_MILESTONES || {}));
-    } catch (e) {}
+      const clean = {};
+      const src = GameState.COMPLETION_MILESTONES || {};
+      CANONICAL_MILESTONES.forEach(k => {
+        if (src[k] === true) clean[k] = true;
+      });
+      localStorage.setItem('db_milestones_v1', JSON.stringify(clean));
+    } catch (e) {
+      console.error('[SaveSystem] Failed to persist milestones to localStorage:', e);
+    }
   },
 
   recordCompletionMilestone(id, context = {}) {
     if (!id || typeof id !== 'string') return false;
-    const VALID_MILESTONES = [
-      'death_normal_enemy',
-      'death_gorgaroth',
-      'death_malakor',
-      'death_warden',
-      'death_shattered_mind',
-      'ending_hero',
-      'ending_betrayal',
-      'ending_rampage'
-    ];
-    if (!VALID_MILESTONES.includes(id)) {
+    if (!CANONICAL_MILESTONES.includes(id)) {
       console.warn(`[SaveSystem] Invalid milestone ID: ${id}`);
       return false;
     }
@@ -735,6 +771,11 @@ export const SaveSystem = {
       GameState.COMPLETION_MILESTONES[id] = true;
       this.saveMilestones();
       console.log(`[SaveSystem] Genuine milestone recorded: ${id}`, context);
+
+      const completedCount = CANONICAL_MILESTONES.filter(k => !!GameState.COMPLETION_MILESTONES[k]).length;
+      if (completedCount < CANONICAL_MILESTONES.length) {
+        AchievementSystem.showProgress('last_witness', completedCount, 8, 'The Last Witness');
+      }
     }
 
     // Check completion criteria for The Last Witness
@@ -749,19 +790,9 @@ export const SaveSystem = {
 
   checkTheLastWitness(triggerToast = true) {
     const m = GameState.COMPLETION_MILESTONES || {};
-    const VALID_MILESTONES = [
-      'death_normal_enemy',
-      'death_gorgaroth',
-      'death_malakor',
-      'death_warden',
-      'death_shattered_mind',
-      'ending_hero',
-      'ending_betrayal',
-      'ending_rampage'
-    ];
-    const completedCount = VALID_MILESTONES.filter(k => !!m[k]).length;
+    const completedCount = CANONICAL_MILESTONES.filter(k => !!m[k]).length;
 
-    if (completedCount === VALID_MILESTONES.length) {
+    if (completedCount === CANONICAL_MILESTONES.length) {
       if (!ACHIEVEMENTS.last_witness || !ACHIEVEMENTS.last_witness.unlocked) {
         if (triggerToast) {
           AchievementSystem.unlock('last_witness');
@@ -769,15 +800,18 @@ export const SaveSystem = {
           if (ACHIEVEMENTS.last_witness) ACHIEVEMENTS.last_witness.unlocked = true;
           this.saveAchievements();
         }
-        console.log('[SaveSystem] All 8 milestones met! The Last Witness unlocked.');
+        console.log('[SaveSystem] All 8 canonical milestones met! The Last Witness unlocked.');
       }
       // Authoritative Phase 3 Gift Eligibility (unlocked genuinely via all 8 milestones)
       localStorage.setItem('db_phase3_gift_eligible', 'true');
       GameState.PHASE3_GIFT_ELIGIBLE = true;
-    } else if (ACHIEVEMENTS.last_witness && ACHIEVEMENTS.last_witness.unlocked) {
-      // Also respect existing unlocked achievement state
-      localStorage.setItem('db_phase3_gift_eligible', 'true');
-      GameState.PHASE3_GIFT_ELIGIBLE = true;
+    } else {
+      if (ACHIEVEMENTS.last_witness && ACHIEVEMENTS.last_witness.unlocked) {
+        ACHIEVEMENTS.last_witness.unlocked = false;
+        this.saveAchievements();
+      }
+      localStorage.removeItem('db_phase3_gift_eligible');
+      GameState.PHASE3_GIFT_ELIGIBLE = false;
     }
   },
 
@@ -853,17 +887,7 @@ export const SaveSystem = {
   isTheLastWitnessUnlocked() {
     if (ACHIEVEMENTS.last_witness && ACHIEVEMENTS.last_witness.unlocked) return true;
     const m = GameState.COMPLETION_MILESTONES || {};
-    const VALID_MILESTONES = [
-      'death_normal_enemy',
-      'death_gorgaroth',
-      'death_malakor',
-      'death_warden',
-      'death_shattered_mind',
-      'ending_hero',
-      'ending_betrayal',
-      'ending_rampage'
-    ];
-    return VALID_MILESTONES.every(k => !!m[k]);
+    return CANONICAL_MILESTONES.every(k => !!m[k]);
   },
 
   isSanctumPermanentEligible() {
@@ -900,6 +924,7 @@ export const SaveSystem = {
     this.saveMemories();
     this.saveNGPlus();
     this.saveMilestones();
+    this.saveLifetimeMetrics();
   },
 
   // Authoritative alias for saveProfile

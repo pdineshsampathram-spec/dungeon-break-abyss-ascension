@@ -51,6 +51,8 @@ import { BESTIARY_INFO } from './data/enemies.js';
 import { SaveSystem } from './systems/SaveSystem.js';
 import { drawPixelEye } from './cinematics/ShatteredMindCinematic.js';
 import { FullscreenHelper } from './ui/FullscreenHelper.js';
+import { Typography } from './rendering/Typography.js';
+import { PixelIconRenderer } from './rendering/PixelIconRenderer.js';
 
 function bootstrap() {
   const canvas = document.getElementById('c');
@@ -58,6 +60,9 @@ function bootstrap() {
     console.error('[DUNGEON BREAK] Canvas element #c not found.');
     return;
   }
+
+  // Preload and verify game typography
+  Typography.ensureFontsReady().catch(() => {});
 
   // Authoritative internal resolution
   canvas.width = LW;
@@ -649,9 +654,11 @@ function bootstrap() {
     window.PauseMenu = PauseMenu;
     window.GameState = GameState;
     window.GameStates = GameStates;
+    window.Typography = Typography;
+    window.PixelIconRenderer = PixelIconRenderer;
   }
 
-  console.log('%c⚔️ DUNGEON BREAK — Modular Architecture v2.0 Initialized ⚔️', 'color: #fde68a; font-weight: bold; background: #060918; padding: 4px 10px; border-radius: 4px;');
+  console.log('%cDUNGEON BREAK — Modular Architecture v2.0 Initialized', 'color: #fde68a; font-weight: bold; background: #060918; padding: 4px 10px; border-radius: 4px;');
 }
 
 if (typeof document !== 'undefined') {

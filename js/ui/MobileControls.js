@@ -121,13 +121,47 @@ export const MobileControls = {
     combatBtns.forEach(b => b.classList.remove('active'));
   },
 
-  updateWeaponDock() {
+  _cachedElements: null,
+  _lastWeaponHash: null,
+  _lastCdValue: -1,
+
+  _getElements() {
+    if (!this._cachedElements) {
+      this._cachedElements = {
+        dock: document.getElementById('mobile-weapon-dock'),
+        specialBtn: document.getElementById('special-btn'),
+        cdOverlay: document.getElementById('special-cd-overlay'),
+        cdText: document.getElementById('special-cd-text'),
+        atkBtn: document.getElementById('atk-btn'),
+        shootBtn: document.getElementById('shoot-btn'),
+        joyZone: document.getElementById('joy-zone'),
+        touchOv: document.getElementById('touch-overlay'),
+        ingamePauseBtn: document.getElementById('ingame-pause-btn'),
+        ingameMapBtn: document.getElementById('ingame-map-btn'),
+        slots: [
+          document.getElementById('m-slot-0'),
+          document.getElementById('m-slot-1'),
+          document.getElementById('m-slot-2')
+        ]
+      };
+    }
+    return this._cachedElements;
+  },
+
+  updateWeaponDock(force = false) {
     if (typeof document === 'undefined') return;
-    const dock = document.getElementById('mobile-weapon-dock');
-    if (!dock) return;
+    const els = this._getElements();
+    if (!els.dock) return;
 
     const slots = GameState.weaponSlots || [];
     const activeSlot = GameState.activeWeaponSlot || 0;
+
+    // Fast-path: Check if weapon configuration actually changed
+    const currentHash = `${activeSlot}:${slots.map(w => w ? `${w.id}_${(w.rarity && w.rarity.name) || ''}` : 'empty').join('|')}`;
+    if (!force && this._lastWeaponHash === currentHash) {
+      return; // 0 DOM updates when weapon dock is unchanged!
+    }
+    this._lastWeaponHash = currentHash;
 
     const svgIcons = {
       sword: '<svg viewBox="0 0 24 24" width="22" height="22"><path d="M18 3l3 3-9 9-2-1 8-11z" fill="#f1f5f9"/><path d="M10 13l-2-2 1-1 2 2-1 1z" fill="#94a3b8"/><path d="M7 15l-3 3 2 2 3-3-2-2z" fill="#c084fc"/><circle cx="4" cy="20" r="1.5" fill="#fde68a"/></svg>',
@@ -146,7 +180,7 @@ export const MobileControls = {
     };
 
     for (let i = 0; i < 3; i++) {
-      const slotEl = document.getElementById(`m-slot-${i}`);
+      const slotEl = els.slots[i] || document.getElementById(`m-slot-${i}`);
       if (!slotEl) continue;
 
       const w = slots[i];
@@ -172,18 +206,33 @@ export const MobileControls = {
 
   updateCooldownDisplay() {
     if (typeof document === 'undefined') return;
-    const specialBtn = document.getElementById('special-btn');
-    const cdOverlay = document.getElementById('special-cd-overlay');
-    const cdText = document.getElementById('special-cd-text');
+    const els = this._getElements();
+    const specialBtn = els.specialBtn;
     if (!specialBtn) return;
 
     const { P } = GameState;
-    if (P && P.qCooldown > 0) {
+    const cd = (P && P.qCooldown > 0) ? P.qCooldown : 0;
+
+    // Fast-path: If cooldown is inactive and was already inactive, avoid all DOM touch
+    if (cd <= 0 && this._lastCdValue <= 0) {
+      return;
+    }
+
+    const roundedCd = Math.round(cd * 10) / 10;
+    if (roundedCd === this._lastCdValue && cd > 0) {
+      return; // Skip identical decimal string write
+    }
+    this._lastCdValue = roundedCd;
+
+    const cdOverlay = els.cdOverlay;
+    const cdText = els.cdText;
+
+    if (cd > 0) {
       specialBtn.classList.add('on-cooldown');
       const maxCd = P.qMaxCooldown || 5.0;
-      const pct = Math.max(0, Math.min(100, (P.qCooldown / maxCd) * 100));
+      const pct = Math.max(0, Math.min(100, (cd / maxCd) * 100));
       if (cdOverlay) cdOverlay.style.height = `${pct}%`;
-      if (cdText) cdText.textContent = `${P.qCooldown.toFixed(1)}s`;
+      if (cdText) cdText.textContent = `${cd.toFixed(1)}s`;
     } else {
       specialBtn.classList.remove('on-cooldown');
       if (cdOverlay) cdOverlay.style.height = '0%';
@@ -196,12 +245,17 @@ export const MobileControls = {
     const atkBtn = document.getElementById('atk-btn');
     if (!atkBtn) return;
     const curWep = GameState.P ? GameState.P.wep : 'sword';
+    const labelEl = atkBtn.querySelector('.ctrl-btn-label');
     if (curWep === 'bow') {
       atkBtn.style.backgroundImage = "url('assets/ui/btn_shoot.png')";
       atkBtn.setAttribute('aria-label', 'Shoot Bow');
+      atkBtn.style.borderColor = '#059669';
+      if (labelEl) labelEl.textContent = 'SHOOT';
     } else {
       atkBtn.style.backgroundImage = "url('assets/ui/btn_attack.png')";
       atkBtn.setAttribute('aria-label', 'Attack');
+      atkBtn.style.borderColor = '#d97706';
+      if (labelEl) labelEl.textContent = 'ATTACK';
     }
   },
 

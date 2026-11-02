@@ -59,6 +59,30 @@ function _drawTemporalStoneGlyph(ctx, x, y, lv, seed) {
   ctx.restore();
 }
 
+// Tile Sprite Cache for high-performance mobile rendering
+const _tileSpriteCache = new Map();
+let _cachedFloorThemeLv = null;
+
+function _clearTileCacheIfNeeded(lv) {
+  if (_cachedFloorThemeLv !== lv) {
+    _tileSpriteCache.clear();
+    _cachedFloorThemeLv = lv;
+  }
+}
+
+function _getOrCreateTileSprite(key, w, h, drawFn) {
+  let can = _tileSpriteCache.get(key);
+  if (!can) {
+    can = document.createElement('canvas');
+    can.width = w;
+    can.height = h;
+    const sCtx = can.getContext('2d');
+    drawFn(sCtx);
+    _tileSpriteCache.set(key, can);
+  }
+  return can;
+}
+
 export const WorldRenderer = {
   drawVoidArenaEffects(ctx) {
     const room = GameState.ROOMS && GameState.ROOMS[0];
@@ -262,6 +286,7 @@ export const WorldRenderer = {
     const { MAP, LV, CAM } = GameState;
     if (!MAP || MAP.length === 0) return;
     const theme = getTheme(LV);
+    _clearTileCacheIfNeeded(LV);
 
     // High-performance viewport culling: only render tiles in camera view + 2-tile margin
     const camX = CAM ? CAM.x : (COLS / 2);
@@ -283,137 +308,154 @@ export const WorldRenderer = {
         // 1. SOLID 2.5D WALL (True Physical Elevation, Front Face & Bevels)
         if (tile === 1) {
           const hasSouth = (r < ROWS - 1 && MAP[r + 1] && MAP[r + 1][c] === 1);
-          const hasNorth = (r > 0 && MAP[r - 1] && MAP[r - 1][c] === 1);
           const hasWest  = (c > 0 && MAP[r][c - 1] === 1);
           const hasEast  = (c < COLS - 1 && MAP[r][c + 1] === 1);
 
           // Exposed Front Face Wall (wall faces downward into open room/corridor)
           if (!hasSouth) {
-            // A. Top Cap (Horizontal surface of wall seen from slightly elevated 2.5D angle)
-            ctx.fillStyle = theme.wc[1] || '#334155';
-            ctx.fillRect(x, y, T, 10);
-
-            // Top Cap North Specular Edge
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-            ctx.fillRect(x, y, T, 1.5);
-
-            // Cap Paver Seams
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
-            ctx.fillRect(x + 15, y, 1.2, 10);
-            ctx.fillRect(x, y + 9, T, 1.2); // Crevice separating cap from vertical face
-
-            // B. Vertical Front Face (Facing player)
-            const frontGrad = ctx.createLinearGradient(x, y + 10, x, y + T);
-            frontGrad.addColorStop(0, theme.wc[0] || '#1e293b');
-            frontGrad.addColorStop(1, '#090d16');
-            ctx.fillStyle = frontGrad;
-            ctx.fillRect(x, y + 10, T, T - 10);
-
-            // Layered Heavy Masonry Courses on Front Face
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-            ctx.fillRect(x, y + 18, T, 1.2);
-            ctx.fillRect(x, y + 26, T, 1.2);
-
-            // Staggered Vertical Mortar Grooves
             const sOffset = (r % 2 === 0) ? 8 : 20;
-            ctx.fillRect(x + (sOffset % T), y + 10, 1.2, 8);
-            ctx.fillRect(x + ((sOffset + 16) % T), y + 18, 1.2, 8);
-            ctx.fillRect(x + ((sOffset + 8) % T), y + 26, 1.2, 6);
+            const key = `wf_${sOffset}_${hasWest ? 1 : 0}_${hasEast ? 1 : 0}`;
+            const sprite = _getOrCreateTileSprite(key, T, T + 6, (sCtx) => {
+              // A. Top Cap
+              sCtx.fillStyle = theme.wc[1] || '#334155';
+              sCtx.fillRect(0, 0, T, 10);
 
-            // Subtle Bevel Highlight on Masonry Courses
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-            ctx.fillRect(x, y + 10.5, T, 1);
-            ctx.fillRect(x, y + 18.5, T, 1);
+              // Top Cap North Specular Edge
+              sCtx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+              sCtx.fillRect(0, 0, T, 1.5);
 
-            // C. Deep Ambient Occlusion Drop Shadow onto Floor Below
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.58)';
-            ctx.fillRect(x, y + T - 6, T, 6);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
-            ctx.fillRect(x, y + T, T, 5); // Bleeds onto adjacent floor tile
+              // Cap Paver Seams
+              sCtx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+              sCtx.fillRect(15, 0, 1.2, 10);
+              sCtx.fillRect(0, 9, T, 1.2);
+
+              // B. Vertical Front Face
+              const frontGrad = sCtx.createLinearGradient(0, 10, 0, T);
+              frontGrad.addColorStop(0, theme.wc[0] || '#1e293b');
+              frontGrad.addColorStop(1, '#090d16');
+              sCtx.fillStyle = frontGrad;
+              sCtx.fillRect(0, 10, T, T - 10);
+
+              // Layered Heavy Masonry Courses
+              sCtx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+              sCtx.fillRect(0, 18, T, 1.2);
+              sCtx.fillRect(0, 26, T, 1.2);
+
+              // Staggered Vertical Mortar Grooves
+              sCtx.fillRect(sOffset % T, 10, 1.2, 8);
+              sCtx.fillRect((sOffset + 16) % T, 18, 1.2, 8);
+              sCtx.fillRect((sOffset + 8) % T, 26, 1.2, 6);
+
+              // Subtle Bevel Highlight
+              sCtx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+              sCtx.fillRect(0, 10.5, T, 1);
+              sCtx.fillRect(0, 18.5, T, 1);
+
+              // C. Deep Ambient Occlusion Drop Shadow onto Floor Below
+              sCtx.fillStyle = 'rgba(0, 0, 0, 0.58)';
+              sCtx.fillRect(0, T - 6, T, 6);
+              sCtx.fillStyle = 'rgba(0, 0, 0, 0.28)';
+              sCtx.fillRect(0, T, T, 5);
+
+              // Exposed West Face Shadow Depth
+              if (!hasWest) {
+                sCtx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                sCtx.fillRect(0, 0, 3, T);
+              }
+              // Exposed East Face Highlight
+              if (!hasEast) {
+                sCtx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                sCtx.fillRect(T - 2, 0, 2, T);
+              }
+            });
+            ctx.drawImage(sprite, x, y);
           } else {
             // Interior Continuous Solid Wall Block
-            ctx.fillStyle = theme.wc[0] || '#1e293b';
-            ctx.fillRect(x, y, T, T);
-
-            // Horizontal Mortar Seams
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
-            ctx.fillRect(x, y + 10, T, 1.2);
-            ctx.fillRect(x, y + 21, T, 1.2);
-
-            // Vertical Mortar Joints
             const stagger = (r % 2 === 0) ? 14 : 0;
-            ctx.fillRect(x + ((8 + stagger) % T), y, 1.2, 10);
-            ctx.fillRect(x + ((24 + stagger) % T), y + 10, 1.2, 11);
+            const key = `ws_${stagger}_${hasWest ? 1 : 0}_${hasEast ? 1 : 0}`;
+            const sprite = _getOrCreateTileSprite(key, T, T, (sCtx) => {
+              sCtx.fillStyle = theme.wc[0] || '#1e293b';
+              sCtx.fillRect(0, 0, T, T);
 
-            // Top Bevel Rim
-            ctx.fillStyle = theme.wc[1] || '#334155';
-            ctx.fillRect(x, y, T, 2.5);
-          }
+              // Horizontal Mortar Seams
+              sCtx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+              sCtx.fillRect(0, 10, T, 1.2);
+              sCtx.fillRect(0, 21, T, 1.2);
 
-          // Exposed West Face Shadow Depth
-          if (!hasWest) {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-            ctx.fillRect(x, y, 3, T);
-          }
-          // Exposed East Face Highlight
-          if (!hasEast) {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-            ctx.fillRect(x + T - 2, y, 2, T);
+              // Vertical Mortar Joints
+              sCtx.fillRect((8 + stagger) % T, 0, 1.2, 10);
+              sCtx.fillRect((24 + stagger) % T, 10, 1.2, 11);
+
+              // Top Bevel Rim
+              sCtx.fillStyle = theme.wc[1] || '#334155';
+              sCtx.fillRect(0, 0, T, 2.5);
+
+              // Exposed West Face Shadow Depth
+              if (!hasWest) {
+                sCtx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+                sCtx.fillRect(0, 0, 3, T);
+              }
+              // Exposed East Face Highlight
+              if (!hasEast) {
+                sCtx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                sCtx.fillRect(T - 2, 0, 2, T);
+              }
+            });
+            ctx.drawImage(sprite, x, y);
           }
         }
         // 0. STANDARD DUNGEON FLAGSTONE FLOOR (2.5D Beveled Pavers)
         else if (tile === 0) {
           const colIdx = (r * 7 + c * 13) % (theme.fc.length || 1);
-          ctx.fillStyle = theme.fc[colIdx] || '#0c1526';
-          ctx.fillRect(x, y, T, T);
-
-          // Deep Stone Grout Perimeter
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.32)';
-          ctx.lineWidth = 1.2;
-          ctx.strokeRect(x + 0.5, y + 0.5, T - 1, T - 1);
-
-          // Inner Paver Top-Left Specular Bevel Highlight
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(x + 1, y + T - 2);
-          ctx.lineTo(x + 1, y + 1);
-          ctx.lineTo(x + T - 2, y + 1);
-          ctx.stroke();
-
-          // Procedural Weathered Masonry Detail
           const detailSeed = (r * 13 + c * 29) % 17;
-          if (detailSeed === 0) {
-            // Jagged stone fracture
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
-            ctx.lineWidth = 1.2;
-            ctx.beginPath();
-            ctx.moveTo(x + 4, y + 6);
-            ctx.lineTo(x + 14, y + 16);
-            ctx.lineTo(x + 24, y + 13);
-            ctx.stroke();
-            // Fissure specular edge
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-            ctx.lineWidth = 0.8;
-            ctx.beginPath();
-            ctx.moveTo(x + 5, y + 7);
-            ctx.lineTo(x + 15, y + 17);
-            ctx.stroke();
-          } else if (detailSeed === 5) {
-            // Carved corner rune grooves
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-            ctx.fillRect(x + 3, y + 3, 3, 3);
-            ctx.fillRect(x + T - 6, y + 3, 3, 3);
-            ctx.fillStyle = 'rgba(147, 197, 253, 0.08)';
-            ctx.fillRect(x + 3.5, y + 3.5, 2, 2);
-          } else if (detailSeed === 11) {
-            // Central chisel scuff
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
-            ctx.fillRect(x + 10, y + 14, 12, 4);
-          }
+          const key = `fl_${colIdx}_${detailSeed}`;
+          const sprite = _getOrCreateTileSprite(key, T, T, (sCtx) => {
+            sCtx.fillStyle = theme.fc[colIdx] || '#0c1526';
+            sCtx.fillRect(0, 0, T, T);
+
+            // Deep Stone Grout Perimeter
+            sCtx.strokeStyle = 'rgba(0, 0, 0, 0.32)';
+            sCtx.lineWidth = 1.2;
+            sCtx.strokeRect(0.5, 0.5, T - 1, T - 1);
+
+            // Inner Paver Top-Left Specular Bevel Highlight
+            sCtx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            sCtx.lineWidth = 1;
+            sCtx.beginPath();
+            sCtx.moveTo(1, T - 2);
+            sCtx.lineTo(1, 1);
+            sCtx.lineTo(T - 2, 1);
+            sCtx.stroke();
+
+            // Procedural Weathered Masonry Detail
+            if (detailSeed === 0) {
+              sCtx.strokeStyle = 'rgba(0, 0, 0, 0.45)';
+              sCtx.lineWidth = 1.2;
+              sCtx.beginPath();
+              sCtx.moveTo(4, 6);
+              sCtx.lineTo(14, 16);
+              sCtx.lineTo(24, 13);
+              sCtx.stroke();
+              sCtx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+              sCtx.lineWidth = 0.8;
+              sCtx.beginPath();
+              sCtx.moveTo(5, 7);
+              sCtx.lineTo(15, 17);
+              sCtx.stroke();
+            } else if (detailSeed === 5) {
+              sCtx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+              sCtx.fillRect(3, 3, 3, 3);
+              sCtx.fillRect(T - 6, 3, 3, 3);
+              sCtx.fillStyle = 'rgba(147, 197, 253, 0.08)';
+              sCtx.fillRect(3.5, 3.5, 2, 2);
+            } else if (detailSeed === 11) {
+              sCtx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+              sCtx.fillRect(10, 14, 12, 4);
+            }
+          });
+          ctx.drawImage(sprite, x, y);
 
           // Subtle Temporal Storytelling: Ancient Broken Temporal Glyphs (Floors 4–10)
-          // Rare, weathered, integrated into stone masonry (roughly 1 in 85 floor tiles)
           const temporalSeed = (r * 37 + c * 59 + (GameState.LV || 1) * 23);
           if (GameState.LV >= 4 && temporalSeed % 89 === 0) {
             _drawTemporalStoneGlyph(ctx, x, y, GameState.LV, temporalSeed);

@@ -15,8 +15,8 @@ export const ACHIEV_TOASTS = [];
 
 export const AchievementSystem = {
   unlock(id) {
-    if (GameState.IS_DEVELOPER_EXPEDITION) {
-      console.log(`[AchievementSystem] Developer expedition active; achievement unlock suppressed: ${id}`);
+    if (GameState.IS_DEVELOPER_EXPEDITION || GameState.IS_DEBUG_ENDING) {
+      console.log(`[AchievementSystem] Developer expedition or debug active; achievement unlock suppressed: ${id}`);
       return;
     }
     const a = ACHIEVEMENTS[id];

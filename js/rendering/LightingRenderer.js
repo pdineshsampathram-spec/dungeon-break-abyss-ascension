@@ -56,6 +56,27 @@ function isCinematicLightingActive() {
 let fogCanvas = null;
 let fogCtx = null;
 let exploredTiles = null;
+let _playerStamp = null;
+let _torchStamp = null;
+let _shrineStamp = null;
+
+function _createRadialStamp(size, colorStops) {
+  if (typeof document === 'undefined') return null;
+  const can = document.createElement('canvas');
+  can.width = size;
+  can.height = size;
+  const sctx = can.getContext('2d');
+  const half = size / 2;
+  const grad = sctx.createRadialGradient(half, half, 0, half, half, half);
+  for (const [stop, col] of colorStops) {
+    grad.addColorStop(stop, col);
+  }
+  sctx.fillStyle = grad;
+  sctx.beginPath();
+  sctx.arc(half, half, half, 0, Math.PI * 2);
+  sctx.fill();
+  return can;
+}
 
 export const LightingRenderer = {
   init() {
@@ -65,6 +86,28 @@ export const LightingRenderer = {
       fogCanvas.width = LW;
       fogCanvas.height = LH;
       fogCtx = fogCanvas.getContext('2d');
+    }
+    if (!_playerStamp) {
+      _playerStamp = _createRadialStamp(256, [
+        [0, 'rgba(255,255,255,1)'],
+        [0.50, 'rgba(255,255,255,0.92)'],
+        [0.80, 'rgba(255,255,255,0.60)'],
+        [1.0, 'rgba(255,255,255,0)']
+      ]);
+    }
+    if (!_torchStamp) {
+      _torchStamp = _createRadialStamp(128, [
+        [0, 'rgba(255,255,255,0.95)'],
+        [0.65, 'rgba(255,255,255,0.60)'],
+        [1.0, 'rgba(255,255,255,0)']
+      ]);
+    }
+    if (!_shrineStamp) {
+      _shrineStamp = _createRadialStamp(128, [
+        [0, 'rgba(255,255,255,0.95)'],
+        [0.70, 'rgba(255,255,255,0.45)'],
+        [1.0, 'rgba(255,255,255,0)']
+      ]);
     }
     exploredTiles = [];
     for (let r = 0; r < ROWS; r++) {
@@ -181,52 +224,77 @@ export const LightingRenderer = {
     const psy = (playerSY - camY * T) * camZoom + LH / 2;
     const lightRadius = (P.shieldActive ? 8.8 : 7.8) * T * camZoom;
 
-    const grad = fc.createRadialGradient(psx, psy, 0, psx, psy, lightRadius);
-    grad.addColorStop(0, 'rgba(255,255,255,1)');
-    grad.addColorStop(0.50, 'rgba(255,255,255,0.92)');
-    grad.addColorStop(0.80, 'rgba(255,255,255,0.60)');
-    grad.addColorStop(1.0, 'rgba(255,255,255,0)');
-
     fc.globalAlpha = 1;
-    fc.fillStyle = grad;
-    fc.beginPath();
-    fc.arc(psx, psy, lightRadius, 0, Math.PI * 2);
-    fc.fill();
-
-    // 3. Torch light circles (expanded warm light halos)
-    GameState.TORCHES.forEach(t => {
-      const sx = ((t.x + 0.5) * T - camX * T) * camZoom + LW / 2;
-      const sy = ((t.y + 0.5) * T - camY * T) * camZoom + LH / 2;
-      const flicker = Math.sin(GameState.F * 0.15 + t.ph) * 5;
-      const r = Math.max(16, (5.2 * T + flicker) * camZoom);
-
-      const tg = fc.createRadialGradient(sx, sy, 0, sx, sy, r);
-      tg.addColorStop(0, 'rgba(255,255,255,0.95)');
-      tg.addColorStop(0.65, 'rgba(255,255,255,0.60)');
-      tg.addColorStop(1, 'rgba(255,255,255,0)');
-
-      fc.fillStyle = tg;
+    if (_playerStamp) {
+      fc.drawImage(_playerStamp, psx - lightRadius, psy - lightRadius, lightRadius * 2, lightRadius * 2);
+    } else {
+      const grad = fc.createRadialGradient(psx, psy, 0, psx, psy, lightRadius);
+      grad.addColorStop(0, 'rgba(255,255,255,1)');
+      grad.addColorStop(0.50, 'rgba(255,255,255,0.92)');
+      grad.addColorStop(0.80, 'rgba(255,255,255,0.60)');
+      grad.addColorStop(1.0, 'rgba(255,255,255,0)');
+      fc.fillStyle = grad;
       fc.beginPath();
-      fc.arc(sx, sy, r, 0, 6.28);
+      fc.arc(psx, psy, lightRadius, 0, Math.PI * 2);
       fc.fill();
-    });
+    }
 
-    // 3.5. Shrine light halos
-    if (GameState.SHRINES) {
-      GameState.SHRINES.forEach(s => {
-        if (s.used) return;
+    // 3. Torch light circles (expanded warm light halos with strict viewport culling)
+    if (GameState.TORCHES && GameState.TORCHES.length > 0) {
+      for (let i = 0; i < GameState.TORCHES.length; i++) {
+        const t = GameState.TORCHES[i];
+        const sx = ((t.x + 0.5) * T - camX * T) * camZoom + LW / 2;
+        const sy = ((t.y + 0.5) * T - camY * T) * camZoom + LH / 2;
+        const flicker = Math.sin(GameState.F * 0.15 + t.ph) * 5;
+        const r = Math.max(16, (5.2 * T + flicker) * camZoom);
+
+        // Viewport culling: skip offscreen torches completely
+        if (sx + r < 0 || sx - r > LW || sy + r < 0 || sy - r > LH) {
+          continue;
+        }
+
+        if (_torchStamp) {
+          fc.drawImage(_torchStamp, sx - r, sy - r, r * 2, r * 2);
+        } else {
+          const tg = fc.createRadialGradient(sx, sy, 0, sx, sy, r);
+          tg.addColorStop(0, 'rgba(255,255,255,0.95)');
+          tg.addColorStop(0.65, 'rgba(255,255,255,0.60)');
+          tg.addColorStop(1, 'rgba(255,255,255,0)');
+          fc.fillStyle = tg;
+          fc.beginPath();
+          fc.arc(sx, sy, r, 0, 6.28);
+          fc.fill();
+        }
+      }
+    }
+
+    // 3.5. Shrine light halos with viewport culling
+    if (GameState.SHRINES && GameState.SHRINES.length > 0) {
+      for (let i = 0; i < GameState.SHRINES.length; i++) {
+        const s = GameState.SHRINES[i];
+        if (s.used) continue;
         const sx = ((s.x + 0.5) * T - camX * T) * camZoom + LW / 2;
         const sy = ((s.y + 0.5) * T - camY * T) * camZoom + LH / 2;
         const r = 4.8 * T * camZoom;
-        const sg = fc.createRadialGradient(sx, sy, 0, sx, sy, r);
-        sg.addColorStop(0, 'rgba(255,255,255,0.95)');
-        sg.addColorStop(0.7, 'rgba(255,255,255,0.45)');
-        sg.addColorStop(1.0, 'rgba(255,255,255,0)');
-        fc.fillStyle = sg;
-        fc.beginPath();
-        fc.arc(sx, sy, r, 0, 6.28);
-        fc.fill();
-      });
+
+        // Viewport culling
+        if (sx + r < 0 || sx - r > LW || sy + r < 0 || sy - r > LH) {
+          continue;
+        }
+
+        if (_shrineStamp) {
+          fc.drawImage(_shrineStamp, sx - r, sy - r, r * 2, r * 2);
+        } else {
+          const sg = fc.createRadialGradient(sx, sy, 0, sx, sy, r);
+          sg.addColorStop(0, 'rgba(255,255,255,0.95)');
+          sg.addColorStop(0.7, 'rgba(255,255,255,0.45)');
+          sg.addColorStop(1.0, 'rgba(255,255,255,0)');
+          fc.fillStyle = sg;
+          fc.beginPath();
+          fc.arc(sx, sy, r, 0, 6.28);
+          fc.fill();
+        }
+      }
     }
 
     // 4. Boss Arena Majestic Illumination

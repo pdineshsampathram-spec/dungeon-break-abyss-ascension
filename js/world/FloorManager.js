@@ -492,10 +492,10 @@ export const FloorManager = {
     GameState.SHRINES = [];
     if (!isBossFloor(LV)) {
       const shrineTypes = [
-        { type: 'fury', name: 'Altar of Fury', desc: '+50% Attack Damage (45s)', icon: '🔥', col: '#ef4444', glow: 'rgba(239,68,68,0.4)' },
-        { type: 'vitality', name: 'Fountain of Vitality', desc: 'Restore 5 HP & +2 Max HP', icon: '💧', col: '#10b981', glow: 'rgba(16,185,129,0.4)' },
-        { type: 'astral', name: 'Astral Obelisk', desc: '+40 Sanity & Mind Shield (45s)', icon: '✨', col: '#a855f7', glow: 'rgba(168,85,247,0.4)' },
-        { type: 'wind', name: 'Shrine of Zephyr', desc: '+35% Move Speed & Fast Attack (45s)', icon: '💨', col: '#38bdf8', glow: 'rgba(56,189,248,0.4)' }
+        { type: 'fury', name: 'Altar of Fury', desc: '+50% Attack Damage (45s)', icon: 'fury', col: '#ef4444', glow: 'rgba(239,68,68,0.4)' },
+        { type: 'vitality', name: 'Fountain of Vitality', desc: 'Restore 5 HP & +2 Max HP', icon: 'vitality', col: '#10b981', glow: 'rgba(16,185,129,0.4)' },
+        { type: 'astral', name: 'Astral Obelisk', desc: '+40 Sanity & Mind Shield (45s)', icon: 'astral', col: '#a855f7', glow: 'rgba(168,85,247,0.4)' },
+        { type: 'wind', name: 'Shrine of Zephyr', desc: '+35% Move Speed & Fast Attack (45s)', icon: 'wind', col: '#38bdf8', glow: 'rgba(56,189,248,0.4)' }
       ];
       const shrineCount = 2 + (Math.random() < 0.6 ? 2 : 1);
       for (let s = 0; s < shrineCount; s++) {

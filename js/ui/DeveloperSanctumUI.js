@@ -20,6 +20,8 @@ import { PlayerStats } from '../player/PlayerStats.js';
 import { ARCHIVE_CINEMATICS } from './CinematicArchiveUI.js';
 import { CinematicReplayContext } from '../cinematics/CinematicReplayContext.js';
 import { InputManager } from '../core/InputManager.js';
+import { Typography } from '../rendering/Typography.js';
+import { PixelIconRenderer } from '../rendering/PixelIconRenderer.js';
 import {
   ButtonArtManager,
   drawStoneButton,
@@ -32,6 +34,25 @@ import {
   drawCornerBrackets,
   drawChamferedPanel
 } from './ButtonArtManager.js?v=2.0';
+import {
+  drawChamberArchitecture,
+  drawMasterHeaderPlaque,
+  drawNavigationTabPlaque,
+  drawReliquaryPlinth,
+  drawCraftedButton,
+  drawCartographerFloorTile,
+  drawMemoryPlaque,
+  drawArchivalReadingPlinth,
+  drawWeaponNiche,
+  drawBlacksmithRecordPlate,
+  drawModificationStation,
+  drawVitalityInstrument,
+  drawCovenantTablet,
+  drawIntegrityGuaranteesPlaque,
+  getBasaltChamberPattern,
+  getCartographerPattern,
+  getForgePattern
+} from './SanctumArtRenderer.js';
 
 // Authoritative Passwords
 export const SANCTUM_FALLBACK_PASSWORD = '090329';
@@ -765,18 +786,10 @@ export const DeveloperSanctumUI = {
     ctx.save();
     const mouseX = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.mx : -999;
     const mouseY = InputManager.MOUSE_STATE ? InputManager.MOUSE_STATE.my : -999;
+    const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
 
-    // 1. Deep Obsidian Atmosphere
-    ctx.fillStyle = '#05070e';
-    ctx.fillRect(0, 0, LW, LH);
-
-    // Subtle violet vignette
-    const vig = ctx.createRadialGradient(LW / 2, LH / 2, 50, LW / 2, LH / 2, LW * 0.75);
-    vig.addColorStop(0, 'rgba(30, 15, 55, 0.25)');
-    vig.addColorStop(0.6, 'rgba(10, 5, 22, 0.7)');
-    vig.addColorStop(1, 'rgba(2, 3, 8, 0.95)');
-    ctx.fillStyle = vig;
-    ctx.fillRect(0, 0, LW, LH);
+    // 1. Ancient Abyssal Citadel Architectural Backdrop
+    drawChamberArchitecture(ctx, LW, LH, GameState.F);
 
     // Subtle floating violet abyss particles
     for (const p of _sanctumParticles) {
@@ -789,40 +802,31 @@ export const DeveloperSanctumUI = {
       ctx.fill();
     }
 
-    // 2. Compact Top Header Bar (Y: 10 to 42)
-    const headerY = 12;
+    // 2. Sculpted Master Title Header Bar (Y: 10 to 42)
+    const headerY = 11;
     const blinkProg = Math.max(0, Math.sin(GameState.F * 0.04) - 0.90) * 10;
-    drawPixelEye(ctx, 36, headerY + 12, 0.45, blinkProg, GameState.F);
-
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'top';
-    ctx.font = 'bold 15px Cinzel, serif';
-    ctx.fillStyle = '#fde68a';
-    ctx.shadowColor = '#d97706';
-    ctx.shadowBlur = 6;
-    ctx.fillText('THE DEVELOPER SANCTUM', 62, headerY);
-    ctx.shadowBlur = 0;
-
-    ctx.font = 'italic 10.5px "Crimson Text", Georgia, serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Authoritative Control Chamber · Floor Deployment & Archives', 64, headerY + 18);
 
     // Return to Title Button (Top Right)
-    const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
     const retW = 148, retH = 26;
     const retX = LW - retW - 20, retY = headerY + 1;
     const isHoverRet = mouseX >= retX && mouseX <= retX + retW && mouseY >= retY && mouseY <= retY + retH;
-    drawStoneButton(ctx, retX, retY, retW, retH, {
+    drawCraftedButton(ctx, retX, retY, retW, retH, {
       text: 'TITLE MENU',
       hotkey: '[ESC]',
       icon: '⮌',
+      variant: 'secondary',
       isHover: isHoverRet,
       isPressed: isHoverRet && isMouseDown,
       fontSize: 9.5
     });
     _clickZones.push({ x: retX, y: retY, w: retW, h: retH, action: () => this.closeSanctum() });
 
-    // 3. Integrated At-a-Glance Configuration Status Pill Bar (Y: 46 to 74)
+    // Sculpted Keystone Crest
+    const crestW = Math.min(540, retX - 20 - 12);
+    drawMasterHeaderPlaque(ctx, 20, headerY - 1, crestW, 30, GameState.F, blinkProg);
+    drawPixelEye(ctx, 36, headerY + 14, 0.42, blinkProg, GameState.F);
+
+    // 3. Integrated At-a-Glance Telemetry Reliquary Plinths (Y: 46 to 74)
     const previewWep = _getPreviewWeapon();
     const curCfg = FLOOR_CONFIG[_selectedFloor] || { name: 'Abyss Depth' };
     const pillBarY = 46;
@@ -831,45 +835,45 @@ export const DeveloperSanctumUI = {
     const pillTotalW = LW - 40;
     const pillW = Math.round((pillTotalW - 3 * pillGap) / 4);
 
-    // Pill 1: Floor Target
+    // Plinth 1: Floor Target
     const p1X = 20;
-    drawStoneCard(ctx, p1X, pillBarY, pillW, pillH, { accentColor: 'gold', chamfer: 4 });
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillStyle = '#fde68a';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`◈ FLOOR ${_selectedFloor} : ${curCfg.name.toUpperCase()}`, p1X + pillW / 2, pillBarY + pillH / 2);
+    drawReliquaryPlinth(ctx, p1X, pillBarY, pillW, pillH, {
+      type: 'floor',
+      label: `◈ FLOOR ${_selectedFloor} : ${curCfg.name.toUpperCase()}`,
+      accent: 'gold',
+      isActive: true
+    });
 
-    // Pill 2: Starting Blade
+    // Plinth 2: Starting Blade
     const p2X = p1X + pillW + pillGap;
-    drawStoneCard(ctx, p2X, pillBarY, pillW, pillH, { accentColor: 'violet', chamfer: 4 });
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillStyle = previewWep.rarity.col || '#ffffff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${previewWep.icon} ${previewWep.name.toUpperCase()} [${previewWep.rarity.name.toUpperCase()}]`, p2X + pillW / 2, pillBarY + pillH / 2);
+    drawReliquaryPlinth(ctx, p2X, pillBarY, pillW, pillH, {
+      type: 'weapon',
+      label: `${previewWep.icon} ${previewWep.name.toUpperCase()} [${previewWep.rarity.name.toUpperCase()}]`,
+      accent: 'violet',
+      isActive: false
+    });
 
-    // Pill 3: Starting Max HP
+    // Plinth 3: Starting Max HP
     const p3X = p2X + pillW + pillGap;
-    const hpCol = _selectedMaxHp <= 5 ? '#ef4444' : (_selectedMaxHp >= 40 ? '#4ade80' : '#fde68a');
-    drawStoneCard(ctx, p3X, pillBarY, pillW, pillH, { accentColor: _selectedMaxHp <= 5 ? 'crimson' : 'emerald', chamfer: 4 });
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillStyle = hpCol;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`❤️ ${_selectedMaxHp} / 50 HP CALIBRATION`, p3X + pillW / 2, pillBarY + pillH / 2);
+    const hpColType = _selectedMaxHp <= 5 ? 'crimson' : (_selectedMaxHp >= 40 ? 'emerald' : 'gold');
+    drawReliquaryPlinth(ctx, p3X, pillBarY, pillW, pillH, {
+      type: 'hp',
+      label: `HP ${_selectedMaxHp} / 50 · VITALITY CALIBRATION`,
+      accent: hpColType,
+      isActive: false
+    });
 
-    // Pill 4: Developer Expedition Badge / Sandbox Status
+    // Plinth 4: Developer Expedition Badge / Sandbox Status
     const p4X = p3X + pillW + pillGap;
     const isModsArmed = _devMods && _devMods.enabled;
-    drawStoneCard(ctx, p4X, pillBarY, pillW, pillH, { accentColor: isModsArmed ? 'emerald' : 'crimson', chamfer: 4 });
-    ctx.font = 'bold 9px Cinzel, serif';
-    ctx.fillStyle = isModsArmed ? '#4ade80' : '#fca5a5';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(isModsArmed ? '⚡ ABYSS SANCTUM · MODS ARMED' : '⚔️ DEV EXPEDITION · ISOLATED', p4X + pillW / 2, pillBarY + pillH / 2);
+    drawReliquaryPlinth(ctx, p4X, pillBarY, pillW, pillH, {
+      type: 'status',
+      label: isModsArmed ? 'ABYSS SANCTUM · MODS ARMED' : 'DEV EXPEDITION · ISOLATED',
+      accent: isModsArmed ? 'emerald' : 'crimson',
+      isActive: isModsArmed
+    });
 
-    // 4. Tab Navigation Bar (Y: 80 to 108)
+    // 4. Keystone Stone Navigation Tab Plaques (Y: 80 to 108)
     const tabs = [
       { id: 'floors', label: '1. FLOOR TARGET' },
       { id: 'cinematics', label: '2. CINEMATICS' },
@@ -887,11 +891,12 @@ export const DeveloperSanctumUI = {
       const isActive = _activeTab === tab.id;
       const isHover = mouseX >= tx && mouseX <= tx + tabW && mouseY >= tabY && mouseY <= tabY + tabH;
 
-      drawStoneTab(ctx, tx, tabY, tabW, tabH, {
+      drawNavigationTabPlaque(ctx, tx, tabY, tabW, tabH, {
         label: tab.label,
         isActive,
         isHover,
-        accentColor: tab.id === 'modifications' ? 'emerald' : 'gold'
+        accentColor: tab.id === 'modifications' ? 'emerald' : 'gold',
+        F: GameState.F
       });
 
       _clickZones.push({
@@ -905,13 +910,42 @@ export const DeveloperSanctumUI = {
     const bBarH = 34;
     const contH = LH - contY - bBarH - 18;
 
-    drawStonePanel(ctx, contX, contY, contW, contH, {
-      chamfer: 8,
-      outerBorderColor: 'rgba(217, 119, 6, 0.55)',
-      innerBorderColor: 'rgba(201, 168, 76, 0.25)',
-      hasCornerBrackets: true,
-      bracketLen: 12
-    });
+    // Drop shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    roundRect(ctx, contX, contY + 4, contW, contH, 8);
+    ctx.fill();
+
+    // Megalithic Basalt slab body
+    const contGrad = ctx.createLinearGradient(contX, contY, contX, contY + contH);
+    contGrad.addColorStop(0, '#140e24');
+    contGrad.addColorStop(0.5, '#0d0918');
+    contGrad.addColorStop(1, '#06040c');
+    ctx.fillStyle = contGrad;
+    roundRect(ctx, contX, contY, contW, contH, 8);
+    ctx.fill();
+
+    const basaltPat = getBasaltChamberPattern(ctx);
+    if (basaltPat) {
+      ctx.save();
+      ctx.globalAlpha = 0.35;
+      ctx.fillStyle = basaltPat;
+      roundRect(ctx, contX, contY, contW, contH, 8);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Outer chiseled border & inner gilded conduit
+    ctx.strokeStyle = 'rgba(217, 119, 6, 0.65)';
+    ctx.lineWidth = 1.6;
+    roundRect(ctx, contX, contY, contW, contH, 8);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(201, 168, 76, 0.25)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, contX + 3, contY + 3, contW - 6, contH - 6, 6);
+    ctx.stroke();
+
+    drawCornerBrackets(ctx, contX + 2, contY + 2, contW - 4, contH - 4, 14, '#ffd700');
 
     // Render Active Tab Content
     switch (_activeTab) {
@@ -940,25 +974,24 @@ export const DeveloperSanctumUI = {
     drawChamferedPanel(ctx, contX, bBarY, contW, bBarH, 5, 'rgba(10, 15, 30, 0.96)', 'rgba(217, 119, 6, 0.65)', 1.2);
     drawCornerBrackets(ctx, contX + 2, bBarY + 2, contW - 4, bBarH - 4, 8, 'rgba(217, 119, 6, 0.6)');
 
-    ctx.font = 'bold 10px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { size: 11.5 });
     ctx.fillStyle = '#fde68a';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     const activeModsStr = (_devMods && _devMods.enabled) ? `  ·  MODS: ARMED (Lv ${_devMods.weaponLevel})` : '';
-    ctx.fillText(`DEPLOY TARGET: FLOOR ${_selectedFloor} (${curCfg.name.toUpperCase()})  ·  ${previewWep.icon} ${previewWep.name.toUpperCase()}  ·  ${_selectedMaxHp} HP${activeModsStr}`, contX + 16, bBarY + bBarH / 2);
+    ctx.fillText(`DEPLOY TARGET: FLOOR ${_selectedFloor} (${curCfg.name.toUpperCase()})  ·  ${previewWep.name.toUpperCase()}  ·  ${_selectedMaxHp} HP${activeModsStr}`, contX + 16, bBarY + bBarH / 2);
 
     const depBtnW = 200, depBtnH = 28;
     const depBtnX = contX + contW - depBtnW - 4, depBtnY = bBarY + 3;
     const isHoverDepBar = mouseX >= depBtnX && mouseX <= depBtnX + depBtnW && mouseY >= depBtnY && mouseY <= depBtnY + depBtnH;
 
-    drawStoneButton(ctx, depBtnX, depBtnY, depBtnW, depBtnH, {
+    drawCraftedButton(ctx, depBtnX, depBtnY, depBtnW, depBtnH, {
       text: 'DEPLOY EXPEDITION',
       hotkey: '[ENTER]',
-      icon: '⚔',
-      isPrimary: true,
+      variant: 'primary',
       isHover: isHoverDepBar,
       isPressed: isHoverDepBar && isMouseDown,
-      fontSize: 10
+      fontSize: 11
     });
 
     _clickZones.push({
@@ -981,24 +1014,35 @@ export const DeveloperSanctumUI = {
   // ─────────────────────────────────────────────────────────────
   _drawTabFloors(ctx, x, y, w, h, mouseX, mouseY) {
     ctx.save();
+    const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
 
-    // Guidance
-    ctx.font = 'bold 11px Cinzel, serif';
+    // Survey Table Topographic Background
+    const cartPat = getCartographerPattern(ctx);
+    if (cartPat) {
+      ctx.save();
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = cartPat;
+      roundRect(ctx, x + 10, y + 8, w - 20, h - 16, 6);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Guidance Header
+    ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 12.5 });
     ctx.fillStyle = '#fde68a';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('SELECT DEPLOYMENT TARGET (FLOORS 1 — 10)', x + 18, y + 12);
+    ctx.fillText('◈ THE ABYSSAL CARTOGRAPHER’S TABLE · EXPEDITION TARGETS ◈', x + 18, y + 12);
 
-    ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 12 });
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Sets starting descent point. Combat mechanics, boss encounters, and portals scale authentically.', x + 18, y + 27);
+    ctx.fillText('Engraved survey map of the 10 abyssal sectors. Combat mechanics, boss encounters, and portals scale authentically.', x + 18, y + 27);
 
     // 10 Floor Selectable Buttons (2 Columns of 5)
     const startY = y + 46;
     const colW = (w - 52) / 2;
     const btnH = 68;
     const gap = 8;
-    const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
 
     for (let f = 1; f <= 10; f++) {
       const colIdx = f <= 5 ? 0 : 1;
@@ -1011,33 +1055,15 @@ export const DeveloperSanctumUI = {
       const isSelected = _selectedFloor === f;
       const isHover = mouseX >= bx && mouseX <= bx + colW && mouseY >= by && mouseY <= by + btnH;
 
-      drawStoneCard(ctx, bx, by, colW, btnH, {
+      drawCartographerFloorTile(ctx, bx, by, colW, btnH, {
+        floor: f,
+        name: cfg.name,
+        biome: cfg.biome || 'keep',
+        boss: f === 3 ? 'Gorgaroth' : (f === 6 ? 'Malakor' : (f === 10 ? 'The Abyss Warden' : null)),
         isSelected,
         isHover,
-        accentColor: isBoss ? 'crimson' : 'gold',
-        chamfer: 5
+        isPressed: isHover && isMouseDown
       });
-
-      // Floor Number & Name
-      ctx.font = 'bold 11.5px Cinzel, serif';
-      ctx.fillStyle = isSelected ? '#ffffff' : (isBoss ? '#fca5a5' : '#cbd5e1');
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText(`FLOOR ${f} — ${cfg.name.toUpperCase()}`, bx + 14, by + 10);
-
-      // Biome / Boss Details
-      ctx.font = '9.5px monospace';
-      ctx.fillStyle = isBoss ? '#ef4444' : '#94a3b8';
-      let metaText = `Biome: ${cfg.biome || 'keep'}`;
-      if (f === 3) metaText = '⚔️ BOSS ENCOUNTER: GORGAROTH (The Iron Jailer)';
-      else if (f === 6) metaText = '⚔️ BOSS ENCOUNTER: ARCH-LICH MALAKOR';
-      else if (f === 10) metaText = '👑 APEX BOSS: THE ABYSS WARDEN';
-      ctx.fillText(metaText, bx + 14, by + 30);
-
-      // Floor theme quote / hint
-      ctx.font = 'italic 9.5px "Crimson Text", serif';
-      ctx.fillStyle = '#64748b';
-      ctx.fillText(cfg.desc || 'Descent into darkness.', bx + 14, by + 48);
 
       _clickZones.push({
         x: bx, y: by, w: colW, h: btnH,
@@ -1062,13 +1088,13 @@ export const DeveloperSanctumUI = {
     ctx.save();
     const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
 
-    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 12.5 });
     ctx.fillStyle = '#fde68a';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillText('CANONICAL CINEMATIC & CREDITS ARCHIVE', x + 18, y + 10);
 
-    ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 12 });
     ctx.fillStyle = '#94a3b8';
     ctx.fillText('Replay genuine in-engine cutscenes, post-ending epilogue, and 4 distinct ending credits with isolated progression.', x + 18, y + 24);
 
@@ -1083,16 +1109,17 @@ export const DeveloperSanctumUI = {
     const catH = 24;
 
     catList.forEach(cat => {
-      ctx.font = 'bold 8.5px Cinzel, serif';
+      ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 11 });
       const catW = Math.round(ctx.measureText(cat.label).width + 22);
       const isCatSel = _cinematicCategory === cat.id;
       const isCatHover = mouseX >= catX && mouseX <= catX + catW && mouseY >= catY && mouseY <= catY + catH;
 
-      drawStoneTab(ctx, catX, catY, catW, catH, {
-        label: cat.label,
-        isActive: isCatSel,
+      drawCraftedButton(ctx, catX, catY, catW, catH, {
+        text: cat.label,
+        variant: 'tab',
+        isSelected: isCatSel,
         isHover: isCatHover,
-        accentColor: 'gold'
+        fontSize: 8.5
       });
 
       _clickZones.push({
@@ -1115,8 +1142,8 @@ export const DeveloperSanctumUI = {
     const listX = x + 18;
     const listY = y + 70;
     const listW = 312;
-    const itemH = 34;
-    const itemGap = 5;
+    const itemH = 38;
+    const itemGap = 6;
     const listH = h - 80;
     const maxVisible = Math.max(1, Math.floor(listH / (itemH + itemGap)));
     const maxScroll = Math.max(0, filteredCinematics.length - maxVisible);
@@ -1133,11 +1160,14 @@ export const DeveloperSanctumUI = {
       const isSelected = _selectedCinematicIdx === globalIdx;
       const isHover = mouseX >= listX && mouseX <= listX + listW && mouseY >= iy && mouseY <= iy + itemH;
 
-      drawStoneCard(ctx, listX, iy, listW, itemH, {
+      drawMemoryPlaque(ctx, listX, iy, listW, itemH, {
+        id: item.id,
+        title: isEpilogue ? `✦ ${item.title}` : item.title,
+        subtitle: isEpilogue ? 'CANONICAL REVELATION' : (item.subtitle || item.desc || ''),
+        category: isEpilogue ? 'CANON' : (item.badge || item.category.toUpperCase()),
         isSelected,
         isHover,
-        accentColor: isEpilogue ? 'violet' : (item.category === 'bosses' ? 'crimson' : 'gold'),
-        chamfer: 4
+        isPressed: isHover && isMouseDown
       });
 
       // Special pulsating aura border for Epilogue item
@@ -1149,19 +1179,6 @@ export const DeveloperSanctumUI = {
         ctx.stroke();
         ctx.restore();
       }
-
-      ctx.font = 'bold 9.5px Cinzel, serif';
-      ctx.fillStyle = isSelected ? '#ffffff' : (isEpilogue ? '#e9d5ff' : '#cbd5e1');
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      const displayTitle = isEpilogue ? `✦ ${item.title}` : item.title;
-      ctx.fillText(displayTitle, listX + 12, iy + itemH / 2);
-
-      ctx.font = '8.5px monospace';
-      ctx.fillStyle = isEpilogue ? '#c084fc' : (item.color || '#94a3b8');
-      ctx.textAlign = 'right';
-      const badgeText = isEpilogue ? '✦ CANON EPILOGUE' : (item.badge || item.floor);
-      ctx.fillText(badgeText, listX + listW - 12, iy + itemH / 2);
 
       _clickZones.push({
         x: listX, y: iy, w: listW, h: itemH + itemGap,
@@ -1265,108 +1282,121 @@ export const DeveloperSanctumUI = {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Detail Panel on Right Side
+    // Detail Panel on Right Side (Ceremonial Archival Reading Plinth)
     // ─────────────────────────────────────────────────────────────
     const detX = scrollColX + scrollColW + 12;
     const detY = catY;
     const detW = w - (detX - x) - 18;
     const detH = h - 46;
 
-    drawStonePanel(ctx, detX, detY, detW, detH, {
-      chamfer: 6,
-      outerBorderColor: 'rgba(217, 119, 6, 0.45)',
-      innerBorderColor: 'rgba(201, 168, 76, 0.20)',
-      hasCornerBrackets: true,
-      bracketLen: 10
-    });
-
     const selectedItem = filteredCinematics[_selectedCinematicIdx] || filteredCinematics[0] || ARCHIVE_CINEMATICS[0];
-    if (selectedItem) {
-      const isEpilogue = selectedItem.id === 'epilogue_unmeasured_hour';
-      const isCredits = selectedItem.badge === 'CREDITS';
+    const isEpilogue = selectedItem ? selectedItem.id === 'epilogue_unmeasured_hour' : false;
+    const isCredits = selectedItem ? selectedItem.badge === 'CREDITS' : false;
 
+    drawArchivalReadingPlinth(ctx, detX, detY, detW, detH, selectedItem, isEpilogue, isCredits);
+
+    if (selectedItem) {
       // Title
       ctx.font = 'bold 15px Cinzel, serif';
       ctx.fillStyle = isEpilogue ? '#f3e8ff' : '#fde68a';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText(isEpilogue ? `✦ ${selectedItem.title.toUpperCase()}` : selectedItem.title, detX + 20, detY + 18);
+      ctx.fillText(isEpilogue ? `✦ ${selectedItem.title.toUpperCase()}` : selectedItem.title, detX + 24, detY + 22);
 
       // Subtitle & Badge
       ctx.font = 'italic 11px "Crimson Text", Georgia, serif';
       ctx.fillStyle = selectedItem.color || '#38bdf8';
       const sub = isEpilogue ? 'CANONICAL REVELATION · THE ABSOLUTE’S TIMELESS CRUCIBLE' : (selectedItem.subtitle || '');
-      ctx.fillText(`${sub}  ·  [ ${selectedItem.badge || selectedItem.floor} ]`, detX + 20, detY + 40);
+      ctx.fillText(`${sub}  ·  [ ${selectedItem.badge || selectedItem.floor} ]`, detX + 24, detY + 44);
 
-      let contentY = detY + 68;
+      let contentY = detY + 70;
 
       // Special highlight banner for Epilogue
       if (isEpilogue) {
-        const bannerW = detW - 40;
+        const bannerW = detW - 48;
         const bannerH = 46;
-        drawChamferedPanel(ctx, detX + 20, contentY, bannerW, bannerH, 4, 'rgba(35, 15, 60, 0.85)', 'rgba(168, 85, 247, 0.75)', 1.2);
-        drawCornerBrackets(ctx, detX + 22, contentY + 2, bannerW - 4, bannerH - 4, 6, 'rgba(216, 180, 254, 0.8)');
+        drawChamferedPanel(ctx, detX + 24, contentY, bannerW, bannerH, 4, 'rgba(35, 15, 60, 0.85)', 'rgba(168, 85, 247, 0.75)', 1.2);
+        drawCornerBrackets(ctx, detX + 26, contentY + 2, bannerW - 4, bannerH - 4, 6, 'rgba(216, 180, 254, 0.8)');
 
-        ctx.font = 'bold 9.5px Cinzel, serif';
+        ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 11.5 });
         ctx.fillStyle = '#fde68a';
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText('◈ OFFICIAL PHASE 8C POST-ENDING CANONICAL EPILOGUE', detX + 32, contentY + 8);
+        ctx.fillText('◈ OFFICIAL PHASE 8C POST-ENDING CANONICAL EPILOGUE', detX + 36, contentY + 8);
 
-        ctx.font = 'italic 9.5px "Crimson Text", Georgia, serif';
+        ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 12 });
         ctx.fillStyle = '#e9d5ff';
-        ctx.fillText('Unlocks after conquering Floor 10 in any of the 3 Warden endings (Hero, Betrayal, Rampage).', detX + 32, contentY + 24);
+        ctx.fillText('Unlocks after conquering Floor 10 in any of the 3 Warden endings (Hero, Betrayal, Rampage).', detX + 36, contentY + 24);
 
         contentY += bannerH + 12;
       }
 
-      // Description text wrapping
-      ctx.font = '11.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      // Description text wrapping in warm ivory serif
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 13.5 });
       ctx.fillStyle = '#cbd5e1';
       const words = (selectedItem.desc || '').split(' ');
       let line = '', lineY = contentY;
       for (const wd of words) {
         const test = line + wd + ' ';
-        if (ctx.measureText(test).width > detW - 44) {
-          ctx.fillText(line, detX + 20, lineY);
+        if (ctx.measureText(test).width > detW - 56) {
+          ctx.fillText(line, detX + 24, lineY);
           line = wd + ' ';
-          lineY += 18;
+          lineY += 19;
         } else {
           line = test;
         }
       }
-      if (line) ctx.fillText(line, detX + 20, lineY);
+      if (line) ctx.fillText(line, detX + 24, lineY);
 
       // Provenance / Hint
       if (selectedItem.hint) {
-        ctx.font = 'italic 10.5px "Crimson Text", Georgia, serif';
-        ctx.fillStyle = isEpilogue ? '#c084fc' : 'rgba(148, 163, 184, 0.85)';
-        ctx.fillText(`Requirement / Provenance: ${selectedItem.hint}`, detX + 20, lineY + 22);
+        ctx.font = 'italic 11px "Crimson Text", Georgia, serif';
+        ctx.fillStyle = isEpilogue ? '#c084fc' : 'rgba(217, 119, 6, 0.9)';
+        ctx.fillText(`Requirement / Provenance: ${selectedItem.hint}`, detX + 24, lineY + 24);
       }
+
+      // Sequence Telemetry Box
+      const telemBoxY = lineY + 36;
+      const telemBoxW = detW - 48;
+      const telemBoxH = 48;
+      ctx.fillStyle = 'rgba(10, 6, 20, 0.85)';
+      roundRect(ctx, detX + 24, telemBoxY, telemBoxW, telemBoxH, 4);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.25)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, detX + 24, telemBoxY, telemBoxW, telemBoxH, 4);
+      ctx.stroke();
+
+      ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 11 });
+      ctx.fillStyle = '#fde68a';
+      ctx.fillText('◈ ARCHIVAL SEQUENCE TELEMETRY', detX + 34, telemBoxY + 8);
+
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11.5 });
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(`• Timeline Epoch: ${isEpilogue ? 'Beyond Floor 10 · Timeless Crucible' : `Descent Cycle · Floor ${selectedItem.floor || 1}`}`, detX + 34, telemBoxY + 22);
+      ctx.fillText(`• Audio Landscape: ${isEpilogue ? 'Ethereal Drone & 13th Bell Chime' : 'Orchestral Requiem · Sunken Citadel Theme'}`, detX + 34, telemBoxY + 34);
 
       // Canonical Lore Note for Epilogue
       if (isEpilogue) {
-        const loreY = lineY + 44;
-        ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
+        const loreY = telemBoxY + telemBoxH + 12;
+        ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 12 });
         ctx.fillStyle = '#94a3b8';
-        ctx.fillText('• 5 Cinematic Beats: Void aftermath drone, Cyclopean vault, Basalt stele, Pixel eye, 13th chime.', detX + 20, loreY);
-        ctx.fillText('• 100% Canvas 2D Procedural. Insulated replay maintains zero run corruption.', detX + 20, loreY + 16);
+        ctx.fillText('• 5 Cinematic Beats: Void aftermath drone, Cyclopean vault, Basalt stele, Pixel eye, 13th chime.', detX + 24, loreY);
+        ctx.fillText('• 100% Canvas 2D Procedural. Insulated replay maintains zero run corruption.', detX + 24, loreY + 16);
       }
 
-      // Playback action button using unified Stone Button
+      // Playback action button using crafted molten gold action plate
       const playW = isEpilogue ? 220 : 180, playH = 34;
       const playX = detX + 20, playY = detY + detH - 52;
       const isHoverPlay = mouseX >= playX && mouseX <= playX + playW && mouseY >= playY && mouseY <= playY + playH;
 
-      drawStoneButton(ctx, playX, playY, playW, playH, {
+      drawCraftedButton(ctx, playX, playY, playW, playH, {
         text: isEpilogue ? 'PLAY CANON EPILOGUE' : (isCredits ? 'WATCH CREDITS' : 'WATCH VISION'),
-        hotkey: '[SPACE / ENTER]',
-        icon: isEpilogue ? '✦' : '▶',
-        isPrimary: true,
-        isGift: isCredits || isEpilogue,
+        hotkey: '[ENTER]',
+        variant: 'primary',
         isHover: isHoverPlay,
         isPressed: isHoverPlay && isMouseDown,
-        fontSize: 10.5
+        fontSize: 11
       });
 
       _clickZones.push({
@@ -1403,11 +1433,11 @@ export const DeveloperSanctumUI = {
     ctx.fillStyle = '#94a3b8';
     ctx.fillText('Select Rowan’s primary blade for the expedition. Real weapon scaling and genuine mechanics are preserved.', x + 18, y + 27);
 
-    // Weapon Selection Row (5 authentic weapons)
+    // Weapon Selection Row (5 carved weapon niches)
     const wepY = y + 46;
     const wepList = WEAPON_KEYS;
     const wepCardW = Math.round((w - 36 - (wepList.length - 1) * 8) / wepList.length);
-    const wepCardH = 60;
+    const wepCardH = 68;
 
     wepList.forEach((wid, i) => {
       const wx = x + 18 + i * (wepCardW + 8);
@@ -1415,25 +1445,14 @@ export const DeveloperSanctumUI = {
       const isSelected = _selectedWeaponId === wid;
       const isHover = mouseX >= wx && mouseX <= wx + wepCardW && mouseY >= wepY && mouseY <= wepY + wepCardH;
 
-      drawStoneCard(ctx, wx, wepY, wepCardW, wepCardH, {
+      drawWeaponNiche(ctx, wx, wepY, wepCardW, wepCardH, {
+        id: wid,
+        name: wdata.name.split(' ')[0],
+        icon: wid || 'sword',
         isSelected,
         isHover,
-        accentColor: 'gold',
-        chamfer: 4
+        isPressed: isHover && isMouseDown
       });
-
-      ctx.font = '18px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText(wdata.icon || '⚔️', wx + wepCardW / 2, wepY + 6);
-
-      ctx.font = 'bold 9.5px Cinzel, serif';
-      ctx.fillStyle = isSelected ? '#ffffff' : '#cbd5e1';
-      ctx.fillText(wdata.name.split(' ')[0], wx + wepCardW / 2, wepY + 32);
-
-      ctx.font = '8.5px monospace';
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText(`${wdata.type.toUpperCase()}`, wx + wepCardW / 2, wepY + 45);
 
       _clickZones.push({
         x: wx, y: wepY, w: wepCardW, h: wepCardH,
@@ -1461,13 +1480,14 @@ export const DeveloperSanctumUI = {
       const rx = x + 18 + idx * (rarBtnW + 8);
       const isSelected = _selectedRarity === rname;
       const isHover = mouseX >= rx && mouseX <= rx + rarBtnW && mouseY >= rarBtnsY && mouseY <= rarBtnsY + rarBtnH;
-      const accent = rname === 'Legendary' ? 'gold' : (rname === 'Epic' ? 'violet' : (rname === 'Rare' ? 'azure' : 'emerald'));
 
-      drawStoneTab(ctx, rx, rarBtnsY, rarBtnW, rarBtnH, {
-        label: rname.toUpperCase(),
-        isActive: isSelected,
+      drawCraftedButton(ctx, rx, rarBtnsY, rarBtnW, rarBtnH, {
+        text: `◈ ${rname.toUpperCase()}`,
+        variant: 'tab',
+        isSelected,
         isHover,
-        accentColor: accent
+        isPressed: isHover && isMouseDown,
+        fontSize: 9.5
       });
 
       _clickZones.push({
@@ -1480,38 +1500,12 @@ export const DeveloperSanctumUI = {
       });
     });
 
-    // Live Weapon Stat Preview Box (Deterministic & Stable)
+    // Live Weapon Stat Preview Box (Blacksmith's Anvil Plinth)
     const prevY = rarBtnsY + rarBtnH + 14;
     const prevH = h - (prevY - y) - 14;
     const sampleWep = _getPreviewWeapon();
 
-    drawStonePanel(ctx, x + 18, prevY, w - 36, prevH, {
-      chamfer: 6,
-      outerBorderColor: sampleWep ? (sampleWep.rarity.col || 'rgba(217, 119, 6, 0.45)') : 'rgba(217, 119, 6, 0.45)',
-      innerBorderColor: 'rgba(201, 168, 76, 0.25)',
-      hasCornerBrackets: true,
-      bracketLen: 10
-    });
-
-    if (sampleWep) {
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-
-      ctx.font = 'bold 14px Cinzel, serif';
-      ctx.fillStyle = sampleWep.rarity.col || '#ffffff';
-      ctx.fillText(`${sampleWep.icon} ${sampleWep.name} [${sampleWep.rarity.name}]`, x + 34, prevY + 14);
-
-      ctx.font = '10.5px monospace';
-      ctx.fillStyle = '#cbd5e1';
-      ctx.fillText(`• BASE DAMAGE: ${sampleWep.damage.toFixed(1)} DMG`, x + 34, prevY + 38);
-      ctx.fillText(`• COOLDOWN: ${(sampleWep.cooldown * 1000).toFixed(0)} ms`, x + 34, prevY + 56);
-      ctx.fillText(`• RANGE: ${sampleWep.range} tiles`, x + 240, prevY + 38);
-      ctx.fillText(`• TYPE: ${sampleWep.type.toUpperCase()}`, x + 240, prevY + 56);
-
-      ctx.font = 'italic 10px "Crimson Text", serif';
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText('Deterministic Forging Guaranteed — Weapon attributes and name are locked throughout the expedition.', x + 34, prevY + 80);
-    }
+    drawBlacksmithRecordPlate(ctx, x + 18, prevY, w - 36, prevH, sampleWep);
 
     ctx.restore();
   },
@@ -1552,28 +1546,32 @@ export const DeveloperSanctumUI = {
     // ───────────────────────────────────────────────────────────
     // CARD 1: WEAPON TIER & LEVEL (1 to 5)
     // ───────────────────────────────────────────────────────────
-    drawStoneCard(ctx, c0X, r0Y, cardW, cardH, { accentColor: 'gold', chamfer: 5 });
-    ctx.font = 'bold 10.5px Cinzel, serif';
-    ctx.fillStyle = '#fde68a';
-    ctx.fillText(`⚔️ WEAPON LEVEL: Lv ${_devMods.weaponLevel} / 5`, c0X + 12, r0Y + 8);
+    drawModificationStation(ctx, c0X, r0Y, cardW, cardH, {
+      id: 'weapon_lvl',
+      title: 'WEAPON LEVEL',
+      subtitle: 'Base Power & Damage Scaling',
+      currentValText: `Lv ${_devMods.weaponLevel} / 5`,
+      accent: 'gold',
+      isArmed: _devMods.enabled
+    });
 
     const scalePct = Math.round((_devMods.weaponLevel - 1) * 18);
-    ctx.font = '9.5px monospace';
+    ctx.font = Typography.getFont(Typography.ROLES.CODE_MONO, { size: 11 });
     ctx.fillStyle = '#cbd5e1';
-    ctx.fillText(`Damage Scale: +${scalePct}% base power`, c0X + 12, r0Y + 24);
+    ctx.fillText(`Damage Scale: +${scalePct}% base power`, c0X + 12, r0Y + 38);
 
     const sampleWep = WeaponFactory.create(_selectedWeaponId, _selectedRarity, null, _devMods.weaponLevel);
     ctx.fillStyle = sampleWep.rarity.col || '#cbd5e1';
-    ctx.fillText(`• ${sampleWep.name.split(' ')[0]}: ${sampleWep.damage.toFixed(1)} DMG (${(sampleWep.cooldown * 1000).toFixed(0)}ms)`, c0X + 12, r0Y + 42);
+    ctx.fillText(`• ${sampleWep.name.split(' ')[0]}: ${sampleWep.damage.toFixed(1)} DMG (${(sampleWep.cooldown * 1000).toFixed(0)}ms)`, c0X + 12, r0Y + 50);
 
     // Steppers: [- LVL] and [+ LVL]
     const sBtnH = 22;
     const s1W = 54;
     const s1X = c0X + 12, s2X = s1X + s1W + 8;
-    const s1Y = r0Y + 64;
+    const s1Y = r0Y + 68;
 
     const isHovLvlDec = mouseX >= s1X && mouseX <= s1X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
-    drawStoneButton(ctx, s1X, s1Y, s1W, sBtnH, { text: '- LVL', isHover: isHovLvlDec, isPressed: isHovLvlDec && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, s1X, s1Y, s1W, sBtnH, { text: '- LVL', variant: 'stepper', isHover: isHovLvlDec, isPressed: isHovLvlDec && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: s1X, y: s1Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1584,7 +1582,7 @@ export const DeveloperSanctumUI = {
     });
 
     const isHovLvlInc = mouseX >= s2X && mouseX <= s2X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
-    drawStoneButton(ctx, s2X, s1Y, s1W, sBtnH, { text: '+ LVL', isHover: isHovLvlInc, isPressed: isHovLvlInc && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, s2X, s1Y, s1W, sBtnH, { text: '+ LVL', variant: 'stepper', isHover: isHovLvlInc, isPressed: isHovLvlInc && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: s2X, y: s1Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1595,7 +1593,7 @@ export const DeveloperSanctumUI = {
     });
 
     // Preset pills: Lv 1, Lv 3, Lv 5
-    const pLvlY = r0Y + 96;
+    const pLvlY = r0Y + 98;
     const pLvls = [
       { label: 'Lv 1', val: 1, w: 48 },
       { label: 'Lv 3', val: 3, w: 48 },
@@ -1605,13 +1603,13 @@ export const DeveloperSanctumUI = {
     pLvls.forEach(pl => {
       const isSel = _devMods.weaponLevel === pl.val;
       const isHov = mouseX >= curPLX && mouseX <= curPLX + pl.w && mouseY >= pLvlY && mouseY <= pLvlY + sBtnH;
-      drawStoneButton(ctx, curPLX, pLvlY, pl.w, sBtnH, {
+      drawCraftedButton(ctx, curPLX, pLvlY, pl.w, sBtnH, {
         text: pl.label,
+        variant: 'secondary',
         isSelected: isSel,
-        isPrimary: isSel,
         isHover: isHov,
         isPressed: isHov && isMouseDown,
-        fontSize: 9
+        fontSize: 8.5
       });
       const thisVal = pl.val;
       _clickZones.push({
@@ -1628,14 +1626,14 @@ export const DeveloperSanctumUI = {
     // ───────────────────────────────────────────────────────────
     // CARD 2: ARCANE BOW DAMAGE (+0% to +150%)
     // ───────────────────────────────────────────────────────────
-    drawStoneCard(ctx, c1X, r0Y, cardW, cardH, { accentColor: 'emerald', chamfer: 5 });
-    ctx.font = 'bold 10.5px Cinzel, serif';
-    ctx.fillStyle = '#4ade80';
-    ctx.fillText(`🏹 BOW DAMAGE: +${Math.round(_devMods.bowDamageBonus * 100)}%`, c1X + 12, r0Y + 8);
-
-    ctx.font = '9.5px monospace';
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillText('Real Projectile Damage Multiplier', c1X + 12, r0Y + 24);
+    drawModificationStation(ctx, c1X, r0Y, cardW, cardH, {
+      id: 'bow_dmg',
+      title: 'ARCANE BOW DAMAGE',
+      subtitle: 'Real Projectile Damage Multiplier',
+      currentValText: `+${Math.round(_devMods.bowDamageBonus * 100)}%`,
+      accent: 'emerald',
+      isArmed: _devMods.enabled
+    });
 
     const bowBase = WeaponFactory.create('bow', 'Common', null, _devMods.weaponLevel).damage;
     const hRank = (GameState.TALENTS && GameState.TALENTS.hunters_focus) || 0;
@@ -1644,13 +1642,15 @@ export const DeveloperSanctumUI = {
     const bowHitDmg = Math.max(1, Math.round(bowBase * bowEffMult));
     const skelHits = Math.ceil(10 / bowHitDmg);
 
-    ctx.fillText(`• Arrow Strike: ${bowHitDmg} DMG`, c1X + 12, r0Y + 42);
-    ctx.fillText(`• Skeleton (10 HP): ${skelHits} hit${skelHits === 1 ? ' (1-SHOT!)' : 's'}`, c1X + 12, r0Y + 54);
+    ctx.font = Typography.getFont(Typography.ROLES.CODE_MONO, { size: 11 });
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`• Arrow Strike: ${bowHitDmg} DMG`, c1X + 12, r0Y + 38);
+    ctx.fillText(`• Skeleton (10 HP): ${skelHits} hit${skelHits === 1 ? ' (1-SHOT!)' : 's'}`, c1X + 12, r0Y + 50);
 
     // Steppers: [-25%] and [+25%]
     const b1X = c1X + 12, b2X = b1X + s1W + 8;
     const isHovBowDec = mouseX >= b1X && mouseX <= b1X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
-    drawStoneButton(ctx, b1X, s1Y, s1W, sBtnH, { text: '-25%', isHover: isHovBowDec, isPressed: isHovBowDec && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, b1X, s1Y, s1W, sBtnH, { text: '-25%', variant: 'stepper', isHover: isHovBowDec, isPressed: isHovBowDec && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: b1X, y: s1Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1660,7 +1660,7 @@ export const DeveloperSanctumUI = {
     });
 
     const isHovBowInc = mouseX >= b2X && mouseX <= b2X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
-    drawStoneButton(ctx, b2X, s1Y, s1W, sBtnH, { text: '+25%', isHover: isHovBowInc, isPressed: isHovBowInc && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, b2X, s1Y, s1W, sBtnH, { text: '+25%', variant: 'stepper', isHover: isHovBowInc, isPressed: isHovBowInc && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: b2X, y: s1Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1680,13 +1680,13 @@ export const DeveloperSanctumUI = {
     bowPresets.forEach(bp => {
       const isSel = Math.abs(_devMods.bowDamageBonus - bp.val) < 0.01;
       const isHov = mouseX >= curPBX && mouseX <= curPBX + bp.w && mouseY >= pLvlY && mouseY <= pLvlY + sBtnH;
-      drawStoneButton(ctx, curPBX, pLvlY, bp.w, sBtnH, {
+      drawCraftedButton(ctx, curPBX, pLvlY, bp.w, sBtnH, {
         text: bp.label,
+        variant: 'secondary',
         isSelected: isSel,
-        isPrimary: isSel,
         isHover: isHov,
         isPressed: isHov && isMouseDown,
-        fontSize: 9
+        fontSize: 8.5
       });
       const thisVal = bp.val;
       _clickZones.push({
@@ -1702,14 +1702,14 @@ export const DeveloperSanctumUI = {
     // ───────────────────────────────────────────────────────────
     // CARD 3: MELEE ATTACK DAMAGE (+0% to +150%)
     // ───────────────────────────────────────────────────────────
-    drawStoneCard(ctx, c2X, r0Y, cardW, cardH, { accentColor: 'violet', chamfer: 5 });
-    ctx.font = 'bold 10.5px Cinzel, serif';
-    ctx.fillStyle = '#c084fc';
-    ctx.fillText(`🗡️ MELEE DAMAGE: +${Math.round(_devMods.meleeDamageBonus * 100)}%`, c2X + 12, r0Y + 8);
-
-    ctx.font = '9.5px monospace';
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillText('Blade & Melee Impact Multiplier', c2X + 12, r0Y + 24);
+    drawModificationStation(ctx, c2X, r0Y, cardW, cardH, {
+      id: 'melee_dmg',
+      title: 'MELEE DAMAGE',
+      subtitle: 'Blade & Melee Impact Multiplier',
+      currentValText: `+${Math.round(_devMods.meleeDamageBonus * 100)}%`,
+      accent: 'violet',
+      isArmed: _devMods.enabled
+    });
 
     const mBase = WeaponFactory.create(_selectedWeaponId, _selectedRarity, null, _devMods.weaponLevel).damage;
     let wBonus = 0;
@@ -1720,13 +1720,15 @@ export const DeveloperSanctumUI = {
     const mHitDmg = Math.max(1, Math.round(mBase * mEffMult));
     const mCritDmg = Math.round(mHitDmg * 1.75);
 
-    ctx.fillText(`• Swing Damage: ${mHitDmg} DMG`, c2X + 12, r0Y + 42);
-    ctx.fillText(`• Critical Strike: ${mCritDmg} DMG`, c2X + 12, r0Y + 54);
+    ctx.font = Typography.getFont(Typography.ROLES.CODE_MONO, { size: 11 });
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`• Swing Damage: ${mHitDmg} DMG`, c2X + 12, r0Y + 38);
+    ctx.fillText(`• Critical Strike: ${mCritDmg} DMG`, c2X + 12, r0Y + 50);
 
     // Steppers: [-25%] and [+25%]
     const m1X = c2X + 12, m2X = m1X + s1W + 8;
     const isHovMelDec = mouseX >= m1X && mouseX <= m1X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
-    drawStoneButton(ctx, m1X, s1Y, s1W, sBtnH, { text: '-25%', isHover: isHovMelDec, isPressed: isHovMelDec && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, m1X, s1Y, s1W, sBtnH, { text: '-25%', variant: 'stepper', isHover: isHovMelDec, isPressed: isHovMelDec && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: m1X, y: s1Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1736,7 +1738,7 @@ export const DeveloperSanctumUI = {
     });
 
     const isHovMelInc = mouseX >= m2X && mouseX <= m2X + s1W && mouseY >= s1Y && mouseY <= s1Y + sBtnH;
-    drawStoneButton(ctx, m2X, s1Y, s1W, sBtnH, { text: '+25%', isHover: isHovMelInc, isPressed: isHovMelInc && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, m2X, s1Y, s1W, sBtnH, { text: '+25%', variant: 'stepper', isHover: isHovMelInc, isPressed: isHovMelInc && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: m2X, y: s1Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1750,13 +1752,13 @@ export const DeveloperSanctumUI = {
     bowPresets.forEach(bp => {
       const isSel = Math.abs(_devMods.meleeDamageBonus - bp.val) < 0.01;
       const isHov = mouseX >= curPMX && mouseX <= curPMX + bp.w && mouseY >= pLvlY && mouseY <= pLvlY + sBtnH;
-      drawStoneButton(ctx, curPMX, pLvlY, bp.w, sBtnH, {
+      drawCraftedButton(ctx, curPMX, pLvlY, bp.w, sBtnH, {
         text: bp.label,
+        variant: 'secondary',
         isSelected: isSel,
-        isPrimary: isSel,
         isHover: isHov,
         isPressed: isHov && isMouseDown,
-        fontSize: 9
+        fontSize: 8.5
       });
       const thisVal = bp.val;
       _clickZones.push({
@@ -1772,25 +1774,28 @@ export const DeveloperSanctumUI = {
     // ───────────────────────────────────────────────────────────
     // CARD 4: SPECIAL ABILITY COOLDOWN (1.0s to 5.0s)
     // ───────────────────────────────────────────────────────────
-    drawStoneCard(ctx, c0X, r1Y, cardW, cardH, { accentColor: 'azure', chamfer: 5 });
     const currentCd = _devMods.specialCooldownSec !== null ? _devMods.specialCooldownSec : PlayerStats.getSpecialCooldown();
-    ctx.font = 'bold 10.5px Cinzel, serif';
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillText(`🌀 SPECIAL COOLDOWN: ${currentCd.toFixed(1)}s`, c0X + 12, r1Y + 8);
+    drawModificationStation(ctx, c0X, r1Y, cardW, cardH, {
+      id: 'cooldown',
+      title: 'CONSECRATED COOLDOWN',
+      subtitle: 'Weapon Special Recovery Rate',
+      currentValText: `${currentCd.toFixed(1)}s`,
+      accent: 'azure',
+      isArmed: _devMods.enabled
+    });
 
-    ctx.font = '9.5px monospace';
+    ctx.font = Typography.getFont(Typography.ROLES.CODE_MONO, { size: 11 });
     ctx.fillStyle = '#cbd5e1';
-    ctx.fillText('Weapon Special (Q) Recovery Rate', c0X + 12, r1Y + 24);
-    ctx.fillText(`• Effective Cadence: ${currentCd.toFixed(1)}s`, c0X + 12, r1Y + 42);
-    ctx.fillText(`• Status: ${currentCd <= 1.5 ? '⚡ RAPID RECOVERY' : (currentCd <= 3.0 ? 'Accelerated Rate' : 'Standard Rate')}`, c0X + 12, r1Y + 54);
+    ctx.fillText(`• Effective Cadence: ${currentCd.toFixed(1)}s`, c0X + 12, r1Y + 38);
+    ctx.fillText(`• Status: ${currentCd <= 1.5 ? 'RAPID RECOVERY' : (currentCd <= 3.0 ? 'Accelerated Rate' : 'Standard Rate')}`, c0X + 12, r1Y + 50);
 
-    const s2Y = r1Y + 64;
-    const pCdY = r1Y + 96;
+    const s2Y = r1Y + 68;
+    const pCdY = r1Y + 98;
 
     // Steppers: [-0.5s] and [+0.5s]
     const cd1X = c0X + 12, cd2X = cd1X + s1W + 8;
     const isHovCdDec = mouseX >= cd1X && mouseX <= cd1X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
-    drawStoneButton(ctx, cd1X, s2Y, s1W, sBtnH, { text: '-0.5s', isHover: isHovCdDec, isPressed: isHovCdDec && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, cd1X, s2Y, s1W, sBtnH, { text: '-0.5s', variant: 'stepper', isHover: isHovCdDec, isPressed: isHovCdDec && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: cd1X, y: s2Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1801,7 +1806,7 @@ export const DeveloperSanctumUI = {
     });
 
     const isHovCdInc = mouseX >= cd2X && mouseX <= cd2X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
-    drawStoneButton(ctx, cd2X, s2Y, s1W, sBtnH, { text: '+0.5s', isHover: isHovCdInc, isPressed: isHovCdInc && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, cd2X, s2Y, s1W, sBtnH, { text: '+0.5s', variant: 'stepper', isHover: isHovCdInc, isPressed: isHovCdInc && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: cd2X, y: s2Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1822,13 +1827,13 @@ export const DeveloperSanctumUI = {
     cdPresets.forEach(cp => {
       const isSel = _devMods.specialCooldownSec !== null && Math.abs(_devMods.specialCooldownSec - cp.val) < 0.05;
       const isHov = mouseX >= curPCDX && mouseX <= curPCDX + cp.w && mouseY >= pCdY && mouseY <= pCdY + sBtnH;
-      drawStoneButton(ctx, curPCDX, pCdY, cp.w, sBtnH, {
+      drawCraftedButton(ctx, curPCDX, pCdY, cp.w, sBtnH, {
         text: cp.label,
+        variant: 'secondary',
         isSelected: isSel,
-        isPrimary: isSel,
         isHover: isHov,
         isPressed: isHov && isMouseDown,
-        fontSize: 9
+        fontSize: 8.5
       });
       const thisVal = cp.val;
       _clickZones.push({
@@ -1844,23 +1849,25 @@ export const DeveloperSanctumUI = {
     // ───────────────────────────────────────────────────────────
     // CARD 5: BONUS MAX HEALTH BUFFER (+0 to +40 HP)
     // ───────────────────────────────────────────────────────────
-    drawStoneCard(ctx, c1X, r1Y, cardW, cardH, { accentColor: 'crimson', chamfer: 5 });
-    ctx.font = 'bold 10.5px Cinzel, serif';
-    ctx.fillStyle = '#fca5a5';
-    ctx.fillText(`❤️ BONUS MAX HP: +${_devMods.bonusMaxHp} HP`, c1X + 12, r1Y + 8);
-
-    ctx.font = '9.5px monospace';
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillText('Sandbox Survivability Vitality Buffer', c1X + 12, r1Y + 24);
+    drawModificationStation(ctx, c1X, r1Y, cardW, cardH, {
+      id: 'max_hp',
+      title: 'MAXIMUM VITALITY',
+      subtitle: 'Sandbox Vitality Buffer',
+      currentValText: `+${_devMods.bonusMaxHp} HP`,
+      accent: 'crimson',
+      isArmed: _devMods.enabled
+    });
 
     const effHp = Math.min(50, PlayerStats.getEffectiveMaxHp() + (_devMods.bonusMaxHp || 0));
-    ctx.fillText(`• Effective Health: ${effHp} / 50 HP`, c1X + 12, r1Y + 42);
-    ctx.fillText(`• Vitality Buffer: +${_devMods.bonusMaxHp} HP`, c1X + 12, r1Y + 54);
+    ctx.font = Typography.getFont(Typography.ROLES.CODE_MONO, { size: 11 });
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`• Effective Health: ${effHp} / 50 HP`, c1X + 12, r1Y + 38);
+    ctx.fillText(`• Vitality Buffer: +${_devMods.bonusMaxHp} HP`, c1X + 12, r1Y + 50);
 
     // Steppers: [-10 HP] and [+10 HP]
     const hp1X = c1X + 12, hp2X = hp1X + s1W + 8;
     const isHovHpDec = mouseX >= hp1X && mouseX <= hp1X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
-    drawStoneButton(ctx, hp1X, s2Y, s1W, sBtnH, { text: '-10 HP', isHover: isHovHpDec, isPressed: isHovHpDec && isMouseDown, fontSize: 8.5 });
+    drawCraftedButton(ctx, hp1X, s2Y, s1W, sBtnH, { text: '-10 HP', variant: 'stepper', isHover: isHovHpDec, isPressed: isHovHpDec && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: hp1X, y: s2Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1870,7 +1877,7 @@ export const DeveloperSanctumUI = {
     });
 
     const isHovHpInc = mouseX >= hp2X && mouseX <= hp2X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
-    drawStoneButton(ctx, hp2X, s2Y, s1W, sBtnH, { text: '+10 HP', isHover: isHovHpInc, isPressed: isHovHpInc && isMouseDown, fontSize: 8.5 });
+    drawCraftedButton(ctx, hp2X, s2Y, s1W, sBtnH, { text: '+10 HP', variant: 'stepper', isHover: isHovHpInc, isPressed: isHovHpInc && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: hp2X, y: s2Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1890,13 +1897,13 @@ export const DeveloperSanctumUI = {
     hpPresets.forEach(hpP => {
       const isSel = _devMods.bonusMaxHp === hpP.val;
       const isHov = mouseX >= curPHPX && mouseX <= curPHPX + hpP.w && mouseY >= pCdY && mouseY <= pCdY + sBtnH;
-      drawStoneButton(ctx, curPHPX, pCdY, hpP.w, sBtnH, {
+      drawCraftedButton(ctx, curPHPX, pCdY, hpP.w, sBtnH, {
         text: hpP.label,
+        variant: 'secondary',
         isSelected: isSel,
-        isPrimary: isSel,
         isHover: isHov,
         isPressed: isHov && isMouseDown,
-        fontSize: 9
+        fontSize: 8.5
       });
       const thisVal = hpP.val;
       _clickZones.push({
@@ -1912,24 +1919,26 @@ export const DeveloperSanctumUI = {
     // ───────────────────────────────────────────────────────────
     // CARD 6: DAMAGE RESISTANCE (+0% to +45%)
     // ───────────────────────────────────────────────────────────
-    drawStoneCard(ctx, c2X, r1Y, cardW, cardH, { accentColor: 'gold', chamfer: 5 });
-    ctx.font = 'bold 10.5px Cinzel, serif';
-    ctx.fillStyle = '#fde68a';
-    ctx.fillText(`🛡️ RESISTANCE: +${Math.round(_devMods.damageResistanceBonus * 100)}%`, c2X + 12, r1Y + 8);
-
-    ctx.font = '9.5px monospace';
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillText('Flat Incoming Damage Mitigation', c2X + 12, r1Y + 24);
+    drawModificationStation(ctx, c2X, r1Y, cardW, cardH, {
+      id: 'resistance',
+      title: 'DAMAGE RESISTANCE',
+      subtitle: 'Flat Incoming Mitigation',
+      currentValText: `+${Math.round(_devMods.damageResistanceBonus * 100)}%`,
+      accent: 'gold',
+      isArmed: _devMods.enabled
+    });
 
     const normalRes = PlayerStats.getDamageResistance();
     const effRes = Math.min(0.60, normalRes + (_devMods.damageResistanceBonus || 0));
-    ctx.fillText(`• Total Mitigation: ${Math.round(effRes * 100)}% (Max 60%)`, c2X + 12, r1Y + 42);
-    ctx.fillText(`• 10 DMG Strike -> Deals ${Math.max(1, Math.round(10 * (1 - effRes)))} DMG`, c2X + 12, r1Y + 54);
+    ctx.font = Typography.getFont(Typography.ROLES.CODE_MONO, { size: 11 });
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(`• Total Mitigation: ${Math.round(effRes * 100)}% (Max 60%)`, c2X + 12, r1Y + 38);
+    ctx.fillText(`• 10 DMG Strike -> Deals ${Math.max(1, Math.round(10 * (1 - effRes)))} DMG`, c2X + 12, r1Y + 50);
 
     // Steppers: [-10%] and [+10%]
     const res1X = c2X + 12, res2X = res1X + s1W + 8;
     const isHovResDec = mouseX >= res1X && mouseX <= res1X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
-    drawStoneButton(ctx, res1X, s2Y, s1W, sBtnH, { text: '-10%', isHover: isHovResDec, isPressed: isHovResDec && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, res1X, s2Y, s1W, sBtnH, { text: '-10%', variant: 'stepper', isHover: isHovResDec, isPressed: isHovResDec && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: res1X, y: s2Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1939,7 +1948,7 @@ export const DeveloperSanctumUI = {
     });
 
     const isHovResInc = mouseX >= res2X && mouseX <= res2X + s1W && mouseY >= s2Y && mouseY <= s2Y + sBtnH;
-    drawStoneButton(ctx, res2X, s2Y, s1W, sBtnH, { text: '+10%', isHover: isHovResInc, isPressed: isHovResInc && isMouseDown, fontSize: 9 });
+    drawCraftedButton(ctx, res2X, s2Y, s1W, sBtnH, { text: '+10%', variant: 'stepper', isHover: isHovResInc, isPressed: isHovResInc && isMouseDown, fontSize: 8.5 });
     _clickZones.push({
       x: res2X, y: s2Y, w: s1W, h: sBtnH,
       action: () => {
@@ -1959,13 +1968,13 @@ export const DeveloperSanctumUI = {
     resPresets.forEach(rp => {
       const isSel = Math.abs(_devMods.damageResistanceBonus - rp.val) < 0.01;
       const isHov = mouseX >= curPRESX && mouseX <= curPRESX + rp.w && mouseY >= pCdY && mouseY <= pCdY + sBtnH;
-      drawStoneButton(ctx, curPRESX, pCdY, rp.w, sBtnH, {
+      drawCraftedButton(ctx, curPRESX, pCdY, rp.w, sBtnH, {
         text: rp.label,
+        variant: 'secondary',
         isSelected: isSel,
-        isPrimary: isSel,
         isHover: isHov,
         isPressed: isHov && isMouseDown,
-        fontSize: 9
+        fontSize: 8.5
       });
       const thisVal = rp.val;
       _clickZones.push({
@@ -1987,11 +1996,12 @@ export const DeveloperSanctumUI = {
     // Button 1: Reset All Modifiers
     const rstW = 180;
     const isHovRst = mouseX >= gridX && mouseX <= gridX + rstW && mouseY >= actY && mouseY <= actY + actH;
-    drawStoneButton(ctx, gridX, actY, rstW, actH, {
-      text: '↺ RESET MODIFIERS',
+    drawCraftedButton(ctx, gridX, actY, rstW, actH, {
+      text: 'RESET MODIFIERS',
+      variant: 'danger',
       isHover: isHovRst,
       isPressed: isHovRst && isMouseDown,
-      fontSize: 10
+      fontSize: 11
     });
     _clickZones.push({
       x: gridX, y: actY, w: rstW, h: actH,
@@ -2012,13 +2022,13 @@ export const DeveloperSanctumUI = {
     const armW = 230;
     const armX = gridX + rstW + 14;
     const isHovArm = mouseX >= armX && mouseX <= armX + armW && mouseY >= actY && mouseY <= actY + actH;
-    drawStoneButton(ctx, armX, actY, armW, actH, {
-      text: _devMods.enabled ? '✓ SANDBOX MODS ARMED' : 'ENABLE SANDBOX MODS',
-      isPrimary: _devMods.enabled,
+    drawCraftedButton(ctx, armX, actY, armW, actH, {
+      text: _devMods.enabled ? 'SANDBOX MODS ARMED' : 'ENABLE SANDBOX MODS',
+      variant: _devMods.enabled ? 'primary' : 'secondary',
       isSelected: _devMods.enabled,
       isHover: isHovArm,
       isPressed: isHovArm && isMouseDown,
-      fontSize: 10
+      fontSize: 11
     });
     _clickZones.push({
       x: armX, y: actY, w: armW, h: actH,
@@ -2032,12 +2042,12 @@ export const DeveloperSanctumUI = {
     const depW = w - 36 - (rstW + 14 + armW + 14);
     const depX = armX + armW + 14;
     const isHovDepTab = mouseX >= depX && mouseX <= depX + depW && mouseY >= actY && mouseY <= actY + actH;
-    drawStoneButton(ctx, depX, actY, depW, actH, {
-      text: '⚔ APPLY & DEPLOY IN SANDBOX',
-      isPrimary: true,
+    drawCraftedButton(ctx, depX, actY, depW, actH, {
+      text: 'APPLY & DEPLOY IN SANDBOX',
+      variant: 'primary',
       isHover: isHovDepTab,
       isPressed: isHovDepTab && isMouseDown,
-      fontSize: 10.5
+      fontSize: 11.5
     });
     _clickZones.push({
       x: depX, y: actY, w: depW, h: actH,
@@ -2051,79 +2061,90 @@ export const DeveloperSanctumUI = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // TAB 5: EXPEDITION CONFIG (Starting Max Health Slider 1 - 50)
+  // TAB 5: EXPEDITION CONFIG (The Vitality Calibration Altar)
   // ─────────────────────────────────────────────────────────────
   _drawTabConfig(ctx, x, y, w, h, mouseX, mouseY) {
     ctx.save();
     const isMouseDown = InputManager.MOUSE_STATE ? !!InputManager.MOUSE_STATE.isDown : false;
 
-    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.font = 'bold 11.5px Cinzel, serif';
     ctx.fillStyle = '#fde68a';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('EXPEDITION HEALTH CALIBRATION', x + 18, y + 12);
+    ctx.fillText('◈ THE VITALITY CALIBRATION ALTAR · EXPEDITION HEALTH ◈', x + 18, y + 12);
 
     ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
     ctx.fillStyle = '#94a3b8';
     ctx.fillText('Calibrate Rowan’s starting maximum health. Constraint: 1 <= Max HP <= 50. Health bar, damage, and healing scale authentically.', x + 18, y + 27);
 
-    // Health Readout Display Card
-    const boxY = y + 48;
-    const boxH = 92;
-    drawStoneCard(ctx, x + 18, boxY, w - 36, boxH, {
-      isSelected: true,
-      accentColor: _selectedMaxHp <= 5 ? 'crimson' : (_selectedMaxHp >= 40 ? 'emerald' : 'gold'),
-      chamfer: 6
-    });
+    // Carved Stone Barometer Instrument Plinth
+    const boxY = y + 46;
+    const boxH = 116;
+    drawVitalityInstrument(ctx, x + 18, boxY, w - 36, boxH, _selectedMaxHp, 50);
 
-    ctx.font = 'bold 24px monospace';
+    ctx.font = Typography.getFont(Typography.ROLES.TITLE_SCREEN, { size: 20 });
     ctx.fillStyle = _selectedMaxHp <= 5 ? '#ef4444' : (_selectedMaxHp >= 40 ? '#4ade80' : '#fde68a');
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`STARTING MAX HP: ${_selectedMaxHp} / 50`, x + w / 2, boxY + 28);
+    ctx.fillText(`HP ${_selectedMaxHp} / 50 · VITALITY CALIBRATION`, x + w / 2, boxY + 22);
 
-    // Visual Segmented Health Bar
-    const barW = Math.min(360, w - 80);
-    const barH = 12;
-    const barX = x + (w - barW) / 2;
-    const barY = boxY + 48;
-
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.6)';
-    ctx.lineWidth = 1;
-    drawChamferedPanel(ctx, barX, barY, barW, barH, 3);
-    ctx.fill(); ctx.stroke();
-
-    const fillW = Math.max(2, Math.round((_selectedMaxHp / 50) * (barW - 2)));
-    ctx.fillStyle = _selectedMaxHp <= 5 ? '#ef4444' : (_selectedMaxHp >= 40 ? '#4ade80' : '#fde68a');
-    drawChamferedPanel(ctx, barX + 1, barY + 1, fillW, barH - 2, 2);
+    // Challenge Lore Badge Slab below the gauge
+    const chY = boxY + boxH + 14;
+    const chH = 34;
+    const chW = w - 36;
+    ctx.fillStyle = 'rgba(10, 6, 18, 0.90)';
+    roundRect(ctx, x + 18, chY, chW, chH, 4);
     ctx.fill();
 
-    ctx.font = 'italic 10.5px "Crimson Text", Georgia, serif';
-    ctx.fillStyle = '#94a3b8';
-    let challengeHint = 'Standard Resilience Balanced';
-    if (_selectedMaxHp === 1) challengeHint = '⚠️ HARDCORE CRUCIBLE · ONE HIT DEATH · NO MISTAKES';
-    else if (_selectedMaxHp <= 5) challengeHint = 'Critical Fragility · Extremely Dangerous Descent';
-    else if (_selectedMaxHp === 50) challengeHint = 'Maximum Fortification · Full Vitality Buffer';
-    ctx.fillText(challengeHint, x + w / 2, boxY + 76);
+    let chCol = 'rgba(201, 168, 76, 0.40)';
+    let challengeHint = 'STANDARD EXPEDITION TRIAL · AUTHENTIC DESCENT RESILIENCE';
+    let challengeSub = 'Standard health pool matching canonical dungeon crawler balance.';
+    if (_selectedMaxHp === 1) {
+      chCol = '#ef4444';
+      challengeHint = 'HARDCORE CRUCIBLE · ONE HIT DEATH · NO MISTAKES PERMITTED';
+      challengeSub = 'A single blow from any beast or trap will end Lord Rowan’s descent instantly.';
+    } else if (_selectedMaxHp <= 5) {
+      chCol = '#f87171';
+      challengeHint = 'CRITICAL FRAGILITY TRIAL · EXTREMELY HIGH COMBAT LETHALITY';
+      challengeSub = 'Surviving multiple enemy encounters requires flawless dodging and parrying.';
+    } else if (_selectedMaxHp >= 45) {
+      chCol = '#10b981';
+      challengeHint = 'TITAN CONSECRATION · MAXIMUM FORTIFICATION BUFFER';
+      challengeSub = 'Massive life reserve allows deep testing of late-floor trials and boss patterns.';
+    }
 
-    // Stepper Controls: [-10] [-1] [+] [+10] using drawStoneButton
-    const stepY = boxY + boxH + 16;
+    ctx.strokeStyle = chCol;
+    ctx.lineWidth = 1.2;
+    roundRect(ctx, x + 18, chY, chW, chH, 4);
+    ctx.stroke();
+
+    ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 11.5 });
+    ctx.fillStyle = (_selectedMaxHp <= 5) ? '#fca5a5' : ((_selectedMaxHp >= 45) ? '#6ee7b7' : '#fde68a');
+    ctx.textAlign = 'center';
+    ctx.fillText(challengeHint, x + w / 2, chY + 11);
+
+    ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 12 });
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillText(challengeSub, x + w / 2, chY + 24);
+
+    // Stepper Controls: [-10] [-1] [+] [+10] using crafted dials
+    const stepY = chY + chH + 16;
     const stepBtns = [
       { label: '-10 HP', delta: -10 },
       { label: '-1 HP', delta: -1 },
       { label: '+1 HP', delta: 1 },
       { label: '+10 HP', delta: 10 }
     ];
-    const sBtnW = 96, sBtnH = 32;
-    const sStartX = x + (w - (stepBtns.length * sBtnW + (stepBtns.length - 1) * 10)) / 2;
+    const sBtnW = 104, sBtnH = 32;
+    const sStartX = x + (w - (stepBtns.length * sBtnW + (stepBtns.length - 1) * 12)) / 2;
 
     stepBtns.forEach((btn, idx) => {
-      const bx = sStartX + idx * (sBtnW + 10);
+      const bx = sStartX + idx * (sBtnW + 12);
       const isHover = mouseX >= bx && mouseX <= bx + sBtnW && mouseY >= stepY && mouseY <= stepY + sBtnH;
 
-      drawStoneButton(ctx, bx, stepY, sBtnW, sBtnH, {
+      drawCraftedButton(ctx, bx, stepY, sBtnW, sBtnH, {
         text: btn.label,
+        variant: 'stepper',
         isHover,
         isPressed: isHover && isMouseDown,
         fontSize: 10.5
@@ -2143,7 +2164,7 @@ export const DeveloperSanctumUI = {
     ctx.font = 'bold 10px Cinzel, serif';
     ctx.fillStyle = '#cbd5e1';
     ctx.textAlign = 'center';
-    ctx.fillText('QUICK PRESET CALIBRATIONS:', x + w / 2, preY);
+    ctx.fillText('◈ QUICK PRESET TABLETS ◈', x + w / 2, preY);
 
     const presets = [
       { label: 'HARDCORE (1 HP)', val: 1 },
@@ -2151,20 +2172,20 @@ export const DeveloperSanctumUI = {
       { label: 'FORTIFIED (25 HP)', val: 25 },
       { label: 'MAXIMUM (50 HP)', val: 50 }
     ];
-    const pBtnW = 120, pBtnH = 28;
-    const pStartX = x + (w - (presets.length * pBtnW + (presets.length - 1) * 8)) / 2;
-    const pBtnsY = preY + 10;
+    const pBtnW = 138, pBtnH = 30;
+    const pStartX = x + (w - (presets.length * pBtnW + (presets.length - 1) * 10)) / 2;
+    const pBtnsY = preY + 12;
 
     presets.forEach((pr, idx) => {
-      const px = pStartX + idx * (pBtnW + 8);
+      const px = pStartX + idx * (pBtnW + 10);
       const isSelected = _selectedMaxHp === pr.val;
       const isHover = mouseX >= px && mouseX <= px + pBtnW && mouseY >= pBtnsY && mouseY <= pBtnsY + pBtnH;
 
-      drawStoneButton(ctx, px, pBtnsY, pBtnW, pBtnH, {
+      drawCraftedButton(ctx, px, pBtnsY, pBtnW, pBtnH, {
         text: pr.label,
+        variant: 'secondary',
         isSelected,
         isHover,
-        isPrimary: isSelected,
         isPressed: isHover && isMouseDown,
         fontSize: 9.5
       });
@@ -2182,16 +2203,16 @@ export const DeveloperSanctumUI = {
   },
 
   // ─────────────────────────────────────────────────────────────
-  // TAB 5: ACCESS STATUS (Permanent vs Temporary, Milestone Checks)
+  // TAB 6: ACCESS STATUS (The Sealed Covenant Ledger)
   // ─────────────────────────────────────────────────────────────
   _drawTabStatus(ctx, x, y, w, h, mouseX, mouseY) {
     ctx.save();
 
-    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.font = 'bold 11.5px Cinzel, serif';
     ctx.fillStyle = '#fde68a';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('SANCTUM ACCESS CONSECRATION & VERIFICATION', x + 18, y + 12);
+    ctx.fillText('◈ THE SEALED COVENANT LEDGER · AUTHORIZATION & PROVENANCE ◈', x + 18, y + 12);
 
     ctx.font = 'italic 10px "Crimson Text", Georgia, serif';
     ctx.fillStyle = '#94a3b8';
@@ -2207,17 +2228,11 @@ export const DeveloperSanctumUI = {
     const statH = h - 60;
 
     // Split into 2 Balanced Panels
-    const cardGap = 12;
+    const cardGap = 14;
     const cardW = Math.round((statW - cardGap) / 2);
 
-    // Left Card: Authentication & Lifetime Progression
-    drawStonePanel(ctx, x + 18, statY, cardW, statH, {
-      chamfer: 6,
-      outerBorderColor: isPermUnlocked ? 'rgba(74, 222, 128, 0.45)' : 'rgba(71, 85, 105, 0.45)',
-      innerBorderColor: 'rgba(201, 168, 76, 0.20)',
-      hasCornerBrackets: true,
-      bracketLen: 10
-    });
+    // Left Card: The Basalt Covenant Stele with Embossed Wax/Blood Seal
+    drawCovenantTablet(ctx, x + 18, statY, cardW, statH, isPermUnlocked);
 
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
@@ -2226,35 +2241,129 @@ export const DeveloperSanctumUI = {
     const authStatusText = isPermUnlocked
       ? 'AUTHORIZATION: PERMANENT CONSECRATED'
       : (isTempSession ? 'AUTHORIZATION: TEMPORARY SESSION' : 'AUTHORIZATION: SEALED');
-    ctx.fillText(authStatusText, x + 32, statY + 16);
+    ctx.fillText(authStatusText, x + 34, statY + 20);
 
-    ctx.font = '10.5px monospace';
-    ctx.fillStyle = '#cbd5e1';
-    ctx.fillText(`• Fallback Cipher (090329): ${isFallbackConsumed ? 'CONSUMED' : 'AVAILABLE'}`, x + 32, statY + 44);
-    ctx.fillText(`• The Last Witness: ${SaveSystem.isTheLastWitnessUnlocked() ? 'UNLOCKED (8/8 Milestones)' : 'LOCKED'}`, x + 32, statY + 68);
-    ctx.fillText(`• The Last Ember Vision: ${SaveSystem.isGiftCinematicCompleted() ? 'COMPLETED' : 'NOT COMPLETED'}`, x + 32, statY + 92);
-    ctx.fillText(`• Permanent Consecration: ${isPermUnlocked ? 'ACTIVE' : (isPermEligible ? 'ELIGIBLE' : 'LOCKED')}`, x + 32, statY + 116);
+    // 4 Milestone & Status Carved Tablets
+    const statItems = [
+      {
+        title: 'FALLBACK CIPHER (090329)',
+        status: isFallbackConsumed ? 'CONSUMED' : 'AVAILABLE',
+        color: isFallbackConsumed ? '#f87171' : '#4ade80',
+        desc: 'One-time emergency master key for immediate entry'
+      },
+      {
+        title: 'THE LAST WITNESS CONSECRATION',
+        status: SaveSystem.isTheLastWitnessUnlocked() ? 'UNLOCKED (8/8 MILESTONES)' : 'LOCKED',
+        color: SaveSystem.isTheLastWitnessUnlocked() ? '#4ade80' : '#f87171',
+        desc: 'Canonical trial milestone checks fulfilled across the deep'
+      },
+      {
+        title: 'THE LAST EMBER VISION REVELATION',
+        status: SaveSystem.isGiftCinematicCompleted() ? 'COMPLETED' : 'SEALED',
+        color: SaveSystem.isGiftCinematicCompleted() ? '#4ade80' : '#94a3b8',
+        desc: 'Sacred introductory vision received at the threshold'
+      },
+      {
+        title: 'PERMANENT SANCTUM COVENANT',
+        status: isPermUnlocked ? 'ACTIVE' : (isPermEligible ? 'ELIGIBLE' : 'LOCKED'),
+        color: isPermUnlocked ? '#4ade80' : (isPermEligible ? '#ffd700' : '#94a3b8'),
+        desc: 'Unrestricted master gateway consecration for eternity'
+      }
+    ];
 
-    // Right Card: Expedition Integrity Guarantees
-    const rCardX = x + 18 + cardW + cardGap;
-    drawStonePanel(ctx, rCardX, statY, cardW, statH, {
-      chamfer: 6,
-      outerBorderColor: 'rgba(239, 68, 68, 0.45)',
-      innerBorderColor: 'rgba(201, 168, 76, 0.20)',
-      hasCornerBrackets: true,
-      bracketLen: 10
+    const sCardY = statY + 48;
+    const sCardH = 48;
+    const sCardGap = 8;
+
+    statItems.forEach((it, idx) => {
+      const iy = sCardY + idx * (sCardH + sCardGap);
+      ctx.fillStyle = 'rgba(8, 5, 16, 0.88)';
+      roundRect(ctx, x + 32, iy, cardW - 28, sCardH, 4);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.22)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, x + 32, iy, cardW - 28, sCardH, 4);
+      ctx.stroke();
+
+      ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 11.5 });
+      ctx.fillStyle = '#fde68a';
+      ctx.fillText(it.title, x + 44, iy + 10);
+
+      ctx.textAlign = 'right';
+      ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 11 });
+      ctx.fillStyle = it.color;
+      ctx.fillText(`[ ${it.status} ]`, x + 32 + cardW - 42, iy + 10);
+
+      ctx.textAlign = 'left';
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11 });
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(it.desc, x + 44, iy + 26);
     });
 
-    ctx.font = 'bold 12px Cinzel, serif';
-    ctx.fillStyle = '#fca5a5';
-    ctx.fillText('EXPEDITION INTEGRITY GUARANTEES', rCardX + 16, statY + 16);
+    // Covenant Oath Rubric at bottom
+    ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11.5 });
+    ctx.fillStyle = '#a78bfa';
+    ctx.fillText('◈ The covenant seals the threshold. Only the worthy may pass unmeasured. ◈', x + 34, statY + statH - 22);
 
-    ctx.font = '10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('1. All runs started here are tagged Developer Expeditions.', rCardX + 16, statY + 44);
-    ctx.fillText('2. Speedrun times, PBs, and speed achievements are disabled.', rCardX + 16, statY + 68);
-    ctx.fillText('3. Standard combat, enemies, sanity, and portals function fully.', rCardX + 16, statY + 92);
-    ctx.fillText('4. Returning to title preserves authentic save progression.', rCardX + 16, statY + 116);
+    // Right Card: Expedition Integrity Guarantees (Riveted Steel Plaque)
+    const rCardX = x + 18 + cardW + cardGap;
+    drawIntegrityGuaranteesPlaque(ctx, rCardX, statY, cardW, statH);
+
+    ctx.font = Typography.getFont(Typography.ROLES.TITLE_SCREEN, { size: 14 });
+    ctx.fillStyle = '#fca5a5';
+    ctx.fillText('EXPEDITION INTEGRITY GUARANTEES', rCardX + 24, statY + 20);
+
+    const tenets = [
+      {
+        tag: '[ ISOLATION ]',
+        tenet: 'All runs started here are tagged Developer Expeditions.',
+        sub: 'Sandboxed state ensures zero contamination of genuine player runs.'
+      },
+      {
+        tag: '[ LEADERBOARDS ]',
+        tenet: 'Speedrun times, PBs, and speed achievements are disabled.',
+        sub: 'High scores and competitive leaderboards remain 100% fair.'
+      },
+      {
+        tag: '[ COMBAT AUTHENTICITY ]',
+        tenet: 'Standard combat, enemies, sanity, and portals function fully.',
+        sub: 'True mechanical physics and boss AI scale authentically.'
+      },
+      {
+        tag: '[ SAVE INTEGRITY ]',
+        tenet: 'Returning to title preserves authentic save progression.',
+        sub: 'Developer sandbox session parameters vanish cleanly on exit.'
+      }
+    ];
+
+    tenets.forEach((tn, idx) => {
+      const iy = sCardY + idx * (sCardH + sCardGap);
+      ctx.fillStyle = 'rgba(10, 6, 18, 0.88)';
+      roundRect(ctx, rCardX + 20, iy, cardW - 40, sCardH, 4);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.35)';
+      ctx.lineWidth = 1;
+      roundRect(ctx, rCardX + 20, iy, cardW - 40, sCardH, 4);
+      ctx.stroke();
+
+      ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 11 });
+      ctx.fillStyle = '#ef4444';
+      ctx.fillText(tn.tag, rCardX + 30, iy + 10);
+      const tagW = ctx.measureText(tn.tag).width;
+
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_UI, { weight: '600', size: 11.5 });
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillText(tn.tenet, rCardX + 30 + tagW + 8, iy + 10);
+
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11 });
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(tn.sub, rCardX + 30, iy + 26);
+    });
+
+    // Verification Seal at bottom of right plaque
+    ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 11 });
+    ctx.fillStyle = '#ffd700';
+    ctx.fillText('◈ SANCTUM SEAL OF ISOLATION · VERIFIED CRYPTOGRAPHIC INTEGRITY ◈', rCardX + 24, statY + statH - 22);
 
     ctx.restore();
   },
@@ -2288,16 +2397,16 @@ export const DeveloperSanctumUI = {
     const wep = _getPreviewWeapon();
 
     ctx.textAlign = 'left';
-    ctx.font = '11.5px monospace';
+    ctx.font = Typography.getFont(Typography.ROLES.BODY_UI, { size: 12.5 });
     ctx.fillStyle = '#cbd5e1';
     const lineStartX = mx + 40;
     ctx.fillText(`• Target Floor: Floor ${_selectedFloor} — ${cfg.name.toUpperCase()}`, lineStartX, my + 54);
-    ctx.fillText(`• Starting Weapon: ${wep.icon} ${wep.name} (${wep.damage.toFixed(1)} DMG)`, lineStartX, my + 74);
+    ctx.fillText(`• Starting Weapon: ${wep.name} (${wep.damage.toFixed(1)} DMG)`, lineStartX, my + 74);
     ctx.fillText(`• Weapon Rarity: ${wep.rarity.name.toUpperCase()}  ·  Weapon Level: Lv ${_devMods && _devMods.enabled ? _devMods.weaponLevel : 1}`, lineStartX, my + 94);
     ctx.fillText(`• Starting Health: ${_selectedMaxHp} / 50 HP`, lineStartX, my + 114);
 
     if (_devMods && _devMods.enabled) {
-      ctx.font = 'bold 9.5px monospace';
+      ctx.font = Typography.getFont(Typography.ROLES.CODE_MONO, { size: 11 });
       ctx.fillStyle = '#4ade80';
       ctx.fillText(`• Sandbox Modifiers: Bow +${Math.round(_devMods.bowDamageBonus * 100)}% | Melee +${Math.round(_devMods.meleeDamageBonus * 100)}% | Res +${Math.round(_devMods.damageResistanceBonus * 100)}%`, lineStartX, my + 132);
     }
@@ -2308,19 +2417,19 @@ export const DeveloperSanctumUI = {
       chamfer: 3
     });
 
-    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 11 });
     ctx.fillStyle = '#fca5a5';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('DEVELOPER EXPEDITION — OFFICIAL SPEEDRUN RECORDS DISABLED', mx + mw / 2, my + 158);
 
     if (GameState.SANCTUM_TEMP_AUTHORIZED && !SaveSystem.isSanctumPermanentUnlocked()) {
-      ctx.font = 'italic 10.5px "Crimson Text", Georgia, serif';
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 12 });
       ctx.fillStyle = '#fde68a';
       ctx.fillText('Notice: This first deployment will persistently consume the one-time fallback cipher.', mx + mw / 2, my + 188);
     }
 
-    // Deploy and Cancel Buttons using drawStoneButton
+    // Deploy and Cancel Buttons using drawCraftedButton
     const btnW = 140, btnH = 34;
     const depX = mx + mw / 2 - btnW - 10;
     const canX = mx + mw / 2 + 10;
@@ -2328,21 +2437,21 @@ export const DeveloperSanctumUI = {
 
     // Deploy Button
     const isHoverDep = mouseX >= depX && mouseX <= depX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
-    drawStoneButton(ctx, depX, btnY, btnW, btnH, {
+    drawCraftedButton(ctx, depX, btnY, btnW, btnH, {
       text: 'DEPLOY NOW',
-      icon: '⚔',
-      isPrimary: true,
+      variant: 'primary',
       isHover: isHoverDep,
       isPressed: isHoverDep && isMouseDown,
-      fontSize: 11
+      fontSize: 12
     });
     _clickZones.push({ x: depX, y: btnY, w: btnW, h: btnH, action: () => this.deploy() });
 
     // Cancel Button
     const isHoverCan = mouseX >= canX && mouseX <= canX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
-    drawStoneButton(ctx, canX, btnY, btnW, btnH, {
+    drawCraftedButton(ctx, canX, btnY, btnW, btnH, {
       text: 'CANCEL',
       hotkey: '[ESC]',
+      variant: 'secondary',
       isHover: isHoverCan,
       isPressed: isHoverCan && isMouseDown,
       fontSize: 10.5

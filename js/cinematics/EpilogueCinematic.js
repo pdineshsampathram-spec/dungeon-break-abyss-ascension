@@ -313,13 +313,9 @@ export const EpilogueCinematic = {
     // Record epilogue view in SaveSystem
     try {
       SaveSystem.recordCinematicUnlock('epilogue_unmeasured_hour');
-      SaveSystem.recordCompletionMilestone('epilogue_unmeasured_hour', {
-        branch: this.branch,
-        timestamp: Date.now()
-      });
       SaveSystem.saveProfile();
     } catch (e) {
-      console.warn('[EpilogueCinematic] Could not record epilogue milestone:', e);
+      console.warn('[EpilogueCinematic] Could not record epilogue cinematic unlock:', e);
     }
 
     const branch = this.branch || 'hero';

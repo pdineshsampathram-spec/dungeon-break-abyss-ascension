@@ -211,21 +211,21 @@ export const Interactables = {
     if (s.type === 'fury') {
       P.furyBuffTimer = 45;
       P.dmgBoost = 1.5;
-      ParticleRenderer.showFloatingText('🔥 +50% FURY BURST (45s)', s.x, s.y - 0.8, '#ef4444', 14, true);
+      ParticleRenderer.showFloatingText('+50% FURY BURST (45s)', s.x, s.y - 0.8, '#ef4444', 14, true);
     } else if (s.type === 'vitality') {
       P.maxHp += 2;
       P.hp = Math.min(P.maxHp, P.hp + 5);
       P.displayHp = P.hp;
-      ParticleRenderer.showFloatingText('💧 +5 HP & VITALITY BOOST!', s.x, s.y - 0.8, '#10b981', 14, true);
+      ParticleRenderer.showFloatingText('+5 HP & VITALITY BOOST!', s.x, s.y - 0.8, '#10b981', 14, true);
     } else if (s.type === 'astral') {
       const lv = GameState.LV || 1;
       const astralSan = Math.max(20, Math.round(40 - (lv - 1) * 2));
       P.san = Math.min(100, P.san + astralSan);
       P.mindShieldTimer = 45;
-      ParticleRenderer.showFloatingText(`✨ +${astralSan} SANITY & MIND SHIELD!`, s.x, s.y - 0.8, '#c084fc', 14, true);
+      ParticleRenderer.showFloatingText(`+${astralSan} SANITY & MIND SHIELD!`, s.x, s.y - 0.8, '#c084fc', 14, true);
     } else if (s.type === 'wind') {
       P.hasteBuffTimer = 45;
-      ParticleRenderer.showFloatingText('💨 +35% HASTE & SPEED (45s)', s.x, s.y - 0.8, '#38bdf8', 14, true);
+      ParticleRenderer.showFloatingText('+35% HASTE & SPEED (45s)', s.x, s.y - 0.8, '#38bdf8', 14, true);
     }
 
     EventBus.emit('shrine:activated', s);

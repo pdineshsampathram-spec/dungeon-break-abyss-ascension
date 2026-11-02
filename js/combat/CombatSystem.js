@@ -180,7 +180,7 @@ export const CombatSystem = {
     };
 
     SoundManager.snd('talent_unlock');
-    ParticleRenderer.showFloatingText('⚔️ ' + (w.id.toUpperCase()) + ' SPECIAL!', P.x, P.y - 0.8, '#fde68a', 14, true);
+    ParticleRenderer.showFloatingText((w.id.toUpperCase()) + ' SPECIAL!', P.x, P.y - 0.8, '#fde68a', 14, true);
 
     const baseDmg = w.damage !== undefined ? w.damage : (w.dmg !== undefined ? w.dmg : 3.5);
     const boost = P.dmgBoost || 1.0;

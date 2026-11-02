@@ -18,6 +18,8 @@ import { SoundManager } from '../audio/AudioManager.js';
 import { MusicManager } from '../audio/MusicManager.js';
 import { InputManager } from '../core/InputManager.js';
 import { MobileControls } from './MobileControls.js';
+import { Typography } from '../rendering/Typography.js';
+import { PixelIconRenderer } from '../rendering/PixelIconRenderer.js';
 import {
   ButtonArtManager,
   drawStoneButton,
@@ -213,7 +215,7 @@ export const SettingsUI = {
         val: typeof settings.musicVolume === 'number' ? settings.musicVolume : 0.7,
         theme: '#c084fc',
         glow: 'rgba(168, 85, 247, 0.55)',
-        icon: '♪',
+        icon: 'audio',
         type: 'violet'
       },
       {
@@ -223,7 +225,7 @@ export const SettingsUI = {
         val: typeof settings.sfxVolume === 'number' ? settings.sfxVolume : 0.85,
         theme: '#38bdf8',
         glow: 'rgba(56, 189, 248, 0.55)',
-        icon: '⚡',
+        icon: 'spark',
         type: 'azure'
       }
     ];
@@ -441,9 +443,9 @@ export const SettingsUI = {
     // Button 2: Reset Audio Defaults
     const rAudioX = leftBayX + 10 + audioBtnW + 8;
     const isHoverResetAudio = mouseX >= rAudioX && mouseX <= rAudioX + audioBtnW && mouseY >= audioUtilY && mouseY <= audioUtilY + audioBtnH;
-    drawStoneButton(ctx, '↺ RESET AUDIO', rAudioX, audioUtilY, audioBtnW, audioBtnH, {
+    drawStoneButton(ctx, 'RESET AUDIO', rAudioX, audioUtilY, audioBtnW, audioBtnH, {
       isHover: isHoverResetAudio,
-      fontSize: 8.5
+      fontSize: 10
     });
 
     _zones.push({
@@ -478,10 +480,10 @@ export const SettingsUI = {
 
     // 1. Chronometric Temporal Regulator Header
     ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 11px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 12 });
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('⚡ CHRONOMETRIC TEMPORAL REGULATOR', rightBayX + 16, bayY + 12);
+    ctx.fillText('CHRONOMETRIC TEMPORAL REGULATOR', rightBayX + 16, bayY + 12);
 
     ctx.strokeStyle = 'rgba(201, 168, 76, 0.35)';
     ctx.lineWidth = 1;
@@ -513,9 +515,9 @@ export const SettingsUI = {
     const resetBtnY = dialBoxY + 8;
     const isHoverReset = mouseX >= resetBtnX && mouseX <= resetBtnX + resetBtnW && mouseY >= resetBtnY && mouseY <= resetBtnY + resetBtnH;
 
-    drawStoneButton(ctx, '↺ RESET 1.00×', resetBtnX, resetBtnY, resetBtnW, resetBtnH, {
+    drawStoneButton(ctx, 'RESET 1.00×', resetBtnX, resetBtnY, resetBtnW, resetBtnH, {
       isHover: isHoverReset,
-      fontSize: 8.5
+      fontSize: 10
     });
 
     _zones.push({
@@ -787,11 +789,11 @@ export const SettingsUI = {
     const m1X = rightBayX + 10;
     const isHoverM1 = mouseX >= m1X && mouseX <= m1X + mobBtnW && mouseY >= mobY && mouseY <= mobY + mobBtnH;
 
-    drawStoneButton(ctx, isEditing ? '✔ DONE EDITING' : '◈ TOUCH CONTROLS', m1X, mobY, mobBtnW, mobBtnH, {
+    drawStoneButton(ctx, isEditing ? 'DONE EDITING' : '◈ TOUCH CONTROLS', m1X, mobY, mobBtnW, mobBtnH, {
       isHover: isHoverM1,
       isSelected: isEditing,
       variant: isEditing ? 'primary' : 'normal',
-      fontSize: 8.5
+      fontSize: 10
     });
 
     _zones.push({

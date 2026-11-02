@@ -33,6 +33,8 @@ import { WEAPON_TYPES, WEAPON_KEYS } from '../weapons/WeaponRegistry.js';
 import { RARITIES } from '../data/weapons.js';
 import { WeaponFactory } from '../weapons/WeaponFactory.js';
 import { FullscreenHelper } from './FullscreenHelper.js';
+import { Typography } from '../rendering/Typography.js';
+import { PixelIconRenderer } from '../rendering/PixelIconRenderer.js';
 
 let _titleBtns = [];
 let _focusedIndex = 0;
@@ -1971,14 +1973,16 @@ function drawPreDescentLoadoutModal(ctx, dt, mouseX, mouseY) {
     roundRect(ctx, wx, wepY, cardW, cardH, 4);
     ctx.fill(); ctx.stroke();
 
-    ctx.font = '18px sans-serif';
+    PixelIconRenderer.draw(ctx, wid || 'sword', wx + cardW / 2, wepY + 16, 22, {
+      glow: isSelected,
+      glowColor: '#ffd700'
+    });
+
+    ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10.5 });
+    ctx.fillStyle = isSelected ? '#ffffff' : '#cbd5e1';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText(wdata.icon || '⚔️', wx + cardW / 2, wepY + 6);
-
-    ctx.font = 'bold 9.5px Cinzel, serif';
-    ctx.fillStyle = isSelected ? '#ffffff' : '#cbd5e1';
-    ctx.fillText(wdata.name.split(' ')[0], wx + cardW / 2, wepY + 32);
+    ctx.fillText(wdata.name.split(' ')[0], wx + cardW / 2, wepY + 34);
   });
 
   // 2. Rarity Selection Row
@@ -2655,10 +2659,10 @@ export const MainMenu = {
       ctx.fill(); ctx.stroke();
 
       ctx.fillStyle = !isMobileMode ? '#ffffff' : '#94a3b8';
-      ctx.font = 'bold 8.5px Cinzel, serif';
+      ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10.5 });
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('⌨ KEYBOARD / PC', pcBtnX + pcBtnW / 2, swBtnY + swBtnH / 2);
+      ctx.fillText('KEYBOARD / PC', pcBtnX + pcBtnW / 2, swBtnY + swBtnH / 2);
 
       // Mobile Toggle Button
       ctx.fillStyle = isMobileMode ? 'rgba(56, 189, 248, 0.28)' : (isHoverMob ? 'rgba(30, 41, 59, 0.8)' : 'rgba(15, 23, 42, 0.6)');
@@ -2668,7 +2672,7 @@ export const MainMenu = {
       ctx.fill(); ctx.stroke();
 
       ctx.fillStyle = isMobileMode ? '#ffffff' : '#94a3b8';
-      ctx.fillText('📱 TOUCH / MOBILE', mobBtnX + mobBtnW / 2, swBtnY + swBtnH / 2);
+      ctx.fillText('TOUCH / MOBILE', mobBtnX + mobBtnW / 2, swBtnY + swBtnH / 2);
 
       // Six Chapter Folio Tabs
       const chapterTabs = [
@@ -2866,9 +2870,9 @@ export const MainMenu = {
 
           // 3 Touch Action Buttons Mockup
           const mBtns = [
-            { label: '⚔ ATK', col: '#ef4444', r: 24, x: cx - 85, y: mobBoxY + 62, desc: 'Primary Strike' },
-            { label: '🏹 SHOOT', col: '#34d399', r: 20, x: cx, y: mobBoxY + 62, desc: 'Piercing Bow' },
-            { label: '✨ SPECIAL', col: '#fbbf24', r: 20, x: cx + 85, y: mobBoxY + 62, desc: 'Weapon Ability' }
+            { label: 'ATTACK', col: '#ef4444', r: 24, x: cx - 85, y: mobBoxY + 62, desc: 'Primary Strike' },
+            { label: 'SHOOT', col: '#34d399', r: 20, x: cx, y: mobBoxY + 62, desc: 'Piercing Bow' },
+            { label: 'SPECIAL', col: '#fbbf24', r: 20, x: cx + 85, y: mobBoxY + 62, desc: 'Weapon Ability' }
           ];
           mBtns.forEach(b => {
             ctx.beginPath();
@@ -3188,11 +3192,11 @@ export const MainMenu = {
 
         // Counter-strike cue
         ctx.fillStyle = hasRecovered ? '#86efac' : '#38bdf8';
-        ctx.font = 'bold 9px Cinzel, serif';
+        ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10.5 });
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         const hitCue = hasRecovered
-          ? '✔ COUNTER-STRIKE HIT! 100% GHOST HEALTH RESTORED'
+          ? 'COUNTER-STRIKE HIT! 100% GHOST HEALTH RESTORED'
           : 'COUNTER-ATTACK WITHIN 2.5s TO RESTORE GHOST HEALTH';
         ctx.fillText(hitCue, cx, by + barH + 8);
 
@@ -3271,31 +3275,31 @@ export const MainMenu = {
         ctx.fill(); ctx.stroke();
 
         ctx.fillStyle = isDemonstrating ? '#4ade80' : (isHoverDemo ? '#ffffff' : '#38bdf8');
-        ctx.font = 'bold 9px Cinzel, serif';
+        ctx.font = Typography.getFont(Typography.ROLES.BUTTON_SECONDARY, { size: 11 });
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const btnLabel = isDemonstrating
-          ? '↺ EXECUTING CADENCE...'
-          : (isFinished ? '↺ REPLAY DEMONSTRATION' : '↺ DEMONSTRATE CADENCE');
+          ? 'EXECUTING CADENCE...'
+          : (isFinished ? 'REPLAY DEMONSTRATION' : 'DEMONSTRATE CADENCE');
         ctx.fillText(btnLabel, cx, demoBtnY + demoBtnH / 2);
 
         // Status explanation message
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         ctx.fillStyle = isFinished ? '#86efac' : (isDemonstrating && demoTime >= 1.5 ? '#fde68a' : 'rgba(148, 163, 184, 0.9)');
-        ctx.font = 'italic 8.5px Crimson Text, serif';
+        ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11.5 });
         let demoMsg = 'Press [ DEMONSTRATE CADENCE ] to view counter-strike recovery.';
         if (isDemonstrating) {
           demoMsg = demoTime < 1.5
             ? `Retaliation window counting down (${remSec}s left)...`
             : `Counter-strike landed at 1.5s! Siphoning ghost health...`;
         } else if (isFinished) {
-          demoMsg = '✔ Recovery confirmed! 100% ghost health restored to permanent vitality.';
+          demoMsg = 'Recovery confirmed! 100% ghost health restored to permanent vitality.';
         }
         ctx.fillText(demoMsg, cx, ty + 132);
 
         ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
-        ctx.font = '8px monospace';
+        ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { size: 10.5 });
         ctx.fillText('Demonstration illustrates cadence; final state holds for inspection.', cx, ty + 152);
 
       } else if (_fieldGuideChapter === 4) {
@@ -3441,15 +3445,14 @@ export const MainMenu = {
           ctx.stroke();
 
           ctx.fillStyle = '#ffd700';
-          ctx.font = 'bold 9.5px Cinzel, serif';
+          ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 12 });
           ctx.textAlign = 'center';
           ctx.textBaseline = 'top';
-          ctx.fillText('⏱ SPEEDRUNNING & ACTIVE TIMER INTEGRITY', cx, infY + 12);
+          ctx.fillText('SPEEDRUNNING & ACTIVE TIMER INTEGRITY', cx, infY + 12);
           ctx.fillStyle = '#e2e8f0';
-          ctx.font = '9px "Crimson Text", serif';
+          ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 12 });
           ctx.fillText('Official floor & run timers track true unscaled wall-clock seconds.', cx, infY + 34);
           ctx.fillStyle = '#94a3b8';
-          ctx.font = 'italic 8.5px "Crimson Text", serif';
           ctx.fillText('Speed adjustments alter combat pace, not official completion records.', cx, infY + 54);
           ctx.fillText('Hall of Fame records, achievements, and speed splits remain pure.', cx, infY + 72);
 
@@ -3569,9 +3572,9 @@ export const MainMenu = {
           title: 'THE VANGUARD ARSENAL',
           subtitle: 'Armed Engagement, Poise Stagger & Weapon Switching',
           points: isMobileMode ? [
-            { tag: '[ ⚔ ATK BUTTON ]', desc: 'Tap the red attack button to execute primary weapon cleave. Deals heavy physical poise stagger to frontline foes.' },
-            { tag: '[ 🏹 SHOOT BUTTON ]', desc: 'Tap or hold the green bow button to fire piercing arrows directly across the arena without manually swapping weapons.' },
-            { tag: '[ ✨ SPECIAL BUTTON ]', desc: 'Tap the gold special button to trigger Rowan\'s consecrated weapon-specific relic ability.' }
+            { tag: '[ ATTACK BUTTON ]', desc: 'Tap the red attack button to execute primary weapon cleave. Deals heavy physical poise stagger to frontline foes.' },
+            { tag: '[ BOW BUTTON ]', desc: 'Tap or hold the green bow button to fire piercing arrows directly across the arena without manually swapping weapons.' },
+            { tag: '[ SPECIAL BUTTON ]', desc: 'Tap the gold special button to trigger Rowan\'s consecrated weapon-specific relic ability.' }
           ] : [
             { tag: '[ SPACE / LMB ]', desc: 'Execute primary weapon cleave. Deals heavy physical poise damage and staggers frontliners.' },
             { tag: '[ HOLD SHIFT ]', desc: 'Draw and fire the Longbow for piercing projectile shots directly without manual weapon swapping.' },

@@ -137,8 +137,8 @@ export const GameState = {
 
   // 3-Slot Weapon Inventory (Starts with Sword in Slot 1 and Hunter's Bow in Slot 2)
   weaponSlots: [
-    { id: 'sword', name: '⚔️ Sword', damage: 3.5, dmg: 3.5, range: 1.5, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false },
-    { id: 'bow', name: "🏹 Hunter's Bow", damage: 3.5, dmg: 3.5, range: 12.0, cooldown: 0.42, cd: 0.42, projectile: true, projSpd: 9.5, projDmg: 3.5, projRange: 14, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 5 },
+    { id: 'sword', name: 'Steel Sword', damage: 3.5, dmg: 3.5, range: 1.5, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false },
+    { id: 'bow', name: "Hunter's Bow", damage: 3.5, dmg: 3.5, range: 12.0, cooldown: 0.42, cd: 0.42, projectile: true, projSpd: 9.5, projDmg: 3.5, projRange: 14, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 5 },
     null
   ],
   activeWeaponSlot: 0,
@@ -274,8 +274,8 @@ export const GameState = {
     // Reset 3 weapon slots: Slot 1 Sword, Slot 2 Hunter's Bow, Slot 3 Empty
     const baseWepLevel = (this.IS_DEVELOPER_EXPEDITION && this.DEV_MODS && this.DEV_MODS.enabled && this.DEV_MODS.weaponLevel) ? this.DEV_MODS.weaponLevel : 1;
     this.weaponSlots = [
-      { id: 'sword', name: '⚔️ Steel Sword', damage: 4.0, dmg: 4.0, range: 1.5, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false, level: baseWepLevel },
-      { id: 'bow', name: "🏹 Hunter's Bow", damage: 4.0, dmg: 4.0, range: 12.0, cooldown: 0.42, cd: 0.42, projectile: true, projSpd: 9.5, projDmg: 4.0, projRange: 14, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 5, level: baseWepLevel },
+      { id: 'sword', name: 'Steel Sword', damage: 4.0, dmg: 4.0, range: 1.5, cooldown: 0.32, cd: 0.32, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 6, projectile: false, level: baseWepLevel },
+      { id: 'bow', name: "Hunter's Bow", damage: 4.0, dmg: 4.0, range: 12.0, cooldown: 0.42, cd: 0.42, projectile: true, projSpd: 9.5, projDmg: 4.0, projRange: 14, rarity: { name: 'Common', col: '#94a3b8', glow: 'rgba(148,163,184,0.4)' }, prefix: null, suffix: null, sg: 5, level: baseWepLevel },
       null
     ];
     this.activeWeaponSlot = 0;

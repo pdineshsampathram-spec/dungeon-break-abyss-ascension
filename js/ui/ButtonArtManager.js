@@ -8,6 +8,9 @@
 //  - Unmistakable gold-highlighted selected states & tactile pressed responses
 // =====================================================================
 
+import { Typography } from '../rendering/Typography.js';
+import { PixelIconRenderer } from '../rendering/PixelIconRenderer.js';
+
 let _initialized = false;
 let _stonePattern = null;
 
@@ -371,7 +374,7 @@ export function drawStonePanel(ctx, x, y, w, h, options = {}) {
 
     // Drop shadow
     ctx.fillStyle = '#02040a';
-    ctx.font = 'bold 15px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.TITLE_SCREEN, { size: 16 });
     ctx.fillText(title, rx + rw / 2 + 1, ry + 17);
 
     // Glowing face text
@@ -383,7 +386,7 @@ export function drawStonePanel(ctx, x, y, w, h, options = {}) {
 
     if (subtitle) {
       ctx.fillStyle = 'rgba(148, 163, 184, 0.85)';
-      ctx.font = 'italic 10.5px "Crimson Text", serif';
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11.5 });
       ctx.fillText(subtitle, rx + rw / 2, ry + 36);
     }
     ctx.restore();
@@ -749,12 +752,17 @@ export function drawStoneButton(ctx, arg1, arg2, arg3, arg4, arg5, arg6) {
     let curX = rx + leftPad;
 
     if (icon) {
-      ctx.fillStyle = isDisabled ? '#475569' : iconCol;
-      ctx.font = '11px Cinzel, serif';
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(icon, curX, textY);
-      curX += 16;
+      if (typeof icon === 'string' && icon.length > 2) {
+        PixelIconRenderer.draw(ctx, icon, curX + 7, textY, 14);
+        curX += 18;
+      } else {
+        ctx.fillStyle = isDisabled ? '#475569' : iconCol;
+        ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { size: 12 });
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(icon, curX, textY);
+        curX += 16;
+      }
     }
 
     // Label with drop shadow
@@ -778,7 +786,7 @@ export function drawStoneButton(ctx, arg1, arg2, arg3, arg4, arg5, arg6) {
       ctx.fillStyle = isDanger
         ? 'rgba(252, 165, 165, 0.75)'
         : (isFocused ? 'rgba(253, 230, 138, 0.85)' : 'rgba(148, 163, 184, 0.65)');
-      ctx.font = `italic ${subFontSize}px "Crimson Text", serif`;
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: Math.max(11, subFontSize) });
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
       ctx.fillText(rightText, rx + rw - 12, textY);
@@ -791,7 +799,7 @@ export function drawStoneButton(ctx, arg1, arg2, arg3, arg4, arg5, arg6) {
     // Drop shadow
     ctx.fillStyle = '#010204';
     ctx.font = fontSpec;
-    const fullLabel = icon ? `${icon}  ${text}` : text;
+    const fullLabel = (icon && typeof icon === 'string' && icon.length <= 2) ? `${icon}  ${text}` : text;
     ctx.fillText(fullLabel, rx + rw / 2 + 1, textY + 1);
 
     // Face text
@@ -805,7 +813,7 @@ export function drawStoneButton(ctx, arg1, arg2, arg3, arg4, arg5, arg6) {
 
     if (hotkey && !subtext) {
       ctx.fillStyle = 'rgba(148, 163, 184, 0.65)';
-      ctx.font = '8px monospace';
+      ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { size: 10.5 });
       ctx.textAlign = 'right';
       ctx.fillText(hotkey, rx + rw - 8, textY);
     }
@@ -814,7 +822,7 @@ export function drawStoneButton(ctx, arg1, arg2, arg3, arg4, arg5, arg6) {
   // Custom Badge (e.g. '[5/10]')
   if (customBadge) {
     ctx.fillStyle = '#fde68a';
-    ctx.font = 'bold 8.5px monospace';
+    ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10.5 });
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     ctx.fillText(customBadge, rx + rw - 10, textY);
@@ -1062,7 +1070,7 @@ export function drawStoneSlider(ctx, x, y, w, h, val = 1.0, options = {}) {
 
   // Label and Value readout
   if (label || valueText) {
-    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.HUD_LABEL, { size: 11 });
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     ctx.fillStyle = isMuted ? '#64748b' : (isHover ? '#ffffff' : '#fde68a');
@@ -1071,7 +1079,7 @@ export function drawStoneSlider(ctx, x, y, w, h, val = 1.0, options = {}) {
     if (valueText) {
       ctx.textAlign = 'right';
       ctx.fillStyle = isMuted ? '#475569' : '#cbd5e1';
-      ctx.font = 'bold 9.5px monospace';
+      ctx.font = Typography.getFont(Typography.ROLES.HUD_VALUE, { size: 11 });
       ctx.fillText(valueText, rx + rw, ry);
     }
   }
@@ -1171,7 +1179,7 @@ export function drawStoneDivider(ctx, x, y, w, title = '', icon = '◈') {
   const rw = Math.round(w);
 
   if (title) {
-    ctx.font = 'bold 9.5px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 11 });
     ctx.fillStyle = '#fde68a';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -1285,7 +1293,7 @@ export function drawStoneBadge(ctx, arg1, arg2, arg3, arg4, arg5, arg6) {
   drawChamferedPanel(ctx, rx, ry, rw, rh, chamfer);
   ctx.stroke();
 
-  ctx.font = 'bold 8.5px Cinzel, serif';
+  ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { weight: 'bold', size: 10.5 });
   ctx.fillStyle = fg;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
