@@ -2021,11 +2021,12 @@ function drawPreDescentLoadoutModal(ctx, dt, mouseX, mouseY) {
 
   const previewWep = WeaponFactory.create(_loadoutWeaponId, _loadoutRarity);
   if (previewWep) {
+    PixelIconRenderer.draw(ctx, previewWep.icon || 'sword', mx + 38, prevY + 20, 18);
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.font = 'bold 13px Cinzel, serif';
+    ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 13 });
     ctx.fillStyle = previewWep.rarity.col || '#ffffff';
-    ctx.fillText(`${previewWep.icon} ${previewWep.name} [${previewWep.rarity.name}]`, mx + 34, prevY + 10);
+    ctx.fillText(`${previewWep.name} [${previewWep.rarity.name}]`, mx + 54, prevY + 10);
 
     ctx.font = '10.5px monospace';
     ctx.fillStyle = '#cbd5e1';

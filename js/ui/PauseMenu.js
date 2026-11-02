@@ -366,7 +366,7 @@ export const PauseMenu = {
         sub: 'Return to gameplay',
         primary: true,
         isDanger: false,
-        icon: '▶',
+        icon: 'play',
         action: () => resumeGame()
       },
       {
@@ -480,21 +480,27 @@ export const PauseMenu = {
         ctx.fillRect(bx + 6, by + 1, bw - 12, 1);
       }
 
-      // Icon
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'middle';
-      ctx.font = isPrimary ? 'bold 18px Cinzel, serif' : '16px Cinzel, serif';
-      ctx.fillStyle = isDanger ? '#ef4444' : (isPrimary ? '#ffd700' : '#c9a84c');
-      ctx.fillText(b.icon || '◈', bx + 20, by + bh / 2 - 2);
+      // Custom Pixel-Art Icon
+      if (b.icon) {
+        const iconCol = isDanger ? (_abandonConfirmedOnce ? '#fca5a5' : '#ef4444')
+          : (isPrimary ? '#ffd700' : (isHovered ? '#fde68a' : '#c9a84c'));
+        PixelIconRenderer.draw(ctx, b.icon, bx + 24, by + bh / 2, isPrimary ? 22 : 18, {
+          color: iconCol,
+          glow: isHovered || isPrimary,
+          glowColor: isDanger ? 'rgba(239, 68, 68, 0.6)' : 'rgba(245, 158, 11, 0.5)'
+        });
+      }
 
       // Plain English Main Label
-      ctx.font = isPrimary ? 'bold 14px Cinzel, serif' : 'bold 13px Cinzel, serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.font = Typography.getFont(Typography.ROLES.BUTTON_PRIMARY, { size: isPrimary ? 14 : 13 });
       ctx.fillStyle = isDanger ? (_abandonConfirmedOnce ? '#ffffff' : '#fca5a5')
         : (isHovered ? '#ffffff' : (isPrimary ? '#fde68a' : '#e2e8f0'));
       ctx.fillText(b.label, bx + 48, by + bh / 2 - 8);
 
       // Concise Subtitle
-      ctx.font = 'italic 11px "Crimson Text", serif';
+      ctx.font = Typography.getFont(Typography.ROLES.BODY_LORE, { size: 11 });
       ctx.fillStyle = isDanger ? 'rgba(252, 165, 165, 0.85)'
         : (isHovered ? 'rgba(253, 230, 138, 0.9)' : 'rgba(148, 163, 184, 0.75)');
       ctx.fillText(b.sub, bx + 48, by + bh / 2 + 12);

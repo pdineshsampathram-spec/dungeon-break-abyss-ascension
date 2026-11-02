@@ -270,11 +270,15 @@ export const SettingsUI = {
       });
 
       // Channel Icon & Title
+      if (ch.icon) {
+        const iconKey = ch.icon === '◈' ? 'soul_crystal' : ch.icon;
+        PixelIconRenderer.draw(ctx, iconKey, leftBayX + 28, cy + 17, 14, { color: ch.theme });
+      }
       ctx.fillStyle = isMuted ? '#64748b' : '#f8fafc';
-      ctx.font = 'bold 9.5px Cinzel, serif';
+      ctx.font = Typography.getFont(Typography.ROLES.HEADING_SECTION, { size: 10.5 });
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      ctx.fillText(`${ch.icon} ${ch.label}`, leftBayX + 20, cy + 9);
+      ctx.fillText(ch.label, leftBayX + 40, cy + 9);
 
       ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
       ctx.font = 'italic 8.5px "Crimson Text", serif';

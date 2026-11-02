@@ -699,3 +699,4 @@ class PixelIconRegistry {
 }
 
 export const PixelIconRenderer = new PixelIconRegistry();
+

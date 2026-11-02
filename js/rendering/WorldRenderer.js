@@ -1444,12 +1444,11 @@ export const WorldRenderer = {
         ctx.save();
         ctx.shadowColor = rar.col;
         ctx.shadowBlur = 10;
-        ctx.font = '18px serif';
+        PixelIconRenderer.draw(ctx, w.icon || 'sword', px, ipy, 20);
+        ctx.fillStyle = rar.col;
+        ctx.font = Typography.getFont(Typography.ROLES.METADATA_SMALL, { size: 8 });
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(w.icon, px, ipy);
-        ctx.fillStyle = rar.col;
-        ctx.font = 'bold 8px Cinzel, serif';
         ctx.fillText(rar.name[0], px, ipy + 14);
 
         // Floating swap prompt if player is nearby
@@ -1561,13 +1560,12 @@ export const WorldRenderer = {
         ctx.fill();
 
         // Glowing elemental orb icon
-        ctx.font = '22px serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.shadowColor = s.col;
-        ctx.shadowBlur = 16;
-        ctx.fillText(s.icon || '🔥', sx, relicY);
-        ctx.shadowBlur = 0;
+        const shrineIcon = s.type === 'vitality' ? 'heart' : (s.type === 'astral' ? 'sanity_flame' : (s.type === 'wind' ? 'speed' : 'spark'));
+        PixelIconRenderer.draw(ctx, shrineIcon, sx, relicY, 18, {
+          glow: true,
+          glowColor: s.col,
+          glowBlur: 16
+        });
 
         // Rotating magical orbital spark
         const orbAng = GameState.F * 0.08 + (s.ph || 0);
